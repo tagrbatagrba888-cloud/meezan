@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
 
-<!-- PWA Meta Tags -->
+<!-- PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ميزان">
@@ -14,15 +14,10 @@
 
 <title>ميزان | MEEZAN - تسجيل الدخول</title>
 
-<!-- Manifest -->
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 
-<!-- Icons -->
-<link rel="icon" type="image/png" sizes="32x32" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
-<link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
-<link rel="apple-touch-icon" sizes="152x152" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
-
-<!-- Fonts & Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -75,13 +70,50 @@
     min-height: 100vh;
     color: var(--text-main);
     opacity: 0;
-    transition: opacity 0.25s ease, background 0.4s ease;
+    transition: opacity 0.3s ease, background 0.4s ease;
     overflow-x: hidden;
   }
 
   body.ready { opacity: 1; }
 
-  .main-container { display: flex; width: 100%; min-height: 100vh; }
+  /* ===== زر الوضع (ثابت) ===== */
+  .theme-float {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px var(--shadow);
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .theme-float:hover {
+    transform: scale(1.1) rotate(15deg);
+    border-color: var(--accent);
+  }
+
+  [data-theme="dark"] .theme-float {
+    background: var(--primary);
+    color: var(--bg-page);
+    border-color: var(--accent);
+  }
+
+  /* ===== الحاوية الرئيسية ===== */
+  .main-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
 
   /* ===== القسم الأيسر (اللوجو) ===== */
   .brand-side {
@@ -154,7 +186,12 @@
     gap: 14px;
   }
 
-  .brand-decoration span { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .brand-decoration span {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
   .brand-decoration i { color: var(--accent); font-size: 24px; }
 
   /* ===== القسم الأيمن (الفورم) ===== */
@@ -169,53 +206,8 @@
     min-height: 100vh;
   }
 
-  .form-wrapper { width: 100%; max-width: 440px; }
+  .form-wrapper { width: 100%; max-width: 460px; }
 
-  /* ===== Topbar داخل الصفحة (يتحرك مع الصفحة) ===== */
-  .top-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    gap: 12px;
-  }
-
-  .page-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-sub);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .page-label i { color: var(--accent); }
-
-  .icon-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    color: var(--primary);
-    font-size: 17px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.25s ease;
-  }
-
-  .icon-btn:hover {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-    transform: translateY(-2px) rotate(-15deg);
-  }
-
-  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
-
-  /* ===== Form header ===== */
   .form-header { text-align: center; margin-bottom: 24px; }
   .form-header h2 { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
   .form-header p { font-size: 13.5px; color: var(--text-sub); font-weight: 500; }
@@ -366,6 +358,21 @@
     font-weight: 500;
   }
 
+  .form-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235A6B66'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 14px center;
+    background-size: 20px;
+    padding-left: 44px;
+  }
+
+  [data-theme="dark"] .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239BAEA6'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  }
+
   .form-input:focus, .form-select:focus {
     border-color: var(--primary);
     background: var(--bg-card);
@@ -397,10 +404,7 @@
     transition: all 0.2s;
   }
 
-  .toggle-password:hover {
-    color: var(--primary);
-    background: rgba(11, 61, 46, 0.08);
-  }
+  .toggle-password:hover { color: var(--primary); background: rgba(11, 61, 46, 0.08); }
 
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -429,16 +433,8 @@
 
   [data-theme="dark"] .btn-primary { color: var(--bg-page); }
 
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px var(--shadow);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 28px var(--shadow); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .btn-google {
     background: var(--bg-card);
@@ -455,22 +451,37 @@
     box-shadow: 0 8px 20px rgba(66, 133, 244, 0.2);
   }
 
-  .btn-google:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  .btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-google i { color: #4285F4; font-size: 18px; }
+
+  .btn-cancel {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1.5px solid var(--border) !important;
   }
 
-  .btn-google i {
-    color: #4285F4;
-    font-size: 18px;
+  .btn-cancel:hover {
+    background: var(--bg-card);
+    transform: translateY(-2px);
   }
+
+  .btn-confirm {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  [data-theme="dark"] .btn-confirm { color: var(--bg-page); }
+
+  .btn-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
   /* ===== Forgot Password ===== */
-  .forgot-wrapper {
-    text-align: center;
-    margin-top: 14px;
-    margin-bottom: 4px;
-  }
+  .forgot-wrapper { text-align: center; margin-top: 14px; margin-bottom: 4px; }
 
   .forgot-link {
     display: inline-flex;
@@ -486,13 +497,8 @@
     font-family: 'Cairo', sans-serif;
   }
 
-  .forgot-link:hover {
-    color: var(--primary);
-    background: var(--bg-input);
-  }
-
+  .forgot-link:hover { color: var(--primary); background: var(--bg-input); }
   [data-theme="dark"] .forgot-link:hover { color: var(--accent); }
-
   .forgot-link i { font-size: 13px; color: var(--accent); }
 
   .divider-text {
@@ -618,38 +624,204 @@
   .form-footer strong { color: var(--primary); font-weight: 800; }
   [data-theme="dark"] .form-footer strong { color: var(--accent); }
 
-  /* ===== Install Button (PWA) ===== */
-  .install-btn {
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
     display: none;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 12px;
-    margin-top: 16px;
-    border-radius: 12px;
-    background: var(--bg-input);
-    color: var(--text-main);
-    border: 2px dashed var(--border);
-    font-family: 'Cairo', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s ease;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
   }
 
-  .install-btn:hover {
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
     background: var(--bg-card);
-    border-color: var(--primary);
-    border-style: solid;
-    color: var(--primary);
+    border-radius: 22px;
+    padding: 30px 26px 24px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 92vh;
+    overflow-y: auto;
   }
 
-  .install-btn.show { display: flex; }
+  .modal-box.wide { max-width: 560px; text-align: right; }
+  .modal-box.small { max-width: 440px; }
 
-  .install-btn i { color: var(--accent); }
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
 
-  /* ===== Toast ===== */
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .modal-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .modal-header-icon { color: var(--bg-page); }
+
+  .modal-header h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 25px var(--shadow);
+  }
+
+  [data-theme="dark"] .modal-icon { color: var(--bg-page); }
+
+  .modal-icon.warning {
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+    box-shadow: 0 10px 25px rgba(230, 126, 34, 0.4);
+  }
+
+  .modal-icon.danger {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 8px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 2px dashed var(--border);
+  }
+
+  .modal-actions .btn {
+    flex: 1;
+    padding: 14px;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  /* Google Info */
+  .google-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(66, 133, 244, 0.03));
+    border: 1.5px solid rgba(66, 133, 244, 0.3);
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+
+  .google-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285F4, #34A853);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #4285F4;
+  }
+
+  .google-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .google-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .google-email {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #4285F4;
+    direction: ltr;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 3px;
+  }
+
+  .google-name {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  .modal-error {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(192, 57, 43, 0.3);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: none;
+    line-height: 1.6;
+  }
+
+  .modal-error.show { display: block; }
+
+  /* Toast خفيف */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -660,7 +832,7 @@
     padding: 14px 24px;
     border-radius: 14px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     font-weight: 700;
     font-size: 14px;
     display: flex;
@@ -680,14 +852,18 @@
   .toast.warning { border-color: var(--warning); }
   .toast.warning i { color: var(--warning); }
 
-  /* ===== Responsive ===== */
+  /* ============================================================
+     Responsive
+     ============================================================ */
   @media (max-width: 900px) {
     .main-container { flex-direction: column; }
-    .brand-side { 
-      padding: 40px 20px 30px; 
+
+    .brand-side {
+      padding: 40px 20px 30px;
       min-height: auto;
       flex: 0 0 auto;
     }
+
     .brand-logo { width: 100px; height: 100px; padding: 8px; }
     .brand-title { font-size: 32px; margin-top: 16px; letter-spacing: 1px; }
     .brand-title .divider { font-size: 24px; }
@@ -696,15 +872,19 @@
     .brand-decoration { margin-top: 16px; }
     .brand-decoration span { width: 40px; }
     .brand-decoration i { font-size: 20px; }
-    .form-side { 
-      padding: 30px 16px 40px; 
+
+    .form-side {
+      padding: 24px 16px 40px;
       flex: 1;
       min-height: auto;
       align-items: flex-start;
     }
+
     .form-wrapper { max-width: 100%; }
     .form-header h2 { font-size: 20px; }
     .form-row { grid-template-columns: 1fr; }
+
+    .theme-float { top: 14px; left: 14px; width: 42px; height: 42px; font-size: 16px; }
   }
 
   @media (max-width: 380px) {
@@ -718,20 +898,38 @@
   @media (min-width: 901px) and (max-width: 1200px) {
     .brand-logo { width: 150px; height: 150px; }
     .brand-title { font-size: 44px; }
-    .form-wrapper { max-width: 400px; }
+    .form-wrapper { max-width: 420px; }
   }
 
   @media (min-width: 1400px) {
     .brand-logo { width: 220px; height: 220px; }
     .brand-title { font-size: 64px; }
   }
+
+  /* Modal Mobile */
+  @media (max-width: 600px) {
+    .modal-box { padding: 24px 18px 20px; border-radius: 18px; }
+    .modal-icon { width: 60px; height: 60px; font-size: 24px; margin-bottom: 16px; }
+    .modal-title { font-size: 17px; }
+    .modal-message { font-size: 13px; }
+    .modal-actions { flex-direction: column-reverse; }
+    .modal-header h2 { font-size: 16px; }
+    .modal-header-icon { width: 40px; height: 40px; font-size: 16px; }
+    .google-avatar { width: 48px; height: 48px; font-size: 20px; }
+    .google-email { font-size: 12.5px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- ============ زر الوضع (ثابت) ============ -->
+<button class="theme-float" id="themeToggle" title="الوضع الليلي/النهاري">
+  <i class="fas fa-moon" id="themeIcon"></i>
+</button>
+
 <div class="main-container">
 
-  <!-- ===== القسم الأيسر: اللوجو ===== -->
+  <!-- ============ القسم الأيسر: اللوجو ============ -->
   <div class="brand-side">
     <div class="brand-content">
       <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
@@ -752,20 +950,9 @@
     </div>
   </div>
 
-  <!-- ===== القسم الأيمن: الفورم ===== -->
+  <!-- ============ القسم الأيمن: الفورم ============ -->
   <div class="form-side">
     <div class="form-wrapper">
-
-      <!-- Top Controls (يتحرك مع الصفحة) -->
-      <div class="top-controls">
-        <div class="page-label">
-          <i class="fas fa-user-circle"></i>
-          <span>مرحباً بك</span>
-        </div>
-        <button class="icon-btn" id="themeToggle" aria-label="تبديل الوضع">
-          <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
-      </div>
 
       <div class="form-header">
         <h2 id="mainTitle">تسجيل الدخول</h2>
@@ -803,7 +990,6 @@
         <span id="successText">تم تسجيل الدخول بنجاح! جاري التوجيه...</span>
       </div>
 
-      <!-- رسالة قفل التسجيل -->
       <div class="message warning" id="registrationClosedMsg">
         <i class="fas fa-lock"></i>
         <span id="regClosedText">التسجيل مغلق حالياً من قبل الإدارة</span>
@@ -845,10 +1031,10 @@
                      class="form-input" 
                      id="loginUsername" 
                      placeholder="ادخل اسم المستخدم" 
-                     autocomplete="off"
-                     autocorrect="off"
-                     autocapitalize="off"
-                     spellcheck="false"
+                     autocomplete="off" 
+                     autocorrect="off" 
+                     autocapitalize="off" 
+                     spellcheck="false" 
                      required>
             </div>
           </div>
@@ -861,10 +1047,10 @@
                      class="form-input" 
                      id="loginPassword" 
                      placeholder="ادخل كلمة السر" 
-                     autocomplete="off"
-                     autocorrect="off"
-                     autocapitalize="off"
-                     spellcheck="false"
+                     autocomplete="off" 
+                     autocorrect="off" 
+                     autocapitalize="off" 
+                     spellcheck="false" 
                      required>
               <button type="button" class="toggle-password" id="toggleLoginPassword">
                 <i class="fas fa-eye" id="loginEyeIcon"></i>
@@ -887,7 +1073,6 @@
 
           <div class="divider-text">أو</div>
 
-          <!-- Google Sign-In الحقيقي -->
           <button type="button" class="btn btn-google" id="googleLoginBtn">
             <i class="fab fa-google"></i>
             تسجيل الدخول بحساب جوجل
@@ -952,7 +1137,7 @@
           </div>
 
           <div class="form-group" id="regNidGroup" style="display: none;">
-            <label class="form-label">الرقم القومي <span class="required">*</span> <span class="hint">(14 رقم)</span></label>
+            <label class="form-label">الرقم القومي <span class="required">*</span> <span class="hint">(14 رقم — تاريخ ميلادك سيُحدد تلقائياً)</span></label>
             <div class="input-wrapper">
               <i class="fas fa-id-card input-icon"></i>
               <input type="text" class="form-input" id="regNationalId" placeholder="14 رقم" maxlength="14" style="direction:ltr;text-align:right;">
@@ -979,7 +1164,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">رقم الهاتف <span class="required">*</span></label>
+              <label class="form-label">رقم الهاتف <span class="required">*</span> <span class="hint">(فريد)</span></label>
               <div class="input-wrapper">
                 <i class="fas fa-phone input-icon"></i>
                 <input type="tel" class="form-input" id="regPhone" placeholder="01xxxxxxxxx" style="direction:ltr;text-align:right;" required>
@@ -987,7 +1172,7 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">البريد الإلكتروني <span class="required">*</span></label>
+              <label class="form-label">البريد الإلكتروني <span class="required">*</span> <span class="hint">(فريد)</span></label>
               <div class="input-wrapper">
                 <i class="fas fa-envelope input-icon"></i>
                 <input type="email" class="form-input" id="regEmail" placeholder="example@mail.com" style="direction:ltr;text-align:right;" required>
@@ -1010,12 +1195,6 @@
         </form>
       </div>
 
-      <!-- زر تثبيت PWA -->
-      <button id="installAppBtn" class="install-btn">
-        <i class="fas fa-download"></i>
-        <span>تثبيت التطبيق على الجهاز</span>
-      </button>
-
       <div class="form-footer">
         <span id="copyrightText">
           <strong><span id="footerNameAr">ميزان</span> | <span id="footerNameEn">MEEZAN</span></strong> © <span id="year"></span>
@@ -1026,7 +1205,121 @@
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ============================================================
+     🎯 نافذة إكمال بيانات Google (بدل prompt)
+     ============================================================ -->
+<div class="modal-overlay" id="googleDataModal">
+  <div class="modal-box wide">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fab fa-google"></i>
+      </div>
+      <h2>إكمال بيانات حساب Google</h2>
+    </div>
+
+    <div class="google-info" id="googleInfo">
+      <div class="google-avatar" id="googleAvatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="google-text">
+        <div class="google-email" id="googleEmail">—</div>
+        <div class="google-name" id="googleName">—</div>
+      </div>
+    </div>
+
+    <div class="modal-error" id="googleModalError"></div>
+
+    <form id="googleDataForm" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label">الاسم الكامل <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-id-badge input-icon"></i>
+          <input type="text" class="form-input" id="gFullName" placeholder="مثال: أحمد محمد علي" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">اسم المستخدم <span class="required">*</span> <span class="hint">(فريد)</span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" class="form-input" id="gUsername" placeholder="ahmed123" style="direction:ltr;text-align:right;" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">رقم الهاتف <span class="required">*</span> <span class="hint">(فريد)</span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-phone input-icon"></i>
+          <input type="tel" class="form-input" id="gPhone" placeholder="01xxxxxxxxx" style="direction:ltr;text-align:right;" required>
+        </div>
+      </div>
+
+      <!-- الرقم القومي -->
+      <div class="form-group" id="gNidGroup" style="display: none;">
+        <label class="form-label">الرقم القومي <span class="required">*</span> <span class="hint">(14 رقم)</span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-id-card input-icon"></i>
+          <input type="text" class="form-input" id="gNationalId" placeholder="14 رقم" maxlength="14" style="direction:ltr;text-align:right;">
+        </div>
+      </div>
+
+      <!-- تاريخ الميلاد -->
+      <div class="form-group" id="gBirthGroup">
+        <label class="form-label">تاريخ الميلاد <span class="required">*</span> <span class="hint" id="gBirthHint"></span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-calendar input-icon"></i>
+          <input type="date" class="form-input" id="gBirthDate">
+        </div>
+      </div>
+
+      <!-- الفرقة / المادة -->
+      <div class="form-group">
+        <label class="form-label" id="gGradeLabel">الفرقة الدراسية <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <i class="fas fa-graduation-cap input-icon" id="gGradeIcon"></i>
+          <select class="form-select" id="gGrade">
+            <option value="">— اختر —</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="googleDataCancel">
+        <i class="fas fa-times"></i> إلغاء
+      </button>
+      <button class="btn btn-confirm" id="googleDataSave">
+        <i class="fas fa-check"></i> إنشاء الحساب
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     🔔 نافذة تأكيد مخصصة
+     ============================================================ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box small">
+    <div class="modal-icon" id="confirmIcon">
+      <i class="fas fa-question-circle"></i>
+    </div>
+    <h2 class="modal-title" id="confirmTitle">تأكيد</h2>
+    <p class="modal-message" id="confirmMessage">—</p>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="confirmCancel">
+        <i class="fas fa-times"></i> إلغاء
+      </button>
+      <button class="btn btn-confirm" id="confirmOk">
+        <i class="fas fa-check"></i> تأكيد
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Toast خفيف
+     ============================================================ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
@@ -1034,7 +1327,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { 
   getAuth, GoogleAuthProvider, signInWithPopup, signOut 
@@ -1054,11 +1347,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ✅ مزود Google
 const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account'  // ← يجبر على اختيار الحساب (يختار من حسابات الجهاز)
-});
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 const $ = (id) => document.getElementById(id);
 
@@ -1150,20 +1440,76 @@ function validateEgyptianNationalId(nid, birthDate) {
 }
 
 // ============================================================
-// 📅 حقوق النشر مع السنة التلقائية
+// 📅 حقوق النشر
 // ============================================================
 function buildCopyright(data) {
   const year = new Date().getFullYear();
   const nameAr = data.siteNameAr || 'ميزان';
   const nameEn = data.siteNameEn || 'MEEZAN';
-
   if (data.copyright) {
-    return data.copyright
-      .replace(/©\s*\d{4}/g, `© ${year}`)
-      .replace(/\b20\d{2}\b/g, year);
+    return data.copyright.replace(/©\s*\d{4}/g, `© ${year}`).replace(/\b20\d{2}\b/g, year);
   }
   return `<strong>${nameAr} | ${nameEn}</strong> © ${year}`;
 }
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// 🔔 نافذة تأكيد
+// ============================================================
+let confirmResolve = null;
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد',
+      cancelText = 'إلغاء'
+    } = options;
+
+    $('confirmIcon').className = 'modal-icon';
+    if (iconType === 'warning') $('confirmIcon').classList.add('warning');
+    if (iconType === 'danger') $('confirmIcon').classList.add('danger');
+    $('confirmIcon').innerHTML = `<i class="fas ${icon}"></i>`;
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').innerHTML = message;
+    $('confirmOk').innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+    $('confirmCancel').innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
+
+    confirmResolve = resolve;
+    $('confirmModal').classList.add('show');
+  });
+}
+
+function closeConfirm(result) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
 
 // ============================================================
 // 🌙 الوضع
@@ -1203,7 +1549,7 @@ function saveCache(key, data) {
 }
 
 // ============================================================
-// 📊 حالة الصفحة
+// 📊 الحالة العامة
 // ============================================================
 let currentSettings = null;
 let studentLoginEnabled = true;
@@ -1215,6 +1561,10 @@ let currentLoginRole = 'student';
 let currentRegRole = 'student';
 let studentCategories = [];
 let teacherCategories = [];
+
+// لـ Google
+let googlePendingData = null;
+let googlePendingRole = 'student';
 
 // ============================================================
 // 🎨 تطبيق الإعدادات
@@ -1247,10 +1597,25 @@ function applySettings(data) {
 
   $('copyrightText').innerHTML = buildCopyright(data);
 
+  // قفل التسجيلين
   studentLoginEnabled = data.studentLoginEnabled !== false;
   teacherLoginEnabled = data.teacherLoginEnabled !== false;
   studentRegisterEnabled = data.studentRegisterEnabled !== false;
   teacherRegisterEnabled = data.teacherRegisterEnabled !== false;
+
+  // الرقم القومي
+  nationalIdEnabled = data.nationalIdEnabled === true;
+  if (nationalIdEnabled) {
+    $('regNidGroup').style.display = '';
+    $('birthDateHint').textContent = '(يُحدد تلقائياً من الرقم القومي)';
+    $('gNidGroup').style.display = '';
+    $('gBirthHint').textContent = '(يُحدد تلقائياً)';
+  } else {
+    $('regNidGroup').style.display = 'none';
+    $('birthDateHint').textContent = '';
+    $('gNidGroup').style.display = 'none';
+    $('gBirthHint').textContent = '';
+  }
 
   applyRoleStates();
   applyColors(data);
@@ -1427,25 +1792,6 @@ function startDisabledTimer(user) {
 }
 
 // ============================================================
-// 🍞 Toast
-// ============================================================
-let toastTimeout;
-function showToast(text, type = 'success') {
-  const toast = $('toast');
-  const icon = $('toastIcon');
-  $('toastText').textContent = text;
-  toast.className = 'toast show ' + type;
-  const icons = {
-    success: 'fa-check-circle',
-    error: 'fa-times-circle',
-    warning: 'fa-exclamation-triangle'
-  };
-  icon.className = `fas ${icons[type] || icons.success}`;
-  clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
-}
-
-// ============================================================
 // 👁️ عرض كلمة السر
 // ============================================================
 function setupPasswordToggle(btnId, inputId, iconId) {
@@ -1453,7 +1799,6 @@ function setupPasswordToggle(btnId, inputId, iconId) {
   const input = $(inputId);
   const icon = $(iconId);
   if (!btn || !input || !icon) return;
-
   btn.addEventListener('click', () => {
     const isPwd = input.type === 'password';
     input.type = isPwd ? 'text' : 'password';
@@ -1466,7 +1811,7 @@ setupPasswordToggle('toggleRegPassword', 'regPassword', 'regEyeIcon');
 setupPasswordToggle('toggleRegConfirmPassword', 'regConfirmPassword', 'regConfirmEyeIcon');
 
 // ============================================================
-// 🎯 تبديل Tabs
+// 🎯 Tabs
 // ============================================================
 document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1481,9 +1826,7 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
 
     if (targetTab === 'register') {
       const bothClosed = !studentRegisterEnabled && !teacherRegisterEnabled;
-      if (bothClosed) {
-        showRegistrationClosed('التسجيل مغلق حالياً من قبل الإدارة');
-      }
+      if (bothClosed) showRegistrationClosed();
     }
   });
 });
@@ -1522,10 +1865,34 @@ function updateGradeSelect() {
   const list = currentRegRole === 'teacher' ? teacherCategories : studentCategories;
 
   if (currentRegRole === 'teacher') {
-    label.textContent = 'المادة الدراسية';
+    label.innerHTML = 'المادة الدراسية <span class="required">*</span>';
     icon.className = 'fas fa-book input-icon';
   } else {
-    label.textContent = 'الفرقة الدراسية';
+    label.innerHTML = 'الفرقة الدراسية <span class="required">*</span>';
+    icon.className = 'fas fa-graduation-cap input-icon';
+  }
+
+  list.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+}
+
+function updateGoogleGradeSelect(role) {
+  const select = $('gGrade');
+  const label = $('gGradeLabel');
+  const icon = $('gGradeIcon');
+  select.innerHTML = '<option value="">— اختر —</option>';
+
+  const list = role === 'teacher' ? teacherCategories : studentCategories;
+
+  if (role === 'teacher') {
+    label.innerHTML = 'المادة الدراسية <span class="required">*</span>';
+    icon.className = 'fas fa-book input-icon';
+  } else {
+    label.innerHTML = 'الفرقة الدراسية <span class="required">*</span>';
     icon.className = 'fas fa-graduation-cap input-icon';
   }
 
@@ -1561,33 +1928,13 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
 // ============================================================
-// 📡 Real-time: الرقم القومي
-// ============================================================
-onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
-  if (!snap.exists()) {
-    nationalIdEnabled = false;
-    $('regNidGroup').style.display = 'none';
-    $('birthDateHint').textContent = '';
-    return;
-  }
-  const data = snap.data();
-  nationalIdEnabled = data.nationalIdEnabled === true;
-  if (nationalIdEnabled) {
-    $('regNidGroup').style.display = '';
-    $('birthDateHint').textContent = '(يُحدد تلقائياً من الرقم القومي)';
-  } else {
-    $('regNidGroup').style.display = 'none';
-    $('birthDateHint').textContent = '';
-  }
-}, (err) => console.log('nid error'));
-
-// ============================================================
 // 📡 Real-time: الفرق والمواد
 // ============================================================
 onSnapshot(doc(db, 'users', 'categories'), (snap) => {
   if (snap.exists()) {
     studentCategories = snap.data().items || [];
     if (currentRegRole === 'student') updateGradeSelect();
+    updateGoogleGradeSelect(googlePendingRole);
   }
 }, (e) => console.log('student cat error'));
 
@@ -1595,6 +1942,7 @@ onSnapshot(doc(db, 'teachers', 'categories'), (snap) => {
   if (snap.exists()) {
     teacherCategories = snap.data().items || [];
     if (currentRegRole === 'teacher') updateGradeSelect();
+    updateGoogleGradeSelect(googlePendingRole);
   }
 }, (e) => console.log('teacher cat error'));
 
@@ -1620,8 +1968,27 @@ $('regNationalId').addEventListener('input', (e) => {
   }
 });
 
+$('gNationalId').addEventListener('input', (e) => {
+  let val = cleanInput(e.target.value).replace(/\D/g, '');
+  if (val.length > 14) val = val.slice(0, 14);
+  e.target.value = val;
+
+  if (val.length === 14) {
+    const check = validateEgyptianNationalId(val, null);
+    if (check.valid && check.birthDate) {
+      $('gBirthDate').value = check.birthDate;
+      $('gBirthDate').disabled = true;
+    } else {
+      $('gBirthDate').disabled = false;
+      $('gBirthDate').value = '';
+    }
+  } else {
+    $('gBirthDate').disabled = false;
+  }
+});
+
 // ============================================================
-// 🚀 تسجيل الدخول التقليدي
+// 🚀 تسجيل الدخول
 // ============================================================
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1633,9 +2000,7 @@ $('loginForm').addEventListener('submit', async (e) => {
   $('loginUsername').value = username;
   $('loginPassword').value = password;
 
-  if (!username || !password) {
-    return showError('الرجاء إدخال اسم المستخدم وكلمة السر');
-  }
+  if (!username || !password) return showError('الرجاء إدخال اسم المستخدم وكلمة السر');
 
   if (currentLoginRole === 'student' && !studentLoginEnabled) {
     return showError('تسجيل دخول الطلاب مغلق حالياً');
@@ -1671,7 +2036,6 @@ $('loginForm').addEventListener('submit', async (e) => {
     const encrypted = encryptPassword(password);
     if (encrypted !== user.passwordEncrypted) throw new Error('كلمة السر غير صحيحة');
 
-    // تحقق من التعطيل
     if (user.isDisabled === true) {
       const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
       if (!expired) {
@@ -1684,13 +2048,22 @@ $('loginForm').addEventListener('submit', async (e) => {
       }
     }
 
-    // نجح الدخول
     spinner.classList.remove('show');
     icon.style.display = '';
     btnText.textContent = 'تسجيل الدخول';
     btn.disabled = false;
 
-    saveSession(user, currentLoginRole, username);
+    sessionStorage.setItem('meezan_logged_in', 'true');
+    sessionStorage.setItem('meezan_username', username);
+    sessionStorage.setItem('meezan_role', currentLoginRole);
+    sessionStorage.setItem('meezan_user_id', user.id);
+    sessionStorage.setItem('meezan_user_data', JSON.stringify({
+      fullName: user.fullName,
+      username: user.username,
+      avatarUrl: user.avatarUrl || '',
+      role: currentLoginRole
+    }));
+
     await markUserOnline(collectionName, user.id);
 
     $('loginUsername').value = '';
@@ -1735,7 +2108,7 @@ $('registerForm').addEventListener('submit', async (e) => {
 
   if (!fullName || fullName.length < 3) return showError('الاسم الكامل يجب أن يكون 3 أحرف على الأقل');
   if (!username || username.length < 3) return showError('اسم المستخدم يجب أن يكون 3 أحرف على الأقل');
-  if (!/^[a-zA-Z0-9_.\u0600-\u06FF]+$/.test(username)) return showError('اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط');
+  if (!/^[a-zA-Z0-9_.\u0600-\u06FF]+$/.test(username)) return showError('اسم المستخدم يحتوي على أحرف غير مسموحة');
   if (!password || password.length < 6) return showError('كلمة السر يجب أن تكون 6 أحرف على الأقل');
   if (password !== confirmPassword) return showError('كلمتا السر غير متطابقتين');
   if (!phone || !/^01[0-9]{9}$/.test(phone)) return showError('رقم الهاتف غير صحيح (01xxxxxxxxx)');
@@ -1791,15 +2164,12 @@ $('registerForm').addEventListener('submit', async (e) => {
     const prefix = currentRegRole === 'teacher' ? 'TCH-' : 'USR-';
     const newUser = {
       id: (currentRegRole === 'teacher' ? 'teacher_' : 'user_') + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      fullName,
-      username,
+      fullName, username,
       passwordEncrypted: encryptPassword(password),
       code: prefix + Date.now().toString().slice(-6),
       nationalId: nationalId || '',
       birthDate: birthDate || '',
-      phone,
-      email: email || '',
-      grade,
+      phone, email, grade,
       googleAuth: false,
       avatarUrl: '',
       isDisabled: false,
@@ -1823,7 +2193,16 @@ $('registerForm').addEventListener('submit', async (e) => {
     btnText.textContent = 'إنشاء الحساب';
     btn.disabled = false;
 
-    saveSession(newUser, currentRegRole, username);
+    sessionStorage.setItem('meezan_logged_in', 'true');
+    sessionStorage.setItem('meezan_username', username);
+    sessionStorage.setItem('meezan_role', currentRegRole);
+    sessionStorage.setItem('meezan_user_id', newUser.id);
+    sessionStorage.setItem('meezan_user_data', JSON.stringify({
+      fullName: newUser.fullName,
+      username: newUser.username,
+      avatarUrl: '',
+      role: currentRegRole
+    }));
 
     showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
     setTimeout(() => window.location.replace('index.html'), 1000);
@@ -1838,7 +2217,7 @@ $('registerForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-// 🔵 Google Sign-In الحقيقي (Firebase Auth)
+// 🔵 Google Sign-In — تسجيل دخول
 // ============================================================
 $('googleLoginBtn').addEventListener('click', () => {
   if (currentLoginRole === 'student' && !studentLoginEnabled) {
@@ -1869,7 +2248,6 @@ async function handleGoogleAuth(mode) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاتصال بـ Google...';
 
   try {
-    // 🔵 فتح نافذة Google الرسمية
     const result = await signInWithPopup(auth, googleProvider);
     const googleUser = result.user;
 
@@ -1877,13 +2255,10 @@ async function handleGoogleAuth(mode) {
       email: googleUser.email || '',
       displayName: googleUser.displayName || '',
       photoURL: googleUser.photoURL || '',
-      emailVerified: googleUser.emailVerified,
       uid: googleUser.uid
     };
 
-    if (!googleData.email) {
-      throw new Error('لم نحصل على البريد الإلكتروني من Google');
-    }
+    if (!googleData.email) throw new Error('لم نحصل على البريد الإلكتروني من Google');
 
     const role = mode === 'register' ? currentRegRole : currentLoginRole;
     const collectionName = role === 'teacher' ? 'teachers' : 'users';
@@ -1896,21 +2271,20 @@ async function handleGoogleAuth(mode) {
     const existing = items.find(u => (u.email || '').toLowerCase() === googleData.email.toLowerCase());
 
     if (mode === 'login') {
-      // ===== تسجيل الدخول =====
+      // ===== تسجيل دخول =====
       if (!existing) {
-        // ✅ لو ما لقيناش الحساب في هذا النوع، جرّب النوع الآخر
+        // ابحث في النوع الآخر
         const otherRole = role === 'teacher' ? 'student' : 'teacher';
         const otherCollection = otherRole === 'teacher' ? 'teachers' : 'users';
-        
+
         const otherSnap = await new Promise((resolve) => {
           onSnapshot(doc(db, otherCollection, 'all'), (s) => resolve(s), { once: true });
         });
-        
+
         const otherItems = otherSnap.exists() ? (otherSnap.data().items || []) : [];
         const otherUser = otherItems.find(u => (u.email || '').toLowerCase() === googleData.email.toLowerCase());
 
         if (otherUser) {
-          // ✅ وجدناه في النوع الآخر
           if (otherUser.isDisabled === true) {
             const expired = otherUser.disableUntil && new Date(otherUser.disableUntil) < new Date();
             if (!expired) {
@@ -1925,10 +2299,9 @@ async function handleGoogleAuth(mode) {
           return;
         }
 
-        throw new Error('لا يوجد حساب مسجّل بهذا البريد — أنشئ حساباً جديداً من تبويب "إنشاء حساب"');
+        throw new Error('لا يوجد حساب مسجّل بهذا البريد — أنشئ حساباً جديداً');
       }
 
-      // ✅ موجود في النوع المختار
       if (existing.isDisabled === true) {
         const expired = existing.disableUntil && new Date(existing.disableUntil) < new Date();
         if (!expired) {
@@ -1937,7 +2310,7 @@ async function handleGoogleAuth(mode) {
         }
       }
 
-      // 🔄 حدّث صورة Google لو ما عندهاش صورة
+      // حدّث الصورة لو ما عندهاش
       if (!existing.avatarUrl && googleData.photoURL) {
         const idx = items.findIndex(u => u.id === existing.id);
         if (idx !== -1) {
@@ -1962,116 +2335,240 @@ async function handleGoogleAuth(mode) {
         throw new Error('هذا البريد مسجّل بالفعل — سجّل الدخول بدلاً من إنشاء حساب');
       }
 
-      // اطلب البيانات المكملة
-      const username = prompt(`📝 لإكمال التسجيل بحساب Google\n\nالبريد: ${googleData.email}\nالاسم: ${googleData.displayName || 'غير محدد'}\n\nأدخل اسم المستخدم (فريد):`);
-      if (!username || username.length < 3) {
-        throw new Error('اسم المستخدم غير صحيح أو أقل من 3 أحرف');
-      }
-      if (!/^[a-zA-Z0-9_.\u0600-\u06FF]+$/.test(username)) {
-        throw new Error('اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط');
-      }
-      if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
-        throw new Error('اسم المستخدم موجود بالفعل');
-      }
+      // فتح نافذة إكمال البيانات
+      googlePendingData = googleData;
+      googlePendingRole = role;
 
-      const phone = prompt('📞 أدخل رقم الهاتف (01xxxxxxxxx):');
-      if (!phone || !/^01[0-9]{9}$/.test(phone)) {
-        throw new Error('رقم الهاتف غير صحيح');
-      }
-      if (items.find(u => (u.phone || '') === phone)) {
-        throw new Error('رقم الهاتف مسجّل بالفعل');
-      }
+      // املأ الحقول
+      $('googleEmail').textContent = googleData.email;
+      $('googleName').textContent = googleData.displayName || 'بدون اسم';
 
-      let nationalId = '';
-      let birthDate = '';
-      
-      if (nationalIdEnabled) {
-        nationalId = prompt('🆔 أدخل الرقم القومي (14 رقم):') || '';
-        const check = validateEgyptianNationalId(nationalId, null);
-        if (!check.valid) throw new Error(check.message);
-        birthDate = check.birthDate;
+      const avatarEl = $('googleAvatar');
+      if (googleData.photoURL) {
+        avatarEl.innerHTML = `<img src="${googleData.photoURL}" alt="Google" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
       } else {
-        birthDate = prompt('📅 أدخل تاريخ الميلاد (YYYY-MM-DD):') || '';
-        if (!birthDate) throw new Error('تاريخ الميلاد مطلوب');
+        const firstChar = (googleData.displayName || '؟').charAt(0).toUpperCase();
+        avatarEl.innerHTML = `<span style="font-weight:900; font-size:22px;">${firstChar}</span>`;
       }
 
-      const list = role === 'teacher' ? teacherCategories : studentCategories;
-      if (list.length === 0) {
-        throw new Error('لا توجد فرق/مواد متاحة — تواصل مع الإدارة');
+      $('gFullName').value = googleData.displayName || '';
+      $('gUsername').value = '';
+      $('gPhone').value = '';
+      $('gNationalId').value = '';
+      $('gBirthDate').value = '';
+      $('gBirthDate').disabled = false;
+
+      // قائمة الفرق/المواد
+      updateGoogleGradeSelect(role);
+
+      // عرض/إخفاء حقل الرقم القومي
+      if (nationalIdEnabled) {
+        $('gNidGroup').style.display = '';
+        $('gBirthHint').textContent = '(يُحدد تلقائياً)';
+      } else {
+        $('gNidGroup').style.display = 'none';
+        $('gBirthHint').textContent = '';
       }
 
-      const grade = prompt(`🎓 اختر ${role === 'teacher' ? 'المادة' : 'الفرقة'}:\n\n${list.join('\n')}`);
-      if (!grade || !list.includes(grade)) {
-        throw new Error('الفرقة/المادة غير صحيحة');
-      }
+      $('googleModalError').classList.remove('show');
+      $('googleDataModal').classList.add('show');
 
-      const now = new Date().toISOString();
-      const prefix = role === 'teacher' ? 'TCH-' : 'USR-';
-      
-      const newUser = {
-        id: (role === 'teacher' ? 'teacher_' : 'user_') + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        fullName: googleData.displayName || username,
-        username,
-        passwordEncrypted: encryptPassword('google_' + googleData.uid),
-        code: prefix + Date.now().toString().slice(-6),
-        nationalId: nationalId || '',
-        birthDate: birthDate || '',
-        phone,
-        email: googleData.email,
-        grade,
-        googleAuth: true,
-        googleUid: googleData.uid,
-        avatarUrl: googleData.photoURL || '',
-        isDisabled: false,
-        disableUntil: null,
-        disableReason: '',
-        isOnline: true,
-        lastSeen: now,
-        createdAt: now,
-        updatedAt: now
-      };
-
-      items.push(newUser);
-
-      await setDoc(doc(db, collectionName, 'all'), {
-        items,
-        updatedAt: serverTimestamp()
-      });
-
-      saveSession(newUser, role, username);
-      showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-      setTimeout(() => window.location.replace('index.html'), 1000);
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      return; // لا تكمل — ننتظر ملء النموذج
     }
 
   } catch (err) {
     console.error('Google Auth Error:', err);
 
-    let msg = 'حدث خطأ أثناء تسجيل الدخول بـ Google';
-    
-    if (err.code === 'auth/popup-closed-by-user') {
-      msg = 'تم إغلاق نافذة Google قبل إكمال العملية';
-    } else if (err.code === 'auth/popup-blocked') {
-      msg = 'المتصفح منع فتح نافذة Google — الرجاء السماح بالنوافذ المنبثقة';
-    } else if (err.code === 'auth/cancelled-popup-request') {
-      msg = 'تم إلغاء الطلب';
-    } else if (err.code === 'auth/network-request-failed') {
-      msg = 'تعذّر الاتصال — تحقق من الإنترنت';
-    } else if (err.code === 'auth/unauthorized-domain') {
-      msg = '⛔ هذا الدومين غير مصرّح به في Firebase — أضفه من Firebase Console';
-    } else if (err.message) {
-      msg = err.message;
-    }
+    let msg = 'حدث خطأ أثناء الاتصال بـ Google';
+    if (err.code === 'auth/popup-closed-by-user') msg = 'تم إغلاق نافذة Google قبل إكمال العملية';
+    else if (err.code === 'auth/popup-blocked') msg = 'المتصفح منع فتح نافذة Google';
+    else if (err.code === 'auth/cancelled-popup-request') msg = 'تم إلغاء الطلب';
+    else if (err.code === 'auth/network-request-failed') msg = 'تعذّر الاتصال — تحقق من الإنترنت';
+    else if (err.code === 'auth/unauthorized-domain') msg = '⛔ هذا الدومين غير مصرّح به في Firebase';
+    else if (err.message) msg = err.message;
 
     showError(msg);
-
-    // 🔄 اخرج من حساب Google لو الفشل
     try { await signOut(auth); } catch (e) {}
-
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHTML;
   }
 }
+
+// ============================================================
+// 💾 حفظ بيانات Google
+// ============================================================
+$('googleDataSave').addEventListener('click', async () => {
+  if (!googlePendingData) return;
+
+  const errEl = $('googleModalError');
+  errEl.classList.remove('show');
+
+  const fullName = cleanInput($('gFullName').value);
+  const username = cleanInput($('gUsername').value);
+  const phone = cleanInput($('gPhone').value);
+  const nationalId = cleanInput($('gNationalId').value);
+  const birthDate = $('gBirthDate').value;
+  const grade = $('gGrade').value;
+
+  // ===== التحقق =====
+  if (!fullName || fullName.length < 3) {
+    errEl.textContent = 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!username || username.length < 3) {
+    errEl.textContent = 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!/^[a-zA-Z0-9_.\u0600-\u06FF]+$/.test(username)) {
+    errEl.textContent = 'اسم المستخدم يحتوي على أحرف غير مسموحة';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!phone || !/^01[0-9]{9}$/.test(phone)) {
+    errEl.textContent = 'رقم الهاتف غير صحيح (01xxxxxxxxx)';
+    errEl.classList.add('show');
+    return;
+  }
+  if (nationalIdEnabled && !nationalId) {
+    errEl.textContent = 'الرجاء إدخال الرقم القومي';
+    errEl.classList.add('show');
+    return;
+  }
+  if (nationalId) {
+    const check = validateEgyptianNationalId(nationalId, birthDate);
+    if (!check.valid) {
+      errEl.textContent = check.message;
+      errEl.classList.add('show');
+      return;
+    }
+  }
+  if (!birthDate) {
+    errEl.textContent = 'الرجاء إدخال تاريخ الميلاد';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!grade) {
+    const gradeName = googlePendingRole === 'teacher' ? 'المادة الدراسية' : 'الفرقة الدراسية';
+    errEl.textContent = `الرجاء اختيار ${gradeName}`;
+    errEl.classList.add('show');
+    return;
+  }
+
+  const btn = $('googleDataSave');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+
+  try {
+    const role = googlePendingRole;
+    const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+    const userSnap = await new Promise((resolve) => {
+      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
+    });
+
+    let items = userSnap.exists() ? (userSnap.data().items || []) : [];
+
+    if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
+      throw new Error('اسم المستخدم موجود بالفعل');
+    }
+    if (items.find(u => (u.phone || '') === phone)) {
+      throw new Error('رقم الهاتف مسجّل بالفعل');
+    }
+    if (items.find(u => (u.email || '').toLowerCase() === googlePendingData.email.toLowerCase())) {
+      throw new Error('البريد الإلكتروني مسجّل بالفعل');
+    }
+    if (nationalId && items.find(u => (u.nationalId || '') === nationalId)) {
+      throw new Error('الرقم القومي مسجّل بالفعل');
+    }
+
+    const now = new Date().toISOString();
+    const prefix = role === 'teacher' ? 'TCH-' : 'USR-';
+    const newUser = {
+      id: (role === 'teacher' ? 'teacher_' : 'user_') + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      fullName, username,
+      passwordEncrypted: encryptPassword('google_' + googlePendingData.uid),
+      code: prefix + Date.now().toString().slice(-6),
+      nationalId: nationalId || '',
+      birthDate: birthDate || '',
+      phone,
+      email: googlePendingData.email,
+      grade,
+      googleAuth: true,
+      googleUid: googlePendingData.uid,
+      avatarUrl: googlePendingData.photoURL || '',
+      isDisabled: false,
+      disableUntil: null,
+      disableReason: '',
+      isOnline: true,
+      lastSeen: now,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    items.push(newUser);
+
+    await setDoc(doc(db, collectionName, 'all'), {
+      items,
+      updatedAt: serverTimestamp()
+    });
+
+    $('googleDataModal').classList.remove('show');
+
+    sessionStorage.setItem('meezan_logged_in', 'true');
+    sessionStorage.setItem('meezan_username', username);
+    sessionStorage.setItem('meezan_role', role);
+    sessionStorage.setItem('meezan_user_id', newUser.id);
+    sessionStorage.setItem('meezan_user_data', JSON.stringify({
+      fullName: newUser.fullName,
+      username: newUser.username,
+      avatarUrl: newUser.avatarUrl,
+      role: role
+    }));
+
+    showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
+    setTimeout(() => window.location.replace('index.html'), 1000);
+
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = err.message || 'حدث خطأ، حاول مرة أخرى';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+// إلغاء Google Modal
+$('googleDataCancel').addEventListener('click', async () => {
+  $('googleDataModal').classList.remove('show');
+  googlePendingData = null;
+  try { await signOut(auth); } catch (e) {}
+});
+
+$('googleDataModal').addEventListener('click', async (e) => {
+  if (e.target === $('googleDataModal')) {
+    $('googleDataModal').classList.remove('show');
+    googlePendingData = null;
+    try { await signOut(auth); } catch (er) {}
+  }
+});
+
+// Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+    if ($('googleDataModal').classList.contains('show')) {
+      $('googleDataModal').classList.remove('show');
+      googlePendingData = null;
+    }
+  }
+});
 
 // ============================================================
 // 💾 حفظ الجلسة
@@ -2113,7 +2610,7 @@ async function markUserOnline(collectionName, userId) {
 }
 
 // ============================================================
-// 🧹 تنظيف تلقائي
+// 🧹 تنظيف الحقول
 // ============================================================
 ['loginUsername', 'loginPassword', 'regFullName', 'regUsername', 'regPassword',
  'regConfirmPassword', 'regPhone', 'regEmail'].forEach(id => {
@@ -2139,51 +2636,18 @@ $('loginPassword').addEventListener('keydown', (e) => {
 // ============================================================
 // 🚀 PWA
 // ============================================================
-let deferredPrompt = null;
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then((reg) => console.log('[PWA] SW registered ✓'))
-      .catch((err) => console.log('[PWA] SW error:', err));
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const btn = $('installAppBtn');
-  if (btn) btn.classList.add('show');
-});
-
-$('installAppBtn')?.addEventListener('click', async () => {
-  if (!deferredPrompt) {
-    showToast('التثبيت غير متاح — قد يكون التطبيق مثبتاً', 'warning');
-    return;
-  }
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    showToast('شكراً! سيتم تثبيت التطبيق', 'success');
-  }
-  deferredPrompt = null;
-  $('installAppBtn').classList.remove('show');
-});
-
-window.addEventListener('appinstalled', () => {
-  showToast('تم تثبيت التطبيق بنجاح 🎉', 'success');
-  const btn = $('installAppBtn');
-  if (btn) btn.classList.remove('show');
-});
-
-window.addEventListener('online', () => showToast('تم استعادة الاتصال ✓', 'success'));
-window.addEventListener('offline', () => showToast('أنت غير متصل — تعمل من الذاكرة المؤقتة', 'warning'));
-
-// ============================================================
-// 🚀 Init
-// ============================================================
+// Init
 updateGradeSelect();
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
