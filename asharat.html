@@ -1,0 +1,2666 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ميزان">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="ميزان | MEEZAN">
+
+<title>الإشعارات | ميزان MEEZAN</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+    --unread-bg: rgba(201, 169, 97, 0.08);
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+    --unread-bg: rgba(201, 169, 97, 0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.4s ease;
+    overflow-x: hidden;
+  }
+
+  body.ready { opacity: 1; }
+
+  /* ============================================================
+     الهيدر
+     ============================================================ */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .topbar-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .topbar-title i.header-icon {
+    color: var(--accent);
+    font-size: 22px;
+  }
+
+  .topbar-title-text {
+    min-width: 0;
+  }
+
+  .topbar-title-text h1 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="dark"] .topbar-title-text h1 { color: var(--accent); }
+
+  .topbar-title-text small {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  .avatar-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 0;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .avatar-btn { color: var(--bg-page); }
+
+  .avatar-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px var(--shadow);
+    border-color: var(--primary);
+  }
+
+  .avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .avatar-btn.has-photo {
+    background: var(--bg-card);
+    border-color: var(--accent);
+  }
+
+  .menu-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .menu-btn:hover,
+  .menu-btn:active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* ============================================================
+     Container
+     ============================================================ */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 90px;
+  }
+
+  /* ============================================================
+     Toolbar
+     ============================================================ */
+  .toolbar {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .notif-count {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+
+  .notif-count strong {
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 16px;
+  }
+
+  [data-theme="dark"] .notif-count strong { color: var(--accent); }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    border-radius: 11px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .btn-primary { color: var(--bg-page); }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+
+  .btn-cancel {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1.5px solid var(--border) !important;
+  }
+
+  .btn-cancel:hover:not(:disabled) {
+    background: var(--bg-card);
+    transform: translateY(-2px);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(192, 57, 43, 0.4);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ============================================================
+     Tabs
+     ============================================================ */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-card);
+    padding: 5px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 14px var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 11px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+    color: var(--text-sub);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .tab:hover { color: var(--text-main); background: var(--bg-input); }
+
+  .tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .tab.active { color: var(--bg-page); }
+
+  .tab i { font-size: 14px; }
+
+  .tab .tab-badge {
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.25);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .tab:not(.active) .tab-badge {
+    background: var(--error);
+    color: #fff;
+  }
+
+  /* ============================================================
+     قائمة الإشعارات
+     ============================================================ */
+  .notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .notif-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.35s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .notif-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px var(--shadow);
+  }
+
+  .notif-card.unread {
+    background: var(--unread-bg);
+    border-color: var(--accent);
+  }
+
+  .notif-card.unread::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent), var(--accent-light));
+  }
+
+  .notif-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    border: 2px solid var(--accent);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .notif-icon { color: var(--bg-page); }
+
+  .notif-icon.image { background: linear-gradient(135deg, #8E44AD, #9B59B6); }
+  .notif-icon.video { background: linear-gradient(135deg, #E74C3C, #C0392B); }
+  .notif-icon.link { background: linear-gradient(135deg, var(--info), #3498DB); }
+  .notif-icon.page { background: linear-gradient(135deg, var(--warning), #F39C12); }
+
+  .notif-content { flex: 1; min-width: 0; }
+
+  .notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .notif-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notif-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.2);
+    animation: pulseDot 2s infinite;
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+
+ .notif-body {
+    font-size: 13.5px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+  .notif-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    flex-wrap: wrap;
+  }
+
+  .notif-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .notif-meta i { color: var(--accent); font-size: 10.5px; }
+
+  .notif-type-tag {
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-sub);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .notif-type-tag.image { color: #8E44AD; border-color: rgba(142, 68, 173, 0.3); }
+  .notif-type-tag.video { color: var(--error); border-color: rgba(192, 57, 43, 0.3); }
+  .notif-type-tag.link { color: var(--info); border-color: rgba(41, 128, 185, 0.3); }
+  .notif-type-tag.page { color: var(--warning); border-color: rgba(230, 126, 34, 0.3); }
+
+  /* ============================================================
+     Empty State
+     ============================================================ */
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-sub);
+    background: var(--bg-card);
+    border-radius: 18px;
+    border: 2px dashed var(--border);
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .empty-state i {
+    font-size: 60px;
+    color: var(--accent);
+    opacity: 0.5;
+    margin-bottom: 16px;
+    display: block;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .empty-state h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  /* ============================================================
+     Loading Skeleton
+     ============================================================ */
+  .skeleton-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .skeleton-icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--border);
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+
+  .skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .skeleton-line {
+    height: 14px;
+    border-radius: 7px;
+    background: var(--border);
+    opacity: 0.5;
+  }
+
+  .skeleton-line.w-60 { width: 60%; }
+  .skeleton-line.w-90 { width: 90%; }
+  .skeleton-line.w-40 { width: 40%; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* ============================================================
+     Modal تفاصيل الإشعار
+     ============================================================ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 26px 24px;
+    max-width: 620px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .modal-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    border: 2px solid var(--accent);
+  }
+
+  [data-theme="dark"] .modal-header-icon { color: var(--bg-page); }
+
+  .modal-header-icon.image { background: linear-gradient(135deg, #8E44AD, #9B59B6); }
+  .modal-header-icon.video { background: linear-gradient(135deg, #E74C3C, #C0392B); }
+  .modal-header-icon.link { background: linear-gradient(135deg, var(--info), #3498DB); }
+  .modal-header-icon.page { background: linear-gradient(135deg, var(--warning), #F39C12); }
+
+  .modal-header-text { flex: 1; min-width: 0; }
+
+  .modal-header-text h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+
+  .modal-header-text small {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .modal-header-text small i { color: var(--accent); }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: var(--bg-input);
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { background: var(--error); color: #fff; }
+
+  .modal-body {
+    font-size: 14.5px;
+    color: var(--text-main);
+    font-weight: 500;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 16px;
+  }
+
+  .modal-media {
+    margin-bottom: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    background: var(--bg-input);
+  }
+
+  .modal-media img,
+  .modal-media video {
+    width: 100%;
+    max-height: 380px;
+    object-fit: contain;
+    display: block;
+    background: #000;
+  }
+
+  .modal-media img { background: transparent; }
+
+  .modal-info-box {
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .modal-info-box i { color: var(--accent); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px dashed var(--border);
+  }
+
+  .modal-actions .btn { flex: 1; padding: 13px; }
+
+  /* ============================================================
+     شاشة الحظر
+     ============================================================ */
+  .block-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 999999;
+    overflow-y: auto;
+  }
+
+  .block-overlay.show { display: flex; }
+
+  .block-box {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 40px 30px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    border-top: 8px solid var(--error);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+    animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .block-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--error), #E74C3C);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+    box-shadow: 0 15px 40px rgba(192, 57, 43, 0.4);
+  }
+
+  .block-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--error);
+    margin-bottom: 12px;
+  }
+
+  .block-subtitle {
+    font-size: 14.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .block-details {
+    background: var(--bg-input);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: right;
+    border: 1px solid var(--border);
+  }
+
+  .block-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .block-detail-row:last-child { border-bottom: none; }
+  .block-detail-row i { color: var(--error); font-size: 15px; width: 20px; text-align: center; }
+  .block-detail-row strong { color: var(--error); font-weight: 800; }
+
+  .block-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+  }
+
+  [data-theme="dark"] .block-btn { color: var(--bg-page); }
+
+  .block-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px var(--shadow);
+  }
+
+  /* ============================================================
+     نافذة تأكيد
+     ============================================================ */
+  .confirm-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000000;
+  }
+
+  .confirm-modal.show { display: flex; }
+
+  .confirm-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 32px 26px 24px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .confirm-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 25px var(--shadow);
+  }
+
+  [data-theme="dark"] .confirm-icon { color: var(--bg-page); }
+
+  .confirm-icon.danger {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);
+  }
+
+  .confirm-icon.warning {
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+  }
+
+  .confirm-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .confirm-message {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 8px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .confirm-actions .btn {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+  }
+
+  /* ============================================================
+     قائمة الطعام (Drawer)
+     ============================================================ */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9998;
+  }
+
+  .drawer-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 88%;
+    max-width: 340px;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg-card);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--border);
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .drawer-header-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .drawer-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    padding: 3px;
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+  }
+
+  .drawer-brand { flex: 1; min-width: 0; }
+
+  .drawer-brand-name {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .drawer-brand-name .divider {
+    color: var(--accent);
+    font-weight: 300;
+  }
+
+  .drawer-brand-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .drawer-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+
+  .drawer-user-info {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+
+  .drawer-user-info:hover { background: rgba(255, 255, 255, 0.18); }
+
+  .drawer-user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid var(--accent);
+  }
+
+  .drawer-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .drawer-user-text { flex: 1; min-width: 0; }
+
+  .drawer-user-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 3px;
+  }
+
+  .drawer-user-role {
+    font-size: 11.5px;
+    color: var(--accent-light);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .drawer-section { margin-bottom: 20px; }
+  .drawer-section:last-child { margin-bottom: 0; }
+
+  .drawer-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    padding-right: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drawer-section-title i { color: var(--accent); font-size: 12px; }
+
+  .drawer-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: right;
+  }
+
+  .drawer-btn:hover,
+  .drawer-btn:active {
+    background: var(--bg-card);
+    border-color: var(--accent);
+    transform: translateX(-3px);
+  }
+
+  .drawer-btn-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  [data-theme="dark"] .drawer-btn-icon { color: var(--bg-page); }
+
+  .drawer-btn-label { flex: 1; }
+
+  .drawer-btn.logout-btn {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+    background: rgba(192, 57, 43, 0.05);
+  }
+
+  .drawer-btn.logout-btn .drawer-btn-icon {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+  }
+
+  .drawer-btn.logout-btn:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  .drawer-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--error);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-input);
+  }
+
+  .drawer-badge.show { display: flex; }
+
+  /* ============================================================
+     Toast خفيف
+     ============================================================ */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+  .toast.info { border-color: var(--info); }
+  .toast.info i { color: var(--info); }
+
+  /* ============================================================
+     Responsive
+     ============================================================ */
+  @media (max-width: 700px) {
+    .topbar-inner { padding: 12px 14px; }
+    .back-btn { width: 40px; height: 40px; font-size: 15px; border-radius: 11px; }
+    .topbar-title i.header-icon { font-size: 18px; }
+    .topbar-title-text h1 { font-size: 16px; }
+    .topbar-title-text small { font-size: 9.5px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
+    .avatar-btn { width: 40px; height: 40px; font-size: 16px; }
+    .menu-btn { display: flex; }
+
+    .topbar-actions .icon-btn,
+    .topbar-actions .avatar-btn {
+      display: none;
+    }
+
+    .topbar-actions .menu-btn { display: flex; }
+
+    .container { padding: 16px 12px 90px; }
+
+    .toolbar { padding: 12px; gap: 8px; }
+    .btn { padding: 9px 13px; font-size: 12px; }
+    .notif-count { font-size: 13px; }
+
+    .notif-card { padding: 14px; border-radius: 14px; gap: 12px; }
+    .notif-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 12px; }
+    .notif-title { font-size: 14px; }
+    .notif-body { font-size: 12.5px; }
+    .notif-meta { font-size: 11px; gap: 8px; }
+
+    .modal-box { padding: 22px 18px; border-radius: 18px; }
+    .modal-header-icon { width: 42px; height: 42px; font-size: 17px; }
+    .modal-header-text h2 { font-size: 15.5px; }
+    .modal-body { font-size: 13.5px; }
+    .modal-actions { flex-direction: column-reverse; }
+
+    .confirm-box { padding: 26px 20px 20px; border-radius: 18px; }
+    .confirm-icon { width: 60px; height: 60px; font-size: 24px; margin-bottom: 16px; }
+    .confirm-title { font-size: 17px; }
+    .confirm-message { font-size: 13px; }
+    .confirm-actions { flex-direction: column-reverse; }
+
+    .block-box { padding: 28px 20px; border-radius: 20px; }
+    .block-icon { width: 70px; height: 70px; font-size: 32px; }
+    .block-title { font-size: 19px; }
+    .block-subtitle { font-size: 13px; }
+
+    .empty-state { padding: 50px 20px; }
+    .empty-state i { font-size: 50px; }
+    .empty-state h3 { font-size: 16px; }
+  }
+
+  @media (max-width: 380px) {
+    .topbar-title-text h1 { font-size: 14px; }
+    .back-btn { width: 36px; height: 36px; font-size: 14px; }
+    .icon-btn { width: 34px; height: 34px; font-size: 13px; }
+    .avatar-btn { width: 36px; height: 36px; font-size: 14px; }
+    .menu-btn { width: 36px; height: 36px; font-size: 16px; }
+    .btn { font-size: 11.5px; padding: 8px 11px; }
+    .btn span.label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     الهيدر
+     ============================================================ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <a href="index.html" class="back-btn" title="الرجوع">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+      <div class="topbar-title">
+        <i class="fas fa-bell header-icon"></i>
+        <div class="topbar-title-text">
+          <h1>الإشعارات</h1>
+          <small>NOTIFICATIONS</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="sora.html" class="avatar-btn" id="userAvatarBtn" title="صفحتك الشخصية">
+        <i class="fas fa-user" id="userAvatarIcon"></i>
+      </a>
+
+      <button class="icon-btn" id="themeToggle" title="الوضع الليلي/النهاري">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+
+      <button class="icon-btn" id="logoutBtn" title="تسجيل الخروج" style="color: var(--error); border-color: rgba(192, 57, 43, 0.3);">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+
+      <button class="menu-btn" id="menuBtn" aria-label="القائمة">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     المحتوى الرئيسي
+     ============================================================ -->
+<div class="container">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="notif-count">
+        لديك <strong id="totalCount">0</strong> إشعار
+      </div>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn-primary" id="markAllReadBtn">
+        <i class="fas fa-check-double"></i>
+        <span class="label">تحديد الكل كمقروء</span>
+      </button>
+      <button class="btn btn-cancel" id="deleteAllBtn">
+        <i class="fas fa-trash"></i>
+        <span class="label">حذف الكل</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="all">
+      <i class="fas fa-list"></i>
+      <span>الكل</span>
+      <span class="tab-badge" id="allCountBadge">0</span>
+    </button>
+    <button class="tab" data-tab="unread">
+      <i class="fas fa-circle-dot"></i>
+      <span>غير المقروء</span>
+      <span class="tab-badge" id="unreadCountBadge">0</span>
+    </button>
+    <button class="tab" data-tab="read">
+      <i class="fas fa-check-circle"></i>
+      <span>المقروءة</span>
+    </button>
+  </div>
+
+  <!-- قائمة الإشعارات -->
+  <div class="notif-list" id="notifList"></div>
+
+</div>
+
+<!-- ============================================================
+     Modal تفاصيل الإشعار
+     ============================================================ -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-icon" id="modalHeaderIcon">
+        <i class="fas fa-bell"></i>
+      </div>
+      <div class="modal-header-text">
+        <h2 id="modalTitle">—</h2>
+        <small>
+          <span><i class="fas fa-user"></i> <span id="modalSender">—</span></span>
+          <span><i class="fas fa-clock"></i> <span id="modalDate">—</span></span>
+        </small>
+      </div>
+      <button class="modal-close" id="modalClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div id="modalMediaWrapper"></div>
+
+    <div class="modal-body" id="modalBody">—</div>
+
+    <div class="modal-info-box">
+      <i class="fas fa-info-circle"></i>
+      <span>نوع الإشعار:</span>
+      <span id="modalType">—</span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="modalDeleteBtn" style="color: var(--error);">
+        <i class="fas fa-trash"></i>
+        <span>حذف</span>
+      </button>
+      <button class="btn btn-primary" id="modalActionBtn" style="display:none;">
+        <i class="fas fa-external-link-alt"></i>
+        <span>فتح</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     نافذة تأكيد
+     ============================================================ -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">
+      <i class="fas fa-question-circle"></i>
+    </div>
+    <h2 class="confirm-title" id="confirmTitle">تأكيد</h2>
+    <p class="confirm-message" id="confirmMessage">—</p>
+    <div class="confirm-actions">
+      <button class="btn btn-cancel" id="confirmCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn btn-primary" id="confirmOk">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     شاشة الحظر
+     ============================================================ -->
+<div class="block-overlay" id="blockOverlay">
+  <div class="block-box">
+    <div class="block-icon" id="blockIcon">
+      <i class="fas fa-ban"></i>
+    </div>
+    <h2 class="block-title" id="blockTitle">حسابك معطّل</h2>
+    <p class="block-subtitle" id="blockSubtitle">تم تعطيل حسابك من قبل الإدارة</p>
+
+    <div class="block-details" id="blockDetails">
+      <div class="block-detail-row" id="blockUntilRow" style="display: none;">
+        <i class="fas fa-clock"></i>
+        <span>التعطيل حتى: <strong id="blockUntilText">—</strong></span>
+      </div>
+      <div class="block-detail-row" id="blockRemainingRow" style="display: none;">
+        <i class="fas fa-hourglass-half"></i>
+        <span>متبقي: <strong id="blockRemainingText">—</strong></span>
+      </div>
+      <div class="block-detail-row" id="blockReasonRow" style="display: none;">
+        <i class="fas fa-info-circle"></i>
+        <span>السبب: <strong id="blockReasonText">—</strong></span>
+      </div>
+    </div>
+
+    <button class="block-btn" id="blockLogoutBtn">
+      <i class="fas fa-sign-out-alt"></i>
+      العودة لتسجيل الدخول
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     قائمة الطعام (Drawer)
+     ============================================================ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-content">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png"
+           alt="Logo" class="drawer-logo" id="drawerLogo">
+      <div class="drawer-brand">
+        <div class="drawer-brand-name">
+          <span id="drawerNameAr">ميزان</span>
+          <span class="divider">|</span>
+          <span id="drawerNameEn">MEEZAN</span>
+        </div>
+        <div class="drawer-brand-sub" id="drawerSubtitle">منصة تعليمية</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <a href="sora.html" class="drawer-user-info">
+      <div class="drawer-user-avatar" id="drawerUserAvatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="drawer-user-text">
+        <div class="drawer-user-name" id="drawerUserName">—</div>
+        <div class="drawer-user-role" id="drawerUserRole">
+          <i class="fas fa-user"></i>
+          <span>—</span>
+        </div>
+      </div>
+      <i class="fas fa-chevron-left" style="color: rgba(255,255,255,0.5); font-size: 14px;"></i>
+    </a>
+  </div>
+
+  <div class="drawer-content">
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fas fa-cog"></i>
+        <span>التحكم</span>
+      </div>
+
+      <button class="drawer-btn" id="drawerThemeBtn">
+        <span class="drawer-btn-icon">
+          <i class="fas fa-moon" id="drawerThemeIcon"></i>
+        </span>
+        <span class="drawer-btn-label" id="drawerThemeText">الوضع الليلي</span>
+      </button>
+
+      <a href="index1.html" class="drawer-btn">
+        <span class="drawer-btn-icon">
+          <i class="fas fa-home"></i>
+        </span>
+        <span class="drawer-btn-label">الصفحة الرئيسية</span>
+      </a>
+
+      <a href="sora.html" class="drawer-btn">
+        <span class="drawer-btn-icon">
+          <i class="fas fa-user-circle"></i>
+        </span>
+        <span class="drawer-btn-label">صفحتي الشخصية</span>
+      </a>
+
+      <button class="drawer-btn logout-btn" id="drawerLogoutBtn">
+        <span class="drawer-btn-icon">
+          <i class="fas fa-sign-out-alt"></i>
+        </span>
+        <span class="drawer-btn-label">تسجيل الخروج</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     Toast
+     ============================================================ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, onSnapshot, setDoc, getDoc, getDocs,
+  collection, query, where, updateDoc, serverTimestamp, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 التنظيف
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// 🔔 نافذة تأكيد
+// ============================================================
+let confirmResolve = null;
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد',
+      cancelText = 'إلغاء'
+    } = options;
+
+    const iconEl = $('confirmIcon');
+    iconEl.className = 'confirm-icon';
+    if (iconType === 'danger') iconEl.classList.add('danger');
+    if (iconType === 'warning') iconEl.classList.add('warning');
+
+    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').innerHTML = message;
+    $('confirmOk').innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+    $('confirmCancel').innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
+
+    confirmResolve = resolve;
+    $('confirmModal').classList.add('show');
+  });
+}
+
+function closeConfirm(result) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) {
+    confirmResolve(result);
+    confirmResolve = null;
+  }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+    if ($('notifModal').classList.contains('show')) closeNotifModal();
+    if ($('drawer').classList.contains('open')) closeDrawer();
+  }
+});
+
+// ============================================================
+// 🌙 الوضع الليلي
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+updateDrawerTheme(savedTheme);
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('meezan_theme', next);
+  updateThemeIcon(next);
+  updateDrawerTheme(next);
+  if (currentSettings) applyColors(currentSettings);
+}
+
+$('themeToggle').addEventListener('click', toggleTheme);
+$('drawerThemeBtn').addEventListener('click', toggleTheme);
+
+function updateThemeIcon(theme) {
+  $('themeIcon').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+function updateDrawerTheme(theme) {
+  const icon = $('drawerThemeIcon');
+  const text = $('drawerThemeText');
+  if (theme === 'dark') {
+    icon.className = 'fas fa-sun';
+    text.textContent = 'الوضع النهاري';
+  } else {
+    icon.className = 'fas fa-moon';
+    text.textContent = 'الوضع الليلي';
+  }
+}
+
+// ============================================================
+// 📦 كاش
+// ============================================================
+const CACHE_SETTINGS = 'meezan_user_login_settings_cache';
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+// ============================================================
+// 📊 الحالة
+// ============================================================
+let currentUser = null;
+let currentRole = 'student';
+let currentUserId = null;
+let currentSettings = null;
+let blockTriggered = false;
+
+let allNotifications = [];      // [{id, title, body, type, url, senderName, createdAt, read}]
+let unreadIds = new Set();       // IDs غير المقروءة
+let deletedIds = new Set();      // IDs المحذوفة (محلياً فقط — يُخزّن في Firestore)
+let currentTab = 'all';
+
+// ============================================================
+// 🎨 تطبيق الإعدادات
+// ============================================================
+function applySettings(data) {
+  if (!data) return;
+
+  if (data.logoUrl) {
+    const drawerLogo = $('drawerLogo');
+    if (drawerLogo) drawerLogo.src = data.logoUrl;
+    const iconLink = document.querySelector('link[rel="icon"]');
+    if (iconLink) iconLink.href = data.logoUrl;
+  }
+
+  if (data.siteNameAr) $('drawerNameAr').textContent = data.siteNameAr;
+  if (data.siteNameEn) $('drawerNameEn').textContent = data.siteNameEn;
+  if (data.tagline) $('drawerSubtitle').textContent = data.tagline;
+
+  const nameAr = data.siteNameAr || 'ميزان';
+  const nameEn = data.siteNameEn || 'MEEZAN';
+  document.title = `الإشعارات | ${nameAr} ${nameEn}`;
+
+  applyColors(data);
+}
+
+function applyColors(data) {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const rootStyle = document.documentElement.style;
+
+  rootStyle.removeProperty('--primary');
+  rootStyle.removeProperty('--accent');
+
+  if (currentTheme === 'light' && data.lightColorsEnabled === true) {
+    if (data.lightPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.lightPrimary)) {
+      rootStyle.setProperty('--primary', data.lightPrimary);
+    }
+    if (data.lightAccent && /^#[0-9A-Fa-f]{6}$/.test(data.lightAccent)) {
+      rootStyle.setProperty('--accent', data.lightAccent);
+    }
+  } else if (currentTheme === 'dark' && data.darkColorsEnabled === true) {
+    if (data.darkPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.darkPrimary)) {
+      rootStyle.setProperty('--primary', data.darkPrimary);
+    }
+    if (data.darkAccent && /^#[0-9A-Fa-f]{6}$/.test(data.darkAccent)) {
+      rootStyle.setProperty('--accent', data.darkAccent);
+    }
+  }
+}
+
+// ============================================================
+// 👤 تحميل بيانات المستخدم
+// ============================================================
+async function loadUserData() {
+  const userId = sessionStorage.getItem('meezan_user_id');
+  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
+  const role = sessionStorage.getItem('meezan_role') || 'student';
+
+  currentRole = role;
+  currentUserId = userId;
+
+  if (!userId && !username) return;
+
+  try {
+    const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+    const userSnap = await getDoc(doc(db, collectionName, 'all'));
+    if (!userSnap.exists()) return;
+
+    const items = userSnap.data().items || [];
+    let user = null;
+
+    if (userId) user = items.find(u => u.id === userId);
+    if (!user && username) {
+      user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
+    }
+
+    if (!user) return;
+
+    currentUser = user;
+    currentUserId = user.id;
+    renderUserInfo(user);
+  } catch (e) {
+    console.error('load user error:', e);
+  }
+}
+
+function renderUserInfo(user) {
+  const fullName = user.fullName || user.username || 'مستخدم';
+  const isTeacher = currentRole === 'teacher';
+
+  // ===== صورة المستخدم =====
+  const avatarBtn = $('userAvatarBtn');
+  if (user.avatarUrl) {
+    avatarBtn.classList.add('has-photo');
+    avatarBtn.innerHTML = `<img src="${user.avatarUrl}" alt="${escapeHtml(fullName)}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'; this.parentNode.classList.remove('has-photo');">`;
+  } else {
+    avatarBtn.classList.remove('has-photo');
+    const firstChar = (fullName || '؟').charAt(0).toUpperCase();
+    avatarBtn.innerHTML = `<span style="font-weight:900; font-size:16px;">${firstChar}</span>`;
+  }
+
+  // ===== Drawer =====
+  $('drawerUserName').textContent = fullName;
+  $('drawerUserRole').innerHTML = isTeacher
+    ? '<i class="fas fa-chalkboard-user"></i><span>حساب معلم</span>'
+    : '<i class="fas fa-user-graduate"></i><span>حساب طالب</span>';
+
+  const drawerAvatar = $('drawerUserAvatar');
+  if (user.avatarUrl) {
+    drawerAvatar.innerHTML = `<img src="${user.avatarUrl}" alt="${escapeHtml(fullName)}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+  } else {
+    const firstChar = (fullName || '؟').charAt(0).toUpperCase();
+    drawerAvatar.innerHTML = `<span>${firstChar}</span>`;
+  }
+}
+
+// ============================================================
+// 📡 تحميل الإشعارات Real-time
+// ============================================================
+function startNotificationsListener() {
+  if (!currentUserId) return;
+
+  const userNotifsRef = doc(db, 'user_notifications', currentUserId);
+
+  onSnapshot(userNotifsRef, async (snap) => {
+    if (!snap.exists()) {
+      allNotifications = [];
+      unreadIds.clear();
+      renderNotifications();
+      return;
+    }
+
+    const data = snap.data();
+    const notifIds = data.notifIds || [];
+    const readIds = data.readIds || [];
+    const deletedList = data.deletedIds || [];
+
+    // IDs المحذوفة
+    deletedIds = new Set(deletedList);
+
+    // ===== جلب تفاصيل الإشعارات =====
+    const details = [];
+    for (const nid of notifIds) {
+      if (deletedIds.has(nid)) continue;
+      try {
+        const nSnap = await getDoc(doc(db, 'notifications', nid));
+        if (nSnap.exists()) {
+          const nData = nSnap.data();
+          details.push({
+            id: nid,
+            title: nData.title || 'بدون عنوان',
+            body: nData.body || '',
+            type: nData.type || 'none',
+            url: nData.url || '',
+            senderName: nData.senderName || 'الإدارة',
+            createdAt: nData.createdAt || '',
+            read: readIds.includes(nid)
+          });
+        }
+      } catch (e) {
+        console.log('notif detail error:', e.message);
+      }
+    }
+
+    // ترتيب حسب الأحدث
+    details.sort((a, b) => {
+      const da = new Date(a.createdAt).getTime() || 0;
+      const db_ = new Date(b.createdAt).getTime() || 0;
+      return db_ - da;
+    });
+
+    allNotifications = details;
+    unreadIds = new Set(details.filter(n => !n.read).map(n => n.id));
+
+    renderNotifications();
+    updateBadges();
+  }, (err) => {
+    console.log('notifs listener error:', err.message);
+    allNotifications = [];
+    renderNotifications();
+  });
+}
+
+// ============================================================
+// 🎨 عرض الإشعارات
+// ============================================================
+function renderNotifications() {
+  const list = $('notifList');
+  list.innerHTML = '';
+
+  let filtered = allNotifications;
+  if (currentTab === 'unread') filtered = allNotifications.filter(n => !n.read);
+  if (currentTab === 'read') filtered = allNotifications.filter(n => n.read);
+
+  // تحديث العدّادات
+  $('totalCount').textContent = allNotifications.length;
+  $('allCountBadge').textContent = allNotifications.length;
+  $('unreadCountBadge').textContent = unreadIds.size;
+
+  if (filtered.length === 0) {
+    let title = 'لا توجد إشعارات';
+    let desc = 'ستظهر هنا الإشعارات التي تصلك من الإدارة.';
+    let icon = 'fa-bell-slash';
+
+    if (currentTab === 'unread') {
+      title = 'لا توجد إشعارات غير مقروءة';
+      desc = 'لقد اطلعت على جميع الإشعارات ✅';
+      icon = 'fa-check-circle';
+    } else if (currentTab === 'read') {
+      title = 'لا توجد إشعارات مقروءة';
+      desc = 'لم تفتح أي إشعار بعد.';
+      icon = 'fa-envelope-open';
+    }
+
+    list.innerHTML = `
+      <div class="empty-state">
+        <i class="fas ${icon}"></i>
+        <h3>${title}</h3>
+        <p>${desc}</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(n => {
+    list.appendChild(createNotifCard(n));
+  });
+}
+
+function createNotifCard(notif) {
+  const card = document.createElement('div');
+  card.className = 'notif-card' + (notif.read ? '' : ' unread');
+
+  const typeInfo = getTypeInfo(notif.type);
+
+  card.innerHTML = `
+    <div class="notif-icon ${notif.type || 'none'}">
+      <i class="fas ${typeInfo.icon}"></i>
+    </div>
+    <div class="notif-content">
+      <div class="notif-header">
+        <div class="notif-title">${escapeHtml(notif.title)}</div>
+        ${!notif.read ? '<div class="notif-dot"></div>' : ''}
+      </div>
+      <div class="notif-body">${escapeHtml(notif.body)}</div>
+      <div class="notif-meta">
+        <span><i class="fas fa-user"></i> ${escapeHtml(notif.senderName)}</span>
+        <span><i class="fas fa-clock"></i> ${formatDate(notif.createdAt)}</span>
+        ${notif.type && notif.type !== 'none' ? `<span class="notif-type-tag ${notif.type}"><i class="fas ${typeInfo.icon}"></i> ${typeInfo.label}</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  card.addEventListener('click', () => openNotifModal(notif));
+  return card;
+}
+
+function getTypeInfo(type) {
+  const map = {
+    none: { icon: 'fa-comment', label: 'نصي' },
+    image: { icon: 'fa-image', label: 'صورة' },
+    video: { icon: 'fa-video', label: 'فيديو' },
+    link: { icon: 'fa-link', label: 'رابط' },
+    page: { icon: 'fa-file-alt', label: 'صفحة' }
+  };
+  return map[type] || map.none;
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+
+    if (diff < 60) return 'الآن';
+    if (diff < 3600) return `قبل ${Math.floor(diff / 60)} دقيقة`;
+    if (diff < 86400) return `قبل ${Math.floor(diff / 3600)} ساعة`;
+    if (diff < 604800) return `قبل ${Math.floor(diff / 86400)} يوم`;
+
+    return d.toLocaleDateString('ar-EG', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  } catch (e) { return '—'; }
+}
+
+// ============================================================
+// 🔢 تحديث الشارات
+// ============================================================
+function updateBadges() {
+  // تحديث كل العدّادات
+  $('unreadCountBadge').textContent = unreadIds.size;
+  $('allCountBadge').textContent = allNotifications.length;
+}
+
+// ============================================================
+// 🪟 فتح modal تفاصيل الإشعار
+// ============================================================
+let currentOpenNotif = null;
+
+async function openNotifModal(notif) {
+  currentOpenNotif = notif;
+
+  const typeInfo = getTypeInfo(notif.type);
+
+  $('modalHeaderIcon').className = 'modal-header-icon' + (notif.type && notif.type !== 'none' ? ' ' + notif.type : '');
+  $('modalHeaderIcon').innerHTML = `<i class="fas ${typeInfo.icon}"></i>`;
+  $('modalTitle').textContent = notif.title;
+  $('modalSender').textContent = notif.senderName;
+  $('modalDate').textContent = formatDate(notif.createdAt);
+  $('modalBody').textContent = notif.body;
+  $('modalType').textContent = typeInfo.label;
+
+  // ===== الوسائط =====
+  const mediaWrapper = $('modalMediaWrapper');
+  mediaWrapper.innerHTML = '';
+
+  if (notif.type === 'image' && notif.url) {
+    mediaWrapper.innerHTML = `
+      <div class="modal-media">
+        <img src="${escapeHtml(notif.url)}" alt=""
+             onerror="this.parentNode.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--error);font-weight:700;\\'>⚠️ تعذّر تحميل الصورة</div>'">
+      </div>
+    `;
+  } else if (notif.type === 'video' && notif.url) {
+    mediaWrapper.innerHTML = `
+      <div class="modal-media">
+        <video src="${escapeHtml(notif.url)}" controls preload="metadata"></video>
+      </div>
+    `;
+  }
+
+  // ===== زر الفتح =====
+  const actionBtn = $('modalActionBtn');
+  if (notif.type === 'link' && notif.url) {
+    actionBtn.style.display = 'flex';
+    actionBtn.innerHTML = '<i class="fas fa-external-link-alt"></i><span>فتح الرابط</span>';
+    actionBtn.onclick = () => window.open(notif.url, '_blank', 'noopener');
+  } else if (notif.type === 'page' && notif.url) {
+    actionBtn.style.display = 'flex';
+    actionBtn.innerHTML = '<i class="fas fa-arrow-left"></i><span>الانتقال للصفحة</span>';
+    actionBtn.onclick = () => window.location.href = notif.url;
+  } else {
+    actionBtn.style.display = 'none';
+  }
+
+  $('notifModal').classList.add('show');
+
+  // ===== علّم كمقروء =====
+  if (!notif.read) {
+    await markAsRead(notif.id);
+  }
+}
+
+function closeNotifModal() {
+  $('notifModal').classList.remove('show');
+  currentOpenNotif = null;
+}
+
+$('modalClose').addEventListener('click', closeNotifModal);
+$('notifModal').addEventListener('click', (e) => {
+  if (e.target === $('notifModal')) closeNotifModal();
+});
+
+// ============================================================
+// ✅ علّم كمقروء
+// ============================================================
+async function markAsRead(notifId) {
+  if (!currentUserId) return;
+
+  try {
+    const ref = doc(db, 'user_notifications', currentUserId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const readIds = snap.data().readIds || [];
+    if (readIds.includes(notifId)) return;
+
+    readIds.push(notifId);
+
+    await setDoc(ref, {
+      readIds,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    // تحديث محلي
+    const n = allNotifications.find(x => x.id === notifId);
+    if (n) n.read = true;
+    unreadIds.delete(notifId);
+
+    updateBadges();
+    renderNotifications();
+  } catch (e) {
+    console.log('mark read error:', e.message);
+  }
+}
+
+// ============================================================
+// ✅ تحديد الكل كمقروء
+// ============================================================
+$('markAllReadBtn').addEventListener('click', async () => {
+  if (unreadIds.size === 0) {
+    return showToast('لا توجد إشعارات غير مقروءة', 'info');
+  }
+
+  const confirmed = await showConfirm({
+    title: 'تحديد الكل كمقروء',
+    message: `هل تريد تعليم جميع الإشعارات (${unreadIds.size}) كمقروءة؟`,
+    icon: 'fa-check-double',
+    okText: 'نعم'
+  });
+  if (!confirmed) return;
+
+  try {
+    const ref = doc(db, 'user_notifications', currentUserId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const readIds = snap.data().readIds || [];
+    const allIds = allNotifications.map(n => n.id);
+    const merged = [...new Set([...readIds, ...allIds])];
+
+    await setDoc(ref, {
+      readIds: merged,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    allNotifications.forEach(n => n.read = true);
+    unreadIds.clear();
+
+    renderNotifications();
+    updateBadges();
+    showToast('تم تحديد الكل كمقروء', 'success');
+  } catch (e) {
+    showToast('حدث خطأ', 'error');
+  }
+});
+
+// ============================================================
+// 🗑️ حذف الكل
+// ============================================================
+$('deleteAllBtn').addEventListener('click', async () => {
+  if (allNotifications.length === 0) {
+    return showToast('لا توجد إشعارات', 'info');
+  }
+
+  const confirmed = await showConfirm({
+    title: 'حذف كل الإشعارات',
+    message: 'هل تريد حذف جميع الإشعارات نهائياً؟ لا يمكن التراجع.',
+    icon: 'fa-trash',
+    iconType: 'danger',
+    okText: 'حذف الكل'
+  });
+  if (!confirmed) return;
+
+  try {
+    const ref = doc(db, 'user_notifications', currentUserId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const currentNotifIds = snap.data().notifIds || [];
+    const currentDeleted = snap.data().deletedIds || [];
+
+    const newDeleted = [...new Set([...currentDeleted, ...currentNotifIds])];
+
+    await setDoc(ref, {
+      notifIds: [],
+      deletedIds: newDeleted,
+      readIds: [],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    allNotifications = [];
+    unreadIds.clear();
+    renderNotifications();
+    updateBadges();
+    showToast('تم حذف كل الإشعارات', 'success');
+  } catch (e) {
+    showToast('حدث خطأ', 'error');
+  }
+});
+
+// ============================================================
+// 🗑️ حذف إشعار واحد
+// ============================================================
+$('modalDeleteBtn').addEventListener('click', async () => {
+  if (!currentOpenNotif) return;
+  const notif = currentOpenNotif;
+
+  const confirmed = await showConfirm({
+    title: 'حذف الإشعار',
+    message: 'هل تريد حذف هذا الإشعار؟',
+    icon: 'fa-trash',
+    iconType: 'danger',
+    okText: 'حذف'
+  });
+  if (!confirmed) return;
+
+  try {
+    const ref = doc(db, 'user_notifications', currentUserId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const notifIds = (snap.data().notifIds || []).filter(id => id !== notif.id);
+    const deletedList = [...new Set([...(snap.data().deletedIds || []), notif.id])];
+    const readIds = (snap.data().readIds || []).filter(id => id !== notif.id);
+
+    await setDoc(ref, {
+      notifIds,
+      deletedIds: deletedList,
+      readIds,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    allNotifications = allNotifications.filter(n => n.id !== notif.id);
+    unreadIds.delete(notif.id);
+
+    closeNotifModal();
+    renderNotifications();
+    updateBadges();
+    showToast('تم حذف الإشعار', 'success');
+  } catch (e) {
+    showToast('حدث خطأ', 'error');
+  }
+});
+
+// ============================================================
+// 📑 Tabs
+// ============================================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderNotifications();
+  });
+});
+
+// ============================================================
+// 🚪 تسجيل الخروج
+// ============================================================
+async function handleLogout() {
+  const confirmed = await showConfirm({
+    title: 'تسجيل الخروج',
+    message: 'هل تريد تسجيل الخروج من حسابك؟',
+    icon: 'fa-sign-out-alt',
+    iconType: 'warning',
+    okText: 'خروج'
+  });
+  if (!confirmed) return;
+  forceLogout();
+}
+
+$('logoutBtn').addEventListener('click', handleLogout);
+$('drawerLogoutBtn').addEventListener('click', () => {
+  closeDrawer();
+  setTimeout(handleLogout, 300);
+});
+
+function forceLogout() {
+  sessionStorage.removeItem('meezan_logged_in');
+  sessionStorage.removeItem('meezan_username');
+  sessionStorage.removeItem('meezan_role');
+  sessionStorage.removeItem('meezan_user_id');
+  sessionStorage.removeItem('meezan_user_data');
+  window.location.replace('login.html');
+}
+
+// ============================================================
+// 🚫 شاشة الحظر
+// ============================================================
+function showBlockScreen(type, user) {
+  if (blockTriggered) return;
+  blockTriggered = true;
+
+  const overlay = $('blockOverlay');
+
+  if (type === 'disabled') {
+    $('blockIcon').className = 'fas fa-ban';
+    $('blockTitle').textContent = 'حسابك معطّل حالياً';
+    $('blockSubtitle').textContent = 'تم تعطيل حسابك من قبل الإدارة.';
+
+    if (user && user.disableUntil) {
+      $('blockUntilRow').style.display = 'flex';
+      $('blockUntilText').textContent = formatDateTime(user.disableUntil);
+      $('blockRemainingRow').style.display = 'flex';
+      $('blockRemainingText').textContent = getRemainingTime(user.disableUntil);
+    } else {
+      $('blockUntilRow').style.display = 'none';
+      $('blockRemainingRow').style.display = 'none';
+    }
+
+    if (user && user.disableReason) {
+      $('blockReasonRow').style.display = 'flex';
+      $('blockReasonText').textContent = user.disableReason;
+    } else {
+      $('blockReasonRow').style.display = 'none';
+    }
+  } else if (type === 'deleted') {
+    $('blockIcon').className = 'fas fa-user-slash';
+    $('blockTitle').textContent = 'تم حذف حسابك';
+    $('blockSubtitle').textContent = 'حسابك لم يعد موجوداً في المنصة.';
+    $('blockUntilRow').style.display = 'none';
+    $('blockRemainingRow').style.display = 'none';
+    $('blockReasonRow').style.display = 'none';
+    setTimeout(forceLogout, 3000);
+  }
+
+  overlay.classList.add('show');
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString('ar-EG', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch (e) { return '—'; }
+}
+
+function getRemainingTime(iso) {
+  if (!iso) return '—';
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return 'انتهى التعطيل';
+
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days} يوم`);
+  if (hours > 0) parts.push(`${hours} ساعة`);
+  if (minutes > 0) parts.push(`${minutes} دقيقة`);
+
+  return parts.join(' و ') || 'ثواني';
+}
+
+$('blockLogoutBtn').addEventListener('click', forceLogout);
+
+// ============================================================
+// 📡 مراقبة المستخدم
+// ============================================================
+function startUserMonitoring() {
+  const collectionName = currentRole === 'teacher' ? 'teachers' : 'users';
+
+  onSnapshot(doc(db, collectionName, 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === currentUserId);
+
+    if (!user) {
+      showBlockScreen('deleted', null);
+      return;
+    }
+
+    if (user.isDisabled === true) {
+      const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
+      if (!expired) {
+        showBlockScreen('disabled', user);
+        return;
+      }
+    }
+
+    currentUser = user;
+    renderUserInfo(user);
+  }, (err) => console.log('user monitor error:', err.message));
+}
+
+// ============================================================
+// 📱 قائمة الطعام
+// ============================================================
+const drawer = $('drawer');
+const drawerOverlay = $('drawerOverlay');
+
+function openDrawer() {
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+$('menuBtn').addEventListener('click', openDrawer);
+$('drawerClose').addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+
+// ============================================================
+// 📡 Settings
+// ============================================================
+const cachedSettings = loadCache(CACHE_SETTINGS);
+if (cachedSettings) {
+  currentSettings = cachedSettings;
+  applySettings(cachedSettings);
+}
+
+requestAnimationFrame(() => document.body.classList.add('ready'));
+
+onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
+  if (!snap.exists()) return;
+  const data = snap.data();
+  currentSettings = data;
+  applySettings(data);
+  saveCache(CACHE_SETTINGS, data);
+}, (err) => console.log('settings error:', err.message));
+
+new MutationObserver(() => {
+  if (currentSettings) applyColors(currentSettings);
+}).observe(document.documentElement, { attributes: ['data-theme'] });
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+async function init() {
+  await loadUserData();
+
+  if (currentUserId && currentUser) {
+    startNotificationsListener();
+    startUserMonitoring();
+  }
+}
+
+init();
+
+// ============================================================
+// 🔄 Pull to Refresh (بسيط)
+// ============================================================
+let touchStartY = 0;
+let isPulling = false;
+document.addEventListener('touchstart', (e) => {
+  if (window.scrollY === 0) {
+    touchStartY = e.touches[0].clientY;
+    isPulling = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (!isPulling) return;
+  const diff = e.touches[0].clientY - touchStartY;
+  if (diff > 100 && window.scrollY === 0) {
+    isPulling = false;
+    showToast('جاري التحديث...', 'info');
+    setTimeout(() => window.location.reload(), 300);
+  }
+}, { passive: true });
+
+// ============================================================
+// 🚀 PWA
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
