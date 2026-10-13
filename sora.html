@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>ملفي الشخصي | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.4s ease;
+    overflow-x: hidden;
+  }
+
+  body.ready { opacity: 1; }
+
+  /* ===== الهيدر (يتحرك مع الصفحة) ===== */
+  .header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .header-title {
+    font-size: 19px;
+    font-weight: 900;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-title i {
+    color: var(--accent);
+    font-size: 20px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  .icon-btn.logout {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  .icon-btn.logout:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  /* ===== Container ===== */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ===== قسم الصورة الرمزية ===== */
+  .avatar-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 60%, var(--primary-lighter) 100%);
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 40px var(--shadow);
+    border: 3px solid var(--accent);
+    margin-bottom: 22px;
+  }
+
+  .avatar-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 90% 20%, rgba(201, 169, 97, 0.2) 0%, transparent 40%),
+      radial-gradient(circle at 10% 80%, rgba(201, 169, 97, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .avatar-hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .avatar-big {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 5px solid var(--accent);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 52px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+  }
+
+  .avatar-big:hover { transform: scale(1.03); }
+
+  .avatar-big img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-edit-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: 3px solid var(--bg-card);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .avatar-edit-badge:hover {
+    transform: scale(1.15) rotate(15deg);
+    background: var(--primary);
+  }
+
+  .avatar-name {
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .avatar-username {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    direction: ltr;
+    margin-bottom: 12px;
+  }
+
+  .avatar-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .avatar-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .avatar-badge i { color: var(--accent-light); font-size: 13px; }
+
+  /* أزرار تغيير الصورة */
+  .avatar-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-avatar {
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.25s ease;
+  }
+
+  .btn-avatar:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .btn-avatar i { font-size: 14px; }
+
+  /* ===== Card ===== */
+  .card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 24px var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .card-title i {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .card-title i { color: var(--bg-page); }
+
+  .card-title .badge {
+    margin-right: auto;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ===== Form ===== */
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .form-label .hint {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-weight: 500;
+    margin-right: auto;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 13px 42px 13px 42px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    transition: all 0.25s ease;
+    outline: none;
+    font-weight: 600;
+  }
+
+  .form-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
+  }
+
+  [data-theme="dark"] .form-input:focus {
+    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.15);
+  }
+
+  .form-input::placeholder { color: #A8B5B1; font-weight: 400; }
+
+  .form-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-input);
+  }
+
+  .toggle-password {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .toggle-password:hover {
+    color: var(--primary);
+    background: rgba(11, 61, 46, 0.08);
+  }
+
+  /* زر حفظ */
+  .btn-save {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px var(--shadow);
+    margin-top: 8px;
+  }
+
+  [data-theme="dark"] .btn-save { color: var(--bg-page); }
+
+  .btn-save:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ===== الحقول المقفلة ===== */
+  .locked-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+  }
+
+  .locked-row:hover {
+    border-color: var(--accent);
+  }
+
+  .locked-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .locked-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .locked-label {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .locked-value {
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: ltr;
+    text-align: right;
+  }
+
+  .locked-value.ar {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .locked-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .locked-btn:hover {
+    background: var(--warning);
+    color: #fff;
+    border-color: var(--warning);
+    transform: scale(1.1);
+  }
+
+  .locked-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(230, 126, 34, 0.08);
+    border: 1.5px solid rgba(230, 126, 34, 0.3);
+    border-radius: 12px;
+    font-size: 12.5px;
+    color: var(--warning);
+    font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  .locked-note i {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ===== قسم الإحصائيات ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .stat-box {
+    background: var(--bg-input);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    transition: all 0.25s ease;
+  }
+
+  .stat-box:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+
+  .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .stat-icon.exams {
+    background: linear-gradient(135deg, #2980B9, #3498DB);
+  }
+
+  .stat-icon.homework {
+    background: linear-gradient(135deg, #E67E22, #F39C12);
+  }
+
+  .stat-icon.code {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+  }
+
+  [data-theme="dark"] .stat-icon.code { color: var(--bg-page); }
+
+  .stat-number {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .stat-number small {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 700;
+  }
+
+  /* نسبة التفوق */
+  .excellence-box {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.12), rgba(201, 169, 97, 0.05));
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 8px;
+  }
+
+  .excellence-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .excellence-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .excellence-title i {
+    color: var(--accent);
+    font-size: 16px;
+  }
+
+  .excellence-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary);
+    direction: ltr;
+  }
+
+  [data-theme="dark"] .excellence-value { color: var(--accent); }
+
+  .excellence-value small {
+    font-size: 16px;
+    opacity: 0.7;
+  }
+
+  .progress-bar {
+    height: 12px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-lighter), var(--accent));
+    border-radius: 10px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s linear infinite;
+  }
+
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  .excellence-text {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    margin-top: 10px;
+  }
+
+  /* ===== Tabs المظهر ===== */
+  .theme-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .theme-option {
+    padding: 16px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-input);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    font-family: 'Cairo', sans-serif;
+    color: var(--text-main);
+    position: relative;
+  }
+
+  .theme-option:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .theme-option.active {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(11, 61, 46, 0.08), rgba(30, 122, 90, 0.05));
+    box-shadow: 0 6px 16px var(--shadow);
+  }
+
+  [data-theme="dark"] .theme-option.active {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(224, 200, 136, 0.05));
+  }
+
+  .theme-option.active::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--success);
+    color: #fff;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-option i {
+    font-size: 26px;
+    color: var(--accent);
+  }
+
+  .theme-option.active i { color: var(--primary); }
+  [data-theme="dark"] .theme-option.active i { color: var(--accent); }
+
+  .theme-option span {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 32px 26px 24px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 25px var(--shadow);
+  }
+
+  [data-theme="dark"] .modal-icon { color: var(--bg-page); }
+
+  .modal-icon.warning {
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+    box-shadow: 0 10px 25px rgba(230, 126, 34, 0.4);
+  }
+
+  .modal-icon.danger {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 8px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .modal-actions .btn {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+  }
+
+  .btn-cancel {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1.5px solid var(--border) !important;
+  }
+
+  .btn-cancel:hover {
+    background: var(--bg-card);
+    transform: translateY(-2px);
+  }
+
+  .btn-confirm {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  [data-theme="dark"] .btn-confirm { color: var(--bg-page); }
+
+  .btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn-confirm.warning {
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(230, 126, 34, 0.4);
+  }
+
+  /* ===== Modal الصورة ===== */
+  .modal-box.wide { max-width: 560px; text-align: right; }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .modal-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .modal-header-icon { color: var(--bg-page); }
+
+  .modal-header h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  /* Tabs نوع الصورة */
+  .avatar-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-input);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .avatar-tab {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text-sub);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .avatar-tab.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  [data-theme="dark"] .avatar-tab.active { color: var(--bg-page); }
+
+  .avatar-tab-content { display: none; }
+  .avatar-tab-content.active { display: block; }
+
+  /* معاينة الصورة */
+  .avatar-preview-big {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    font-size: 52px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--accent);
+    overflow: hidden;
+    box-shadow: 0 12px 30px var(--shadow);
+  }
+
+  [data-theme="dark"] .avatar-preview-big { color: var(--bg-page); }
+
+  .avatar-preview-big img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: var(--bg-input);
+    display: block;
+  }
+
+  .upload-area:hover {
+    border-color: var(--primary);
+    background: var(--bg-card);
+  }
+
+  .upload-area i {
+    font-size: 32px;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .upload-area p {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .header-inner { padding: 12px 16px; gap: 10px; }
+    .back-btn { width: 38px; height: 38px; font-size: 15px; }
+    .header-title { font-size: 17px; }
+    .header-title i { font-size: 18px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
+
+    .container { padding: 20px 16px 40px; }
+    .card { padding: 20px 16px; }
+
+    .avatar-big { width: 110px; height: 110px; font-size: 44px; }
+    .avatar-name { font-size: 20px; }
+
+    .stat-number { font-size: 19px; }
+    .stat-icon { width: 42px; height: 42px; font-size: 18px; }
+  }
+
+  @media (max-width: 600px) {
+    .header-inner { padding: 10px 12px; gap: 8px; }
+    .back-btn { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; }
+    .header-title { font-size: 15px; }
+    .header-title i { font-size: 16px; }
+    .icon-btn { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; }
+
+    .container { padding: 16px 12px 30px; }
+
+    .avatar-hero { padding: 24px 18px; border-radius: 18px; }
+    .avatar-big { width: 100px; height: 100px; font-size: 38px; border-width: 4px; }
+    .avatar-edit-badge { width: 34px; height: 34px; font-size: 13px; }
+    .avatar-name { font-size: 18px; }
+    .avatar-username { font-size: 12.5px; }
+    .avatar-badge { font-size: 11.5px; padding: 5px 11px; }
+
+    .card { padding: 18px 14px; border-radius: 14px; }
+    .card-title { font-size: 15px; margin-bottom: 16px; }
+    .card-title i { width: 34px; height: 34px; font-size: 14px; }
+
+    .form-input { padding: 12px 38px 12px 38px; font-size: 13px; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-box { padding: 14px 10px; }
+    .stat-number { font-size: 18px; }
+    .stat-label { font-size: 11px; }
+
+    .excellence-value { font-size: 24px; }
+    .excellence-title { font-size: 13px; }
+
+    .theme-option { padding: 14px 10px; }
+    .theme-option i { font-size: 22px; }
+    .theme-option span { font-size: 12px; }
+
+    .modal-box { padding: 26px 18px 20px; border-radius: 18px; }
+    .modal-icon { width: 60px; height: 60px; font-size: 24px; margin-bottom: 16px; }
+    .modal-title { font-size: 17px; }
+    .modal-message { font-size: 13px; }
+    .modal-actions { flex-direction: column-reverse; }
+
+    .avatar-preview-big { width: 110px; height: 110px; font-size: 42px; }
+  }
+
+  @media (max-width: 380px) {
+    .back-btn { width: 34px; height: 34px; font-size: 13px; }
+    .header-title { font-size: 14px; }
+    .icon-btn { width: 34px; height: 34px; font-size: 13px; }
+
+    .avatar-big { width: 88px; height: 88px; font-size: 32px; }
+    .avatar-name { font-size: 16px; }
+
+    .stat-number { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ الهيدر ============ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <a href="index.html" class="back-btn" title="الرجوع">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+      <h1 class="header-title">
+        <i class="fas fa-user-circle"></i>
+        <span>ملفي الشخصي</span>
+      </h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn logout" id="logoutBtn" title="تسجيل الخروج">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ============ قسم الصورة ============ -->
+  <div class="avatar-hero">
+    <div class="avatar-hero-content">
+
+      <div class="avatar-wrapper">
+        <div class="avatar-big" id="avatarBig">
+          <i class="fas fa-user"></i>
+        </div>
+        <button class="avatar-edit-badge" id="avatarEditBtn" title="تغيير الصورة">
+          <i class="fas fa-camera"></i>
+        </button>
+      </div>
+
+      <h2 class="avatar-name" id="avatarName">—</h2>
+      <div class="avatar-username" id="avatarUsername">@—</div>
+
+      <div class="avatar-badges">
+        <span class="avatar-badge" id="roleBadge">
+          <i class="fas fa-user"></i>
+          <span id="roleText">—</span>
+        </span>
+        <span class="avatar-badge" id="gradeBadge">
+          <i class="fas fa-graduation-cap"></i>
+          <span id="gradeText">—</span>
+        </span>
+      </div>
+
+      <div class="avatar-actions">
+        <button class="btn-avatar" id="avatarChangeBtn">
+          <i class="fas fa-camera"></i>
+          تغيير الصورة
+        </button>
+        <button class="btn-avatar" id="avatarRemoveBtn" style="display:none;">
+          <i class="fas fa-trash-can"></i>
+          حذف الصورة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ معلومات قابلة للتعديل ============ -->
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-pen"></i>
+      <span>معلومات قابلة للتعديل</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-user" style="color:var(--accent); font-size:12px;"></i>
+        الاسم الكامل
+      </label>
+      <div class="input-wrapper">
+        <i class="fas fa-id-badge input-icon"></i>
+        <input type="text" class="form-input" id="editFullName" placeholder="الاسم الكامل" maxlength="50">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-at" style="color:var(--accent); font-size:12px;"></i>
+        اسم المستخدم
+        <span class="hint">(فريد)</span>
+      </label>
+      <div class="input-wrapper">
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" class="form-input" id="editUsername" placeholder="username" style="direction:ltr;text-align:right;" maxlength="30">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-lock" style="color:var(--accent); font-size:12px;"></i>
+        كلمة السر
+      </label>
+      <div class="input-wrapper">
+        <i class="fas fa-key input-icon"></i>
+        <input type="password" class="form-input" id="editPassword" placeholder="كلمة السر" style="direction:ltr;text-align:right;">
+        <button type="button" class="toggle-password" id="togglePassword">
+          <i class="fas fa-eye" id="eyeIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-save" id="saveInfoBtn">
+      <i class="fas fa-save"></i>
+      حفظ التعديلات
+    </button>
+  </div>
+
+  <!-- ============ معلومات ثابتة ============ -->
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-lock"></i>
+      <span>معلومات ثابتة</span>
+      <span class="badge">تحتاج دعم</span>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-graduation-cap"></i></div>
+      <div class="locked-info">
+        <div class="locked-label" id="lockGradeLabel">الفرقة الدراسية</div>
+        <div class="locked-value ar" id="lockGradeValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="grade" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-id-card"></i></div>
+      <div class="locked-info">
+        <div class="locked-label">الرقم القومي</div>
+        <div class="locked-value" id="lockNidValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="nationalId" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-calendar"></i></div>
+      <div class="locked-info">
+        <div class="locked-label">تاريخ الميلاد</div>
+        <div class="locked-value" id="lockBirthValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="birthDate" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-phone"></i></div>
+      <div class="locked-info">
+        <div class="locked-label">رقم الهاتف</div>
+        <div class="locked-value" id="lockPhoneValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="phone" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-envelope"></i></div>
+      <div class="locked-info">
+        <div class="locked-label">البريد الإلكتروني</div>
+        <div class="locked-value" id="lockEmailValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="email" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-note">
+      <i class="fas fa-info-circle"></i>
+      <span>لتغيير هذه المعلومات، تواصل مع الدعم الفني</span>
+    </div>
+  </div>
+
+  <!-- ============ الإحصائيات ============ -->
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-chart-bar"></i>
+      <span>إحصائياتي</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon code">
+          <i class="fas fa-hashtag"></i>
+        </div>
+        <div class="stat-number" id="statCode" style="font-size:15px; direction:ltr;">—</div>
+        <div class="stat-label">الكود الشخصي</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-icon exams">
+          <i class="fas fa-file-pen"></i>
+        </div>
+        <div class="stat-number" id="statExams">0 <small>/ 0</small></div>
+        <div class="stat-label">الامتحانات</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-icon homework">
+          <i class="fas fa-book"></i>
+        </div>
+        <div class="stat-number" id="statHomework">0 <small>/ 0</small></div>
+        <div class="stat-label">الواجبات</div>
+      </div>
+    </div>
+
+    <div class="excellence-box">
+      <div class="excellence-header">
+        <div class="excellence-title">
+          <i class="fas fa-star"></i>
+          <span>نسبة التفوق</span>
+        </div>
+        <div class="excellence-value" id="excellenceValue">0<small>%</small></div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="excellenceFill" style="width: 0%;"></div>
+      </div>
+      <div class="excellence-text" id="excellenceText">لم تبدأ بعد</div>
+    </div>
+  </div>
+
+  <!-- ============ المظهر ============ -->
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-palette"></i>
+      <span>المظهر</span>
+    </div>
+
+    <div class="theme-options">
+      <button class="theme-option" data-theme-choice="light">
+        <i class="fas fa-sun"></i>
+        <span>الوضع النهاري</span>
+      </button>
+      <button class="theme-option" data-theme-choice="dark">
+        <i class="fas fa-moon"></i>
+        <span>الوضع الليلي</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ نافذة تغيير الصورة ============ -->
+<div class="modal-overlay" id="avatarModal">
+  <div class="modal-box wide">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fas fa-camera"></i>
+      </div>
+      <h2>تغيير الصورة الرمزية</h2>
+    </div>
+
+    <div class="avatar-preview-big" id="avatarPreviewBig">
+      <i class="fas fa-user"></i>
+    </div>
+
+    <div class="avatar-tabs">
+      <button class="avatar-tab active" data-avatar-type="url">
+        <i class="fas fa-link"></i> رابط
+      </button>
+      <button class="avatar-tab" data-avatar-type="upload">
+        <i class="fas fa-cloud-upload-alt"></i> رفع صورة
+      </button>
+    </div>
+
+    <div class="avatar-tab-content active" id="avatarType-url">
+      <div class="form-group" style="margin-bottom:0;">
+        <input type="url" class="form-input" id="avatarUrlInput" placeholder="https://example.com/photo.jpg" style="direction:ltr;text-align:left;">
+      </div>
+    </div>
+
+    <div class="avatar-tab-content" id="avatarType-upload">
+      <label class="upload-area" for="avatarFileInput">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>اضغط لاختيار صورة من جهازك</p>
+        <p style="font-size:11px;opacity:0.7;margin-top:4px;">PNG, JPG · أقل من 1MB</p>
+      </label>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+      <p id="avatarUploadStatus" style="font-size:12px;color:var(--success);font-weight:700;margin-top:8px;display:none;"></p>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-cancel" id="avatarCancel">
+        <i class="fas fa-times"></i> إلغاء
+      </button>
+      <button class="btn btn-confirm" id="avatarSave">
+        <i class="fas fa-check"></i> حفظ الصورة
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ نافذة تأكيد عامة ============ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirmIcon">
+      <i class="fas fa-question-circle"></i>
+    </div>
+    <h2 class="modal-title" id="confirmTitle">تأكيد</h2>
+    <p class="modal-message" id="confirmMessage">—</p>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="confirmCancel">
+        <i class="fas fa-times"></i> إلغاء
+      </button>
+      <button class="btn btn-confirm" id="confirmOk">
+        <i class="fas fa-check"></i> تأكيد
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 التنظيف
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+// ============================================================
+// 🔐 التشفير
+// ============================================================
+const SECRET_KEY = 'MEEZAN_2026_SECRET_KEY_v1';
+
+function xorEncrypt(text, key) {
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return result;
+}
+
+function encryptPassword(password) {
+  try {
+    const xorResult = xorEncrypt(password, SECRET_KEY);
+    return btoa(unescape(encodeURIComponent(xorResult)));
+  } catch (e) { return ''; }
+}
+
+function decryptPassword(encrypted) {
+  if (!encrypted) return '';
+  try {
+    const decoded = decodeURIComponent(escape(atob(encrypted)));
+    return xorEncrypt(decoded, SECRET_KEY);
+  } catch (e) { return ''; }
+}
+
+// ============================================================
+// 📊 حالة الصفحة
+// ============================================================
+let currentUser = null;
+let currentRole = 'student';
+let currentUserId = null;
+let collectionName = 'users';
+
+let pendingAvatar = null; // للصورة المؤقتة قبل الحفظ
+let pendingAvatarType = 'url'; // url | upload
+let uploadedAvatarBase64 = '';
+
+let blockTriggered = false;
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// 🔔 نافذة تأكيد
+// ============================================================
+let confirmResolve = null;
+
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد',
+      cancelText = 'إلغاء',
+      okType = 'primary'
+    } = options;
+
+    const modal = $('confirmModal');
+    const iconEl = $('confirmIcon');
+    const titleEl = $('confirmTitle');
+    const msgEl = $('confirmMessage');
+    const okBtn = $('confirmOk');
+    const cancelBtn = $('confirmCancel');
+
+    iconEl.className = 'modal-icon';
+    if (iconType === 'warning') iconEl.classList.add('warning');
+    if (iconType === 'danger') iconEl.classList.add('danger');
+    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+
+    titleEl.textContent = title;
+    msgEl.innerHTML = message;
+
+    okBtn.className = 'btn btn-confirm';
+    if (okType === 'warning') okBtn.classList.add('warning');
+    okBtn.innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+    cancelBtn.innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
+
+    confirmResolve = resolve;
+    modal.classList.add('show');
+  });
+}
+
+function closeConfirm(result) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) {
+    confirmResolve(result);
+    confirmResolve = null;
+  }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
+
+// ============================================================
+// 🌙 المظهر
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeOptions(savedTheme);
+
+document.querySelectorAll('.theme-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const choice = btn.dataset.themeChoice;
+    document.documentElement.setAttribute('data-theme', choice);
+    localStorage.setItem('meezan_theme', choice);
+    updateThemeOptions(choice);
+    showToast(choice === 'dark' ? 'تم تفعيل الوضع الليلي ✓' : 'تم تفعيل الوضع النهاري ✓', 'success');
+  });
+});
+
+function updateThemeOptions(theme) {
+  document.querySelectorAll('.theme-option').forEach(btn => {
+    if (btn.dataset.themeChoice === theme) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+// ============================================================
+// 👁️ عرض/إخفاء كلمة السر
+// ============================================================
+$('togglePassword').addEventListener('click', () => {
+  const inp = $('editPassword');
+  const icon = $('eyeIcon');
+  const isPwd = inp.type === 'password';
+  inp.type = isPwd ? 'text' : 'password';
+  icon.className = isPwd ? 'fas fa-eye-slash' : 'fas fa-eye';
+});
+
+// ============================================================
+// 📡 تحميل بيانات المستخدم — Real-time
+// ============================================================
+function startUserListener() {
+  const userId = sessionStorage.getItem('meezan_user_id');
+  const role = sessionStorage.getItem('meezan_role') || 'student';
+
+  currentRole = role;
+  currentUserId = userId;
+  collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+  onSnapshot(doc(db, collectionName, 'all'), (snap) => {
+    if (!snap.exists()) return;
+
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === userId);
+
+    if (!user) {
+      // حُذف المستخدم
+      if (!blockTriggered) {
+        blockTriggered = true;
+        showToast('تم حذف حسابك — جاري الخروج...', 'error');
+        setTimeout(forceLogout, 2000);
+      }
+      return;
+    }
+
+    // تعطيل
+    if (user.isDisabled === true) {
+      const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
+      if (!expired) {
+        if (!blockTriggered) {
+          blockTriggered = true;
+          showToast('حسابك معطّل حالياً', 'error');
+          setTimeout(forceLogout, 2000);
+        }
+        return;
+      }
+    }
+
+    currentUser = user;
+    renderUser(user);
+
+  }, (err) => console.log('user error:', err.message));
+}
+
+// ============================================================
+// 🎨 عرض بيانات المستخدم
+// ============================================================
+function renderUser(user) {
+  const fullName = user.fullName || user.username || 'مستخدم';
+
+  // الصورة الكبيرة
+  updateAvatarBig(user);
+
+  // الاسم واليوزر
+  $('avatarName').textContent = fullName;
+  $('avatarUsername').textContent = '@' + (user.username || '—');
+
+  // الدور
+  const isTeacher = currentRole === 'teacher';
+  $('roleText').textContent = isTeacher ? 'حساب معلم' : 'حساب طالب';
+
+  const roleBadgeIcon = $('roleBadge').querySelector('i');
+  if (roleBadgeIcon) {
+    roleBadgeIcon.className = isTeacher ? 'fas fa-chalkboard-user' : 'fas fa-user-graduate';
+  }
+
+  // الفرقة / المادة
+  if (user.grade) {
+    $('gradeText').textContent = user.grade;
+    $('lockGradeLabel').textContent = isTeacher ? 'المادة الدراسية' : 'الفرقة الدراسية';
+    $('lockGradeValue').textContent = user.grade;
+  } else {
+    $('gradeText').textContent = 'غير محدد';
+    $('lockGradeValue').textContent = 'غير محدد';
+  }
+
+  // الحقول القابلة للتعديل
+  $('editFullName').value = user.fullName || '';
+  $('editUsername').value = user.username || '';
+  $('editPassword').value = decryptPassword(user.passwordEncrypted) || '';
+
+  // الحقول المقفلة
+  $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
+  $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
+  $('lockPhoneValue').textContent = user.phone || 'غير مسجل';
+  $('lockEmailValue').textContent = user.email || 'غير مسجل';
+
+  // الإحصائيات
+  renderStats(user);
+
+  // زر حذف الصورة
+  $('avatarRemoveBtn').style.display = user.avatarUrl ? 'inline-flex' : 'none';
+
+  // شارة الأيقونة في الهيرو
+  // (تحديث فقط إن تغيّرت الصورة)
+}
+
+// ============================================================
+// 🖼️ تحديث الصورة الكبيرة
+// ============================================================
+function updateAvatarBig(user) {
+  const big = $('avatarBig');
+  if (user.avatarUrl) {
+    big.innerHTML = `<img src="${user.avatarUrl}" alt="${user.fullName || ''}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+  } else {
+    const name = user.fullName || user.username || 'مستخدم';
+    const firstChar = (name || '؟').charAt(0).toUpperCase();
+    big.innerHTML = `<span>${firstChar}</span>`;
+  }
+}
+
+// ============================================================
+// 📊 الإحصائيات
+// ============================================================
+function renderStats(user) {
+  // الكود
+  $('statCode').textContent = user.code || '—';
+
+  // الامتحانات
+  const completedExams = Number(user.completedExams) || 0;
+  const totalExams = Number(user.totalExams) || 0;
+  $('statExams').innerHTML = `${completedExams} <small>/ ${totalExams}</small>`;
+
+  // الواجبات
+  const completedHW = Number(user.completedHomeworks) || 0;
+  const totalHW = Number(user.totalHomeworks) || 0;
+  $('statHomework').innerHTML = `${completedHW} <small>/ ${totalHW}</small>`;
+
+  // نسبة التفوق
+  const totalAll = totalExams + totalHW;
+  const completedAll = completedExams + completedHW;
+  const rate = totalAll > 0 ? Math.round((completedAll / totalAll) * 100) : 0;
+
+  $('excellenceValue').innerHTML = `${rate}<small>%</small>`;
+  $('excellenceFill').style.width = rate + '%';
+
+  // النص
+  let text = 'لم تبدأ بعد';
+  if (rate > 0 && rate < 30) text = 'تحتاج إلى مزيد من الجهد';
+  else if (rate >= 30 && rate < 50) text = 'بداية جيدة — استمر';
+  else if (rate >= 50 && rate < 70) text = 'أداء جيد — يمكنك الأفضل';
+  else if (rate >= 70 && rate < 85) text = 'أداء ممتاز — استمر';
+  else if (rate >= 85 && rate < 100) text = 'ممتاز — اقتربت من الكمال';
+  else if (rate === 100) text = '🎉 تفوق كامل — أنت رائع!';
+
+  $('excellenceText').textContent = text;
+}
+
+function formatDateOnly(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ar-EG', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  } catch (e) { return dateStr; }
+}
+
+// ============================================================
+// 💾 حفظ المعلومات القابلة للتعديل
+// ============================================================
+$('saveInfoBtn').addEventListener('click', async () => {
+  if (!currentUser) return;
+
+  const newFullName = cleanInput($('editFullName').value);
+  const newUsername = cleanInput($('editUsername').value);
+  const newPassword = cleanInput($('editPassword').value);
+
+  // التحقق
+  if (!newFullName || newFullName.length < 3) {
+    return showToast('الاسم الكامل يجب أن يكون 3 أحرف على الأقل', 'error');
+  }
+  if (!newUsername || newUsername.length < 3) {
+    return showToast('اسم المستخدم يجب أن يكون 3 أحرف على الأقل', 'error');
+  }
+  if (!/^[a-zA-Z0-9_.\u0600-\u06FF]+$/.test(newUsername)) {
+    return showToast('اسم المستخدم يحتوي على أحرف غير مسموحة', 'error');
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return showToast('كلمة السر يجب أن تكون 6 أحرف على الأقل', 'error');
+  }
+
+  // لا يوجد تغيير
+  const currentPassword = decryptPassword(currentUser.passwordEncrypted) || '';
+  const noChange =
+    newFullName === currentUser.fullName &&
+    newUsername.toLowerCase() === (currentUser.username || '').toLowerCase() &&
+    newPassword === currentPassword;
+
+  if (noChange) {
+    return showToast('لا يوجد تعديلات جديدة', 'warning');
+  }
+
+  // تأكيد
+  const confirmed = await showConfirm({
+    title: 'حفظ التعديلات',
+    message: 'هل تريد حفظ التعديلات على بياناتك؟',
+    icon: 'fa-save',
+    okText: 'حفظ',
+    cancelText: 'إلغاء'
+  });
+  if (!confirmed) return;
+
+  const btn = $('saveInfoBtn');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+  try {
+    // اقرأ القائمة كاملة
+    const snap = await new Promise((resolve) => {
+      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
+    });
+
+    if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
+
+    const items = snap.data().items || [];
+
+    // تحقق من تفرد اسم المستخدم
+    if (newUsername.toLowerCase() !== (currentUser.username || '').toLowerCase()) {
+      const dup = items.find(u =>
+        u.id !== currentUser.id &&
+        (u.username || '').toLowerCase() === newUsername.toLowerCase()
+      );
+      if (dup) {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        return showToast('اسم المستخدم موجود بالفعل', 'error');
+      }
+    }
+
+    // عدّل بيانات المستخدم
+    const idx = items.findIndex(u => u.id === currentUser.id);
+    if (idx === -1) throw new Error('لم يتم العثور على حسابك');
+
+    items[idx] = {
+      ...items[idx],
+      fullName: newFullName,
+      username: newUsername,
+      passwordEncrypted: encryptPassword(newPassword),
+      updatedAt: new Date().toISOString()
+    };
+
+    // حدّث Firestore
+    await setDoc(doc(db, collectionName, 'all'), {
+      items,
+      updatedAt: serverTimestamp()
+    });
+
+    // حدّث sessionStorage
+    sessionStorage.setItem('meezan_username', newUsername);
+    const userData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}');
+    userData.fullName = newFullName;
+    userData.username = newUsername;
+    sessionStorage.setItem('meezan_user_data', JSON.stringify(userData));
+
+    showToast('تم حفظ التعديلات بنجاح ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('حدث خطأ: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+// ============================================================
+// 🔒 الأزرار المقفلة — تواصل مع الدعم
+// ============================================================
+document.querySelectorAll('.locked-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const field = btn.dataset.field;
+
+    const fieldNames = {
+      grade: 'الفرقة الدراسية',
+      nationalId: 'الرقم القومي',
+      birthDate: 'تاريخ الميلاد',
+      phone: 'رقم الهاتف',
+      email: 'البريد الإلكتروني'
+    };
+
+    const name = fieldNames[field] || 'هذه المعلومة';
+
+    const confirmed = await showConfirm({
+      title: 'تواصل مع الدعم',
+      message: `لا يمكنك تعديل <strong>"${name}"</strong> بنفسك.<br><br>لتغيير هذه المعلومة، تواصل مع الدعم الفني.`,
+      icon: 'fa-headset',
+      iconType: 'warning',
+      okText: 'الذهاب للدعم',
+      cancelText: 'إلغاء',
+      okType: 'warning'
+    });
+
+    if (confirmed) {
+      window.location.href = 'daam.html';
+    }
+  });
+});
+
+// ============================================================
+// 🖼️ تغيير الصورة
+// ============================================================
+$('avatarEditBtn').addEventListener('click', openAvatarModal);
+$('avatarChangeBtn').addEventListener('click', openAvatarModal);
+
+function openAvatarModal() {
+  if (!currentUser) return;
+
+  pendingAvatarType = 'url';
+  uploadedAvatarBase64 = '';
+
+  // إعادة تعيين التبويبات
+  document.querySelectorAll('.avatar-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.avatar-tab[data-avatar-type="url"]').classList.add('active');
+  document.querySelectorAll('.avatar-tab-content').forEach(c => c.classList.remove('active'));
+  $('avatarType-url').classList.add('active');
+
+  // URL الحالي (لو مش Base64)
+  if (currentUser.avatarUrl && !currentUser.avatarUrl.startsWith('data:')) {
+    $('avatarUrlInput').value = currentUser.avatarUrl;
+  } else {
+    $('avatarUrlInput').value = '';
+  }
+  $('avatarFileInput').value = '';
+  $('avatarUploadStatus').style.display = 'none';
+
+  // معاينة
+  updateAvatarPreview(currentUser.avatarUrl || '');
+
+  $('avatarModal').classList.add('show');
+}
+
+function updateAvatarPreview(url) {
+  const preview = $('avatarPreviewBig');
+  if (url) {
+    preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+  } else {
+    const name = currentUser?.fullName || currentUser?.username || 'مستخدم';
+    const firstChar = (name || '؟').charAt(0).toUpperCase();
+    preview.innerHTML = `<span>${firstChar}</span>`;
+  }
+}
+
+// تبويبات نوع الصورة
+document.querySelectorAll('.avatar-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const type = tab.dataset.avatarType;
+    pendingAvatarType = type;
+
+    document.querySelectorAll('.avatar-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.avatar-tab-content').forEach(c => c.classList.remove('active'));
+    $(`avatarType-${type}`).classList.add('active');
+
+    // معاينة حسب النوع
+    if (type === 'url') {
+      const url = cleanInput($('avatarUrlInput').value);
+      updateAvatarPreview(url);
+    } else if (type === 'upload') {
+      if (uploadedAvatarBase64) updateAvatarPreview(uploadedAvatarBase64);
+      else updateAvatarPreview('');
+    }
+  });
+});
+
+// معاينة عند كتابة رابط
+$('avatarUrlInput').addEventListener('input', () => {
+  if (pendingAvatarType === 'url') {
+    const url = cleanInput($('avatarUrlInput').value);
+    updateAvatarPreview(url);
+  }
+});
+
+// رفع صورة
+$('avatarFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 1024 * 1024) {
+    return showToast('حجم الصورة أكبر من 1MB', 'error');
+  }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    uploadedAvatarBase64 = ev.target.result;
+    $('avatarUploadStatus').textContent = `✅ تم تحميل: ${file.name}`;
+    $('avatarUploadStatus').style.display = 'block';
+    updateAvatarPreview(uploadedAvatarBase64);
+  };
+  reader.readAsDataURL(file);
+});
+
+// إلغاء
+$('avatarCancel').addEventListener('click', () => {
+  $('avatarModal').classList.remove('show');
+});
+$('avatarModal').addEventListener('click', (e) => {
+  if (e.target === $('avatarModal')) $('avatarModal').classList.remove('show');
+});
+
+// حفظ الصورة
+$('avatarSave').addEventListener('click', async () => {
+  if (!currentUser) return;
+
+  let finalUrl = '';
+
+  if (pendingAvatarType === 'url') {
+    finalUrl = cleanInput($('avatarUrlInput').value);
+    if (!finalUrl) {
+      return showToast('الرجاء إدخال رابط الصورة', 'error');
+    }
+  } else if (pendingAvatarType === 'upload') {
+    if (!uploadedAvatarBase64) {
+      return showToast('الرجاء رفع صورة أولاً', 'error');
+    }
+    finalUrl = uploadedAvatarBase64;
+  }
+
+  const btn = $('avatarSave');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+  try {
+    const snap = await new Promise((resolve) => {
+      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
+    });
+
+    if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
+
+    const items = snap.data().items || [];
+    const idx = items.findIndex(u => u.id === currentUser.id);
+    if (idx === -1) throw new Error('لم يتم العثور على حسابك');
+
+    items[idx] = {
+      ...items[idx],
+      avatarUrl: finalUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(db, collectionName, 'all'), {
+      items,
+      updatedAt: serverTimestamp()
+    });
+
+    $('avatarModal').classList.remove('show');
+    showToast('تم حفظ الصورة ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('حدث خطأ: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+// ============================================================
+// 🗑️ حذف الصورة
+// ============================================================
+$('avatarRemoveBtn').addEventListener('click', async () => {
+  if (!currentUser) return;
+
+  const confirmed = await showConfirm({
+    title: 'حذف الصورة',
+    message: 'هل تريد حذف صورة ملفك الشخصي؟',
+    icon: 'fa-trash-can',
+    iconType: 'danger',
+    okText: 'حذف',
+    cancelText: 'إلغاء'
+  });
+  if (!confirmed) return;
+
+  try {
+    const snap = await new Promise((resolve) => {
+      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
+    });
+
+    if (!snap.exists()) return;
+
+    const items = snap.data().items || [];
+    const idx = items.findIndex(u => u.id === currentUser.id);
+    if (idx === -1) return;
+
+    items[idx].avatarUrl = '';
+    items[idx].updatedAt = new Date().toISOString();
+
+    await setDoc(doc(db, collectionName, 'all'), {
+      items,
+      updatedAt: serverTimestamp()
+    });
+
+    showToast('تم حذف الصورة ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('حدث خطأ', 'error');
+  }
+});
+
+// ============================================================
+// 🚪 تسجيل الخروج
+// ============================================================
+$('logoutBtn').addEventListener('click', async () => {
+  const confirmed = await showConfirm({
+    title: 'تسجيل الخروج',
+    message: 'هل تريد تسجيل الخروج من حسابك؟',
+    icon: 'fa-sign-out-alt',
+    iconType: 'warning',
+    okText: 'خروج',
+    cancelText: 'إلغاء',
+    okType: 'warning'
+  });
+
+  if (!confirmed) return;
+  forceLogout();
+});
+
+function forceLogout() {
+  sessionStorage.removeItem('meezan_logged_in');
+  sessionStorage.removeItem('meezan_username');
+  sessionStorage.removeItem('meezan_role');
+  sessionStorage.removeItem('meezan_user_id');
+  sessionStorage.removeItem('meezan_user_data');
+  window.location.replace('login.html');
+}
+
+// ============================================================
+// 🛡️ حماية
+// ============================================================
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+requestAnimationFrame(() => document.body.classList.add('ready'));
+startUserListener();
+</script>
+
+</body>
+</html>
