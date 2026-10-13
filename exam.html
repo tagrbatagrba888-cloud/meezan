@@ -1,0 +1,3859 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>الامتحانات | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.4s ease;
+    overflow-x: hidden;
+  }
+
+  body.ready { opacity: 1; }
+
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .topbar-title i.header-icon { color: var(--accent); font-size: 22px; }
+
+  .topbar-title-text h1 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="dark"] .topbar-title-text h1 { color: var(--accent); }
+
+  .topbar-title-text small {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  .icon-btn.logout {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  .icon-btn.logout:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  .menu-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .menu-btn:hover, .menu-btn:active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px 20px 100px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-btn {
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-sub);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+    transform: translateY(-2px);
+  }
+
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  [data-theme="dark"] .filter-btn.active { color: var(--bg-page); }
+
+  .filter-btn .count {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .filter-btn:not(.active) .count {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+  }
+
+  .search-wrapper {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .search-wrapper i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 46px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    outline: none;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1), 0 4px 14px var(--shadow);
+  }
+
+  .search-clear {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .search-clear:hover { background: var(--error); color: #fff; }
+  .search-clear.show { display: flex; }
+
+  .exams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+  }
+
+  .exam-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px var(--shadow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .exam-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px var(--shadow);
+  }
+
+  .exam-card.passed { border-color: var(--success); }
+  .exam-card.failed { border-color: var(--error); }
+  .exam-card.pending { border-color: var(--warning); }
+  .exam-card.upcoming { border-color: var(--accent); }
+  .exam-card.opened { border-color: var(--info); box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2), 0 12px 30px var(--shadow); }
+  .exam-card.blocked { border-color: var(--error); opacity: 0.7; }
+  .exam-card.closed { border-color: var(--warning); opacity: 0.7; }
+  .exam-card.expired { border-color: #95A5A6; opacity: 0.7; }
+
+  .exam-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .exam-status.not-started { background: rgba(41, 128, 185, 0.95); color: #fff; }
+  .exam-status.upcoming { background: rgba(201, 169, 97, 0.95); color: #fff; }
+  .exam-status.pending { background: rgba(230, 126, 34, 0.95); color: #fff; }
+  .exam-status.passed { background: rgba(46, 204, 113, 0.95); color: #fff; }
+  .exam-status.failed { background: rgba(192, 57, 43, 0.95); color: #fff; }
+  .exam-status.expired { background: rgba(149, 165, 166, 0.95); color: #fff; }
+  .exam-status.blocked { background: rgba(192, 57, 43, 0.95); color: #fff; }
+  .exam-status.closed { background: rgba(230, 126, 34, 0.95); color: #fff; }
+  .exam-status.opened { background: rgba(41, 128, 185, 0.95); color: #fff; animation: pulseOpen 2s ease-in-out infinite; }
+
+  @keyframes pulseOpen {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .exam-header {
+    padding: 22px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] .exam-header { color: var(--bg-page); }
+
+  .exam-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 90% 20%, rgba(201, 169, 97, 0.2) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .exam-header-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .exam-header-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+  .exam-name {
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.4;
+    word-break: break-word;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .exam-code {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .exam-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .exam-desc {
+    font-size: 13.5px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .exam-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .exam-stat {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .exam-stat-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .exam-stat-label {
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  .exam-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    flex-wrap: wrap;
+  }
+
+  .exam-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid;
+  }
+
+  .exam-badge.grade { color: var(--info); border-color: var(--info); background: rgba(41, 128, 185, 0.08); }
+  .exam-badge.password { color: var(--warning); border-color: var(--warning); background: rgba(230, 126, 34, 0.08); }
+  .exam-badge.no-password { color: var(--text-sub); border-color: var(--border); background: var(--bg-input); }
+  .exam-badge.manual { color: var(--error); border-color: var(--error); background: rgba(192, 57, 43, 0.08); }
+  .exam-badge.auto { color: var(--success); border-color: var(--success); background: rgba(30, 122, 90, 0.08); }
+  .exam-badge.questions { color: var(--primary); border-color: var(--primary); background: rgba(11, 61, 46, 0.08); }
+  .exam-badge.duration { color: var(--warning); border-color: var(--warning); background: rgba(230, 126, 34, 0.08); }
+
+  [data-theme="dark"] .exam-badge.questions { color: var(--accent); border-color: var(--accent); background: rgba(201, 169, 97, 0.12); }
+
+  .exam-result-box {
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .exam-result-box.passed {
+    background: rgba(46, 204, 113, 0.1);
+    border: 2px solid var(--success);
+    color: var(--success);
+  }
+
+  .exam-result-box.failed {
+    background: rgba(192, 57, 43, 0.1);
+    border: 2px solid var(--error);
+    color: var(--error);
+  }
+
+  .exam-result-box.hidden-result {
+    background: rgba(149, 165, 166, 0.1);
+    border: 2px solid #95A5A6;
+    color: #7F8C8D;
+  }
+
+  .exam-result-box i { font-size: 22px; }
+
+  .exam-result-score {
+    font-size: 16px;
+    font-weight: 900;
+    margin-right: auto;
+  }
+
+  .exam-countdown-box {
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.12), rgba(224, 200, 136, 0.05));
+    border: 2px solid var(--accent);
+    color: var(--text-main);
+  }
+
+  .exam-countdown-box i { font-size: 22px; color: var(--accent); flex-shrink: 0; }
+
+  .exam-countdown-box .countdown-info { flex: 1; min-width: 0; }
+
+  .exam-countdown-box .countdown-label {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .exam-countdown-box .countdown-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    font-family: 'Cairo', monospace;
+    direction: ltr;
+    display: inline-block;
+    letter-spacing: 2px;
+  }
+
+  /* صندوق الفتح بمدة */
+  .exam-open-box {
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: linear-gradient(135deg, rgba(41, 128, 185, 0.12), rgba(52, 152, 219, 0.05));
+    border: 2px solid var(--info);
+    color: var(--text-main);
+    animation: pulseBox 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseBox {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(41, 128, 185, 0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(41, 128, 185, 0); }
+  }
+
+  .exam-open-box i { font-size: 24px; color: var(--info); flex-shrink: 0; }
+
+  .exam-open-box .countdown-info { flex: 1; min-width: 0; }
+
+  .exam-open-box .countdown-label {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .exam-open-box .countdown-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--info);
+    font-family: 'Cairo', monospace;
+    direction: ltr;
+    display: inline-block;
+    letter-spacing: 2px;
+  }
+
+  .exam-open-box.danger {
+    background: linear-gradient(135deg, rgba(192, 57, 43, 0.12), rgba(231, 76, 60, 0.05));
+    border-color: var(--error);
+    animation: pulseDanger 1s ease-in-out infinite;
+  }
+
+  .exam-open-box.danger i,
+  .exam-open-box.danger .countdown-value { color: var(--error); }
+
+  @keyframes pulseDanger {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(192, 57, 43, 0); }
+  }
+
+  .exam-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .btn-action {
+    padding: 12px 14px;
+    border-radius: 11px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .btn-action.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  [data-theme="dark"] .btn-action.primary { color: var(--bg-page); }
+
+  .btn-action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn-action.info {
+    background: linear-gradient(135deg, #2980B9, #3498DB);
+    color: #fff;
+  }
+
+  .btn-action.info:hover { transform: translateY(-2px); }
+
+  .btn-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-sub);
+    background: var(--bg-card);
+    border-radius: 18px;
+    border: 2px dashed var(--border);
+    grid-column: 1 / -1;
+  }
+
+  .empty-state i {
+    font-size: 60px;
+    color: var(--accent);
+    opacity: 0.5;
+    margin-bottom: 16px;
+    display: block;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .empty-state h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p { font-size: 13.5px; font-weight: 500; line-height: 1.6; }
+
+  .loading-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 14px;
+    font-weight: 600;
+    grid-column: 1 / -1;
+  }
+
+  .loading-state i {
+    font-size: 42px;
+    color: var(--accent);
+    animation: spin 1s linear infinite;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 28px 24px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 94vh;
+    overflow-y: auto;
+    text-align: center;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .password-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
+  }
+
+  .password-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .password-message {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 8px;
+  }
+
+  .password-input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 20px;
+    font-family: 'Cairo', monospace;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.25s;
+    margin-bottom: 16px;
+    direction: ltr;
+  }
+
+  .password-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
+  }
+
+  .access-info-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--success), #2ECC71);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4);
+    animation: pulseIcon 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .access-info-list {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .access-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-main);
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .access-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .access-info-row i {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .access-info-row i { color: var(--bg-page); }
+
+  .access-info-row strong { color: var(--primary); font-weight: 900; margin-right: auto; }
+  [data-theme="dark"] .access-info-row strong { color: var(--accent); }
+
+  /* Instructions Modal */
+  .instructions-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--info), #3498DB);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(41, 128, 185, 0.4);
+  }
+
+  .instructions-list {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: right;
+  }
+
+  .instruction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.7;
+  }
+
+  .instruction-item i {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  [data-theme="dark"] .instruction-item i { color: var(--bg-page); }
+
+  .instruction-item.warning i { background: linear-gradient(135deg, #C0392B, #E74C3C); }
+  .instruction-item.success i { background: linear-gradient(135deg, #1E7A5A, #2ECC71); }
+
+  /* Solve Mode */
+  .solve-mode {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-page);
+    z-index: 50000;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .solve-mode.show { display: flex; }
+
+  .solve-header {
+    background: var(--bg-card);
+    border-bottom: 2px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .solve-header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .solve-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .solve-title-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .solve-title-icon { color: var(--bg-page); }
+
+  .solve-title h2 {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .solve-title small {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-weight: 600;
+    display: block;
+  }
+
+  /* Exam Timer */
+  .exam-timer {
+    padding: 10px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 900;
+    font-size: 16px;
+    font-family: 'Cairo', monospace;
+    direction: ltr;
+    background: linear-gradient(135deg, #1E7A5A, #2ECC71);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(30, 122, 90, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .exam-timer i { font-size: 16px; }
+
+  .exam-timer.warning {
+    background: linear-gradient(135deg, #E67E22, #F39C12);
+    box-shadow: 0 6px 18px rgba(230, 126, 34, 0.4);
+    animation: timerPulse 1s ease-in-out infinite;
+  }
+
+  .exam-timer.danger {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    box-shadow: 0 6px 18px rgba(192, 57, 43, 0.4);
+    animation: timerPulse 0.6s ease-in-out infinite;
+  }
+
+  @keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .solve-progress-bar {
+    background: var(--bg-input);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .solve-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-lighter), var(--accent));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .solve-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 120px;
+    width: 100%;
+  }
+
+  .solve-question-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px var(--shadow);
+    position: relative;
+  }
+
+  .solve-q-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+    flex-wrap: wrap;
+  }
+
+  .solve-q-num {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+    background: rgba(11, 61, 46, 0.08);
+    padding: 5px 12px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  [data-theme="dark"] .solve-q-num { color: var(--accent); background: rgba(201, 169, 97, 0.12); }
+
+  .solve-q-type {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+
+  .solve-q-type.mcq { color: var(--info); border-color: var(--info); }
+  .solve-q-type.essay { color: var(--warning); border-color: var(--warning); }
+
+  .solve-q-score {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent);
+    padding: 4px 10px;
+    background: rgba(201, 169, 97, 0.12);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: auto;
+  }
+
+  .solve-q-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .solve-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .solve-option {
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.25s ease;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: right;
+    width: 100%;
+  }
+
+  .solve-option:hover {
+    border-color: var(--accent);
+    background: var(--bg-card);
+    transform: translateX(-3px);
+  }
+
+  .solve-option.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(11, 61, 46, 0.08), rgba(30, 122, 90, 0.04));
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .solve-option.selected {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.12), rgba(224, 200, 136, 0.05));
+  }
+
+  .solve-option-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .solve-option.selected .solve-option-check {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  [data-theme="dark"] .solve-option.selected .solve-option-check { color: var(--bg-page); }
+
+  .solve-option-text { flex: 1; text-align: right; }
+
+  .solve-essay-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    outline: none;
+    font-weight: 500;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.7;
+    transition: all 0.25s;
+  }
+
+  .solve-essay-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
+  }
+
+  .solve-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 2px solid var(--border);
+    box-shadow: 0 -8px 30px var(--shadow);
+    padding: 16px 20px;
+    z-index: 20;
+  }
+
+  .solve-footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .solve-progress-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .solve-progress-text i { color: var(--accent); }
+
+  .solve-submit-btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  [data-theme="dark"] .solve-submit-btn { color: var(--bg-page); }
+
+  .solve-submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .solve-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #95A5A6, #7F8C8D);
+  }
+
+  .submit-hint {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .submit-hint i { color: var(--warning); }
+
+  .result-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-page);
+    z-index: 60000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .result-screen.show { display: flex; }
+
+  .result-box {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 40px 30px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 8px solid var(--accent);
+    animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .result-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    color: #fff;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    animation: pulseIcon 2s ease-in-out infinite;
+  }
+
+  .result-icon.passed { background: linear-gradient(135deg, #1E7A5A, #2ECC71); }
+  .result-icon.failed { background: linear-gradient(135deg, #C0392B, #E74C3C); }
+  .result-icon.pending { background: linear-gradient(135deg, #E67E22, #F39C12); }
+  .result-icon.timeout { background: linear-gradient(135deg, #E67E22, #F39C12); }
+  .result-icon.blocked { background: linear-gradient(135deg, #C0392B, #E74C3C); }
+  .result-icon.closed { background: linear-gradient(135deg, #E67E22, #F39C12); }
+
+  .result-title {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 10px;
+  }
+
+  .result-title.passed { color: var(--success); }
+  .result-title.failed { color: var(--error); }
+  .result-title.pending { color: var(--warning); }
+  .result-title.timeout { color: var(--warning); }
+  .result-title.blocked { color: var(--error); }
+  .result-title.closed { color: var(--warning); }
+
+  .result-message {
+    font-size: 15px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 12px;
+  }
+
+  .result-score-box {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 22px;
+  }
+
+  .result-score-percent {
+    font-size: 48px;
+    font-weight: 900;
+    direction: ltr;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .result-score-percent.passed { color: var(--success); }
+  .result-score-percent.failed { color: var(--error); }
+
+  .result-score-detail {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 700;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .result-actions .btn-action { padding: 15px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 999999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+  .toast.info { border-color: var(--info); }
+  .toast.info i { color: var(--info); }
+
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9998;
+  }
+
+  .drawer-overlay.show { opacity: 1; visibility: visible; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 88%;
+    max-width: 340px;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg-card);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--border);
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 22px 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .drawer-header-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .drawer-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    padding: 4px;
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+  }
+
+  .drawer-brand { flex: 1; min-width: 0; }
+
+  .drawer-brand-name {
+    font-size: 18px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .drawer-brand-name .divider { color: var(--accent); font-weight: 300; }
+
+  .drawer-brand-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .drawer-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+  }
+
+  .drawer-section { margin-bottom: 22px; }
+
+  .drawer-section-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    padding-right: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drawer-section-title i { color: var(--accent); font-size: 12px; }
+
+  .drawer-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    width: 100%;
+    text-align: right;
+  }
+
+  .drawer-btn:hover, .drawer-btn:active {
+    background: var(--bg-card);
+    border-color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .drawer-btn-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .drawer-btn-icon { color: var(--bg-page); }
+
+  .drawer-btn-label { flex: 1; }
+
+  .drawer-btn.logout-btn {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+    background: rgba(192, 57, 43, 0.05);
+  }
+
+  .drawer-btn.logout-btn .drawer-btn-icon {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+  }
+
+  .drawer-btn.logout-btn:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  @media (max-width: 900px) {
+    .topbar-inner { padding: 12px 16px; }
+    .back-btn { width: 40px; height: 40px; font-size: 16px; }
+    .topbar-title i.header-icon { font-size: 19px; }
+    .topbar-title-text h1 { font-size: 16px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
+    .menu-btn { display: flex; }
+    .topbar-actions .icon-btn { display: none; }
+    .topbar-actions .menu-btn { display: flex; }
+    .container { padding: 16px 12px 100px; }
+    .exams-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .solve-body { padding: 16px 14px 130px; }
+    .solve-q-title { font-size: 15px; }
+    .solve-option { font-size: 13.5px; padding: 12px 14px; }
+    .exam-timer { padding: 8px 12px; font-size: 14px; }
+  }
+
+  @media (max-width: 600px) {
+    .exams-grid { grid-template-columns: 1fr; gap: 14px; }
+    .exam-header { padding: 18px; }
+    .exam-header-icon { width: 50px; height: 50px; font-size: 22px; }
+    .exam-name { font-size: 15.5px; }
+    .result-box { padding: 30px 20px; }
+    .result-icon { width: 90px; height: 90px; font-size: 42px; }
+    .result-title { font-size: 22px; }
+    .result-score-percent { font-size: 38px; }
+    .solve-header-inner { padding: 12px 14px; }
+    .solve-footer-inner { flex-direction: column; }
+    .solve-submit-btn { width: 100%; }
+    .solve-q-title { font-size: 14.5px; }
+    .solve-options { gap: 8px; }
+    .solve-option { font-size: 13px; padding: 11px 13px; }
+    .exam-timer { font-size: 13px; padding: 7px 10px; }
+    .instruction-item { font-size: 12.5px; }
+  }
+
+  @media (min-width: 901px) {
+    .menu-btn { display: none !important; }
+    .drawer, .drawer-overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <a href="index.html" class="back-btn" title="الرجوع">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+      <div class="topbar-title">
+        <i class="fas fa-graduation-cap header-icon"></i>
+        <div class="topbar-title-text">
+          <h1>الامتحانات</h1>
+          <small>EXAMS</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" title="الوضع">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <a href="results.html" class="icon-btn" title="نتائجي">
+        <i class="fas fa-chart-bar"></i>
+      </a>
+      <button class="icon-btn logout" id="logoutBtn" title="تسجيل الخروج">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      <button class="menu-btn" id="menuBtn" aria-label="القائمة">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="search-wrapper">
+    <i class="fas fa-search"></i>
+    <input type="text" class="search-input" id="searchInput" placeholder="ابحث بالاسم أو الوصف...">
+    <button class="search-clear" id="searchClear">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">
+      <i class="fas fa-list"></i>
+      <span>الكل</span>
+      <span class="count" id="filterAll">0</span>
+    </button>
+    <button class="filter-btn" data-filter="opened">
+      <i class="fas fa-unlock"></i>
+      <span>مفتوح لك</span>
+      <span class="count" id="filterOpened">0</span>
+    </button>
+    <button class="filter-btn" data-filter="not-started">
+      <i class="fas fa-circle"></i>
+      <span>متاح الآن</span>
+      <span class="count" id="filterNotStarted">0</span>
+    </button>
+    <button class="filter-btn" data-filter="upcoming">
+      <i class="fas fa-hourglass-start"></i>
+      <span>قادم</span>
+      <span class="count" id="filterUpcoming">0</span>
+    </button>
+    <button class="filter-btn" data-filter="pending">
+      <i class="fas fa-hourglass-half"></i>
+      <span>قيد التصحيح</span>
+      <span class="count" id="filterPending">0</span>
+    </button>
+    <button class="filter-btn" data-filter="completed">
+      <i class="fas fa-check-circle"></i>
+      <span>مكتمل</span>
+      <span class="count" id="filterCompleted">0</span>
+    </button>
+    <button class="filter-btn" data-filter="blocked">
+      <i class="fas fa-ban"></i>
+      <span>محظور</span>
+      <span class="count" id="filterBlocked">0</span>
+    </button>
+  </div>
+
+  <div class="exams-grid" id="examsGrid">
+    <div class="loading-state">
+      <i class="fas fa-spinner"></i>
+      <div>جاري تحميل الامتحانات...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ Modal: Password ============ -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal-box">
+    <div class="password-icon">
+      <i class="fas fa-key"></i>
+    </div>
+    <h2 class="password-title">أدخل كلمة السر</h2>
+    <p class="password-message" id="passwordMessage">هذا الامتحان محمي بكلمة سر</p>
+
+    <div style="background: rgba(192, 57, 43, 0.1); color: var(--error); border: 1px solid rgba(192, 57, 43, 0.3); padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: none; line-height: 1.6;" id="passwordError"></div>
+
+    <input type="text" class="password-input" id="passwordInput" placeholder="XXXXXXXX" maxlength="20" autocomplete="off">
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-action" style="flex: 1; background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border);" id="passwordCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn-action primary" style="flex: 1;" id="passwordSubmit">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Access Info ============ -->
+<div class="modal-overlay" id="accessInfoModal">
+  <div class="modal-box">
+    <div class="access-info-icon">
+      <i class="fas fa-unlock"></i>
+    </div>
+    <h2 class="password-title">🎉 تم فتح الامتحان لك</h2>
+    <p class="password-message">فتحته لك الإدارة — اقرأ التفاصيل بعناية</p>
+
+    <div class="access-info-list">
+      <div class="access-info-row">
+        <i class="fas fa-graduation-cap"></i>
+        <span>الامتحان:</span>
+        <strong id="accessExamName">—</strong>
+      </div>
+      <div class="access-info-row">
+        <i class="fas fa-clock"></i>
+        <span>المدة:</span>
+        <strong id="accessDuration">—</strong>
+      </div>
+      <div class="access-info-row">
+        <i class="fas fa-hourglass-half"></i>
+        <span>الوقت المتبقي:</span>
+        <strong id="accessRemaining">—</strong>
+      </div>
+      <div class="access-info-row">
+        <i class="fas fa-check-circle"></i>
+        <span>النتيجة السابقة:</span>
+        <strong style="color: var(--warning);">تم حذفها — ابدأ من جديد</strong>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-action" style="flex: 1; background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border);" id="accessInfoLater">
+        <i class="fas fa-clock"></i>
+        <span>لاحقاً</span>
+      </button>
+      <button class="btn-action primary" style="flex: 1.3;" id="accessInfoStart">
+        <i class="fas fa-play"></i>
+        <span>ابدأ الآن</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Instructions ============ -->
+<div class="modal-overlay" id="instructionsModal">
+  <div class="modal-box">
+    <div class="instructions-icon">
+      <i class="fas fa-circle-info"></i>
+    </div>
+    <h2 class="password-title" id="instructionsTitle">تعليمات الامتحان</h2>
+    <p class="password-message">اقرأ التعليمات بعناية قبل البدء</p>
+
+    <div class="instructions-list">
+      <div class="instruction-item warning">
+        <i class="fas fa-clock"></i>
+        <span>مدة الامتحان: <strong id="instrDuration">—</strong> — سيتم التسليم تلقائياً عند انتهاء الوقت.</span>
+      </div>
+      <div class="instruction-item warning">
+        <i class="fas fa-door-open"></i>
+        <span><strong>الخروج من الامتحان = تسليم تلقائي</strong> — لا يمكنك العودة بعد الخروج.</span>
+      </div>
+      <div class="instruction-item">
+        <i class="fas fa-list-check"></i>
+        <span>عدد الأسئلة: <strong id="instrQuestions">—</strong> — لن تتمكن من التسليم قبل حل جميع الأسئلة.</span>
+      </div>
+      <div class="instruction-item">
+        <i class="fas fa-star"></i>
+        <span>الدرجة الكلية: <strong id="instrTotalScore">—</strong> — نسبة النجاح: 50%.</span>
+      </div>
+      <div class="instruction-item success">
+        <i class="fas fa-mobile-screen"></i>
+        <span><strong>لا تخرج من التطبيق</strong> ولا تغلق المتصفح، لأن أي خروج سيؤدي لتسليم تلقائي.</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-action" style="flex: 1; background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border);" id="instrCancelBtn">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn-action primary" style="flex: 1.2;" id="instrStartBtn">
+        <i class="fas fa-play"></i>
+        <span>أوافق وابدأ</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Solve Mode ============ -->
+<div class="solve-mode" id="solveMode">
+  <div class="solve-header">
+    <div class="solve-header-inner">
+      <div class="solve-title">
+        <div class="solve-title-icon">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h2 id="solveTitle">—</h2>
+          <small id="solveSubtitle">—</small>
+        </div>
+      </div>
+      <div class="exam-timer" id="examTimer">
+        <i class="fas fa-clock"></i>
+        <span id="examTimerValue">--:--</span>
+      </div>
+    </div>
+    <div style="max-width: 1100px; margin: 0 auto; padding: 0 20px 12px;">
+      <div class="solve-progress-bar">
+        <div class="solve-progress-fill" id="solveProgressFill" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="solve-body" id="solveBody"></div>
+
+  <div class="solve-footer">
+    <div class="solve-footer-inner">
+      <div>
+        <div class="solve-progress-text">
+          <i class="fas fa-list-check"></i>
+          <span>تم حل <strong id="answeredCount">0</strong> من <strong id="totalQuestions">0</strong> سؤال</span>
+        </div>
+        <div class="submit-hint" id="submitHint">
+          <i class="fas fa-info-circle"></i>
+          <span>يجب حل جميع الأسئلة لتفعيل زر التسليم</span>
+        </div>
+      </div>
+      <button class="solve-submit-btn" id="solveSubmitBtn" disabled>
+        <i class="fas fa-paper-plane"></i>
+        <span>تسليم الامتحان</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Result Screen ============ -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-box">
+    <div class="result-icon" id="resultIcon">
+      <i class="fas fa-check"></i>
+    </div>
+    <h2 class="result-title" id="resultTitle">—</h2>
+    <p class="result-message" id="resultMessage">—</p>
+
+    <div class="result-score-box" id="resultScoreBox">
+      <div class="result-score-percent" id="resultScorePercent">—</div>
+      <div class="result-score-detail" id="resultScoreDetail">—</div>
+    </div>
+
+    <div class="result-actions">
+      <a href="results.html" class="btn-action info">
+        <i class="fas fa-chart-bar"></i>
+        <span>عرض النتائج الكاملة</span>
+      </a>
+      <button class="btn-action primary" id="resultBackBtn">
+        <i class="fas fa-arrow-right"></i>
+        <span>العودة للامتحانات</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Confirm ============ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-header" style="justify-content: center; border: none; padding: 0; margin-bottom: 16px;">
+      <div class="modal-header-icon" id="confirmIcon" style="width: 72px; height: 72px; font-size: 30px; border-radius: 50%; margin: 0 auto;">
+        <i class="fas fa-question-circle"></i>
+      </div>
+    </div>
+    <h2 style="text-align: center; font-size: 20px; font-weight: 800; margin-bottom: 10px; color: var(--text-main);" id="confirmTitle">تأكيد</h2>
+    <p style="text-align: center; font-size: 14px; color: var(--text-sub); font-weight: 600; line-height: 1.7; margin-bottom: 22px; padding: 0 10px;" id="confirmMessage">—</p>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-action" style="flex: 1; background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border);" id="confirmCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn-action primary" style="flex: 1;" id="confirmOk">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+
+<!-- ============ Drawer ============ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-content">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
+           alt="Logo" class="drawer-logo" id="drawerLogo">
+      <div class="drawer-brand">
+        <div class="drawer-brand-name">
+          <span id="drawerNameAr">ميزان</span>
+          <span class="divider">|</span>
+          <span id="drawerNameEn">MEEZAN</span>
+        </div>
+        <div class="drawer-brand-sub" id="drawerSubtitle">الامتحانات</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer-content">
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fas fa-th-large"></i>
+        <span>الأقسام</span>
+      </div>
+      <a href="index.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-home"></i></span>
+        <span class="drawer-btn-label">الرئيسية</span>
+      </a>
+      <a href="results.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-chart-bar"></i></span>
+        <span class="drawer-btn-label">نتائجي</span>
+      </a>
+      <a href="sora.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-user-circle"></i></span>
+        <span class="drawer-btn-label">ملفي الشخصي</span>
+      </a>
+      <button class="drawer-btn" id="drawerThemeBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-moon" id="drawerThemeIcon"></i></span>
+        <span class="drawer-btn-label" id="drawerThemeText">الوضع الليلي</span>
+      </button>
+      <button class="drawer-btn logout-btn" id="drawerLogoutBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="drawer-btn-label">تسجيل الخروج</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+const userId = sessionStorage.getItem('meezan_user_id');
+const userName = sessionStorage.getItem('meezan_username') || 'مستخدم';
+const userRole = sessionStorage.getItem('meezan_role') || 'student';
+
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 التنظيف
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+// ============================================================
+// 📊 الحالة
+// ============================================================
+let allExams = [];
+let filteredExams = [];
+let mySubs = {};
+let myGrade = '';
+let myUserData = null;
+let hiddenExams = new Set();
+let hiddenStudentResults = {};
+
+let currentFilter = 'all';
+let searchQuery = '';
+
+let currentExam = null;
+let currentAnswers = {};
+
+// ⏰ العدادات
+let examTimerInterval = null;
+let examEndAt = null;
+let countdownInterval = null;
+let isSubmitting = false;
+let hasWarned1Min = false;
+
+// مراقبة
+let userMonitoringUnsub = null;
+let hiddenResultsUnsub = null;
+
+// لعرض Modal الفتح مرة واحدة
+let shownAccessFor = new Set();
+
+// ============================================================
+// 🌙 الوضع
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+updateDrawerTheme(savedTheme);
+
+$('themeToggle').addEventListener('click', toggleTheme);
+$('drawerThemeBtn').addEventListener('click', toggleTheme);
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('meezan_theme', next);
+  updateThemeIcon(next);
+  updateDrawerTheme(next);
+}
+
+function updateThemeIcon(t) {
+  $('themeIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+function updateDrawerTheme(t) {
+  const icon = $('drawerThemeIcon');
+  const text = $('drawerThemeText');
+  if (!icon || !text) return;
+  if (t === 'dark') {
+    icon.className = 'fas fa-sun';
+    text.textContent = 'الوضع النهاري';
+  } else {
+    icon.className = 'fas fa-moon';
+    text.textContent = 'الوضع الليلي';
+  }
+}
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// ============================================================
+// 🔔 Confirm
+// ============================================================
+let confirmResolve = null;
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد',
+      cancelText = 'إلغاء'
+    } = options;
+
+    const iconEl = $('confirmIcon');
+    iconEl.className = 'modal-header-icon';
+    if (iconType === 'danger') iconEl.style.background = 'linear-gradient(135deg, #C0392B, #E74C3C)';
+    else if (iconType === 'warning') iconEl.style.background = 'linear-gradient(135deg, #E67E22, #F39C12)';
+    else if (iconType === 'success') iconEl.style.background = 'linear-gradient(135deg, #1E7A5A, #2ECC71)';
+    else iconEl.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-lighter))';
+
+    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').innerHTML = message;
+    $('confirmOk').innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+    $('confirmCancel').innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
+
+    confirmResolve = resolve;
+    $('confirmModal').classList.add('show');
+  });
+}
+
+function closeConfirm(result) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) {
+    confirmResolve(result);
+    confirmResolve = null;
+  }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
+
+// ============================================================
+// 🕒 Helpers
+// ============================================================
+function formatDuration(value, unit) {
+  const map = { minutes: 'دقيقة', hours: 'ساعة', days: 'يوم' };
+  return `${value} ${map[unit] || ''}`;
+}
+
+function formatTime(ms) {
+  if (ms <= 0) return '00:00';
+  const totalSec = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function formatCountdownArabic(ms) {
+  if (ms <= 0) return 'الآن';
+  const totalSec = Math.floor(ms / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days} يوم`);
+  if (hours > 0) parts.push(`${hours} ساعة`);
+  if (minutes > 0) parts.push(`${minutes} دقيقة`);
+  return parts.length > 0 ? parts.join(' و ') : 'أقل من دقيقة';
+}
+
+function formatDurationHuman(ms) {
+  if (ms <= 0) return 'انتهى';
+  const totalSec = Math.floor(ms / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days} يوم`);
+  if (hours > 0) parts.push(`${hours} ساعة`);
+  if (minutes > 0) parts.push(`${minutes} دقيقة`);
+  return parts.length > 0 ? parts.join(' و ') : 'أقل من دقيقة';
+}
+
+function getDurationMs(value, unit) {
+  const map = { minutes: 60000, hours: 3600000, days: 86400000 };
+  return value * (map[unit] || 0);
+}
+
+// ============================================================
+// ⏰ حالة وقت الامتحان (من createdAt/startAt)
+// ============================================================
+function getExamTimeStatus(exam) {
+  if (exam.status !== 'published') return 'draft';
+
+  const now = new Date();
+  const startAt = exam.startAt ? new Date(exam.startAt) : null;
+
+  if (startAt && startAt > now) return 'upcoming';
+
+  if (startAt && startAt <= now) {
+    if (exam.durationValue > 0 && exam.durationUnit !== 'none') {
+      const durationMs = getDurationMs(exam.durationValue, exam.durationUnit);
+      const endAt = new Date(startAt.getTime() + durationMs);
+      if (endAt <= now) return 'expired';
+    }
+    return 'active';
+  }
+
+  if (!startAt) {
+    if (exam.durationValue > 0 && exam.durationUnit !== 'none') {
+      const created = exam.createdAt ? new Date(exam.createdAt) : now;
+      const durationMs = getDurationMs(exam.durationValue, exam.durationUnit);
+      const endAt = new Date(created.getTime() + durationMs);
+      if (endAt <= now) return 'expired';
+    }
+    return 'active';
+  }
+
+  return 'active';
+}
+
+// ============================================================
+// 🎨 حالة الامتحان للطالب (الترتيب الصحيح — مهم!)
+// ============================================================
+function getExamStatus(exam) {
+  const sub = mySubs[exam.id];
+  const key = `exam_${exam.id}`;
+
+  // ✅ 1) محظور؟ (أعلى أولوية)
+  if (myUserData?.blockedItems && myUserData.blockedItems[key]) {
+    return 'blocked';
+  }
+
+  // ✅ 2) سُلِّم؟ (قبل الفتح — ده اللي كان ناقص)
+  if (sub && sub.submitted) {
+    if (sub.corrected) {
+      const percent = sub.totalScore > 0 ? (sub.score / sub.totalScore) * 100 : 0;
+      return percent >= 50 ? 'passed' : 'failed';
+    }
+    return 'pending';
+  }
+
+  // ✅ 3) مفتوح بمدة؟
+  if (myUserData?.openAccess && myUserData.openAccess[key]) {
+    const oa = myUserData.openAccess[key];
+    if (new Date(oa.endAt) > new Date()) {
+      return 'opened';
+    }
+    return 'closed';
+  }
+
+  // ✅ 4) مغلق؟
+  if (myUserData?.closedItems && myUserData.closedItems[key]) {
+    return 'closed';
+  }
+
+  // ✅ 5) حالة الوقت (قادم / منتهي / متاح)
+  const timeStatus = getExamTimeStatus(exam);
+  if (timeStatus === 'upcoming') return 'upcoming';
+  if (timeStatus === 'expired') return 'expired';
+
+  return 'not-started';
+}
+
+function getStatusInfo(status) {
+  const map = {
+    'not-started': { label: 'متاح الآن', icon: 'fa-play-circle', class: 'not-started' },
+    'opened': { label: '🔓 مفتوح لك', icon: 'fa-unlock', class: 'opened' },
+    'upcoming': { label: 'قادم', icon: 'fa-hourglass-start', class: 'upcoming' },
+    'pending': { label: 'قيد التصحيح', icon: 'fa-hourglass-half', class: 'pending' },
+    'passed': { label: 'ناجح', icon: 'fa-check-circle', class: 'passed' },
+    'failed': { label: 'راسب', icon: 'fa-times-circle', class: 'failed' },
+    'expired': { label: 'انتهى', icon: 'fa-hourglass-end', class: 'expired' },
+    'blocked': { label: 'محظور', icon: 'fa-ban', class: 'blocked' },
+    'closed': { label: 'مغلق', icon: 'fa-lock', class: 'closed' }
+  };
+  return map[status] || map['not-started'];
+}
+
+// ============================================================
+// 🎨 Render Exams
+// ============================================================
+function applyFilters() {
+  const q = cleanInput(searchQuery).toLowerCase();
+  let base = allExams.filter(e => e.status === 'published');
+
+  base = base.filter(e => !e.grade || e.grade === myGrade);
+  base = base.filter(e => !hiddenExams.has(e.id));
+
+  if (currentFilter !== 'all') {
+    if (currentFilter === 'completed') {
+      base = base.filter(e => {
+        const s = getExamStatus(e);
+        return s === 'passed' || s === 'failed';
+      });
+    } else {
+      base = base.filter(e => getExamStatus(e) === currentFilter);
+    }
+  }
+
+  if (q) {
+    base = base.filter(e =>
+      (e.name || '').toLowerCase().includes(q) ||
+      (e.description || '').toLowerCase().includes(q)
+    );
+  }
+
+  base.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+  filteredExams = base;
+  renderExams();
+  updateFilterCounts();
+}
+
+function updateFilterCounts() {
+  const published = allExams.filter(e => e.status === 'published');
+  const filtered = published.filter(e => !hiddenExams.has(e.id));
+
+  $('filterAll').textContent = filtered.length;
+  $('filterOpened').textContent = filtered.filter(e => getExamStatus(e) === 'opened').length;
+  $('filterNotStarted').textContent = filtered.filter(e => getExamStatus(e) === 'not-started').length;
+  $('filterUpcoming').textContent = filtered.filter(e => getExamStatus(e) === 'upcoming').length;
+  $('filterPending').textContent = filtered.filter(e => getExamStatus(e) === 'pending').length;
+  $('filterCompleted').textContent = filtered.filter(e => {
+    const s = getExamStatus(e);
+    return s === 'passed' || s === 'failed';
+  }).length;
+  $('filterBlocked').textContent = filtered.filter(e => getExamStatus(e) === 'blocked').length;
+}
+
+function renderExams() {
+  const grid = $('examsGrid');
+  grid.innerHTML = '';
+
+  if (filteredExams.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-graduation-cap"></i>
+        <h3>${allExams.length === 0 ? 'لا توجد امتحانات بعد' : 'لا توجد نتائج'}</h3>
+        <p>${allExams.length === 0 ? 'سيتم عرض الامتحانات هنا عند إضافتها لفرقتك' : 'جرّب البحث بكلمة أخرى'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  filteredExams.forEach(exam => {
+    grid.appendChild(createExamCard(exam));
+  });
+
+  startCountdowns();
+  startOpenAccessCountdowns();
+}
+
+function createExamCard(exam) {
+  const card = document.createElement('div');
+  const status = getExamStatus(exam);
+  card.className = 'exam-card ' + status;
+  card.dataset.examId = exam.id;
+
+  const statusInfo = getStatusInfo(status);
+  const sub = mySubs[exam.id];
+
+  const questionsCount = (exam.questions || []).length;
+  const totalScore = (exam.questions || []).reduce((sum, q) => sum + (q.score || 1), 0);
+
+  const gradeBadge = exam.grade
+    ? `<span class="exam-badge grade"><i class="fas fa-graduation-cap"></i> ${escapeHtml(exam.grade)}</span>`
+    : '';
+
+  const pwBadge = exam.passwordType === 'none'
+    ? `<span class="exam-badge no-password"><i class="fas fa-unlock"></i> بدون كلمة سر</span>`
+    : `<span class="exam-badge password"><i class="fas fa-key"></i> بكلمة سر</span>`;
+
+  const corrBadge = exam.correctionType === 'manual'
+    ? `<span class="exam-badge manual"><i class="fas fa-clipboard-check"></i> تصحيح يدوي</span>`
+    : `<span class="exam-badge auto"><i class="fas fa-bolt"></i> تصحيح تلقائي</span>`;
+
+  const qBadge = `<span class="exam-badge questions"><i class="fas fa-list-check"></i> ${questionsCount} سؤال</span>`;
+
+  const durationBadge = exam.durationValue > 0 && exam.durationUnit !== 'none'
+    ? `<span class="exam-badge duration"><i class="fas fa-clock"></i> ${formatDuration(exam.durationValue, exam.durationUnit)}</span>`
+    : '';
+
+  // النتيجة (بس لو مسلّم وليس مفتوح حالياً)
+  let resultBoxHTML = '';
+  const isResultHidden = (hiddenStudentResults[`exam_${exam.id}`] || new Set()).has(userId);
+
+  if (sub && sub.submitted && sub.corrected && !isResultHidden) {
+    const percent = sub.totalScore > 0 ? Math.round((sub.score / sub.totalScore) * 100) : 0;
+    const passed = percent >= 50;
+    resultBoxHTML = `
+      <div class="exam-result-box ${passed ? 'passed' : 'failed'}">
+        <i class="fas ${passed ? 'fa-trophy' : 'fa-times-circle'}"></i>
+        <span>${passed ? 'ناجح' : 'راسب'}</span>
+        <span class="exam-result-score">${sub.score} / ${sub.totalScore}</span>
+      </div>
+    `;
+  } else if (sub && sub.submitted && sub.corrected && isResultHidden) {
+    resultBoxHTML = `
+      <div class="exam-result-box hidden-result">
+        <i class="fas fa-eye-slash"></i>
+        <span>النتيجة مخفية من الإدارة</span>
+      </div>
+    `;
+  }
+
+  // عداد الفتح بمدة (مفتوح من الإدارة)
+  let openBoxHTML = '';
+  if (status === 'opened' && myUserData?.openAccess?.[`exam_${exam.id}`]) {
+    openBoxHTML = `
+      <div class="exam-open-box" data-open-countdown="${exam.id}">
+        <i class="fas fa-hourglass-half"></i>
+        <div class="countdown-info">
+          <span class="countdown-label">⏰ الوقت المتبقي لك</span>
+          <span class="countdown-value" id="openCountdown-${exam.id}">—</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // عداد الموعد (لو قادم)
+  let countdownBoxHTML = '';
+  if (status === 'upcoming' && exam.startAt) {
+    countdownBoxHTML = `
+      <div class="exam-countdown-box" data-countdown-exam="${exam.id}">
+        <i class="fas fa-hourglass-start"></i>
+        <div class="countdown-info">
+          <span class="countdown-label">يبدأ بعد</span>
+          <span class="countdown-value" id="examCountdown-${exam.id}">—</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // الأزرار
+  let actionsHTML = '';
+
+  if (status === 'blocked') {
+    actionsHTML = `
+      <button class="btn-action" disabled style="background: rgba(192, 57, 43, 0.1); color: var(--error); border: 1.5px solid var(--error);">
+        <i class="fas fa-ban"></i>
+        <span>محظور من الإدارة</span>
+      </button>
+    `;
+  } else if (status === 'closed') {
+    actionsHTML = `
+      <button class="btn-action" disabled style="background: rgba(230, 126, 34, 0.1); color: var(--warning); border: 1.5px solid var(--warning);">
+        <i class="fas fa-lock"></i>
+        <span>مغلق من الإدارة</span>
+      </button>
+    `;
+  } else if (status === 'not-started') {
+    actionsHTML = `
+      <button class="btn-action primary" data-action="start">
+        <i class="fas fa-play"></i>
+        <span>ابدأ الامتحان</span>
+      </button>
+    `;
+  } else if (status === 'opened') {
+    actionsHTML = `
+      <button class="btn-action primary" data-action="start" style="background: linear-gradient(135deg, #2980B9, #3498DB); box-shadow: 0 6px 18px rgba(41, 128, 185, 0.4);">
+        <i class="fas fa-bolt"></i>
+        <span>ابدأ الآن (مفتوح لك)</span>
+      </button>
+    `;
+  } else if (status === 'upcoming') {
+    actionsHTML = `
+      <button class="btn-action info" disabled>
+        <i class="fas fa-hourglass-start"></i>
+        <span>لم يبدأ بعد</span>
+      </button>
+    `;
+  } else if (status === 'pending') {
+    actionsHTML = `
+      <button class="btn-action info" disabled>
+        <i class="fas fa-hourglass-half"></i>
+        <span>جاري المراجعة والرصد...</span>
+      </button>
+    `;
+  } else if (status === 'passed' || status === 'failed') {
+    actionsHTML = `
+      <a href="results.html" class="btn-action info">
+        <i class="fas fa-eye"></i>
+        <span>عرض التفاصيل</span>
+      </a>
+    `;
+  } else if (status === 'expired') {
+    actionsHTML = `
+      <button class="btn-action info" disabled>
+        <i class="fas fa-hourglass-end"></i>
+        <span>انتهى الامتحان</span>
+      </button>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="exam-status ${statusInfo.class}">
+      <i class="fas ${statusInfo.icon}"></i>
+      <span>${statusInfo.label}</span>
+    </div>
+
+    <div class="exam-header">
+      <div class="exam-header-icon">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
+      <div class="exam-header-info">
+        <div class="exam-name">${escapeHtml(exam.name)}</div>
+        <div class="exam-code">
+          <i class="fas fa-hashtag"></i> #${exam.id}
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-body">
+      ${exam.description ? `<div class="exam-desc">${escapeHtml(exam.description)}</div>` : ''}
+
+      <div class="exam-stats">
+        <div class="exam-stat">
+          <div class="exam-stat-value" style="color: var(--info);">${questionsCount}</div>
+          <div class="exam-stat-label">سؤال</div>
+        </div>
+        <div class="exam-stat">
+          <div class="exam-stat-value" style="color: var(--accent);">${totalScore}</div>
+          <div class="exam-stat-label">درجة</div>
+        </div>
+        <div class="exam-stat">
+          <div class="exam-stat-value" style="color: var(--primary);">50%</div>
+          <div class="exam-stat-label">للنجاح</div>
+        </div>
+      </div>
+
+      ${openBoxHTML}
+      ${countdownBoxHTML}
+      ${resultBoxHTML}
+
+      <div class="exam-info-row" style="gap: 6px; flex-wrap: wrap;">
+        ${gradeBadge}
+        ${qBadge}
+        ${durationBadge}
+        ${pwBadge}
+        ${corrBadge}
+      </div>
+
+      <div class="exam-actions">
+        ${actionsHTML}
+      </div>
+    </div>
+  `;
+
+  const startBtn = card.querySelector('[data-action="start"]');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => handleStartExam(exam));
+  }
+
+  return card;
+}
+
+// ============================================================
+// ⏰ Countdowns
+// ============================================================
+function startCountdowns() {
+  if (countdownInterval) clearInterval(countdownInterval);
+
+  countdownInterval = setInterval(() => {
+    document.querySelectorAll('[data-countdown-exam]').forEach(el => {
+      const examId = parseInt(el.dataset.countdownExam);
+      const exam = allExams.find(e => e.id === examId);
+      if (!exam || !exam.startAt) return;
+
+      const startAt = new Date(exam.startAt);
+      const diff = startAt - new Date();
+
+      const elValue = $('examCountdown-' + examId);
+      if (!elValue) return;
+
+      if (diff <= 0) {
+        elValue.textContent = 'بدأ الآن';
+        setTimeout(() => applyFilters(), 1000);
+      } else {
+        elValue.textContent = formatCountdownArabic(diff);
+      }
+    });
+  }, 1000);
+}
+
+function startOpenAccessCountdowns() {
+  setInterval(() => {
+    document.querySelectorAll('[data-open-countdown]').forEach(el => {
+      const examId = parseInt(el.dataset.openCountdown);
+      const oa = myUserData?.openAccess?.[`exam_${examId}`];
+      if (!oa) return;
+
+      const endAt = new Date(oa.endAt);
+      const diff = endAt - new Date();
+
+      const elValue = $('openCountdown-' + examId);
+      if (!elValue) return;
+
+      if (diff <= 0) {
+        elValue.textContent = 'انتهى الوقت';
+        el.classList.add('danger');
+        setTimeout(() => applyFilters(), 1500);
+      } else {
+        elValue.textContent = formatTime(diff);
+        if (diff < 5 * 60 * 1000) {
+          el.classList.add('danger');
+        } else {
+          el.classList.remove('danger');
+        }
+      }
+    });
+  }, 1000);
+}
+
+// ============================================================
+// 🎯 Start Exam
+// ============================================================
+function handleStartExam(exam) {
+  const status = getExamStatus(exam);
+
+  if (status === 'blocked') {
+    return showToast('🚫 أنت محظور من هذا الامتحان من قبل الإدارة', 'error');
+  }
+
+  if (status === 'closed') {
+    return showToast('🔒 هذا الامتحان مغلق من قبل الإدارة', 'warning');
+  }
+
+  shownAccessFor.delete(exam.id);
+
+  if (exam.passwordType !== 'none') {
+    openPasswordModal(exam);
+    return;
+  }
+
+  // لو مفتوح من الإدارة → أظهر Modal المعلومات
+  if (status === 'opened' && !shownAccessFor.has(exam.id)) {
+    showAccessInfoModal(exam);
+    return;
+  }
+
+  showInstructionsModal(exam);
+}
+
+// ============================================================
+// 🔑 Password Modal
+// ============================================================
+let pendingExam = null;
+
+function openPasswordModal(exam) {
+  pendingExam = exam;
+  $('passwordMessage').textContent = `الامتحان "${exam.name}" محمي بكلمة سر`;
+  $('passwordInput').value = '';
+  $('passwordError').style.display = 'none';
+  $('passwordModal').classList.add('show');
+  setTimeout(() => $('passwordInput').focus(), 150);
+}
+
+function closePasswordModal() {
+  $('passwordModal').classList.remove('show');
+  pendingExam = null;
+}
+
+$('passwordCancel').addEventListener('click', closePasswordModal);
+$('passwordModal').addEventListener('click', (e) => {
+  if (e.target === $('passwordModal')) closePasswordModal();
+});
+
+$('passwordInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $('passwordSubmit').click();
+  }
+});
+
+$('passwordSubmit').addEventListener('click', async () => {
+  if (!pendingExam) return;
+
+  const input = cleanInput($('passwordInput').value).toUpperCase();
+  const errEl = $('passwordError');
+  errEl.style.display = 'none';
+
+  if (!input) {
+    errEl.textContent = 'الرجاء إدخال كلمة السر';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const exam = pendingExam;
+  let expectedPassword = '';
+
+  if (exam.passwordType === 'manual') {
+    expectedPassword = (exam.manualPassword || '').toUpperCase();
+  } else if (exam.passwordType === 'userCode') {
+    expectedPassword = (myUserData?.code || '').toUpperCase();
+  } else if (exam.passwordType === 'random') {
+    const sub = mySubs[exam.id];
+    if (sub && sub.password) {
+      expectedPassword = sub.password.toUpperCase();
+    }
+  }
+
+  if (input !== expectedPassword) {
+    errEl.textContent = 'كلمة السر غير صحيحة';
+    errEl.style.display = 'block';
+    $('passwordInput').value = '';
+    $('passwordInput').focus();
+    return;
+  }
+
+  closePasswordModal();
+
+  // لو مفتوح من الإدارة → أظهر Modal المعلومات
+  const status = getExamStatus(exam);
+  if (status === 'opened' && !shownAccessFor.has(exam.id)) {
+    setTimeout(() => showAccessInfoModal(exam), 200);
+  } else {
+    setTimeout(() => showInstructionsModal(exam), 200);
+  }
+});
+
+// ============================================================
+// 🎉 Access Info Modal (فتح بمدة)
+// ============================================================
+let pendingAccessExam = null;
+
+function showAccessInfoModal(exam) {
+  const oa = myUserData?.openAccess?.[`exam_${exam.id}`];
+  if (!oa) {
+    showInstructionsModal(exam);
+    return;
+  }
+
+  pendingAccessExam = exam;
+
+  const endAt = new Date(oa.endAt);
+  const totalMs = endAt - new Date(oa.startAt);
+  const remainingMs = endAt - new Date();
+
+  $('accessExamName').textContent = exam.name;
+  $('accessDuration').textContent = formatDurationHuman(totalMs);
+  $('accessRemaining').textContent = formatTime(remainingMs);
+
+  $('accessInfoModal').classList.add('show');
+}
+
+$('accessInfoStart').addEventListener('click', () => {
+  $('accessInfoModal').classList.remove('show');
+  const exam = pendingAccessExam;
+  if (exam) {
+    shownAccessFor.add(exam.id);
+    pendingAccessExam = null;
+    setTimeout(() => showInstructionsModal(exam), 200);
+  }
+});
+
+$('accessInfoLater').addEventListener('click', () => {
+  $('accessInfoModal').classList.remove('show');
+  pendingAccessExam = null;
+});
+
+$('accessInfoModal').addEventListener('click', (e) => {
+  if (e.target === $('accessInfoModal')) {
+    $('accessInfoModal').classList.remove('show');
+    pendingAccessExam = null;
+  }
+});
+
+// ============================================================
+// 📋 Instructions Modal
+// ============================================================
+function showInstructionsModal(exam) {
+  currentExam = exam;
+
+  $('instructionsTitle').textContent = `تعليمات امتحان: ${exam.name}`;
+  $('instrDuration').textContent = formatDuration(exam.durationValue, exam.durationUnit);
+  $('instrQuestions').textContent = `${(exam.questions || []).length} سؤال`;
+  $('instrTotalScore').textContent = `${(exam.questions || []).reduce((sum, q) => sum + (q.score || 1), 0)} درجة`;
+
+  $('instructionsModal').classList.add('show');
+}
+
+$('instrCancelBtn').addEventListener('click', () => {
+  $('instructionsModal').classList.remove('show');
+  currentExam = null;
+});
+
+$('instructionsModal').addEventListener('click', (e) => {
+  if (e.target === $('instructionsModal')) {
+    $('instructionsModal').classList.remove('show');
+    currentExam = null;
+  }
+});
+
+$('instrStartBtn').addEventListener('click', async () => {
+  if (!currentExam) return;
+  $('instructionsModal').classList.remove('show');
+  const exam = currentExam;
+  currentExam = null;
+  await startExamMode(exam);
+});
+
+// ============================================================
+// 🎬 Solve Mode
+// ============================================================
+async function startExamMode(exam) {
+  currentExam = exam;
+  currentAnswers = {};
+  isSubmitting = false;
+  hasWarned1Min = false;
+
+  const durationMs = getDurationMs(exam.durationValue, exam.durationUnit);
+  examEndAt = new Date(Date.now() + durationMs);
+
+  $('solveTitle').textContent = exam.name;
+  $('solveSubtitle').textContent = `#${exam.id} · ${(exam.questions || []).length} سؤال`;
+
+  renderSolveQuestions();
+
+  $('totalQuestions').textContent = (exam.questions || []).length;
+  updateAnsweredCount();
+
+  $('solveMode').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  startExamTimer();
+  addPreventExitListeners();
+
+  // سجّل بدء الطالب
+  if (exam.passwordType === 'random') {
+    try {
+      const ref = doc(db, 'exam_subs', 'all');
+      const snap = await getDoc(ref);
+      let items = snap.exists() ? (snap.data().items || []) : [];
+      const idx = items.findIndex(s => s.examId === exam.id && s.userId === userId);
+      if (idx !== -1) {
+        items[idx].started = true;
+        items[idx].startedAt = new Date().toISOString();
+        await setDoc(ref, { items, updatedAt: serverTimestamp() });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
+function renderSolveQuestions() {
+  const body = $('solveBody');
+  body.innerHTML = '';
+
+  (currentExam.questions || []).forEach((q, idx) => {
+    body.appendChild(createSolveQuestionCard(q, idx));
+  });
+}
+
+function createSolveQuestionCard(q, idx) {
+  const card = document.createElement('div');
+  card.className = 'solve-question-card';
+  card.dataset.qid = q.id;
+
+  const typeLabel = q.type === 'mcq' ? 'اختيار متعدد' : 'مقالي';
+
+  let optionsHTML = '';
+
+  if (q.type === 'mcq') {
+    optionsHTML = `
+      <div class="solve-options">
+        ${q.options.map((opt, i) => `
+          <button type="button" class="solve-option" data-option-idx="${i}">
+            <div class="solve-option-check">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="solve-option-text">${escapeHtml(opt.text)}</div>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  } else {
+    optionsHTML = `
+      <textarea class="solve-essay-input" data-essay-input placeholder="اكتب إجابتك هنا..."></textarea>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="solve-q-header">
+      <span class="solve-q-num">
+        <i class="fas fa-hashtag"></i> سؤال ${idx + 1}
+      </span>
+      <span class="solve-q-type ${q.type}">
+        <i class="fas ${q.type === 'mcq' ? 'fa-circle-check' : 'fa-pen-fancy'}"></i>
+        ${typeLabel}
+      </span>
+      <span class="solve-q-score">
+        <i class="fas fa-star"></i> ${q.score || 1}
+      </span>
+    </div>
+
+    <div class="solve-q-title">${escapeHtml(q.title)}</div>
+
+    ${optionsHTML}
+  `;
+
+  if (q.type === 'mcq') {
+    card.querySelectorAll('.solve-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const optIdx = parseInt(btn.dataset.optionIdx);
+        handleOptionClick(q.id, optIdx, card, q);
+      });
+    });
+  } else {
+    card.querySelector('[data-essay-input]').addEventListener('input', (e) => {
+      currentAnswers[q.id] = { text: e.target.value };
+      updateAnsweredCount();
+    });
+  }
+
+  return card;
+}
+
+function handleOptionClick(qId, optIdx, cardEl, question) {
+  let answer = currentAnswers[qId];
+
+  if (!answer || !answer.selectedIndices) {
+    answer = { selectedIndices: [] };
+  }
+
+  const selectedIndices = [...answer.selectedIndices];
+  const correctCount = question.options.filter(o => o.correct).length;
+  const allowMultiple = correctCount > 1;
+
+  if (allowMultiple) {
+    const idx = selectedIndices.indexOf(optIdx);
+    if (idx !== -1) selectedIndices.splice(idx, 1);
+    else selectedIndices.push(optIdx);
+  } else {
+    if (selectedIndices.includes(optIdx) && selectedIndices.length === 1) {
+      selectedIndices.length = 0;
+    } else {
+      selectedIndices.length = 0;
+      selectedIndices.push(optIdx);
+    }
+  }
+
+  currentAnswers[qId] = { selectedIndices };
+
+  cardEl.querySelectorAll('.solve-option').forEach((btn, i) => {
+    btn.classList.toggle('selected', selectedIndices.includes(i));
+  });
+
+  updateAnsweredCount();
+}
+
+function updateAnsweredCount() {
+  if (!currentExam) return;
+  const total = (currentExam.questions || []).length;
+  let answered = 0;
+
+  (currentExam.questions || []).forEach(q => {
+    const ans = currentAnswers[q.id];
+    if (!ans) return;
+
+    if (q.type === 'mcq') {
+      if (ans.selectedIndices && ans.selectedIndices.length > 0) answered++;
+    } else {
+      if (ans.text && ans.text.trim()) answered++;
+    }
+  });
+
+  $('answeredCount').textContent = answered;
+  const percent = total > 0 ? (answered / total) * 100 : 0;
+  $('solveProgressFill').style.width = percent + '%';
+
+  const submitBtn = $('solveSubmitBtn');
+  const hint = $('submitHint');
+
+  if (answered === total && total > 0) {
+    submitBtn.disabled = false;
+    hint.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> <span>يمكنك التسليم الآن</span>`;
+  } else {
+    submitBtn.disabled = true;
+    hint.innerHTML = `<i class="fas fa-info-circle"></i> <span>يجب حل جميع الأسئلة لتفعيل زر التسليم (${answered}/${total})</span>`;
+  }
+}
+
+// ============================================================
+// ⏰ Exam Timer
+// ============================================================
+function startExamTimer() {
+  if (examTimerInterval) clearInterval(examTimerInterval);
+
+  const timerEl = $('examTimer');
+  const valueEl = $('examTimerValue');
+
+  const updateTimer = () => {
+    if (!examEndAt) return;
+    const diff = examEndAt - new Date();
+
+    if (diff <= 0) {
+      valueEl.textContent = '00:00';
+      timerEl.className = 'exam-timer danger';
+      clearInterval(examTimerInterval);
+      autoSubmit('timeout');
+      return;
+    }
+
+    valueEl.textContent = formatTime(diff);
+
+    const minutes = diff / 60000;
+
+    if (minutes <= 1 && !hasWarned1Min) {
+      hasWarned1Min = true;
+      timerEl.className = 'exam-timer danger';
+      playAlertSound();
+      showToast('⚠️ تبقى أقل من دقيقة!', 'warning');
+    } else if (minutes <= 5) {
+      timerEl.className = 'exam-timer danger';
+    } else if (minutes <= 10) {
+      timerEl.className = 'exam-timer warning';
+    } else {
+      timerEl.className = 'exam-timer';
+    }
+  };
+
+  updateTimer();
+  examTimerInterval = setInterval(updateTimer, 1000);
+}
+
+// ============================================================
+// 🔊 Alert Sound
+// ============================================================
+function playAlertSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 800;
+
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+    for (let i = 0; i < 3; i++) {
+      const t = audioCtx.currentTime + i * 0.3;
+      gainNode.gain.setValueAtTime(0.3, t);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+    }
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 1);
+
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+  } catch (e) {
+    console.log('sound error:', e);
+  }
+}
+
+// ============================================================
+// 🚫 منع الخروج
+// ============================================================
+function handleBeforeUnload(e) {
+  if (!isSubmitting && currentExam) {
+    autoSubmit('exit');
+    e.preventDefault();
+    e.returnValue = 'سيتم تسليم الامتحان تلقائياً إذا خرجت';
+    return e.returnValue;
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.hidden && currentExam && !isSubmitting) {
+    showToast('⚠️ تحذير: الخروج من الامتحان يؤدي لتسليم تلقائي!', 'warning');
+  }
+}
+
+function handlePopState(e) {
+  if (currentExam && !isSubmitting) {
+    e.preventDefault();
+    history.pushState(null, '', location.href);
+    showToast('⚠️ لا يمكنك الرجوع — اضغط تسليم لإنهاء الامتحان', 'warning');
+  }
+}
+
+function addPreventExitListeners() {
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('popstate', handlePopState);
+}
+
+function removePreventExitListeners() {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.removeEventListener('popstate', handlePopState);
+}
+
+// ============================================================
+// 📤 Submit
+// ============================================================
+$('solveSubmitBtn').addEventListener('click', async () => {
+  if (!currentExam || isSubmitting) return;
+
+  const total = (currentExam.questions || []).length;
+  const answered = parseInt($('answeredCount').textContent) || 0;
+
+  if (answered < total) {
+    return showToast(`يجب حل جميع الأسئلة (${answered}/${total})`, 'warning');
+  }
+
+  const c = await showConfirm({
+    title: 'تسليم الامتحان',
+    message: 'هل أنت متأكد من تسليم الامتحان؟ لن تتمكن من التعديل بعد التسليم.',
+    icon: 'fa-paper-plane',
+    iconType: 'success',
+    okText: 'تسليم'
+  });
+  if (!c) return;
+
+  await doSubmit('manual');
+});
+
+async function autoSubmit(reason) {
+  if (isSubmitting) return;
+  isSubmitting = true;
+
+  const reasonMessages = {
+    'timeout': '⏰ انتهى الوقت! جاري التسليم تلقائياً...',
+    'exit': '⚠️ تم اكتشاف خروج — جاري التسليم تلقائياً...'
+  };
+
+  showToast(reasonMessages[reason] || 'جاري التسليم...', 'warning');
+
+  await new Promise(r => setTimeout(r, 500));
+  await doSubmit(reason);
+}
+
+async function doSubmit(reason = 'manual') {
+  if (!currentExam) return;
+  isSubmitting = true;
+
+  const exam = currentExam;
+  const questions = exam.questions || [];
+
+  const btn = $('solveSubmitBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسليم...';
+  }
+
+  try {
+    let autoScore = 0;
+    let autoTotal = 0;
+    let needsManual = false;
+    const corrections = {};
+
+    questions.forEach(q => {
+      const ans = currentAnswers[q.id];
+      const qScore = q.score || 1;
+      autoTotal += qScore;
+
+      if (q.type === 'mcq') {
+        const selectedIndices = (ans && ans.selectedIndices) || [];
+        const correctIndices = q.options.map((o, i) => o.correct ? i : -1).filter(i => i !== -1);
+
+        const isCorrect =
+          selectedIndices.length === correctIndices.length &&
+          selectedIndices.every(i => correctIndices.includes(i));
+
+        if (isCorrect) autoScore += qScore;
+        corrections[q.id] = isCorrect ? 'correct' : 'wrong';
+      } else {
+        if (exam.correctionType === 'manual') needsManual = true;
+      }
+    });
+
+    let score = 0;
+    let total = autoTotal;
+    let corrected = false;
+
+    if (exam.correctionType === 'auto' && !needsManual) {
+      score = autoScore;
+      corrected = true;
+    }
+
+    let password = '';
+    if (exam.passwordType === 'random') {
+      const oldSub = mySubs[exam.id];
+      password = oldSub?.password || '';
+    }
+
+    const subData = {
+      examId: exam.id,
+      examName: exam.name,
+      userId: userId,
+      userName: userName,
+      userGrade: exam.grade,
+      password,
+      answers: currentAnswers,
+      submitted: true,
+      submittedAt: new Date().toISOString(),
+      submittedBy: reason,
+      corrected: corrected,
+      correctedAt: corrected ? new Date().toISOString() : null,
+      correction: exam.correctionType === 'auto' ? corrections : {},
+      score: score,
+      totalScore: total,
+      correctionType: exam.correctionType,
+      updatedAt: new Date().toISOString()
+    };
+
+    // ✅ احفظ التسليم في "all"
+    const ref = doc(db, 'exam_subs', 'all');
+    const snap = await getDoc(ref);
+    let items = snap.exists() ? (snap.data().items || []) : [];
+
+    const idx = items.findIndex(s =>
+      s.examId === exam.id && s.userId === userId
+    );
+
+    if (idx !== -1) {
+      items[idx] = { ...items[idx], ...subData };
+    } else {
+      items.push(subData);
+    }
+
+    await setDoc(ref, {
+      items,
+      updatedAt: serverTimestamp()
+    });
+
+    // ✅✅✅ المهم: امسح openAccess وأضف closedItems تلقائياً
+    try {
+      const userRef = doc(db, 'users', 'all');
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const usersList = userSnap.data().items || [];
+        const uIdx = usersList.findIndex(u => u.id === userId);
+
+        if (uIdx !== -1) {
+          const key = `exam_${exam.id}`;
+
+          if (!usersList[uIdx].openAccess) usersList[uIdx].openAccess = {};
+          if (!usersList[uIdx].closedItems) usersList[uIdx].closedItems = {};
+
+          // امسح الفتح
+          delete usersList[uIdx].openAccess[key];
+
+          // أضف غلق تلقائي
+          usersList[uIdx].closedItems[key] = {
+            type: 'exam',
+            itemId: exam.id,
+            closedAt: new Date().toISOString(),
+            closedBy: 'auto_after_submit',
+            autoClosed: true
+          };
+
+          await setDoc(userRef, {
+            items: usersList,
+            updatedAt: serverTimestamp()
+          });
+
+          console.log('✅ تم غلق الامتحان تلقائياً بعد التسليم');
+        }
+      }
+    } catch (e) {
+      console.error('auto-close error:', e);
+    }
+
+    // أوقف العداد
+    if (examTimerInterval) clearInterval(examTimerInterval);
+    examTimerInterval = null;
+    examEndAt = null;
+
+    removePreventExitListeners();
+
+    // اقفل وضع الحل
+    $('solveMode').classList.remove('show');
+    document.body.style.overflow = '';
+    currentExam = null;
+    currentAnswers = {};
+
+    // امسح السجل
+    shownAccessFor.clear();
+
+    // اعرض شاشة النتيجة
+    showResultScreen(exam, {
+      score, total, corrected, needsManual, reason
+    });
+
+    applyFilters();
+
+  } catch (e) {
+    console.error(e);
+    isSubmitting = false;
+    showToast('حدث خطأ أثناء التسليم: ' + e.message, 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>تسليم الامتحان</span>';
+    }
+  }
+}
+
+// ============================================================
+// 🎉 Result Screen
+// ============================================================
+function showResultScreen(exam, { score, total, corrected, needsManual, reason }) {
+  const screen = $('resultScreen');
+  const iconEl = $('resultIcon');
+  const titleEl = $('resultTitle');
+  const msgEl = $('resultMessage');
+  const scoreBox = $('resultScoreBox');
+  const percentEl = $('resultScorePercent');
+  const detailEl = $('resultScoreDetail');
+
+  if (!corrected) {
+    iconEl.className = 'result-icon pending';
+    iconEl.innerHTML = '<i class="fas fa-hourglass-half"></i>';
+    titleEl.className = 'result-title pending';
+    titleEl.textContent = '✅ تم استلام إجاباتك';
+    msgEl.innerHTML = 'جاري المراجعة ورصد درجاتك.<br><br>يمكنك متابعة نتيجتك من قسم <strong>النتائج</strong>.';
+    scoreBox.style.display = 'none';
+  } else {
+    const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+    const passed = percent >= 50;
+
+    if (passed) {
+      iconEl.className = 'result-icon passed';
+      iconEl.innerHTML = '<i class="fas fa-trophy"></i>';
+      titleEl.className = 'result-title passed';
+      titleEl.textContent = '🎉 مبروك، ناجح!';
+      msgEl.innerHTML = reason === 'timeout'
+        ? 'انتهى الوقت وتم التسليم تلقائياً — لقد اجتزت الامتحان بنجاح! ✅'
+        : reason === 'exit'
+        ? 'تم التسليم التلقائي بسبب الخروج — لقد اجتزت الامتحان بنجاح! ✅'
+        : 'أحسنت! لقد اجتزت الامتحان بنجاح.';
+    } else {
+      iconEl.className = 'result-icon failed';
+      iconEl.innerHTML = '<i class="fas fa-times-circle"></i>';
+      titleEl.className = 'result-title failed';
+      titleEl.textContent = 'للأسف، راسب';
+      msgEl.innerHTML = reason === 'timeout'
+        ? 'انتهى الوقت وتم التسليم تلقائياً. يمكنك مراجعة إجاباتك من قسم النتائج.'
+        : reason === 'exit'
+        ? 'تم التسليم التلقائي بسبب الخروج. يمكنك مراجعة إجاباتك من قسم النتائج.'
+        : 'لم تجتز الامتحان هذه المرة. يمكنك مراجعة إجاباتك من قسم النتائج.';
+    }
+
+    scoreBox.style.display = 'block';
+    percentEl.className = 'result-score-percent ' + (passed ? 'passed' : 'failed');
+    percentEl.textContent = percent + '%';
+    detailEl.textContent = `${score} من ${total} درجة`;
+  }
+
+  screen.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  isSubmitting = false;
+}
+
+function closeResultScreen() {
+  $('resultScreen').classList.remove('show');
+  document.body.style.overflow = '';
+  applyFilters();
+}
+
+$('resultBackBtn').addEventListener('click', closeResultScreen);
+
+// ============================================================
+// 🚫 شاشة الطرد
+// ============================================================
+function showKickScreen(type, reason) {
+  const screen = $('resultScreen');
+  const iconEl = $('resultIcon');
+  const titleEl = $('resultTitle');
+  const msgEl = $('resultMessage');
+  const scoreBox = $('resultScoreBox');
+
+  if (type === 'blocked') {
+    iconEl.className = 'result-icon blocked';
+    iconEl.innerHTML = '<i class="fas fa-ban"></i>';
+    titleEl.className = 'result-title blocked';
+    titleEl.textContent = '🚫 تم حظرك';
+    msgEl.innerHTML = 'تم حظرك من هذا الامتحان من قبل الإدارة.<br><br>تم تسليم إجاباتك تلقائياً.';
+  } else {
+    iconEl.className = 'result-icon closed';
+    iconEl.innerHTML = '<i class="fas fa-lock"></i>';
+    titleEl.className = 'result-title closed';
+    titleEl.textContent = '🔒 تم غلق الامتحان';
+    msgEl.innerHTML = 'تم غلق الامتحان من قبل الإدارة.<br><br>تم تسليم إجاباتك تلقائياً.';
+  }
+
+  scoreBox.style.display = 'none';
+  screen.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+// ============================================================
+// 🚪 Logout
+// ============================================================
+async function handleLogout() {
+  if (currentExam && !isSubmitting) {
+    const c = await showConfirm({
+      title: 'تحذير',
+      message: 'أنت داخل امتحان! الخروج سيؤدي لتسليم تلقائي. هل أنت متأكد؟',
+      icon: 'fa-exclamation-triangle',
+      iconType: 'danger',
+      okText: 'خروج وتسليم'
+    });
+    if (!c) return;
+    await doSubmit('exit');
+    setTimeout(() => {
+      sessionStorage.clear();
+      window.location.replace('login.html');
+    }, 2000);
+    return;
+  }
+
+  const c = await showConfirm({
+    title: 'تسجيل الخروج',
+    message: 'هل تريد تسجيل الخروج؟',
+    icon: 'fa-sign-out-alt',
+    iconType: 'warning',
+    okText: 'خروج'
+  });
+  if (!c) return;
+  sessionStorage.clear();
+  window.location.replace('login.html');
+}
+
+$('logoutBtn').addEventListener('click', handleLogout);
+$('drawerLogoutBtn').addEventListener('click', () => {
+  closeDrawer();
+  setTimeout(handleLogout, 300);
+});
+
+// ============================================================
+// 📱 Drawer
+// ============================================================
+const drawer = $('drawer');
+const drawerOverlay = $('drawerOverlay');
+const menuBtn = $('menuBtn');
+const drawerClose = $('drawerClose');
+
+menuBtn?.addEventListener('click', () => {
+  if (currentExam) {
+    showToast('⚠️ لا يمكنك فتح القائمة أثناء الامتحان', 'warning');
+    return;
+  }
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+});
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+drawerClose?.addEventListener('click', closeDrawer);
+drawerOverlay?.addEventListener('click', closeDrawer);
+
+// ============================================================
+// 🔍 Search + Filters
+// ============================================================
+$('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value;
+  $('searchClear').classList.toggle('show', !!cleanInput(searchQuery));
+  applyFilters();
+});
+
+$('searchClear').addEventListener('click', () => {
+  $('searchInput').value = '';
+  searchQuery = '';
+  $('searchClear').classList.remove('show');
+  applyFilters();
+});
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  });
+});
+
+// ============================================================
+// 📡 Listeners
+// ============================================================
+function startUserGradeListener() {
+  if (!userId) return;
+  if (userRole === 'teacher') {
+    myGrade = '';
+    return;
+  }
+
+  onSnapshot(doc(db, 'users', 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === userId);
+    if (user) {
+      myGrade = user.grade || '';
+      applyFilters();
+    }
+  }, (err) => console.log('user grade error:', err.message));
+}
+
+function startExamsListener() {
+  onSnapshot(doc(db, 'exams', 'all'), (snap) => {
+    if (snap.exists()) {
+      allExams = snap.data().items || [];
+    } else {
+      allExams = [];
+    }
+    applyFilters();
+  }, (err) => console.log('exams error:', err.message));
+}
+
+function startSubsListener() {
+  onSnapshot(doc(db, 'exam_subs', 'all'), (snap) => {
+    mySubs = {};
+    if (snap.exists()) {
+      const items = snap.data().items || [];
+      items.forEach(sub => {
+        if (sub.userId === userId) {
+          mySubs[sub.examId] = sub;
+        }
+      });
+    }
+    applyFilters();
+  }, (err) => console.log('subs error:', err.message));
+}
+
+function startUserMonitoring() {
+  if (!userId) return;
+  if (userRole === 'teacher') return;
+
+  if (userMonitoringUnsub) userMonitoringUnsub();
+
+  userMonitoringUnsub = onSnapshot(doc(db, 'users', 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === userId);
+
+    if (!user) {
+      sessionStorage.clear();
+      window.location.replace('login.html');
+      return;
+    }
+
+    const previousUser = myUserData;
+    myUserData = user;
+    myGrade = user.grade || '';
+
+    // كشف الفتح الجديد
+    detectNewOpenAccess(previousUser, user);
+
+    // لو داخل امتحان — افحص
+    if (currentExam) {
+      const examId = currentExam.id;
+      const key = `exam_${examId}`;
+
+      if (user.blockedItems && user.blockedItems[key]) {
+        forceKickCurrent('blocked');
+        return;
+      }
+
+      if (user.closedItems && user.closedItems[key]) {
+        const oa = user.openAccess?.[key];
+        if (!oa || new Date(oa.endAt) <= new Date()) {
+          forceKickCurrent('closed');
+          return;
+        }
+      }
+    }
+
+    applyFilters();
+  }, (err) => console.log('user monitor error:', err.message));
+}
+
+function detectNewOpenAccess(prevUser, newUser) {
+  if (!newUser.openAccess) return;
+
+  Object.keys(newUser.openAccess).forEach(key => {
+    const wasNotOpenBefore = !prevUser?.openAccess?.[key];
+    const examIdStr = key.replace('exam_', '');
+    const examId = parseInt(examIdStr);
+
+    if (isNaN(examId)) return;
+
+    const oa = newUser.openAccess[key];
+    if (!oa || new Date(oa.endAt) <= new Date()) return;
+
+    if (wasNotOpenBefore && !shownAccessFor.has(examId)) {
+      const exam = allExams.find(e => e.id === examId);
+      if (exam) {
+        shownAccessFor.add(examId);
+        const remainingMs = new Date(oa.endAt) - new Date();
+        showToast(`🔓 تم فتح "${exam.name}" لك — متبقي ${formatDurationHuman(remainingMs)}`, 'info');
+      }
+    }
+  });
+}
+
+async function forceKickCurrent(type) {
+  if (!currentExam) return;
+
+  // اقفل وضع الحل
+  $('solveMode').classList.remove('show');
+  document.body.style.overflow = '';
+
+  // أوقف العداد
+  if (examTimerInterval) clearInterval(examTimerInterval);
+  examTimerInterval = null;
+  examEndAt = null;
+
+  removePreventExitListeners();
+
+  showKickScreen(type === 'blocked' ? 'blocked' : 'closed');
+
+  try {
+    const exam = currentExam;
+    const questions = exam.questions || [];
+
+    let autoScore = 0;
+    let autoTotal = 0;
+    const corrections = {};
+
+    questions.forEach(q => {
+      const ans = currentAnswers[q.id];
+      const qScore = q.score || 1;
+      autoTotal += qScore;
+
+      if (q.type === 'mcq') {
+        const selectedIndices = (ans && ans.selectedIndices) || [];
+        const correctIndices = q.options.map((o, i) => o.correct ? i : -1).filter(i => i !== -1);
+        const isCorrect =
+          selectedIndices.length === correctIndices.length &&
+          selectedIndices.every(i => correctIndices.includes(i));
+        if (isCorrect) autoScore += qScore;
+        corrections[q.id] = isCorrect ? 'correct' : 'wrong';
+      }
+    });
+
+    let score = 0;
+    let corrected = false;
+    if (exam.correctionType === 'auto') {
+      score = autoScore;
+      corrected = true;
+    }
+
+    let password = '';
+    if (exam.passwordType === 'random') {
+      password = mySubs[exam.id]?.password || '';
+    }
+
+    const subData = {
+      examId: exam.id,
+      examName: exam.name,
+      userId: userId,
+      userName: userName,
+      userGrade: exam.grade,
+      password,
+      answers: currentAnswers,
+      submitted: true,
+      submittedAt: new Date().toISOString(),
+      submittedBy: 'admin_' + type,
+      corrected: corrected,
+      correctedAt: corrected ? new Date().toISOString() : null,
+      correction: exam.correctionType === 'auto' ? corrections : {},
+      score: score,
+      totalScore: autoTotal,
+      correctionType: exam.correctionType,
+      updatedAt: new Date().toISOString()
+    };
+
+    const ref = doc(db, 'exam_subs', 'all');
+    const snap = await getDoc(ref);
+    let items = snap.exists() ? (snap.data().items || []) : [];
+
+    const idx = items.findIndex(s => s.examId === exam.id && s.userId === userId);
+    if (idx !== -1) items[idx] = { ...items[idx], ...subData };
+    else items.push(subData);
+
+    await setDoc(ref, { items, updatedAt: serverTimestamp() });
+
+  } catch (e) {
+    console.error('force submit error:', e);
+  }
+
+  currentExam = null;
+  currentAnswers = {};
+}
+
+function startHiddenResultsListener() {
+  onSnapshot(doc(db, 'settings', 'hidden_results'), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    hiddenExams = new Set(data.exams || []);
+
+    hiddenStudentResults = {};
+    const hsr = data.hiddenStudentResults || {};
+    Object.keys(hsr).forEach(k => {
+      hiddenStudentResults[k] = new Set(hsr[k] || []);
+    });
+
+    applyFilters();
+  }, (err) => console.log('hidden results error:', err.message));
+}
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+requestAnimationFrame(() => document.body.classList.add('ready'));
+
+startUserGradeListener();
+startExamsListener();
+startSubsListener();
+startUserMonitoring();
+startHiddenResultsListener();
+
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
+    window.location.replace('login.html');
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

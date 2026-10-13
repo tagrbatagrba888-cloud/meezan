@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>الكورسات | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.4s ease;
+    overflow-x: hidden;
+  }
+
+  body.ready { opacity: 1; }
+
+  /* ===== Topbar ===== */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .topbar-title i.header-icon { color: var(--accent); font-size: 22px; }
+
+  .topbar-title-text h1 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="dark"] .topbar-title-text h1 { color: var(--accent); }
+
+  .topbar-title-text small {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  .icon-btn.logout {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  .icon-btn.logout:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  .menu-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .menu-btn:hover, .menu-btn:active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* ===== Container ===== */
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px 20px 100px;
+  }
+
+  /* ===== Filter Row ===== */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-btn {
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-sub);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+    transform: translateY(-2px);
+  }
+
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  [data-theme="dark"] .filter-btn.active { color: var(--bg-page); }
+
+  .filter-btn .count {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .filter-btn:not(.active) .count {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+  }
+
+  /* ===== Search ===== */
+  .search-wrapper {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .search-wrapper i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 46px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    outline: none;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1), 0 4px 14px var(--shadow);
+  }
+
+  .search-clear {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .search-clear:hover { background: var(--error); color: #fff; }
+  .search-clear.show { display: flex; }
+
+  /* ===== Courses Grid ===== */
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+
+  .course-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px var(--shadow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .course-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px var(--shadow);
+  }
+
+  .course-card.enrolled {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(30, 122, 90, 0.15), 0 12px 30px var(--shadow);
+  }
+
+  .course-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .course-status.free {
+    background: rgba(46, 204, 113, 0.95);
+    color: #fff;
+  }
+
+  .course-status.paid {
+    background: rgba(230, 126, 34, 0.95);
+    color: #fff;
+  }
+
+  .enrolled-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(46, 204, 113, 0.95);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .course-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 56px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .course-image { color: var(--bg-page); }
+
+  .course-image img,
+  .course-image video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .course-image.video::after {
+    content: '\f144';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    font-size: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .course-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .course-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.4;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .course-desc {
+    font-size: 13.5px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .course-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  .course-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .course-meta i { color: var(--accent); font-size: 11px; }
+
+  .course-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .btn-action {
+    padding: 11px 14px;
+    border-radius: 11px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .btn-action.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  [data-theme="dark"] .btn-action.primary { color: var(--bg-page); }
+
+  .btn-action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn-action.danger {
+    background: var(--bg-input);
+    color: var(--error);
+    border: 1.5px solid rgba(192, 57, 43, 0.3);
+  }
+
+  .btn-action.danger:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+    transform: translateY(-2px);
+  }
+
+  .btn-action.success {
+    background: linear-gradient(135deg, #1E7A5A, #2ECC71);
+    color: #fff;
+  }
+
+  .btn-action.success:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-action.full {
+    grid-column: 1 / -1;
+  }
+
+  /* ===== Course Detail ===== */
+  .course-detail {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 30px var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .course-detail.show { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-header {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .detail-back {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .detail-back { color: var(--accent); }
+
+  .detail-back:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  .detail-title-wrap { flex: 1; min-width: 0; }
+
+  .detail-title-wrap h2 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+
+  .detail-title-wrap .detail-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid;
+  }
+
+  .badge.grade { color: var(--info); border-color: var(--info); background: rgba(41, 128, 185, 0.08); }
+  .badge.free { color: var(--success); border-color: var(--success); background: rgba(30, 122, 90, 0.08); }
+  .badge.paid { color: var(--warning); border-color: var(--warning); background: rgba(230, 126, 34, 0.08); }
+  .badge.enrolled { color: var(--primary); border-color: var(--primary); background: rgba(11, 61, 46, 0.08); }
+
+  [data-theme="dark"] .badge.enrolled { color: var(--accent); border-color: var(--accent); background: rgba(201, 169, 97, 0.12); }
+
+  .detail-media {
+    width: 100%;
+    max-height: 500px;
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .detail-media img,
+  .detail-media video {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .detail-media.no-media {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    height: 300px;
+    color: #fff;
+    font-size: 80px;
+  }
+
+  [data-theme="dark"] .detail-media.no-media { color: var(--bg-page); }
+
+  .detail-content {
+    font-size: 15px;
+    color: var(--text-main);
+    font-weight: 500;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 18px;
+    background: var(--bg-input);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .detail-locked {
+    text-align: center;
+    padding: 40px 24px;
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.08), rgba(201, 169, 97, 0.05));
+    border: 2px dashed var(--warning);
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+
+  .detail-locked i.lock-icon {
+    font-size: 60px;
+    color: var(--warning);
+    margin-bottom: 16px;
+    display: block;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .detail-locked h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .detail-locked p {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 500;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .detail-locked .locked-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .detail-locked .locked-actions .btn-action {
+    padding: 13px 24px;
+    font-size: 14px;
+  }
+
+  /* ===== Empty & Loading ===== */
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-sub);
+    background: var(--bg-card);
+    border-radius: 18px;
+    border: 2px dashed var(--border);
+    grid-column: 1 / -1;
+  }
+
+  .empty-state i {
+    font-size: 60px;
+    color: var(--accent);
+    opacity: 0.5;
+    margin-bottom: 16px;
+    display: block;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+
+  .empty-state h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p { font-size: 13.5px; font-weight: 500; line-height: 1.6; }
+
+  .loading-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 14px;
+    font-weight: 600;
+    grid-column: 1 / -1;
+  }
+
+  .loading-state i {
+    font-size: 42px;
+    color: var(--accent);
+    animation: spin 1s linear infinite;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 28px 24px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 94vh;
+    overflow-y: auto;
+    text-align: center;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 25px var(--shadow);
+  }
+
+  [data-theme="dark"] .modal-icon { color: var(--bg-page); }
+
+  .modal-icon.warning { background: linear-gradient(135deg, #E67E22, #F39C12); }
+  .modal-icon.danger { background: linear-gradient(135deg, #C0392B, #E74C3C); }
+  .modal-icon.success { background: linear-gradient(135deg, #1E7A5A, #2ECC71); }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 8px;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 15px 18px;
+    font-size: 18px;
+    font-family: 'Cairo', monospace;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-align: center;
+    text-transform: uppercase;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.25s;
+    margin-bottom: 16px;
+    direction: ltr;
+  }
+
+  .modal-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
+  }
+
+  .modal-error {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(192, 57, 43, 0.3);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: none;
+    line-height: 1.6;
+  }
+
+  .modal-error.show { display: block; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .modal-actions .btn-action { flex: 1; padding: 14px; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 999999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+  .toast.info { border-color: var(--info); }
+  .toast.info i { color: var(--info); }
+
+  /* ===== Drawer ===== */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9998;
+  }
+
+  .drawer-overlay.show { opacity: 1; visibility: visible; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 88%;
+    max-width: 340px;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg-card);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--border);
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 22px 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .drawer-header-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .drawer-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    padding: 4px;
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+  }
+
+  .drawer-brand { flex: 1; min-width: 0; }
+
+  .drawer-brand-name {
+    font-size: 18px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .drawer-brand-name .divider { color: var(--accent); font-weight: 300; }
+
+  .drawer-brand-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .drawer-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+  }
+
+  .drawer-section { margin-bottom: 22px; }
+
+  .drawer-section-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    padding-right: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drawer-section-title i { color: var(--accent); font-size: 12px; }
+
+  .drawer-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    width: 100%;
+    text-align: right;
+  }
+
+  .drawer-btn:hover, .drawer-btn:active {
+    background: var(--bg-card);
+    border-color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .drawer-btn-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .drawer-btn-icon { color: var(--bg-page); }
+
+  .drawer-btn-label { flex: 1; }
+
+  .drawer-btn.logout-btn {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+    background: rgba(192, 57, 43, 0.05);
+  }
+
+  .drawer-btn.logout-btn .drawer-btn-icon {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+  }
+
+  .drawer-btn.logout-btn:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .topbar-inner { padding: 12px 16px; }
+    .back-btn { width: 40px; height: 40px; font-size: 16px; }
+    .topbar-title i.header-icon { font-size: 19px; }
+    .topbar-title-text h1 { font-size: 16px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
+    .menu-btn { display: flex; }
+    .topbar-actions .icon-btn { display: none; }
+    .topbar-actions .menu-btn { display: flex; }
+    .container { padding: 16px 12px 100px; }
+    .courses-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .course-image { height: 170px; }
+    .detail-title-wrap h2 { font-size: 18px; }
+    .detail-media img, .detail-media video { max-height: 380px; }
+    .modal-actions { flex-direction: column-reverse; }
+  }
+
+  @media (max-width: 600px) {
+    .courses-grid { grid-template-columns: 1fr; gap: 14px; }
+    .course-image { height: 160px; font-size: 48px; }
+    .course-actions { grid-template-columns: 1fr 1fr; }
+    .detail-content { font-size: 14px; padding: 14px; }
+    .detail-locked { padding: 30px 18px; }
+    .detail-locked i.lock-icon { font-size: 48px; }
+    .detail-locked h3 { font-size: 17px; }
+    .detail-locked .locked-actions { flex-direction: column; }
+    .detail-locked .locked-actions .btn-action { width: 100%; }
+  }
+
+  @media (min-width: 901px) {
+    .menu-btn { display: none !important; }
+    .drawer, .drawer-overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ Topbar ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <a href="index.html" class="back-btn" title="الرجوع">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+      <div class="topbar-title">
+        <i class="fas fa-book header-icon"></i>
+        <div class="topbar-title-text">
+          <h1>الكورسات</h1>
+          <small>COURSES</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" title="الوضع">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <button class="icon-btn logout" id="logoutBtn" title="تسجيل الخروج">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      <button class="menu-btn" id="menuBtn" aria-label="القائمة">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ Container ============ -->
+<div class="container">
+
+  <div class="course-detail" id="courseDetail">
+    <div class="detail-header">
+      <button class="detail-back" id="detailBack">
+        <i class="fas fa-arrow-right"></i>
+      </button>
+      <div class="detail-title-wrap">
+        <h2 id="detailTitle">—</h2>
+        <div class="detail-badges" id="detailBadges"></div>
+      </div>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+
+  <div id="gridView">
+    <div class="search-wrapper">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" id="searchInput" placeholder="ابحث بالاسم أو الوصف...">
+      <button class="search-clear" id="searchClear">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">
+        <i class="fas fa-list"></i>
+        <span>الكل</span>
+        <span class="count" id="filterAll">0</span>
+      </button>
+      <button class="filter-btn" data-filter="free">
+        <i class="fas fa-gift"></i>
+        <span>مجاني</span>
+        <span class="count" id="filterFree">0</span>
+      </button>
+      <button class="filter-btn" data-filter="paid">
+        <i class="fas fa-dollar-sign"></i>
+        <span>مدفوع</span>
+        <span class="count" id="filterPaid">0</span>
+      </button>
+      <button class="filter-btn" data-filter="enrolled">
+        <i class="fas fa-check-circle"></i>
+        <span>مسجل فيها</span>
+        <span class="count" id="filterEnrolled">0</span>
+      </button>
+    </div>
+
+    <div class="courses-grid" id="coursesGrid">
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الكورسات...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ Modal: Enter Code ============ -->
+<div class="modal-overlay" id="codeModal">
+  <div class="modal-box">
+    <div class="modal-icon warning" id="codeModalIcon">
+      <i class="fas fa-key"></i>
+    </div>
+    <h2 class="modal-title" id="codeModalTitle">أدخل كود الدفع</h2>
+    <p class="modal-message" id="codeModalMessage">هذا الكورس مدفوع — أدخل كود الدفع للوصول</p>
+
+    <div class="modal-error" id="codeError"></div>
+
+    <input type="text" class="modal-input" id="codeInput" placeholder="XXXXXXXX" maxlength="20" autocomplete="off">
+
+    <div class="modal-actions">
+      <button class="btn-action danger" id="codeCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn-action primary" id="codeSubmit">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+
+    <button class="btn-action full" id="contactSupport" style="width:100%;margin-top:10px;background:linear-gradient(135deg,#2980B9,#3498DB);color:#fff;">
+      <i class="fas fa-headset"></i>
+      <span>تواصل مع الدعم لشراء كود</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ Modal: Confirm ============ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirmIcon">
+      <i class="fas fa-question-circle"></i>
+    </div>
+    <h2 class="modal-title" id="confirmTitle">تأكيد</h2>
+    <p class="modal-message" id="confirmMessage">—</p>
+
+    <div class="modal-actions">
+      <button class="btn-action danger" id="confirmCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn-action primary" id="confirmOk">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+
+<!-- ============ Drawer ============ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-content">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
+           alt="Logo" class="drawer-logo" id="drawerLogo">
+      <div class="drawer-brand">
+        <div class="drawer-brand-name">
+          <span id="drawerNameAr">ميزان</span>
+          <span class="divider">|</span>
+          <span id="drawerNameEn">MEEZAN</span>
+        </div>
+        <div class="drawer-brand-sub" id="drawerSubtitle">الكورسات</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer-content">
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fas fa-th-large"></i>
+        <span>الأقسام</span>
+      </div>
+      <a href="index.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-home"></i></span>
+        <span class="drawer-btn-label">الرئيسية</span>
+      </a>
+      <button class="drawer-btn" id="drawerThemeBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-moon" id="drawerThemeIcon"></i></span>
+        <span class="drawer-btn-label" id="drawerThemeText">الوضع الليلي</span>
+      </button>
+      <a href="sora.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-user-circle"></i></span>
+        <span class="drawer-btn-label">ملفي الشخصي</span>
+      </a>
+      <button class="drawer-btn logout-btn" id="drawerLogoutBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="drawer-btn-label">تسجيل الخروج</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+const userId = sessionStorage.getItem('meezan_user_id');
+const userName = sessionStorage.getItem('meezan_username') || 'مستخدم';
+const userRole = sessionStorage.getItem('meezan_role') || 'student';
+
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 التنظيف
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+// ============================================================
+// 📊 الحالة
+// ============================================================
+let allCourses = [];
+let filteredCourses = [];
+let myEnrollments = new Set();     // courseIds المسجّل فيها
+let myGrade = '';                  // فرقة المستخدم
+let allMyCodes = [];               // كل أكوادي
+let currentCourse = null;
+let currentFilter = 'all';
+let searchQuery = '';
+
+// ============================================================
+// 🌙 الوضع
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+updateDrawerTheme(savedTheme);
+
+$('themeToggle').addEventListener('click', toggleTheme);
+$('drawerThemeBtn').addEventListener('click', toggleTheme);
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('meezan_theme', next);
+  updateThemeIcon(next);
+  updateDrawerTheme(next);
+}
+
+function updateThemeIcon(t) {
+  $('themeIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+function updateDrawerTheme(t) {
+  const icon = $('drawerThemeIcon');
+  const text = $('drawerThemeText');
+  if (!icon || !text) return;
+  if (t === 'dark') {
+    icon.className = 'fas fa-sun';
+    text.textContent = 'الوضع النهاري';
+  } else {
+    icon.className = 'fas fa-moon';
+    text.textContent = 'الوضع الليلي';
+  }
+}
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// 🔔 Confirm
+// ============================================================
+let confirmResolve = null;
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد',
+      cancelText = 'إلغاء'
+    } = options;
+
+    const iconEl = $('confirmIcon');
+    iconEl.className = 'modal-icon';
+    if (iconType === 'warning') iconEl.classList.add('warning');
+    if (iconType === 'danger') iconEl.classList.add('danger');
+    if (iconType === 'success') iconEl.classList.add('success');
+    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').innerHTML = message;
+    $('confirmOk').innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+    $('confirmCancel').innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
+
+    confirmResolve = resolve;
+    $('confirmModal').classList.add('show');
+  });
+}
+
+function closeConfirm(r) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) { confirmResolve(r); confirmResolve = null; }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+    if ($('codeModal').classList.contains('show')) closeCodeModal();
+    if ($('drawer').classList.contains('open')) closeDrawer();
+  }
+});
+
+// ============================================================
+// 🎯 Filter + Render
+// ============================================================
+function applyFilters() {
+  const q = cleanInput(searchQuery).toLowerCase();
+  let base = allCourses.filter(c => c.status === 'published');
+
+  // ✅ فلترة الفرقة
+  if (userRole !== 'teacher') {
+    base = base.filter(c => {
+      // كورس بدون فرقة → يظهر للجميع
+      if (!c.grade) return true;
+      // كورس بفرقة → يظهر بس لطلاب نفس الفرقة
+      if (myGrade && c.grade === myGrade) return true;
+      // غير كده → مخفي
+      return false;
+    });
+  }
+
+  if (currentFilter === 'free') base = base.filter(c => c.type === 'free');
+  else if (currentFilter === 'paid') base = base.filter(c => c.type === 'paid');
+  else if (currentFilter === 'enrolled') base = base.filter(c => myEnrollments.has(c.id));
+
+  if (q) {
+    base = base.filter(c =>
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.description || '').toLowerCase().includes(q)
+    );
+  }
+
+  base.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+  filteredCourses = base;
+  renderCourses();
+  updateFilterCounts();
+}
+
+function updateFilterCounts() {
+  let published = allCourses.filter(c => c.status === 'published');
+
+  // طبّق فلتر الفرقة نفسه
+  if (userRole !== 'teacher') {
+    published = published.filter(c => {
+      if (!c.grade) return true;
+      if (myGrade && c.grade === myGrade) return true;
+      return false;
+    });
+  }
+
+  $('filterAll').textContent = published.length;
+  $('filterFree').textContent = published.filter(c => c.type === 'free').length;
+  $('filterPaid').textContent = published.filter(c => c.type === 'paid').length;
+  $('filterEnrolled').textContent = published.filter(c => myEnrollments.has(c.id)).length;
+}
+
+function renderCourses() {
+  const grid = $('coursesGrid');
+  grid.innerHTML = '';
+
+  if (filteredCourses.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <h3>${allCourses.length === 0 ? 'لا توجد كورسات بعد' : 'لا توجد نتائج'}</h3>
+        <p>${allCourses.length === 0 ? 'سيتم عرض الكورسات هنا عند إضافتها' : 'جرّب البحث بكلمة أخرى'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  filteredCourses.forEach(course => {
+    grid.appendChild(createCourseCard(course));
+  });
+}
+
+function createCourseCard(course) {
+  const card = document.createElement('div');
+  card.className = 'course-card';
+  const isEnrolled = myEnrollments.has(course.id);
+  if (isEnrolled) card.classList.add('enrolled');
+
+  const typeBadge = course.type === 'paid'
+    ? `<div class="course-status paid"><i class="fas fa-dollar-sign"></i> مدفوع</div>`
+    : `<div class="course-status free"><i class="fas fa-gift"></i> مجاني</div>`;
+
+  const enrolledBadge = isEnrolled
+    ? `<div class="enrolled-badge"><i class="fas fa-check-circle"></i> مسجل</div>`
+    : '';
+
+  let imageHtml = '<i class="fas fa-book"></i>';
+  let mediaClass = '';
+  if (course.mediaUrl) {
+    if (course.mediaType === 'video') {
+      imageHtml = `<video src="${escapeHtml(course.mediaUrl)}" preload="metadata" muted></video>`;
+      mediaClass = 'video';
+    } else {
+      imageHtml = `<img src="${escapeHtml(course.mediaUrl)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-book\\'></i>'">`;
+    }
+  }
+
+  let actionsHTML = '';
+  if (isEnrolled) {
+    actionsHTML = `
+      <button class="btn-action primary full" data-action="open">
+        <i class="fas fa-eye"></i>
+        <span>فتح الكورس</span>
+      </button>
+      <button class="btn-action danger full" data-action="unenroll">
+        <i class="fas fa-times-circle"></i>
+        <span>إلغاء التسجيل</span>
+      </button>
+    `;
+  } else if (course.type === 'paid') {
+    actionsHTML = `
+      <button class="btn-action primary full" data-action="open">
+        <i class="fas fa-key"></i>
+        <span>فتح بكود الدفع</span>
+      </button>
+    `;
+  } else {
+    actionsHTML = `
+      <button class="btn-action success full" data-action="enroll">
+        <i class="fas fa-plus-circle"></i>
+        <span>تسجيل في الكورس</span>
+      </button>
+    `;
+  }
+
+  const gradeBadge = course.grade
+    ? `<span><i class="fas fa-graduation-cap"></i> ${escapeHtml(course.grade)}</span>`
+    : '';
+
+  card.innerHTML = `
+    ${typeBadge}
+    ${enrolledBadge}
+    <div class="course-image ${mediaClass}">${imageHtml}</div>
+    <div class="course-body">
+      <div class="course-title">${escapeHtml(course.name)}</div>
+      ${course.description ? `<div class="course-desc">${escapeHtml(course.description)}</div>` : ''}
+      <div class="course-meta">
+        ${gradeBadge}
+        <span><i class="fas fa-users"></i> ${course.enrolledCount || 0} مسجل</span>
+      </div>
+      <div class="course-actions">${actionsHTML}</div>
+    </div>
+  `;
+
+  card.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleCourseAction(btn.dataset.action, course);
+    });
+  });
+
+  return card;
+}
+
+// ============================================================
+// 🎯 Actions
+// ============================================================
+async function handleCourseAction(action, course) {
+  if (action === 'enroll') {
+    await enrollInCourse(course);
+  } else if (action === 'unenroll') {
+    await unenrollFromCourse(course);
+  } else if (action === 'open') {
+    await openCourse(course);
+  }
+}
+
+async function enrollInCourse(course) {
+  if (course.type === 'paid' && !myEnrollments.has(course.id)) {
+    return openCodeModal(course);
+  }
+
+  const c = await showConfirm({
+    title: 'تسجيل في الكورس',
+    message: `هل تريد التسجيل في "<strong>${escapeHtml(course.name)}</strong>"؟`,
+    icon: 'fa-plus-circle',
+    iconType: 'success',
+    okText: 'تسجيل'
+  });
+  if (!c) return;
+
+  await doEnroll(course);
+}
+
+async function doEnroll(course) {
+  try {
+    const enrolledRef = doc(db, 'user_enrollments', userId);
+    const snap = await getDoc(enrolledRef);
+
+    let courses = [];
+    if (snap.exists()) {
+      courses = snap.data().courses || [];
+    }
+
+    if (!courses.includes(course.id)) {
+      courses.push(course.id);
+
+      await setDoc(enrolledRef, {
+        userId,
+        userName,
+        courses,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      const updated = allCourses.map(c =>
+        c.id === course.id ? { ...c, enrolledCount: (c.enrolledCount || 0) + 1 } : c
+      );
+      await setDoc(doc(db, 'courses', 'all'), {
+        items: updated,
+        updatedAt: serverTimestamp()
+      });
+
+      showToast('✅ تم التسجيل في الكورس', 'success');
+    } else {
+      showToast('أنت مسجل بالفعل', 'info');
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('حدث خطأ', 'error');
+  }
+}
+
+async function unenrollFromCourse(course) {
+  const c = await showConfirm({
+    title: 'إلغاء التسجيل',
+    message: `هل تريد إلغاء التسجيل من "<strong>${escapeHtml(course.name)}</strong>"؟<br><br>لن تفقد كود الدفع.`,
+    icon: 'fa-times-circle',
+    iconType: 'danger',
+    okText: 'إلغاء التسجيل'
+  });
+  if (!c) return;
+
+  try {
+    const enrolledRef = doc(db, 'user_enrollments', userId);
+    const snap = await getDoc(enrolledRef);
+
+    if (snap.exists()) {
+      const courses = (snap.data().courses || []).filter(id => id !== course.id);
+      await setDoc(enrolledRef, {
+        userId,
+        userName,
+        courses,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      const updated = allCourses.map(c =>
+        c.id === course.id ? { ...c, enrolledCount: Math.max((c.enrolledCount || 1) - 1, 0) } : c
+      );
+      await setDoc(doc(db, 'courses', 'all'), {
+        items: updated,
+        updatedAt: serverTimestamp()
+      });
+
+      showToast('تم إلغاء التسجيل', 'success');
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('حدث خطأ', 'error');
+  }
+}
+
+async function openCourse(course) {
+  currentCourse = course;
+
+  const isEnrolled = myEnrollments.has(course.id);
+  const isPaid = course.type === 'paid';
+
+  if (!isEnrolled && isPaid) {
+    return openCodeModal(course);
+  }
+
+  if (!isEnrolled && !isPaid) {
+    await doEnroll(course);
+  }
+
+  showCourseDetail(course);
+}
+
+// ============================================================
+// 📖 Course Detail
+// ============================================================
+function showCourseDetail(course) {
+  $('gridView').style.display = 'none';
+  $('courseDetail').classList.add('show');
+
+  $('detailTitle').textContent = course.name;
+
+  const isEnrolled = myEnrollments.has(course.id);
+  const badges = [];
+  if (course.grade) badges.push(`<span class="badge grade"><i class="fas fa-graduation-cap"></i> ${escapeHtml(course.grade)}</span>`);
+  badges.push(course.type === 'paid'
+    ? `<span class="badge paid"><i class="fas fa-dollar-sign"></i> مدفوع</span>`
+    : `<span class="badge free"><i class="fas fa-gift"></i> مجاني</span>`);
+  if (isEnrolled) badges.push(`<span class="badge enrolled"><i class="fas fa-check-circle"></i> مسجل</span>`);
+
+  $('detailBadges').innerHTML = badges.join('');
+
+  let mediaHTML = '';
+  if (course.mediaUrl) {
+    if (course.mediaType === 'video') {
+      mediaHTML = `<div class="detail-media"><video src="${escapeHtml(course.mediaUrl)}" controls preload="metadata"></video></div>`;
+    } else {
+      mediaHTML = `<div class="detail-media"><img src="${escapeHtml(course.mediaUrl)}" alt="" onerror="this.parentNode.innerHTML='<div style=&quot;padding:40px;text-align:center;color:var(--error);font-weight:700;&quot;>⚠️ تعذّر تحميل الصورة</div>'"></div>`;
+    }
+  } else {
+    mediaHTML = `<div class="detail-media no-media"><i class="fas fa-book"></i></div>`;
+  }
+
+  let contentHTML = '';
+  if (course.description) {
+    contentHTML = `<div class="detail-content">${escapeHtml(course.description)}</div>`;
+  }
+
+  let lockedHTML = '';
+  if (!isEnrolled && course.type === 'paid') {
+    lockedHTML = `
+      <div class="detail-locked">
+        <i class="fas fa-lock lock-icon"></i>
+        <h3>هذا الكورس مدفوع</h3>
+        <p>يجب إدخال كود الدفع للوصول إلى محتوى الكورس</p>
+        <div class="locked-actions">
+          <button class="btn-action primary" id="enterCodeFromDetail">
+            <i class="fas fa-key"></i>
+            <span>إدخال كود الدفع</span>
+          </button>
+          <button class="btn-action full" id="contactSupportFromDetail" style="background:linear-gradient(135deg,#2980B9,#3498DB);color:#fff;">
+            <i class="fas fa-headset"></i>
+            <span>تواصل مع الدعم</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  const enrolledActions = isEnrolled
+    ? `<div style="text-align:center;margin-top:16px;">
+        <button class="btn-action danger" id="unenrollFromDetail">
+          <i class="fas fa-times-circle"></i>
+          <span>إلغاء التسجيل من الكورس</span>
+        </button>
+      </div>`
+    : '';
+
+  $('detailBody').innerHTML = mediaHTML + contentHTML + lockedHTML + enrolledActions;
+
+  $('enterCodeFromDetail')?.addEventListener('click', () => openCodeModal(course));
+  $('contactSupportFromDetail')?.addEventListener('click', goToSupport);
+  $('unenrollFromDetail')?.addEventListener('click', () => {
+    backToGrid();
+    setTimeout(() => unenrollFromCourse(course), 300);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToGrid() {
+  $('gridView').style.display = 'block';
+  $('courseDetail').classList.remove('show');
+  currentCourse = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+$('detailBack').addEventListener('click', backToGrid);
+
+// ============================================================
+// 🔑 Code Modal
+// ============================================================
+let pendingCourse = null;
+
+function openCodeModal(course) {
+  pendingCourse = course;
+  $('codeModalTitle').textContent = `فتح كورس "${course.name}"`;
+  $('codeModalMessage').textContent = 'هذا الكورس مدفوع — أدخل كود الدفع للوصول';
+  $('codeInput').value = '';
+  $('codeError').classList.remove('show');
+  $('codeModal').classList.add('show');
+  setTimeout(() => $('codeInput').focus(), 150);
+}
+
+function closeCodeModal() {
+  $('codeModal').classList.remove('show');
+  pendingCourse = null;
+}
+
+$('codeCancel').addEventListener('click', closeCodeModal);
+$('codeModal').addEventListener('click', (e) => {
+  if (e.target === $('codeModal')) closeCodeModal();
+});
+
+$('codeInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $('codeSubmit').click();
+  }
+});
+
+$('codeSubmit').addEventListener('click', async () => {
+  if (!pendingCourse) return;
+
+  const code = cleanInput($('codeInput').value).toUpperCase();
+  const errEl = $('codeError');
+  errEl.classList.remove('show');
+
+  if (!code) {
+    errEl.textContent = 'الرجاء إدخال الكود';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const btn = $('codeSubmit');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+
+  try {
+    const codesSnap = await getDoc(doc(db, 'payment_codes', 'all'));
+    if (!codesSnap.exists()) throw new Error('لم يتم العثور على الأكواد');
+
+    const allCodes = codesSnap.data().items || [];
+    const foundCode = allCodes.find(c =>
+      (c.code || '').toUpperCase() === code &&
+      c.courseId === pendingCourse.id
+    );
+
+    if (!foundCode) {
+      throw new Error('الكود غير صحيح أو لا يخص هذا الكورس');
+    }
+
+    if (foundCode.userId && foundCode.userId !== userId) {
+      throw new Error('هذا الكود مخصص لمستخدم آخر');
+    }
+
+    if (foundCode.used) {
+      throw new Error('هذا الكود مستخدم بالفعل');
+    }
+
+    if (foundCode.disabled) {
+      throw new Error('هذا الكود معطّل');
+    }
+
+    const updatedCodes = allCodes.map(c =>
+      c.id === foundCode.id
+        ? { ...c, used: true, usedAt: new Date().toISOString(), userId, userName }
+        : c
+    );
+
+    await setDoc(doc(db, 'payment_codes', 'all'), {
+      items: updatedCodes,
+      updatedAt: serverTimestamp()
+    });
+
+    await doEnroll(pendingCourse);
+
+    showToast('✅ تم فتح الكورس بنجاح', 'success');
+    const openedCourse = pendingCourse;
+    closeCodeModal();
+
+    setTimeout(() => {
+      if (openedCourse) {
+        showCourseDetail({ ...openedCourse });
+      }
+    }, 300);
+
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = e.message || 'حدث خطأ';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+$('contactSupport').addEventListener('click', goToSupport);
+
+function goToSupport() {
+  window.location.href = 'daam.html';
+}
+
+// ============================================================
+// 🔍 Search
+// ============================================================
+$('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value;
+  $('searchClear').classList.toggle('show', !!cleanInput(searchQuery));
+  applyFilters();
+});
+
+$('searchClear').addEventListener('click', () => {
+  $('searchInput').value = '';
+  searchQuery = '';
+  $('searchClear').classList.remove('show');
+  applyFilters();
+});
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  });
+});
+
+// ============================================================
+// 📡 Real-time Listeners
+// ============================================================
+function startUserGradeListener() {
+  if (!userId) return;
+  if (userRole === 'teacher') {
+    myGrade = '';
+    return;
+  }
+
+  const collectionName = userRole === 'teacher' ? 'teachers' : 'users';
+
+  onSnapshot(doc(db, collectionName, 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === userId);
+    if (user) {
+      myGrade = user.grade || '';
+      applyFilters();
+    }
+  }, (err) => console.log('user grade error:', err.message));
+}
+
+function startCoursesListener() {
+  onSnapshot(doc(db, 'courses', 'all'), (snap) => {
+    if (snap.exists()) {
+      allCourses = snap.data().items || [];
+    } else {
+      allCourses = [];
+    }
+    applyFilters();
+  }, (err) => console.log('courses error:', err.message));
+}
+
+function startEnrollmentsListener() {
+  if (!userId) return;
+  onSnapshot(doc(db, 'user_enrollments', userId), (snap) => {
+    myEnrollments = new Set();
+    if (snap.exists()) {
+      const courses = snap.data().courses || [];
+      courses.forEach(id => myEnrollments.add(id));
+    }
+    applyFilters();
+    if (currentCourse) {
+      const updated = allCourses.find(c => c.id === currentCourse.id);
+      if (updated) {
+        currentCourse = updated;
+        if ($('courseDetail').classList.contains('show')) {
+          showCourseDetail(updated);
+        }
+      }
+    }
+  }, (err) => console.log('enrollments error:', err.message));
+}
+
+function startCodesListener() {
+  if (!userId) return;
+  onSnapshot(doc(db, 'payment_codes', 'all'), (snap) => {
+    allMyCodes = [];
+    if (snap.exists()) {
+      const codes = snap.data().items || [];
+      allMyCodes = codes.filter(c => c.userId === userId);
+    }
+  }, (err) => console.log('codes error:', err.message));
+}
+
+// ============================================================
+// 🚪 Logout
+// ============================================================
+async function handleLogout() {
+  const c = await showConfirm({
+    title: 'تسجيل الخروج',
+    message: 'هل تريد تسجيل الخروج؟',
+    icon: 'fa-sign-out-alt',
+    iconType: 'warning',
+    okText: 'خروج'
+  });
+  if (!c) return;
+  sessionStorage.clear();
+  window.location.replace('login.html');
+}
+
+$('logoutBtn').addEventListener('click', handleLogout);
+$('drawerLogoutBtn').addEventListener('click', () => {
+  closeDrawer();
+  setTimeout(handleLogout, 300);
+});
+
+// ============================================================
+// 📱 Drawer
+// ============================================================
+const drawer = $('drawer');
+const drawerOverlay = $('drawerOverlay');
+const menuBtn = $('menuBtn');
+const drawerClose = $('drawerClose');
+
+menuBtn?.addEventListener('click', () => {
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+});
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+drawerClose?.addEventListener('click', closeDrawer);
+drawerOverlay?.addEventListener('click', closeDrawer);
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+requestAnimationFrame(() => document.body.classList.add('ready'));
+
+startUserGradeListener();
+startCoursesListener();
+startEnrollmentsListener();
+startCodesListener();
+
+// ============================================================
+// 🛡️ Protection
+// ============================================================
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
+    window.location.replace('login.html');
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

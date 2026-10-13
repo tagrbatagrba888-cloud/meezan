@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>إضافة واجب | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+  }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow-x: hidden;
+  }
+
+  body.ready { opacity: 1; }
+
+  /* ============ Topbar ============ */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(-3px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .topbar-title i.header-icon { color: var(--accent); font-size: 22px; }
+
+  .topbar-title-text h1 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="dark"] .topbar-title-text h1 { color: var(--accent); }
+
+  .topbar-title-text small {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  /* ============ Container ============ */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 140px;
+  }
+
+  /* ============ Section ============ */
+  .section {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .section-icon { color: var(--bg-page); }
+
+  .section-badge {
+    margin-right: auto;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 700;
+  }
+
+  /* ============ Form ============ */
+  .form-group { margin-bottom: 16px; }
+  .form-group:last-child { margin-bottom: 0; }
+
+  .form-label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .form-label .required { color: var(--error); margin-right: 3px; }
+  .form-label .hint { font-size: 11.5px; color: var(--text-sub); font-weight: 500; margin-right: 8px; }
+
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    transition: all 0.25s ease;
+    outline: none;
+    font-weight: 500;
+  }
+
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
+  }
+
+  [data-theme="dark"] .form-input:focus,
+  [data-theme="dark"] .form-textarea:focus,
+  [data-theme="dark"] .form-select:focus {
+    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.15);
+  }
+
+  .form-textarea { resize: vertical; min-height: 90px; line-height: 1.7; }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* ============ Tabs ============ */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-input);
+    padding: 5px;
+    border-radius: 13px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 11px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text-sub);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  [data-theme="dark"] .tab-btn.active { color: var(--bg-page); }
+
+  .tab-btn i { font-size: 13px; }
+
+  /* ============ Info Box ============ */
+  .info-box {
+    background: linear-gradient(135deg, rgba(41, 128, 185, 0.08), rgba(52, 152, 219, 0.03));
+    border: 1.5px solid var(--info);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--info);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+
+  .info-box i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.08), rgba(243, 156, 18, 0.03));
+    border-color: var(--warning);
+    color: var(--warning);
+  }
+
+  .success-box {
+    background: linear-gradient(135deg, rgba(30, 122, 90, 0.08), rgba(46, 204, 113, 0.03));
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  /* ============ Password Section ============ */
+  .pw-preview {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.15), rgba(224, 200, 136, 0.05));
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+  }
+
+  .pw-preview-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #C9A961, #E0C888);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .pw-preview-info { flex: 1; min-width: 0; }
+
+  .pw-preview-label {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .pw-preview-value {
+    font-family: 'Cairo', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    direction: ltr;
+  }
+
+  .pw-preview-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .pw-preview-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* ============ Questions Builder ============ */
+  .questions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 14px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+
+  .questions-container::-webkit-scrollbar { width: 8px; }
+  .questions-container::-webkit-scrollbar-track { background: transparent; }
+  .questions-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .q-card {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+
+  .q-card:hover { border-color: var(--accent); }
+
+  .q-card.mcq { border-right: 5px solid var(--info); }
+  .q-card.essay { border-right: 5px solid var(--warning); }
+
+  .q-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+    flex-wrap: wrap;
+  }
+
+  .q-number {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--primary);
+    background: rgba(11, 61, 46, 0.08);
+    padding: 5px 12px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  [data-theme="dark"] .q-number { color: var(--accent); background: rgba(201, 169, 97, 0.12); }
+
+  .q-type {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 7px;
+    border: 1px solid;
+  }
+
+  .q-type.mcq { color: var(--info); border-color: var(--info); background: rgba(41, 128, 185, 0.06); }
+  .q-type.essay { color: var(--warning); border-color: var(--warning); background: rgba(230, 126, 34, 0.06); }
+
+  .q-remove {
+    margin-right: auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .q-remove:hover { background: var(--error); color: #fff; }
+
+  .q-field { margin-bottom: 12px; }
+  .q-field:last-child { margin-bottom: 0; }
+
+  .q-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .q-input {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    font-family: 'Cairo', sans-serif;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .q-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(11, 61, 46, 0.08);
+  }
+
+  .q-input.textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
+
+  .q-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* Options */
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 11px;
+    transition: all 0.2s;
+  }
+
+  .option-row.correct {
+    border-color: var(--success);
+    background: rgba(30, 122, 90, 0.06);
+  }
+
+  .option-check {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-row.correct .option-check {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+  }
+
+  .option-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    outline: none;
+  }
+
+  .option-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .option-remove:hover { color: var(--error); background: rgba(192, 57, 43, 0.1); }
+
+  .add-option {
+    padding: 9px 16px;
+    border-radius: 9px;
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    color: var(--text-sub);
+    font-family: 'Cairo', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .add-option:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+    background: var(--bg-card);
+  }
+
+  /* Add Question Buttons */
+  .add-q-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .add-q-btn {
+    padding: 14px;
+    border-radius: 13px;
+    border: 2px dashed var(--border);
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .add-q-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-card);
+    transform: translateY(-2px);
+  }
+
+  .add-q-btn i { font-size: 15px; }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border-radius: 11px;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .stat-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .stat-mini i { color: var(--accent); font-size: 13px; }
+  .stat-mini strong { color: var(--primary); font-weight: 900; }
+
+  [data-theme="dark"] .stat-mini strong { color: var(--accent); }
+
+  /* Empty */
+  .empty-questions {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 13.5px;
+    font-weight: 600;
+    background: var(--bg-input);
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+  }
+
+  .empty-questions i {
+    font-size: 48px;
+    color: var(--accent);
+    opacity: 0.5;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* ============ Action Bar ============ */
+  .action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 2px solid var(--border);
+    box-shadow: 0 -8px 30px var(--shadow);
+    padding: 14px 20px;
+    z-index: 50;
+  }
+
+  .action-bar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 14px 24px;
+    border-radius: 13px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .btn-cancel {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .btn-cancel:hover { background: var(--bg-page); transform: translateY(-2px); }
+
+  .btn-preview {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .btn-preview:hover { background: var(--bg-page); transform: translateY(-2px); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    box-shadow: 0 6px 18px var(--shadow);
+    flex: 1;
+  }
+
+  [data-theme="dark"] .btn-primary { color: var(--bg-page); }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px var(--shadow);
+  }
+
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+  /* ============ Error ============ */
+  .error-box {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--error);
+    border: 1.5px solid rgba(192, 57, 43, 0.3);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: none;
+    line-height: 1.6;
+  }
+
+  .error-box.show { display: block; }
+
+  /* ============ Modal ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 28px 24px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 94vh;
+    overflow-y: auto;
+    text-align: center;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 18px;
+    box-shadow: 0 10px 25px var(--shadow);
+  }
+
+  [data-theme="dark"] .modal-icon { color: var(--bg-page); }
+
+  .modal-icon.success { background: linear-gradient(135deg, #1E7A5A, #2ECC71); }
+  .modal-icon.warning { background: linear-gradient(135deg, #E67E22, #F39C12); }
+  .modal-icon.danger { background: linear-gradient(135deg, #C0392B, #E74C3C); }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 22px;
+    padding: 0 10px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-actions .btn { flex: 1; padding: 14px; }
+
+  /* ============ Toast ============ */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 999999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+  .toast.info { border-color: var(--info); }
+  .toast.info i { color: var(--info); }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 800px) {
+    .container { padding: 16px 12px 160px; }
+    .section { padding: 16px; border-radius: 16px; }
+    .section-title { font-size: 15px; }
+    .section-icon { width: 36px; height: 36px; font-size: 15px; }
+    .form-row-2 { grid-template-columns: 1fr; }
+    .q-row { grid-template-columns: 1fr; }
+    .add-q-btns { grid-template-columns: 1fr; }
+    .action-bar-inner { flex-wrap: wrap; }
+    .btn-cancel, .btn-preview { flex: 1; min-width: 90px; }
+    .btn-primary { width: 100%; flex-basis: 100%; }
+    .topbar-inner { padding: 12px 16px; }
+    .back-btn { width: 40px; height: 40px; font-size: 16px; }
+    .topbar-title-text h1 { font-size: 16px; }
+  }
+
+  @media (max-width: 500px) {
+    .modal-actions { flex-direction: column; }
+    .pw-preview { padding: 12px; gap: 10px; }
+    .pw-preview-value { font-size: 17px; letter-spacing: 3px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ Topbar ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <a href="index.html" class="back-btn" title="الرجوع">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+      <div class="topbar-title">
+        <i class="fas fa-file-circle-plus header-icon"></i>
+        <div class="topbar-title-text">
+          <h1>إضافة واجب جديد</h1>
+          <small>ADD HOMEWORK</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" title="الوضع">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ Container ============ -->
+<div class="container">
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- ============ Step 1: Basic Info ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon"><i class="fas fa-info-circle"></i></span>
+      <span>معلومات الواجب</span>
+      <span class="section-badge">أساسي</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        اسم الواجب <span class="required">*</span>
+      </label>
+      <input type="text" class="form-input" id="hwName" placeholder="مثال: واجب الرياضيات - الوحدة الأولى" maxlength="150">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        وصف الواجب
+        <span class="hint">اختياري</span>
+      </label>
+      <textarea class="form-textarea" id="hwDesc" placeholder="وصف مختصر للواجب..." maxlength="500"></textarea>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-group">
+        <label class="form-label">
+          الفرقة المستهدفة <span class="required">*</span>
+        </label>
+        <input type="text" class="form-input" id="hwGrade" placeholder="مثال: الصف الثالث الثانوي" maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          نسبة النجاح
+          <span class="hint">افتراضي 50%</span>
+        </label>
+        <input type="number" class="form-input" id="hwPassPercent" min="1" max="100" value="50">
+      </div>
+    </div>
+
+    <div class="info-box">
+      <i class="fas fa-lightbulb"></i>
+      <span>تأكد أن الفرقة مكتوبة بنفس الصيغة الموجودة في بيانات الطلاب (مثل: "الصف الأول الثانوي" أو "1 ثانوي").</span>
+    </div>
+  </div>
+
+  <!-- ============ Step 2: Password ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon" style="background: linear-gradient(135deg, #E67E22, #F39C12);"><i class="fas fa-key"></i></span>
+      <span>حماية الواجب بكلمة سر</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">طريقة كلمة السر</label>
+      <div class="tabs" id="passwordTabs">
+        <button type="button" class="tab-btn active" data-pw="none">
+          <i class="fas fa-unlock"></i>
+          <span>بدون</span>
+        </button>
+        <button type="button" class="tab-btn" data-pw="manual">
+          <i class="fas fa-keyboard"></i>
+          <span>يدوي</span>
+        </button>
+        <button type="button" class="tab-btn" data-pw="userCode">
+          <i class="fas fa-user-shield"></i>
+          <span>كود الطالب</span>
+        </button>
+        <button type="button" class="tab-btn" data-pw="random">
+          <i class="fas fa-dice"></i>
+          <span>عشوائي</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group" id="manualPasswordGroup" style="display: none;">
+      <label class="form-label">
+        كلمة السر اليدوية <span class="required">*</span>
+      </label>
+      <input type="text" class="form-input" id="manualPassword" placeholder="مثال: MATH2026" maxlength="30" style="direction:ltr;text-align:center;letter-spacing:3px;font-weight:800;text-transform:uppercase;">
+      <div class="info-box warning-box" style="margin-top:10px;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>كل الطلاب في الفرقة سيستخدمون <strong>نفس كلمة السر</strong>. اكتبها بأحرف كبيرة.</span>
+      </div>
+    </div>
+
+    <div class="form-group" id="randomPasswordGroup" style="display: none;">
+      <label class="form-label">كلمة السر العشوائية (معاينة)</label>
+      <div class="pw-preview">
+        <div class="pw-preview-icon"><i class="fas fa-dice"></i></div>
+        <div class="pw-preview-info">
+          <span class="pw-preview-label">سيتم توليد كلمة سر مختلفة لكل طالب</span>
+          <span class="pw-preview-value" id="randomPreview">— — — —</span>
+        </div>
+        <button type="button" class="pw-preview-btn" id="regenerateRandomBtn" title="توليد جديد">
+          <i class="fas fa-rotate"></i>
+        </button>
+      </div>
+      <div class="info-box" style="margin-top:10px;">
+        <i class="fas fa-info-circle"></i>
+        <span>هذه مجرد معاينة. عند الحفظ سيتم توليد كلمة سر فريدة لكل طالب في الفرقة تلقائياً.</span>
+      </div>
+    </div>
+
+    <div class="form-group" id="userCodeInfo" style="display: none;">
+      <div class="info-box success-box">
+        <i class="fas fa-check-circle"></i>
+        <span>سيتم استخدام <strong>كود الطالب الخاص به</strong> ككلمة سر. كل طالب له كود مختلف موجود في حسابه.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Step 3: Correction ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon" style="background: linear-gradient(135deg, #1E7A5A, #2ECC71);"><i class="fas fa-clipboard-check"></i></span>
+      <span>طريقة التصحيح</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نوع التصحيح</label>
+      <div class="tabs" id="correctionTabs">
+        <button type="button" class="tab-btn active" data-corr="auto">
+          <i class="fas fa-bolt"></i>
+          <span>تلقائي</span>
+        </button>
+        <button type="button" class="tab-btn" data-corr="manual">
+          <i class="fas fa-clipboard-check"></i>
+          <span>يدوي</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="info-box" id="correctionInfo">
+      <i class="fas fa-info-circle"></i>
+      <span id="correctionInfoText">سيتم تصحيح الأسئلة الاختيارية تلقائياً. الأسئلة المقالية سيتم تصحيحها يدوياً.</span>
+    </div>
+  </div>
+
+  <!-- ============ Step 4: Questions ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon"><i class="fas fa-list-check"></i></span>
+      <span>الأسئلة</span>
+      <span class="section-badge" id="questionsBadge">0 سؤال</span>
+    </div>
+
+    <div class="stats-bar" id="statsBar" style="display: none;">
+      <div class="stat-mini"><i class="fas fa-list-ol"></i> إجمالي: <strong id="statTotal">0</strong></div>
+      <div class="stat-mini"><i class="fas fa-circle-check"></i> MCQ: <strong id="statMcq">0</strong></div>
+      <div class="stat-mini"><i class="fas fa-pen-fancy"></i> مقالي: <strong id="statEssay">0</strong></div>
+      <div class="stat-mini"><i class="fas fa-star"></i> الدرجات: <strong id="statScore">0</strong></div>
+    </div>
+
+    <div class="questions-container" id="questionsContainer">
+      <div class="empty-questions">
+        <i class="fas fa-inbox"></i>
+        <div>لا توجد أسئلة بعد — أضف سؤالاً من الأسفل</div>
+      </div>
+    </div>
+
+    <div class="add-q-btns">
+      <button type="button" class="add-q-btn" id="addMcqBtn">
+        <i class="fas fa-plus-circle" style="color: var(--info);"></i>
+        <span>سؤال اختيار متعدد</span>
+      </button>
+      <button type="button" class="add-q-btn" id="addEssayBtn">
+        <i class="fas fa-pen-fancy" style="color: var(--warning);"></i>
+        <span>سؤال مقالي</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ Action Bar ============ -->
+<div class="action-bar">
+  <div class="action-bar-inner">
+    <button class="btn btn-cancel" id="cancelBtn">
+      <i class="fas fa-times"></i>
+      <span>إلغاء</span>
+    </button>
+    <button class="btn btn-primary" id="saveBtn">
+      <i class="fas fa-check"></i>
+      <span>حفظ ونشر الواجب</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ Modal: Confirm ============ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirmIcon"><i class="fas fa-question-circle"></i></div>
+    <h2 class="modal-title" id="confirmTitle">تأكيد</h2>
+    <p class="modal-message" id="confirmMessage">—</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="confirmCancel">
+        <i class="fas fa-times"></i>
+        <span>إلغاء</span>
+      </button>
+      <button class="btn btn-primary" id="confirmOk">
+        <i class="fas fa-check"></i>
+        <span>تأكيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Success ============ -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box">
+    <div class="modal-icon success"><i class="fas fa-check"></i></div>
+    <h2 class="modal-title">تم إضافة الواجب بنجاح! 🎉</h2>
+    <p class="modal-message" id="successMessage">—</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="successHomeBtn">
+        <i class="fas fa-home"></i>
+        <span>الرئيسية</span>
+      </button>
+      <button class="btn btn-primary" id="successNewBtn">
+        <i class="fas fa-plus"></i>
+        <span>واجب جديد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+const userId = sessionStorage.getItem('meezan_user_id') || '';
+const userName = sessionStorage.getItem('meezan_username') || 'مستخدم';
+const userRole = sessionStorage.getItem('meezan_role') || 'student';
+
+// فقط المعلم
+if (userRole !== 'teacher') {
+  alert('هذه الصفحة للمعلمين فقط');
+  window.location.replace('index.html');
+}
+
+// منع الرجوع
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 Helpers
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+function generateId() {
+  return 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+function generateRandomPassword(length = 8) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // بدون حروف متشابهة
+  let pw = '';
+  for (let i = 0; i < length; i++) {
+    pw += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pw;
+}
+
+// ============================================================
+// 🌙 الوضع
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+
+$('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('meezan_theme', next);
+  updateThemeIcon(next);
+});
+
+function updateThemeIcon(t) {
+  $('themeIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// ============================================================
+// 🔔 Confirm Modal
+// ============================================================
+let confirmResolve = null;
+function showConfirm(options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = 'تأكيد',
+      message = 'هل أنت متأكد؟',
+      icon = 'fa-question-circle',
+      iconType = 'default',
+      okText = 'تأكيد'
+    } = options;
+
+    const iconEl = $('confirmIcon');
+    iconEl.className = 'modal-icon';
+    if (iconType === 'danger') iconEl.classList.add('danger');
+    else if (iconType === 'warning') iconEl.classList.add('warning');
+    else if (iconType === 'success') iconEl.classList.add('success');
+
+    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').innerHTML = message;
+    $('confirmOk').innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
+
+    confirmResolve = resolve;
+    $('confirmModal').classList.add('show');
+  });
+}
+
+function closeConfirm(result) {
+  $('confirmModal').classList.remove('show');
+  if (confirmResolve) {
+    confirmResolve(result);
+    confirmResolve = null;
+  }
+}
+
+$('confirmOk').addEventListener('click', () => closeConfirm(true));
+$('confirmCancel').addEventListener('click', () => closeConfirm(false));
+$('confirmModal').addEventListener('click', (e) => {
+  if (e.target === $('confirmModal')) closeConfirm(false);
+});
+
+// ============================================================
+// 📊 State
+// ============================================================
+let passwordType = 'none';
+let correctionType = 'auto';
+let questions = [];
+let teacherData = null;
+
+// ============================================================
+// 🎯 Password Tabs
+// ============================================================
+document.querySelectorAll('#passwordTabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#passwordTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    passwordType = btn.dataset.pw;
+    updatePasswordUI();
+  });
+});
+
+function updatePasswordUI() {
+  $('manualPasswordGroup').style.display = passwordType === 'manual' ? 'block' : 'none';
+  $('randomPasswordGroup').style.display = passwordType === 'random' ? 'block' : 'none';
+  $('userCodeInfo').style.display = passwordType === 'userCode' ? 'block' : 'none';
+
+  if (passwordType === 'random') {
+    $('randomPreview').textContent = generateRandomPassword();
+  }
+}
+
+$('regenerateRandomBtn').addEventListener('click', () => {
+  $('randomPreview').textContent = generateRandomPassword();
+});
+
+// ============================================================
+// 🎯 Correction Tabs
+// ============================================================
+document.querySelectorAll('#correctionTabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#correctionTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    correctionType = btn.dataset.corr;
+    updateCorrectionInfo();
+  });
+});
+
+function updateCorrectionInfo() {
+  if (correctionType === 'auto') {
+    $('correctionInfoText').textContent = 'سيتم تصحيح أسئلة الاختيار المتعدد تلقائياً. الأسئلة المقالية سيتم تصحيحها يدوياً.';
+    $('correctionInfo').className = 'info-box';
+  } else {
+    $('correctionInfoText').textContent = 'سيتم إرسال كل الأسئلة للتصحيح اليدوي من قبل المعلم.';
+    $('correctionInfo').className = 'info-box warning-box';
+  }
+}
+
+// ============================================================
+// ❓ Questions Builder
+// ============================================================
+$('addMcqBtn').addEventListener('click', () => {
+  questions.push({
+    id: generateId(),
+    type: 'mcq',
+    title: '',
+    score: 1,
+    options: [
+      { text: '', correct: false },
+      { text: '', correct: false }
+    ]
+  });
+  renderQuestions();
+});
+
+$('addEssayBtn').addEventListener('click', () => {
+  questions.push({
+    id: generateId(),
+    type: 'essay',
+    title: '',
+    score: 1,
+    correctEssayAnswer: ''
+  });
+  renderQuestions();
+});
+
+function renderQuestions() {
+  const container = $('questionsContainer');
+  container.innerHTML = '';
+
+  if (questions.length === 0) {
+    container.innerHTML = `
+      <div class="empty-questions">
+        <i class="fas fa-inbox"></i>
+        <div>لا توجد أسئلة بعد — أضف سؤالاً من الأسفل</div>
+      </div>
+    `;
+    $('statsBar').style.display = 'none';
+    $('questionsBadge').textContent = '0 سؤال';
+    return;
+  }
+
+  questions.forEach((q, idx) => {
+    container.appendChild(createQuestionCard(q, idx));
+  });
+
+  // Stats
+  const mcqCount = questions.filter(q => q.type === 'mcq').length;
+  const essayCount = questions.filter(q => q.type === 'essay').length;
+  const totalScore = questions.reduce((s, q) => s + (q.score || 1), 0);
+
+  $('statsBar').style.display = 'flex';
+  $('statTotal').textContent = questions.length;
+  $('statMcq').textContent = mcqCount;
+  $('statEssay').textContent = essayCount;
+  $('statScore').textContent = totalScore;
+  $('questionsBadge').textContent = `${questions.length} سؤال`;
+}
+
+function createQuestionCard(q, idx) {
+  const card = document.createElement('div');
+  card.className = `q-card ${q.type}`;
+
+  const typeLabel = q.type === 'mcq' ? 'اختيار متعدد' : 'مقالي';
+
+  let bodyHTML = '';
+
+  if (q.type === 'mcq') {
+    bodyHTML = `
+      <div class="q-field">
+        <div class="q-label">
+          <span>الخيارات</span>
+          <span style="font-size:11px;color:var(--text-sub);">اضغط الدائرة لتحديد الإجابة الصحيحة (يمكن اختيار أكثر من واحدة)</span>
+        </div>
+        <div class="options-list">
+          ${q.options.map((opt, i) => `
+            <div class="option-row ${opt.correct ? 'correct' : ''}" data-opt-idx="${i}">
+              <div class="option-check" data-toggle-correct>
+                <i class="fas fa-check"></i>
+              </div>
+              <input type="text" class="option-input" data-opt-input value="${escapeAttr(opt.text)}" placeholder="الخيار ${i + 1}">
+              <button type="button" class="option-remove" data-remove-opt title="حذف">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" class="add-option" data-add-opt>
+          <i class="fas fa-plus"></i> إضافة خيار
+        </button>
+      </div>
+    `;
+  } else {
+    bodyHTML = `
+      <div class="q-field">
+        <div class="q-label">الإجابة النموذجية (اختياري)</div>
+        <textarea class="q-input textarea" data-essay-answer placeholder="اكتب الإجابة النموذجية...">${escapeHtml(q.correctEssayAnswer || '')}</textarea>
+      </div>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="q-header">
+      <span class="q-number">
+        <i class="fas fa-hashtag"></i> سؤال ${idx + 1}
+      </span>
+      <span class="q-type ${q.type}">${typeLabel}</span>
+      <button type="button" class="q-remove" data-remove-q title="حذف السؤال">
+        <i class="fas fa-trash-can"></i>
+      </button>
+    </div>
+
+    <div class="q-field">
+      <div class="q-label">نص السؤال *</div>
+      <textarea class="q-input textarea" data-q-title placeholder="اكتب السؤال هنا...">${escapeHtml(q.title || '')}</textarea>
+    </div>
+
+    <div class="q-row">
+      <div class="q-field">
+        <div class="q-label">الدرجة</div>
+        <input type="number" class="q-input" data-q-score min="1" max="100" value="${q.score || 1}">
+      </div>
+      <div class="q-field">
+        <div class="q-label">النوع</div>
+        <select class="q-input" data-q-type>
+          <option value="mcq" ${q.type === 'mcq' ? 'selected' : ''}>اختيار متعدد</option>
+          <option value="essay" ${q.type === 'essay' ? 'selected' : ''}>مقالي</option>
+        </select>
+      </div>
+    </div>
+
+    ${bodyHTML}
+  `;
+
+  // Event: Remove question
+  card.querySelector('[data-remove-q]').addEventListener('click', async () => {
+    const ok = await showConfirm({
+      title: 'حذف السؤال',
+      message: `هل تريد حذف السؤال رقم ${idx + 1}؟`,
+      icon: 'fa-trash-can',
+      iconType: 'danger',
+      okText: 'حذف'
+    });
+    if (!ok) return;
+    questions = questions.filter(x => x.id !== q.id);
+    renderQuestions();
+  });
+
+  // Event: Title
+  card.querySelector('[data-q-title]').addEventListener('input', (e) => {
+    const qq = questions.find(x => x.id === q.id);
+    if (qq) qq.title = e.target.value;
+  });
+
+  // Event: Score
+  card.querySelector('[data-q-score]').addEventListener('input', (e) => {
+    const qq = questions.find(x => x.id === q.id);
+    if (qq) qq.score = Math.max(1, parseInt(e.target.value) || 1);
+    // تحديث إجمالي الدرجات
+    const totalScore = questions.reduce((s, x) => s + (x.score || 1), 0);
+    $('statScore').textContent = totalScore;
+  });
+
+  // Event: Type
+  card.querySelector('[data-q-type]').addEventListener('change', (e) => {
+    const qq = questions.find(x => x.id === q.id);
+    if (qq) {
+      qq.type = e.target.value;
+      if (qq.type === 'mcq' && (!qq.options || qq.options.length === 0)) {
+        qq.options = [
+          { text: '', correct: false },
+          { text: '', correct: false }
+        ];
+      }
+      renderQuestions();
+    }
+  });
+
+  // MCQ events
+  if (q.type === 'mcq') {
+    card.querySelectorAll('[data-opt-idx]').forEach(row => {
+      const optIdx = parseInt(row.dataset.optIdx);
+
+      row.querySelector('[data-toggle-correct]').addEventListener('click', () => {
+        const qq = questions.find(x => x.id === q.id);
+        if (qq) {
+          qq.options[optIdx].correct = !qq.options[optIdx].correct;
+          renderQuestions();
+        }
+      });
+
+      row.querySelector('[data-opt-input]').addEventListener('input', (e) => {
+        const qq = questions.find(x => x.id === q.id);
+        if (qq) qq.options[optIdx].text = e.target.value;
+      });
+
+      row.querySelector('[data-remove-opt]').addEventListener('click', () => {
+        const qq = questions.find(x => x.id === q.id);
+        if (qq && qq.options.length > 2) {
+          qq.options.splice(optIdx, 1);
+          renderQuestions();
+        } else {
+          showToast('يجب أن يكون هناك خياران على الأقل', 'warning');
+        }
+      });
+    });
+
+    card.querySelector('[data-add-opt]').addEventListener('click', () => {
+      const qq = questions.find(x => x.id === q.id);
+      if (qq) {
+        qq.options.push({ text: '', correct: false });
+        renderQuestions();
+      }
+    });
+  } else {
+    card.querySelector('[data-essay-answer]').addEventListener('input', (e) => {
+      const qq = questions.find(x => x.id === q.id);
+      if (qq) qq.correctEssayAnswer = e.target.value;
+    });
+  }
+
+  return card;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(s) {
+  return escapeHtml(s);
+}
+
+// ============================================================
+// 📡 تحميل بيانات المعلم (فرقته)
+// ============================================================
+function loadTeacherData() {
+  if (!userId) return;
+
+  onSnapshot(doc(db, 'teachers', 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const teacher = items.find(t => t.id === userId);
+    if (teacher) {
+      teacherData = teacher;
+
+      // إملأ الفرقة تلقائياً لو فاضية
+      if (!$('hwGrade').value) {
+        if (teacher.grades && Array.isArray(teacher.grades) && teacher.grades.length > 0) {
+          $('hwGrade').value = teacher.grades[0];
+        } else if (teacher.grade) {
+          $('hwGrade').value = teacher.grade;
+        }
+      }
+    }
+  }, (err) => console.log('teacher data error:', err.message));
+}
+
+// ============================================================
+// 🔢 الحصول على ID جديد
+// ============================================================
+async function getNextHomeworkId() {
+  const ref = doc(db, 'counters', 'main');
+  try {
+    const snap = await getDoc(ref);
+    let counters = { homeworks: 0 };
+    if (snap.exists()) counters = { ...counters, ...snap.data() };
+    counters.homeworks = (counters.homeworks || 0) + 1;
+    await setDoc(ref, counters, { merge: true });
+    return counters.homeworks;
+  } catch (e) {
+    console.error('counter error:', e);
+    return Date.now();
+  }
+}
+
+// ============================================================
+// 💾 Save Homework
+// ============================================================
+$('saveBtn').addEventListener('click', async () => {
+  $('errorBox').classList.remove('show');
+
+  // ===== Validation =====
+  const name = cleanInput($('hwName').value);
+  const description = cleanInput($('hwDesc').value);
+  const grade = cleanInput($('hwGrade').value);
+  const passPercent = parseInt($('hwPassPercent').value) || 50;
+
+  if (!name) return showError('الرجاء إدخال اسم الواجب');
+  if (name.length < 3) return showError('اسم الواجب قصير جداً');
+  if (!grade) return showError('الرجاء إدخال الفرقة المستهدفة');
+  if (passPercent < 1 || passPercent > 100) return showError('نسبة النجاح يجب أن تكون بين 1 و 100');
+
+  // كلمة السر
+  let manualPassword = '';
+  if (passwordType === 'manual') {
+    manualPassword = cleanInput($('manualPassword').value).toUpperCase();
+    if (!manualPassword) return showError('الرجاء إدخال كلمة السر اليدوية');
+    if (manualPassword.length < 3) return showError('كلمة السر قصيرة جداً (3 أحرف على الأقل)');
+  }
+
+  // الأسئلة
+  if (questions.length === 0) {
+    return showError('أضف سؤالاً واحداً على الأقل');
+  }
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    if (!cleanInput(q.title)) {
+      return showError(`السؤال رقم ${i + 1}: نص السؤال مطلوب`);
+    }
+
+    if (q.type === 'mcq') {
+      if (!q.options || q.options.length < 2) {
+        return showError(`السؤال رقم ${i + 1}: يجب أن يكون هناك خياران على الأقل`);
+      }
+      if (!q.options.some(o => o.correct)) {
+        return showError(`السؤال رقم ${i + 1}: حدد الإجابة الصحيحة على الأقل`);
+      }
+      if (q.options.some(o => !cleanInput(o.text))) {
+        return showError(`السؤال رقم ${i + 1}: كل الخيارات يجب أن تكون مكتوبة`);
+      }
+    }
+  }
+
+  // ===== Confirm =====
+  const ok = await showConfirm({
+    title: 'نشر الواجب',
+    message: `هل أنت متأكد من نشر الواجب "<strong>${name}</strong>"؟<br><br>سيظهر للطلاب في فرقة "<strong>${grade}</strong>".`,
+    icon: 'fa-paper-plane',
+    iconType: 'success',
+    okText: 'نشر'
+  });
+  if (!ok) return;
+
+  // ===== Save =====
+  const btn = $('saveBtn');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+  try {
+    // نظّف الأسئلة
+    const cleanedQuestions = questions.map(q => ({
+      id: q.id,
+      type: q.type,
+      title: cleanInput(q.title),
+      score: q.score || 1,
+      ...(q.type === 'mcq'
+        ? { options: q.options.map(o => ({ text: cleanInput(o.text), correct: !!o.correct })) }
+        : { correctEssayAnswer: cleanInput(q.correctEssayAnswer || '') }
+      )
+    }));
+
+    const id = await getNextHomeworkId();
+    const now = new Date().toISOString();
+
+    const homeworkData = {
+      id,
+      name,
+      description,
+      grade,
+      passPercent,
+      passwordType,     // 'none' | 'manual' | 'userCode' | 'random'
+      manualPassword,   // لو manual
+      correctionType,   // 'auto' | 'manual'
+      questions: cleanedQuestions,
+      status: 'published',
+      teacherId: userId,
+      teacherName: teacherData?.fullName || userName,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    // احفظ في homeworks/all
+    const ref = doc(db, 'homeworks', 'all');
+    const snap = await getDoc(ref);
+    let items = snap.exists() ? (snap.data().items || []) : [];
+
+    items.push(homeworkData);
+    await setDoc(ref, { items, updatedAt: serverTimestamp() });
+
+    console.log('✅ Homework saved:', id);
+
+    // ✅ لو random → ولّد كلمات سر لكل طالب في الفرقة
+    if (passwordType === 'random') {
+      try {
+        console.log('🎲 توليد كلمات سر عشوائية لطلاب الفرقة:', grade);
+
+        const usersRef = doc(db, 'users', 'all');
+        const usersSnap = await getDoc(usersRef);
+
+        if (usersSnap.exists()) {
+          const usersList = usersSnap.data().items || [];
+          const studentsInGrade = usersList.filter(u => u.grade === grade);
+
+          console.log(`👥 عدد الطلاب في الفرقة: ${studentsInGrade.length}`);
+
+          // حافظ على قائمة التسليمات
+          const subsRef = doc(db, 'homework_subs', 'all');
+          const subsSnap = await getDoc(subsRef);
+          let subsItems = subsSnap.exists() ? (subsSnap.data().items || []) : [];
+
+          for (const student of studentsInGrade) {
+            const password = generateRandomPassword();
+
+            // أضف أو حدّث في homework_subs/all
+            const idx = subsItems.findIndex(
+              s => s.homeworkId === id && s.userId === student.id
+            );
+
+            const newSubEntry = {
+              homeworkId: id,
+              homeworkName: name,
+              userId: student.id,
+              userName: student.fullName || student.username || '',
+              userGrade: grade,
+              password,             // كلمة السر المخصصة
+              answers: {},
+              submitted: false,
+              corrected: false,
+              score: 0,
+              totalScore: cleanedQuestions.reduce((s, q) => s + (q.score || 1), 0),
+              correctionType,
+              createdAt: now,
+              updatedAt: now
+            };
+
+            if (idx !== -1) {
+              // احتفظ بالإجابات لو موجودة
+              subsItems[idx] = {
+                ...subsItems[idx],
+                password,
+                updatedAt: now
+              };
+            } else {
+              subsItems.push(newSubEntry);
+            }
+          }
+
+          await setDoc(subsRef, { items: subsItems, updatedAt: serverTimestamp() });
+          console.log(`✅ تم توليد ${studentsInGrade.length} كلمة سر`);
+        }
+      } catch (e) {
+        console.error('random passwords error:', e);
+        // ما نوقفش الحفظ لو حصل خطأ هنا
+      }
+    }
+
+    // ===== Success =====
+    $('successMessage').innerHTML = `
+      تم إضافة الواجب بنجاح في فرقة "<strong>${grade}</strong>".<br><br>
+      عدد الأسئلة: <strong>${cleanedQuestions.length}</strong><br>
+      إجمالي الدرجات: <strong>${cleanedQuestions.reduce((s, q) => s + (q.score || 1), 0)}</strong><br>
+      نوع كلمة السر: <strong>${getPasswordLabel(passwordType)}</strong><br>
+      نوع التصحيح: <strong>${correctionType === 'auto' ? 'تلقائي' : 'يدوي'}</strong>
+    `;
+    $('successModal').classList.add('show');
+
+  } catch (e) {
+    console.error(e);
+    showError('حدث خطأ: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+function getPasswordLabel(type) {
+  const map = {
+    none: 'بدون كلمة سر',
+    manual: 'يدوي',
+    userCode: 'كود الطالب',
+    random: 'عشوائي لكل طالب'
+  };
+  return map[type] || type;
+}
+
+function showError(msg) {
+  const errEl = $('errorBox');
+  errEl.textContent = msg;
+  errEl.classList.add('show');
+  errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ============================================================
+// ✅ Success Modal Actions
+// ============================================================
+$('successHomeBtn').addEventListener('click', () => {
+  window.location.href = 'index.html';
+});
+
+$('successNewBtn').addEventListener('click', () => {
+  $('successModal').classList.remove('show');
+  resetForm();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+function resetForm() {
+  $('hwName').value = '';
+  $('hwDesc').value = '';
+  $('hwGrade').value = teacherData?.grades?.[0] || teacherData?.grade || '';
+  $('hwPassPercent').value = 50;
+  $('manualPassword').value = '';
+  $('randomPreview').textContent = generateRandomPassword();
+
+  passwordType = 'none';
+  correctionType = 'auto';
+  questions = [];
+
+  document.querySelectorAll('#passwordTabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.pw === 'none');
+  });
+  document.querySelectorAll('#correctionTabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.corr === 'auto');
+  });
+
+  updatePasswordUI();
+  updateCorrectionInfo();
+  renderQuestions();
+  $('errorBox').classList.remove('show');
+}
+
+// ============================================================
+// ❌ Cancel
+// ============================================================
+$('cancelBtn').addEventListener('click', async () => {
+  const hasContent = $('hwName').value.trim() || questions.length > 0;
+
+  if (hasContent) {
+    const ok = await showConfirm({
+      title: 'إلغاء الإضافة',
+      message: 'سيتم فقدان كل البيانات التي أدخلتها. هل أنت متأكد؟',
+      icon: 'fa-exclamation-triangle',
+      iconType: 'warning',
+      okText: 'نعم، إلغاء'
+    });
+    if (!ok) return;
+  }
+
+  window.location.href = 'index.html';
+});
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+requestAnimationFrame(() => document.body.classList.add('ready'));
+
+loadTeacherData();
+updatePasswordUI();
+updateCorrectionInfo();
+renderQuestions();
+
+// زر Escape يغلق المودالات
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+  }
+});
+
+// حماية إضافية
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
+    window.location.replace('login.html');
+  }
+});
+</script>
+
+</body>
+</html>
