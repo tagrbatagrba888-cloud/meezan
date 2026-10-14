@@ -1531,7 +1531,6 @@
     .notif-badge { min-width: 18px; height: 18px; font-size: 10px; }
     .menu-btn { display: flex; }
 
-    /* إخفاء أيقونات الشريط القديمة في الموبايل (يبقى ☰ فقط) */
     .topbar-actions .icon-btn,
     .topbar-actions .avatar-btn {
       display: none;
@@ -1618,7 +1617,7 @@
     .action-btn-icon { width: 44px; height: 44px; font-size: 18px; }
     .action-btn-label { font-size: 12.5px; }
   }
-</style></style>
+</style>
 </head>
 <body>
 
@@ -2019,10 +2018,10 @@ function showConfirm(options = {}) {
       title = 'تأكيد',
       message = 'هل أنت متأكد؟',
       icon = 'fa-question-circle',
-      iconType = 'default',   // default | danger | success | warning
+      iconType = 'default',
       okText = 'تأكيد',
       cancelText = 'إلغاء',
-      okClass = ''            // danger | ''
+      okClass = ''
     } = options;
 
     const modal = $('confirmModal');
@@ -2032,7 +2031,6 @@ function showConfirm(options = {}) {
     const okBtn = $('confirmOk');
     const cancelBtn = $('confirmCancel');
 
-    // الأيقونة
     iconEl.className = 'confirm-icon';
     if (iconType === 'danger') iconEl.classList.add('danger');
     if (iconType === 'success') iconEl.classList.add('success');
@@ -2042,7 +2040,6 @@ function showConfirm(options = {}) {
     titleEl.textContent = title;
     msgEl.innerHTML = message;
 
-    // الأزرار
     okBtn.className = 'btn btn-confirm';
     if (okClass === 'danger') okBtn.classList.add('danger');
     okBtn.innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
@@ -2134,7 +2131,6 @@ $('promptInput').addEventListener('keydown', (e) => {
   }
 });
 
-// Escape يغلق النوافذ
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('confirmModal').classList.contains('show')) closeConfirm(false);
@@ -2207,8 +2203,8 @@ let currentUserId = null;
 let blockTriggered = false;
 
 // قائمة الأزرار
-const MAX_GRID_BUTTONS = 6;    // حد الشبكة الرئيسية
-const MAX_DRAWER_BUTTONS = 6;  // حد قائمة الطعام
+const MAX_GRID_BUTTONS = 6;
+const MAX_DRAWER_BUTTONS = 6;
 let allCurrentButtons = [];
 let gridExpanded = false;
 let drawerExpanded = false;
@@ -2307,6 +2303,7 @@ async function loadUserData() {
     if (!user) return;
 
     currentUser = user;
+    currentUserId = user.id;
     renderUserInfo(user);
     loadUserButtons(role);
 
@@ -2325,7 +2322,6 @@ function renderUserInfo(user) {
   const isTeacher = currentRole === 'teacher';
   $('roleText').textContent = isTeacher ? 'حساب معلم' : 'حساب طالب';
 
-  // أيقونة الواجهة
   $('welcomeIcon').innerHTML = isTeacher
     ? '<i class="fas fa-chalkboard-user"></i>'
     : '<i class="fas fa-user-graduate"></i>';
@@ -2335,28 +2331,23 @@ function renderUserInfo(user) {
     roleBadgeIcon.className = isTeacher ? 'fas fa-chalkboard-user' : 'fas fa-user-graduate';
   }
 
-  // الفرقة / المادة
   if (user.grade) {
     $('gradeText').textContent = user.grade;
   } else {
     $('gradeText').textContent = 'غير محدد';
   }
 
-  // عنوان القسم
   $('sectionTitle').textContent = isTeacher
     ? 'الخدمات والأدوات (معلم)'
     : 'الأقسام والخدمات (طالب)';
 
-  // ===== صورة المستخدم =====
   updateUserAvatar(user);
 
-  // ===== معلومات قائمة الطعام =====
   $('drawerUserName').textContent = fullName;
   $('drawerUserRole').innerHTML = isTeacher
     ? '<i class="fas fa-chalkboard-user"></i><span>حساب معلم</span>'
     : '<i class="fas fa-user-graduate"></i><span>حساب طالب</span>';
 
-  // صورة في قائمة الطعام
   const drawerAvatar = $('drawerUserAvatar');
   if (user.avatarUrl) {
     drawerAvatar.innerHTML = `<img src="${user.avatarUrl}" alt="${fullName}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
@@ -2371,14 +2362,11 @@ function renderUserInfo(user) {
 // ============================================================
 function updateUserAvatar(user) {
   const avatarBtn = $('userAvatarBtn');
-  const avatarIcon = $('userAvatarIcon');
 
   if (user.avatarUrl) {
-    // لو موجودة صورة → اعرضها
     avatarBtn.classList.add('has-photo');
     avatarBtn.innerHTML = `<img src="${user.avatarUrl}" alt="${user.fullName || ''}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'; this.parentNode.classList.remove('has-photo');">`;
   } else {
-    // لو مافيش صورة → أول حرف من الاسم
     avatarBtn.classList.remove('has-photo');
     const fullName = user.fullName || user.username || 'مستخدم';
     const firstChar = (fullName || '؟').charAt(0).toUpperCase();
@@ -2403,7 +2391,6 @@ function loadUserButtons(role) {
       .filter(b => b && b.visible !== false && b.label)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    // إعادة تعيين الحالة عند تغيير الأزرار
     gridExpanded = false;
     drawerExpanded = false;
 
@@ -2419,7 +2406,7 @@ function loadUserButtons(role) {
 }
 
 // ============================================================
-// 🎨 عرض الأزرار في الشبكة الرئيسية (6 + عرض المزيد)
+// 🎨 عرض الأزرار في الشبكة الرئيسية
 // ============================================================
 function renderGridButtons() {
   const grid = $('buttonsGrid');
@@ -2429,7 +2416,6 @@ function renderGridButtons() {
   loading.style.display = 'none';
 
   const total = allCurrentButtons.length;
-
   $('sectionCount').textContent = total;
 
   if (total === 0) {
@@ -2442,7 +2428,6 @@ function renderGridButtons() {
   grid.style.display = 'grid';
   grid.innerHTML = '';
 
-  // تحديد الأزرار المعروضة
   const limit = gridExpanded ? total : MAX_GRID_BUTTONS;
   const toShow = allCurrentButtons.slice(0, limit);
   const remaining = total - MAX_GRID_BUTTONS;
@@ -2451,7 +2436,6 @@ function renderGridButtons() {
     grid.appendChild(createButtonElement(btn));
   });
 
-  // زر "عرض المزيد"
   if (remaining > 0) {
     const showMoreBtn = document.createElement('button');
     showMoreBtn.type = 'button';
@@ -2473,16 +2457,14 @@ function renderGridButtons() {
 }
 
 // ============================================================
-// 📱 عرض الأزرار في قائمة الطعام (6 + عرض المزيد)
+// 📱 عرض الأزرار في قائمة الطعام
 // ============================================================
 function renderDrawerButtons() {
   const drawerButtons = $('drawerButtons');
   if (!drawerButtons) return;
 
   drawerButtons.innerHTML = '';
-
   const total = allCurrentButtons.length;
-
   $('drawerCount').textContent = total;
 
   if (total === 0) {
@@ -2495,7 +2477,6 @@ function renderDrawerButtons() {
     return;
   }
 
-  // تحديد الأزرار المعروضة
   const limit = drawerExpanded ? total : MAX_DRAWER_BUTTONS;
   const toShow = allCurrentButtons.slice(0, limit);
   const remaining = total - MAX_DRAWER_BUTTONS;
@@ -2513,7 +2494,6 @@ function renderDrawerButtons() {
       el.addEventListener('click', (e) => e.preventDefault());
     }
 
-    // الأيقونة
     const iconWrap = document.createElement('span');
     iconWrap.className = 'drawer-btn-icon';
     const icon = btn.icon || { type: 'fontawesome', value: 'fa-circle' };
@@ -2532,7 +2512,6 @@ function renderDrawerButtons() {
     drawerButtons.appendChild(el);
   });
 
-  // زر "عرض المزيد"
   if (remaining > 0) {
     const showMoreBtn = document.createElement('button');
     showMoreBtn.type = 'button';
@@ -2738,7 +2717,6 @@ function startUserMonitoring() {
       }
     }
 
-    // حدّث البيانات لو تغيّرت (خاصة الصورة)
     currentUser = user;
     renderUserInfo(user);
 
@@ -2746,62 +2724,75 @@ function startUserMonitoring() {
 }
 
 // ============================================================
-// 🔔 الإشعارات (مرة واحدة فقط)
+// 🔔 الإشعارات — موجّهة لكل مستخدم بشكل خاص
+// (تعتمد على user_notifications/{userId} في Firestore)
 // ============================================================
-let lastShownNotifId = null;
+let lastShownNotifIds = new Set();   // الإشعارات اللي اتعرضت في الجلسة
 
-async function checkNotifications() {
-  try {
-    const notifSnap = await getDoc(doc(db, 'settings', 'lastNotification'));
-    if (!notifSnap.exists()) return;
+function startNotificationsListener() {
+  if (!currentUserId) return;
 
-    const notif = notifSnap.data();
-    if (!notif || !notif.id || !notif.title) return;
+  const userNotifsRef = doc(db, 'user_notifications', currentUserId);
 
-    const readRef = doc(db, 'notifications', currentUserId || 'unknown');
-    const readSnap = await getDoc(readRef);
-    const readIds = readSnap.exists() ? (readSnap.data().readIds || []) : [];
-
-    // لو مقروء → ما تعرضه
-    if (readIds.includes(notif.id)) {
+  onSnapshot(userNotifsRef, async (snap) => {
+    // ===== لو المستخدم ماعندوش مستند إشعارات =====
+    if (!snap.exists()) {
       $('notifBadge').classList.remove('show');
       $('drawerNotifBadge').classList.remove('show');
       return;
     }
 
-    // عرض الشارة
-    $('notifBadge').classList.add('show');
-    $('notifBadge').textContent = '1';
-    $('drawerNotifBadge').classList.add('show');
-    $('drawerNotifBadge').textContent = '1';
+    const data = snap.data();
+    const notifIds = data.notifIds || [];
+    const readIds = data.readIds || [];
+    const deletedIds = data.deletedIds || [];
 
-    // عرض الإشعار العابر
-    if (lastShownNotifId !== notif.id) {
-      lastShownNotifId = notif.id;
-      const type = notif.type || 'info';
-      showToastNotification(notif.title, notif.body || '', type);
+    // ===== شيل المحذوف + المقروء =====
+    const unreadNotifIds = notifIds.filter(id =>
+      !deletedIds.includes(id) && !readIds.includes(id)
+    );
 
-      // بعد 2.5 ثانية → علّمه مقروء
-      setTimeout(async () => {
-        try {
-          const updatedReadIds = [...readIds, notif.id];
-          await setDoc(readRef, {
-            readIds: updatedReadIds,
-            updatedAt: serverTimestamp()
-          });
-        } catch (e) {
-          console.log('read save error:', e.message);
-        }
-      }, 2500);
+    // ===== تحديث الشارة =====
+    const unreadCount = unreadNotifIds.length;
+    if (unreadCount > 0) {
+      $('notifBadge').classList.add('show');
+      $('notifBadge').textContent = unreadCount > 99 ? '99+' : unreadCount;
+      $('drawerNotifBadge').classList.add('show');
+      $('drawerNotifBadge').textContent = unreadCount > 99 ? '99+' : unreadCount;
+    } else {
+      $('notifBadge').classList.remove('show');
+      $('drawerNotifBadge').classList.remove('show');
     }
 
-  } catch (e) {
-    console.log('notif error:', e.message);
-  }
+    // ===== عرض Toast للإشعارات الجديدة فقط =====
+    for (const nid of unreadNotifIds) {
+      if (lastShownNotifIds.has(nid)) continue;
+      lastShownNotifIds.add(nid);
+
+      try {
+        const nSnap = await getDoc(doc(db, 'notifications', nid));
+        if (!nSnap.exists()) continue;
+
+        const nData = nSnap.data();
+        showToastNotification(
+          nData.title || 'إشعار جديد',
+          nData.body || '',
+          'info'
+        );
+      } catch (e) {
+        console.log('notif detail error:', e.message);
+      }
+    }
+
+  }, (err) => {
+    console.log('notifs listener error:', err.message);
+    $('notifBadge').classList.remove('show');
+    $('drawerNotifBadge').classList.remove('show');
+  });
 }
 
 // ============================================================
-// 📢 إشعار عابر
+// 📢 إشعار عابر (Toast علوي)
 // ============================================================
 let toastNotifTimeout;
 function showToastNotification(title, body, type = 'info') {
@@ -2855,7 +2846,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// 🚪 تسجيل الخروج (مع نافذة تأكيد)
+// 🚪 تسجيل الخروج
 // ============================================================
 async function handleLogout() {
   const confirmed = await showConfirm({
@@ -2918,13 +2909,7 @@ async function init() {
 
   if (currentUserId && currentUser) {
     startUserMonitoring();
-
-    // مراقبة الإشعارات
-    onSnapshot(doc(db, 'settings', 'lastNotification'), () => {
-      checkNotifications();
-    }, (e) => console.log('notif monitor error'));
-
-    setTimeout(() => checkNotifications(), 1500);
+    startNotificationsListener();   // 👈 النظام الجديد الموجّه
   }
 }
 

@@ -547,7 +547,7 @@
     50% { transform: scale(1.2); opacity: 0.7; }
   }
 
- .notif-body {
+  .notif-body {
     font-size: 13.5px;
     color: var(--text-sub);
     font-weight: 500;
@@ -558,7 +558,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
+  }
 
   .notif-meta {
     display: flex;
@@ -1517,7 +1517,32 @@
   </div>
 
   <!-- قائمة الإشعارات -->
-  <div class="notif-list" id="notifList"></div>
+  <div class="notif-list" id="notifList">
+    <div class="skeleton-card">
+      <div class="skeleton-icon-box"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line w-60"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-40"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-icon-box"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line w-60"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-40"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-icon-box"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line w-60"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-40"></div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -1673,7 +1698,7 @@
         <span class="drawer-btn-label" id="drawerThemeText">الوضع الليلي</span>
       </button>
 
-      <a href="index1.html" class="drawer-btn">
+      <a href="index.html" class="drawer-btn">
         <span class="drawer-btn-icon">
           <i class="fas fa-home"></i>
         </span>
@@ -1709,7 +1734,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, doc, onSnapshot, setDoc, getDoc, getDocs,
-  collection, query, where, updateDoc, serverTimestamp, arrayUnion, arrayRemove
+  collection, query, where, serverTimestamp, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1898,10 +1923,15 @@ let currentUserId = null;
 let currentSettings = null;
 let blockTriggered = false;
 
-let allNotifications = [];      // [{id, title, body, type, url, senderName, createdAt, read}]
-let unreadIds = new Set();       // IDs غير المقروءة
-let deletedIds = new Set();      // IDs المحذوفة (محلياً فقط — يُخزّن في Firestore)
+let allNotifications = [];       // قائمة كاملة
+let unreadIds = new Set();
+let notifIdsSet = [];            // IDs من user_notifications
+let readIdsSet = [];             // IDs من user_notifications
+let deletedIdsSet = [];          // IDs المحذوفة
 let currentTab = 'all';
+
+// كاش تفاصيل الإشعارات (عشان نقلل القراءة من Firestore)
+const notifCache = new Map();    // notifId -> {title, body, type, url, senderName, createdAt}
 
 // ============================================================
 // 🎨 تطبيق الإعدادات
@@ -1992,7 +2022,6 @@ function renderUserInfo(user) {
   const fullName = user.fullName || user.username || 'مستخدم';
   const isTeacher = currentRole === 'teacher';
 
-  // ===== صورة المستخدم =====
   const avatarBtn = $('userAvatarBtn');
   if (user.avatarUrl) {
     avatarBtn.classList.add('has-photo');
@@ -2003,7 +2032,6 @@ function renderUserInfo(user) {
     avatarBtn.innerHTML = `<span style="font-weight:900; font-size:16px;">${firstChar}</span>`;
   }
 
-  // ===== Drawer =====
   $('drawerUserName').textContent = fullName;
   $('drawerUserRole').innerHTML = isTeacher
     ? '<i class="fas fa-chalkboard-user"></i><span>حساب معلم</span>'
@@ -2019,6 +2047,52 @@ function renderUserInfo(user) {
 }
 
 // ============================================================
+// ⚡ جلب تفاصيل الإشعارات بسرعة (Batch + Cache)
+// ============================================================
+async function fetchNotifDetails(ids) {
+  const result = [];
+  const missingIds = [];
+
+  // خد اللي في الكاش
+  for (const id of ids) {
+    if (notifCache.has(id)) {
+      result.push({ id, ...notifCache.get(id) });
+    } else {
+      missingIds.push(id);
+    }
+  }
+
+  // جلب الباقي على التوازي (Parallel) — أسرع بكتير
+  if (missingIds.length > 0) {
+    const promises = missingIds.map(async (id) => {
+      try {
+        const snap = await getDoc(doc(db, 'notifications', id));
+        if (!snap.exists()) return null;
+        const d = snap.data();
+        const info = {
+          title: d.title || 'بدون عنوان',
+          body: d.body || '',
+          type: d.type || 'none',
+          url: d.url || '',
+          senderName: d.senderName || 'الإدارة',
+          createdAt: d.createdAt || ''
+        };
+        notifCache.set(id, info);
+        return { id, ...info };
+      } catch (e) {
+        console.log('fetch notif error:', e.message);
+        return null;
+      }
+    });
+
+    const fetched = await Promise.all(promises);
+    fetched.forEach(f => { if (f) result.push(f); });
+  }
+
+  return result;
+}
+
+// ============================================================
 // 📡 تحميل الإشعارات Real-time
 // ============================================================
 function startNotificationsListener() {
@@ -2030,6 +2104,9 @@ function startNotificationsListener() {
     if (!snap.exists()) {
       allNotifications = [];
       unreadIds.clear();
+      notifIdsSet = [];
+      readIdsSet = [];
+      deletedIdsSet = [];
       renderNotifications();
       return;
     }
@@ -2039,42 +2116,29 @@ function startNotificationsListener() {
     const readIds = data.readIds || [];
     const deletedList = data.deletedIds || [];
 
-    // IDs المحذوفة
-    deletedIds = new Set(deletedList);
+    // ⚡ فلترة سريعة
+    const visibleIds = notifIds.filter(id => !deletedList.includes(id));
 
-    // ===== جلب تفاصيل الإشعارات =====
-    const details = [];
-    for (const nid of notifIds) {
-      if (deletedIds.has(nid)) continue;
-      try {
-        const nSnap = await getDoc(doc(db, 'notifications', nid));
-        if (nSnap.exists()) {
-          const nData = nSnap.data();
-          details.push({
-            id: nid,
-            title: nData.title || 'بدون عنوان',
-            body: nData.body || '',
-            type: nData.type || 'none',
-            url: nData.url || '',
-            senderName: nData.senderName || 'الإدارة',
-            createdAt: nData.createdAt || '',
-            read: readIds.includes(nid)
-          });
-        }
-      } catch (e) {
-        console.log('notif detail error:', e.message);
-      }
-    }
+    // ⚡ جلب التفاصيل (مع كاش + parallel)
+    const details = await fetchNotifDetails(visibleIds);
 
-    // ترتيب حسب الأحدث
+    // ترتيب بالأحدث
     details.sort((a, b) => {
       const da = new Date(a.createdAt).getTime() || 0;
       const db_ = new Date(b.createdAt).getTime() || 0;
       return db_ - da;
     });
 
+    // ⚡ علّم read من غير ما تعمل loop على Firestore
+    details.forEach(n => {
+      n.read = readIds.includes(n.id);
+    });
+
     allNotifications = details;
     unreadIds = new Set(details.filter(n => !n.read).map(n => n.id));
+    notifIdsSet = notifIds;
+    readIdsSet = readIds;
+    deletedIdsSet = deletedList;
 
     renderNotifications();
     updateBadges();
@@ -2096,7 +2160,6 @@ function renderNotifications() {
   if (currentTab === 'unread') filtered = allNotifications.filter(n => !n.read);
   if (currentTab === 'read') filtered = allNotifications.filter(n => n.read);
 
-  // تحديث العدّادات
   $('totalCount').textContent = allNotifications.length;
   $('allCountBadge').textContent = allNotifications.length;
   $('unreadCountBadge').textContent = unreadIds.size;
@@ -2192,7 +2255,6 @@ function formatDate(iso) {
 // 🔢 تحديث الشارات
 // ============================================================
 function updateBadges() {
-  // تحديث كل العدّادات
   $('unreadCountBadge').textContent = unreadIds.size;
   $('allCountBadge').textContent = allNotifications.length;
 }
@@ -2215,7 +2277,6 @@ async function openNotifModal(notif) {
   $('modalBody').textContent = notif.body;
   $('modalType').textContent = typeInfo.label;
 
-  // ===== الوسائط =====
   const mediaWrapper = $('modalMediaWrapper');
   mediaWrapper.innerHTML = '';
 
@@ -2234,7 +2295,6 @@ async function openNotifModal(notif) {
     `;
   }
 
-  // ===== زر الفتح =====
   const actionBtn = $('modalActionBtn');
   if (notif.type === 'link' && notif.url) {
     actionBtn.style.display = 'flex';
@@ -2250,7 +2310,6 @@ async function openNotifModal(notif) {
 
   $('notifModal').classList.add('show');
 
-  // ===== علّم كمقروء =====
   if (!notif.read) {
     await markAsRead(notif.id);
   }
@@ -2271,26 +2330,20 @@ $('notifModal').addEventListener('click', (e) => {
 // ============================================================
 async function markAsRead(notifId) {
   if (!currentUserId) return;
+  if (readIdsSet.includes(notifId)) return;
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const readIds = snap.data().readIds || [];
-    if (readIds.includes(notifId)) return;
-
-    readIds.push(notifId);
-
     await setDoc(ref, {
-      readIds,
+      readIds: arrayUnion(notifId),
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    // تحديث محلي
+    // تحديث محلي فوري
     const n = allNotifications.find(x => x.id === notifId);
     if (n) n.read = true;
     unreadIds.delete(notifId);
+    if (!readIdsSet.includes(notifId)) readIdsSet.push(notifId);
 
     updateBadges();
     renderNotifications();
@@ -2317,25 +2370,23 @@ $('markAllReadBtn').addEventListener('click', async () => {
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const readIds = snap.data().readIds || [];
     const allIds = allNotifications.map(n => n.id);
-    const merged = [...new Set([...readIds, ...allIds])];
 
+    // استخدم arrayUnion لمجموعة كل الإشعارات
     await setDoc(ref, {
-      readIds: merged,
+      readIds: arrayUnion(...allIds),
       updatedAt: serverTimestamp()
     }, { merge: true });
 
     allNotifications.forEach(n => n.read = true);
+    readIdsSet = [...new Set([...readIdsSet, ...allIds])];
     unreadIds.clear();
 
     renderNotifications();
     updateBadges();
     showToast('تم تحديد الكل كمقروء', 'success');
   } catch (e) {
+    console.log('mark all error:', e.message);
     showToast('حدث خطأ', 'error');
   }
 });
@@ -2359,13 +2410,9 @@ $('deleteAllBtn').addEventListener('click', async () => {
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
 
-    const currentNotifIds = snap.data().notifIds || [];
-    const currentDeleted = snap.data().deletedIds || [];
-
-    const newDeleted = [...new Set([...currentDeleted, ...currentNotifIds])];
+    const allIds = allNotifications.map(n => n.id);
+    const newDeleted = [...new Set([...deletedIdsSet, ...allIds])];
 
     await setDoc(ref, {
       notifIds: [],
@@ -2376,10 +2423,15 @@ $('deleteAllBtn').addEventListener('click', async () => {
 
     allNotifications = [];
     unreadIds.clear();
+    notifIdsSet = [];
+    readIdsSet = [];
+    deletedIdsSet = newDeleted;
+
     renderNotifications();
     updateBadges();
     showToast('تم حذف كل الإشعارات', 'success');
   } catch (e) {
+    console.log('delete all error:', e.message);
     showToast('حدث خطأ', 'error');
   }
 });
@@ -2402,28 +2454,29 @@ $('modalDeleteBtn').addEventListener('click', async () => {
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const notifIds = (snap.data().notifIds || []).filter(id => id !== notif.id);
-    const deletedList = [...new Set([...(snap.data().deletedIds || []), notif.id])];
-    const readIds = (snap.data().readIds || []).filter(id => id !== notif.id);
+    const newNotifIds = notifIdsSet.filter(id => id !== notif.id);
+    const newDeleted = [...new Set([...deletedIdsSet, notif.id])];
+    const newReadIds = readIdsSet.filter(id => id !== notif.id);
 
     await setDoc(ref, {
-      notifIds,
-      deletedIds: deletedList,
-      readIds,
+      notifIds: newNotifIds,
+      deletedIds: newDeleted,
+      readIds: newReadIds,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
     allNotifications = allNotifications.filter(n => n.id !== notif.id);
     unreadIds.delete(notif.id);
+    notifIdsSet = newNotifIds;
+    readIdsSet = newReadIds;
+    deletedIdsSet = newDeleted;
 
     closeNotifModal();
     renderNotifications();
     updateBadges();
     showToast('تم حذف الإشعار', 'success');
   } catch (e) {
+    console.log('delete one error:', e.message);
     showToast('حدث خطأ', 'error');
   }
 });
@@ -2629,28 +2682,6 @@ async function init() {
 }
 
 init();
-
-// ============================================================
-// 🔄 Pull to Refresh (بسيط)
-// ============================================================
-let touchStartY = 0;
-let isPulling = false;
-document.addEventListener('touchstart', (e) => {
-  if (window.scrollY === 0) {
-    touchStartY = e.touches[0].clientY;
-    isPulling = true;
-  }
-}, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
-  if (!isPulling) return;
-  const diff = e.touches[0].clientY - touchStartY;
-  if (diff > 100 && window.scrollY === 0) {
-    isPulling = false;
-    showToast('جاري التحديث...', 'info');
-    setTimeout(() => window.location.reload(), 300);
-  }
-}, { passive: true });
 
 // ============================================================
 // 🚀 PWA

@@ -1,0 +1,2745 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ميزان">
+
+<title>المكتبة | MEEZAN</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+    --warning: #E67E22;
+    --info: #2980B9;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --info: #3498DB;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Cairo', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--bg-page);
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: var(--text-main);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.4s ease;
+  }
+
+  body.ready { opacity: 1; }
+
+  /* ===== Topbar ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+
+  .topbar-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .topbar-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: contain;
+    border: 2px solid var(--accent);
+    background: var(--bg-input);
+    padding: 3px;
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="dark"] .topbar-title { color: var(--accent); }
+
+  .topbar-title .divider {
+    color: var(--accent);
+    font-weight: 300;
+    opacity: 0.7;
+  }
+
+  .topbar-title .en {
+    color: var(--text-sub);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  [data-theme="dark"] .topbar-title .en { color: var(--accent-light); }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  .icon-btn.logout {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  .icon-btn.logout:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .mobile-menu-btn:hover,
+  .mobile-menu-btn:active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* ===== Container ===== */
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+  }
+
+  /* ===== Page header ===== */
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  .back-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  [data-theme="dark"] .back-btn { color: var(--accent); }
+
+  .back-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateX(4px);
+  }
+
+  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
+
+  .page-title { flex: 1; min-width: 200px; }
+
+  .page-title h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .page-title h1 i { color: var(--accent); font-size: 22px; }
+
+  .page-title p {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 500;
+  }
+
+  /* ===== Actions bar ===== */
+  .actions-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-wrapper {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+  }
+
+  .search-wrapper i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 46px 14px 46px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    transition: all 0.25s ease;
+    outline: none;
+    font-weight: 500;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+
+  .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1), 0 4px 14px var(--shadow);
+  }
+
+  [data-theme="dark"] .search-input:focus {
+    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.15), 0 4px 14px var(--shadow);
+  }
+
+  /* ===== Filter chips ===== */
+  .filters-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-chip {
+    padding: 9px 16px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .filter-chip:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .filter-chip.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  [data-theme="dark"] .filter-chip.active { color: var(--bg-page); }
+
+  .filter-chip .chip-count {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    font-weight: 800;
+  }
+
+  .filter-chip:not(.active) .chip-count {
+    background: var(--bg-input);
+    color: var(--text-sub);
+    border: 1px solid var(--border);
+  }
+
+  /* ===== Library Grid ===== */
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
+  }
+
+  .lib-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px var(--shadow);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lib-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px var(--shadow);
+  }
+
+  .lib-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .lib-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--shadow);
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] .lib-card-icon { color: var(--bg-page); }
+
+  .lib-card-title-wrap { flex: 1; min-width: 0; }
+
+  .lib-card-title {
+    font-size: 16.5px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 5px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .lib-card-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 800;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+  }
+
+  .lib-card-type.book { color: var(--info); border-color: rgba(41, 128, 185, 0.3); }
+  .lib-card-type.summary { color: var(--warning); border-color: rgba(230, 126, 34, 0.3); }
+
+  /* ===== Sections ===== */
+  .lib-section { margin-bottom: 12px; }
+
+  .lib-section-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .lib-section-label i { color: var(--accent); font-size: 12px; }
+
+  .lib-section-content {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .lib-link-chip {
+    padding: 8px 13px;
+    border-radius: 10px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    color: var(--text-main);
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+  }
+
+  .lib-link-chip:hover {
+    transform: translateY(-2px);
+  }
+
+  .lib-link-chip.link { color: var(--info); border-color: rgba(41, 128, 185, 0.3); }
+  .lib-link-chip.link:hover { background: var(--info); color: #fff; }
+
+  .lib-link-chip.file { color: var(--success); border-color: rgba(30, 122, 90, 0.3); }
+  .lib-link-chip.file:hover { background: var(--success); color: #fff; }
+
+  .lib-link-chip.summary-btn {
+    background: linear-gradient(135deg, var(--warning), #F39C12);
+    color: #fff;
+    border-color: var(--warning);
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+  }
+
+  .lib-link-chip.summary-btn:hover {
+    box-shadow: 0 8px 20px rgba(230, 126, 34, 0.4);
+  }
+
+  .lib-no-data {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 600;
+    font-style: italic;
+    opacity: 0.75;
+  }
+
+  /* ===== Grades badges ===== */
+  .lib-grades {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .lib-grade-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(41, 128, 185, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(41, 128, 185, 0.3);
+    font-size: 10.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .lib-grade-badge i { font-size: 9px; }
+
+  /* ===== Empty ===== */
+  .empty-state {
+    background: var(--bg-card);
+    border: 2px dashed var(--border);
+    border-radius: 20px;
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-sub);
+    margin-top: 20px;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.6;
+  }
+
+  .empty-state h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p { font-size: 13.5px; font-weight: 500; }
+
+  /* ============================================================
+     Parts Picker (اختيار جزء من التلخيص)
+     ============================================================ */
+  .parts-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10000;
+    overflow-y: auto;
+  }
+
+  .parts-picker-overlay.show { display: flex; }
+
+  .parts-picker-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 26px 22px;
+    max-width: 720px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    border-top: 6px solid var(--warning);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .parts-picker-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .parts-picker-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #E67E22, #F39C12);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .parts-picker-header h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .parts-picker-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: var(--bg-input);
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .parts-picker-close:hover { background: var(--error); color: #fff; }
+
+  .parts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .part-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+  }
+
+  .part-row:hover {
+    background: var(--bg-card);
+    border-color: var(--warning);
+    transform: translateX(-4px);
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  .part-row-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .part-row-number { color: var(--bg-page); }
+
+  .part-row-info { flex: 1; min-width: 0; }
+
+  .part-row-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .part-row-meta {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .part-row-meta i { color: var(--accent); font-size: 10px; }
+
+  .part-row-arrow {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .part-row:hover .part-row-arrow {
+    background: var(--warning);
+    color: #fff;
+    border-color: var(--warning);
+  }
+
+  .parts-empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+  }
+
+  .parts-empty i {
+    font-size: 44px;
+    color: var(--accent);
+    opacity: 0.5;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* ============================================================
+     Full Part Viewer (شاشة الجزء الكامل)
+     ============================================================ */
+  .part-viewer {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-page);
+    z-index: 20000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .part-viewer.show { display: flex; }
+
+  .viewer-header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .viewer-close {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    color: var(--error);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+    flex-shrink: 0;
+  }
+
+  .viewer-close:hover {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+
+  .viewer-title-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .viewer-summary-name {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .viewer-part-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .viewer-counter {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .viewer-counter { color: var(--bg-page); }
+
+  .viewer-download-btn {
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--success), #27AE60);
+    color: #fff;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(30, 122, 90, 0.3);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .viewer-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 122, 90, 0.4);
+  }
+
+  .viewer-download-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  .viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 20px 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .viewer-content-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 40px 36px;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Watermark inside the content */
+  .viewer-content-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--watermark-bg, none);
+    background-repeat: repeat;
+    background-size: 240px 240px;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  [data-theme="dark"] .viewer-content-wrap::before {
+    opacity: 0.06;
+  }
+
+  .viewer-content {
+    position: relative;
+    z-index: 1;
+    font-size: 16px;
+    line-height: 2;
+    color: var(--text-main);
+    font-weight: 500;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .viewer-content h1, .viewer-content h2, .viewer-content h3 {
+    margin: 20px 0 12px;
+    color: var(--primary);
+    font-weight: 900;
+  }
+
+  [data-theme="dark"] .viewer-content h1,
+  [data-theme="dark"] .viewer-content h2,
+  [data-theme="dark"] .viewer-content h3 {
+    color: var(--accent);
+  }
+
+  /* ===== Viewer Navigation ===== */
+  .viewer-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 20px var(--shadow);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s;
+    flex: 1;
+    min-width: 130px;
+    max-width: 220px;
+    justify-content: center;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+
+  [data-theme="dark"] .nav-btn:hover:not(:disabled) { color: var(--bg-page); }
+
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .nav-btn.prev-btn i { font-size: 14px; }
+  .nav-btn.next-btn i { font-size: 14px; }
+
+  .nav-indicator {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-sub);
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ===== PDF Progress ===== */
+  .pdf-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 30000;
+  }
+
+  .pdf-overlay.show { display: flex; }
+
+  .pdf-box {
+    background: var(--bg-card);
+    border-radius: 22px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+    border-top: 6px solid var(--accent);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .pdf-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--success), #27AE60);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 25px rgba(30, 122, 90, 0.4);
+    animation: floatIcon 2s ease-in-out infinite;
+  }
+
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .pdf-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .pdf-message {
+    font-size: 13.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .pdf-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .pdf-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-lighter));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 5px;
+  }
+
+  .pdf-progress-text {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99999;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .toast.success { border-color: var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-color: var(--error); }
+  .toast.error i { color: var(--error); }
+  .toast.warning { border-color: var(--warning); }
+  .toast.warning i { color: var(--warning); }
+  .toast.info { border-color: var(--info); }
+  .toast.info i { color: var(--info); }
+
+  /* ===== Drawer ===== */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 998;
+  }
+
+  .drawer-overlay.show { opacity: 1; visibility: visible; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 88%;
+    max-width: 340px;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg-card);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--border);
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 22px 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .drawer-header-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .drawer-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    padding: 4px;
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+  }
+
+  .drawer-brand { flex: 1; min-width: 0; }
+
+  .drawer-brand-name {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .drawer-brand-name .divider { color: var(--accent); font-weight: 300; }
+
+  .drawer-brand-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .drawer-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+  }
+
+  .drawer-section { margin-bottom: 22px; }
+
+  .drawer-section-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drawer-section-title i { color: var(--accent); font-size: 12px; }
+
+  .drawer-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    width: 100%;
+    text-align: right;
+  }
+
+  .drawer-btn:hover {
+    background: var(--bg-card);
+    border-color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .drawer-btn-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .drawer-btn-icon { color: var(--bg-page); }
+
+  .drawer-btn-label { flex: 1; }
+
+  .drawer-btn.logout-btn {
+    color: var(--error);
+    border-color: rgba(192, 57, 43, 0.3);
+    background: rgba(192, 57, 43, 0.05);
+  }
+
+  .drawer-btn.logout-btn .drawer-btn-icon {
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+  }
+
+  /* ===== Skeleton ===== */
+  .skeleton-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .skeleton-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--border);
+    opacity: 0.5;
+    margin-bottom: 14px;
+  }
+
+  .skeleton-line {
+    height: 16px;
+    border-radius: 8px;
+    background: var(--border);
+    opacity: 0.5;
+    margin-bottom: 10px;
+  }
+
+  .skeleton-line.w-70 { width: 70%; }
+  .skeleton-line.w-90 { width: 90%; }
+  .skeleton-line.w-50 { width: 50%; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .topbar-inner { padding: 12px 16px; gap: 10px; }
+    .topbar-logo { width: 40px; height: 40px; }
+    .topbar-title { font-size: 17px; }
+    .topbar-title .en { font-size: 13px; letter-spacing: 1.5px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
+
+    .container { padding: 20px 16px 40px; }
+    .page-title h1 { font-size: 19px; }
+    .back-btn { width: 42px; height: 42px; font-size: 16px; }
+
+    .library-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+
+    .viewer-header { padding: 12px 16px; gap: 10px; }
+    .viewer-part-name { font-size: 14px; }
+    .viewer-content-wrap { padding: 30px 24px; }
+    .viewer-content { font-size: 15px; }
+  }
+
+  @media (max-width: 600px) {
+    .topbar-actions { display: none; }
+    .mobile-menu-btn { display: flex; }
+
+    .topbar-inner { padding: 10px 12px; gap: 8px; }
+    .topbar-logo { width: 36px; height: 36px; }
+    .topbar-title { font-size: 15px; gap: 4px; }
+    .topbar-title .divider { font-size: 14px; }
+    .topbar-title .en { display: none; }
+
+    .container { padding: 16px 12px 30px; }
+    .page-title h1 { font-size: 17px; }
+    .page-title p { font-size: 12px; }
+    .back-btn { width: 40px; height: 40px; font-size: 15px; }
+
+    .actions-bar { gap: 8px; }
+    .search-input { padding: 12px 42px 12px 42px; font-size: 13.5px; }
+
+    .library-grid { grid-template-columns: 1fr; gap: 14px; }
+
+    .parts-picker-box { padding: 20px 16px; border-radius: 18px; }
+    .parts-picker-header h2 { font-size: 15.5px; }
+    .part-row { padding: 13px 14px; gap: 10px; }
+    .part-row-number { width: 38px; height: 38px; font-size: 15px; border-radius: 10px; }
+    .part-row-title { font-size: 14px; }
+
+    .viewer-header { padding: 10px 12px; gap: 8px; }
+    .viewer-close { width: 38px; height: 38px; font-size: 14px; }
+    .viewer-summary-name { font-size: 10.5px; }
+    .viewer-part-name { font-size: 13.5px; }
+    .viewer-counter { font-size: 11px; padding: 5px 10px; }
+    .viewer-download-btn { padding: 8px 12px; font-size: 12px; }
+
+    .viewer-body { padding: 20px 12px 110px; }
+    .viewer-content-wrap { padding: 22px 16px; border-radius: 16px; }
+    .viewer-content { font-size: 14.5px; line-height: 1.9; }
+
+    .viewer-nav { padding: 10px 12px; gap: 8px; flex-wrap: nowrap; }
+    .nav-btn { padding: 10px 12px; font-size: 12.5px; min-width: 0; }
+    .nav-btn span.btn-text { display: none; }
+    .nav-btn i { font-size: 16px; }
+    .nav-indicator { font-size: 11.5px; padding: 6px 10px; }
+
+    .drawer { width: 90%; max-width: 320px; }
+    .drawer-header { padding: 18px 16px; }
+    .drawer-logo { width: 46px; height: 46px; }
+    .drawer-brand-name { font-size: 16px; }
+    .drawer-content { padding: 16px 14px; }
+    .drawer-btn { padding: 12px 14px; gap: 12px; font-size: 14px; }
+    .drawer-btn-icon { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+  }
+
+  @media (max-width: 380px) {
+    .topbar-logo { width: 32px; height: 32px; }
+    .topbar-title { font-size: 14px; }
+    .mobile-menu-btn { width: 36px; height: 36px; font-size: 15px; }
+    .page-title h1 { font-size: 15.5px; }
+    .lib-card { padding: 16px; }
+  }
+
+  @media (min-width: 601px) {
+    .mobile-menu-btn { display: none !important; }
+    .drawer, .drawer-overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     Topbar
+     ============================================================ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="القائمة">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="topbar-brand">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
+           alt="MEEZAN" 
+           class="topbar-logo"
+           id="topbarLogo">
+      <div class="topbar-title">
+        <span id="topbarNameAr">ميزان</span>
+        <span class="divider">|</span>
+        <span class="en" id="topbarNameEn">MEEZAN</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" title="الوضع الليلي/النهاري">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <a href="index.html" class="icon-btn" title="الرئيسية">
+        <i class="fas fa-home"></i>
+      </a>
+      <button class="icon-btn logout" id="logoutBtn" title="تسجيل الخروج">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     المحتوى الرئيسي
+     ============================================================ -->
+<div class="container">
+
+  <div class="page-header">
+    <a href="index.html" class="back-btn" title="الرجوع للرئيسية">
+      <i class="fas fa-arrow-right"></i>
+    </a>
+    <div class="page-title">
+      <h1>
+        <i class="fas fa-book-open"></i>
+        مكتبة الكتب والتلخيصات
+      </h1>
+      <p id="userGradeInfo">استعرض الكتب والتلخيصات الخاصة بفرقتك</p>
+    </div>
+  </div>
+
+  <!-- Actions bar -->
+  <div class="actions-bar">
+    <div class="search-wrapper">
+      <i class="fas fa-search"></i>
+      <input type="text" 
+             class="search-input" 
+             id="searchInput" 
+             placeholder="ابحث بالاسم أو الوصف...">
+    </div>
+  </div>
+
+  <!-- Filters bar -->
+  <div class="filters-bar" id="filtersBar">
+    <button class="filter-chip active" data-filter="all">
+      <i class="fas fa-th-large"></i>
+      الكل
+      <span class="chip-count" id="countAll">0</span>
+    </button>
+    <button class="filter-chip" data-filter="book">
+      <i class="fas fa-book"></i>
+      كتب
+      <span class="chip-count" id="countBooks">0</span>
+    </button>
+    <button class="filter-chip" data-filter="summary">
+      <i class="fas fa-file-lines"></i>
+      تلخيصات
+      <span class="chip-count" id="countSummaries">0</span>
+    </button>
+  </div>
+
+  <!-- Library Grid -->
+  <div class="library-grid" id="libraryGrid"></div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <i class="fas fa-inbox"></i>
+    <h3 id="emptyTitle">لا توجد عناصر بعد</h3>
+    <p id="emptyMessage">لم يتم نشر أي كتب أو تلخيصات لفرقتك حتى الآن</p>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     Parts Picker — اختيار جزء من التلخيص
+     ============================================================ -->
+<div class="parts-picker-overlay" id="partsPickerOverlay">
+  <div class="parts-picker-box">
+    <div class="parts-picker-header">
+      <div class="parts-picker-header-icon">
+        <i class="fas fa-list-ol"></i>
+      </div>
+      <h2 id="partsPickerTitle">أجزاء التلخيص</h2>
+      <button class="parts-picker-close" id="partsPickerClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="parts-list" id="partsList"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Part Viewer — شاشة الجزء الكامل
+     ============================================================ -->
+<div class="part-viewer" id="partViewer">
+  <!-- Header -->
+  <div class="viewer-header">
+    <button class="viewer-close" id="viewerClose" title="إغلاق">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="viewer-title-wrap">
+      <div class="viewer-summary-name" id="viewerSummaryName">—</div>
+      <div class="viewer-part-name" id="viewerPartName">—</div>
+    </div>
+
+    <div class="viewer-counter" id="viewerCounter">1 / 1</div>
+
+    <button class="viewer-download-btn" id="viewerDownloadBtn">
+      <i class="fas fa-file-pdf"></i>
+      <span>تحميل PDF</span>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="viewer-body" id="viewerBody">
+    <div class="viewer-content-wrap" id="viewerContentWrap">
+      <div class="viewer-content" id="viewerContent">—</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="viewer-nav">
+    <button class="nav-btn prev-btn" id="navPrevBtn">
+      <i class="fas fa-chevron-right"></i>
+      <span class="btn-text">الجزء السابق</span>
+    </button>
+
+    <div class="nav-indicator" id="navIndicator">1 / 1</div>
+
+    <button class="nav-btn next-btn" id="navNextBtn">
+      <span class="btn-text">الجزء التالي</span>
+      <i class="fas fa-chevron-left"></i>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     PDF Progress Overlay
+     ============================================================ -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-box">
+    <div class="pdf-icon">
+      <i class="fas fa-file-pdf"></i>
+    </div>
+    <div class="pdf-title">جاري تجهيز ملف PDF</div>
+    <div class="pdf-message" id="pdfMessage">يتم الآن توليد الملف مع العلامة المائية للموقع...</div>
+
+    <div class="pdf-progress-bar">
+      <div class="pdf-progress-fill" id="pdfProgressFill"></div>
+    </div>
+    <div class="pdf-progress-text" id="pdfProgressText">0%</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Drawer (موبايل)
+     ============================================================ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-content">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
+           alt="Logo" 
+           class="drawer-logo"
+           id="drawerLogo">
+      <div class="drawer-brand">
+        <div class="drawer-brand-name">
+          <span id="drawerNameAr">ميزان</span>
+          <span class="divider">|</span>
+          <span id="drawerNameEn">MEEZAN</span>
+        </div>
+        <div class="drawer-brand-sub" id="drawerSubtitle">منصة تعليمية</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer-content">
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fas fa-cog"></i>
+        <span>التحكم</span>
+      </div>
+
+      <a href="index.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-home"></i></span>
+        <span class="drawer-btn-label">الرئيسية</span>
+      </a>
+
+      <button class="drawer-btn" id="drawerThemeBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-moon" id="drawerThemeIcon"></i></span>
+        <span class="drawer-btn-label" id="drawerThemeText">الوضع الليلي</span>
+      </button>
+
+      <a href="asharat.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-bell"></i></span>
+        <span class="drawer-btn-label">الإشعارات</span>
+      </a>
+
+      <a href="sora.html" class="drawer-btn">
+        <span class="drawer-btn-icon"><i class="fas fa-user-circle"></i></span>
+        <span class="drawer-btn-label">صفحتي الشخصية</span>
+      </a>
+
+      <button class="drawer-btn logout-btn" id="drawerLogoutBtn">
+        <span class="drawer-btn-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="drawer-btn-label">تسجيل الخروج</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     Toast
+     ============================================================ -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastText"></span>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getFirestore, doc, onSnapshot, getDoc, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🔒 الحماية
+// ============================================================
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+  window.location.replace('login.html');
+}
+
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+    history.pushState(null, '', location.href);
+  } else {
+    window.location.replace('login.html');
+  }
+});
+
+// ============================================================
+// 🧹 أدوات
+// ============================================================
+function cleanInput(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ')
+    .replace(/^\s+|\s+$/g, '')
+    .trim();
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+// ============================================================
+// 💬 Toast
+// ============================================================
+let toastTimeout;
+function showToast(text, type = 'success') {
+  const toast = $('toast');
+  const icon = $('toastIcon');
+  $('toastText').textContent = text;
+  toast.className = 'toast show ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  icon.className = `fas ${icons[type] || icons.success}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// 🌙 الوضع
+// ============================================================
+const savedTheme = localStorage.getItem('meezan_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+updateDrawerTheme(savedTheme);
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('meezan_theme', next);
+  updateThemeIcon(next);
+  updateDrawerTheme(next);
+  if (currentSettings) applyColors(currentSettings);
+}
+
+$('themeToggle').addEventListener('click', toggleTheme);
+$('drawerThemeBtn').addEventListener('click', toggleTheme);
+
+function updateThemeIcon(theme) {
+  $('themeIcon').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+function updateDrawerTheme(theme) {
+  const icon = $('drawerThemeIcon');
+  const text = $('drawerThemeText');
+  if (!icon || !text) return;
+  if (theme === 'dark') {
+    icon.className = 'fas fa-sun';
+    text.textContent = 'الوضع النهاري';
+  } else {
+    icon.className = 'fas fa-moon';
+    text.textContent = 'الوضع الليلي';
+  }
+}
+
+// ============================================================
+// 📦 Cache & Settings
+// ============================================================
+const CACHE_SETTINGS = 'meezan_settings_cache';
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+let currentSettings = null;
+let currentSiteName = 'ميزان';
+let currentSiteLogoUrl = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
+let currentUser = null;
+let currentGrade = '';
+
+function applySettings(data) {
+  if (!data) return;
+
+  if (data.logoUrl) {
+    currentSiteLogoUrl = data.logoUrl;
+    const logo = $('topbarLogo');
+    if (logo && logo.src !== data.logoUrl) logo.src = data.logoUrl;
+    const dl = $('drawerLogo');
+    if (dl && dl.src !== data.logoUrl) dl.src = data.logoUrl;
+    const iconLink = document.querySelector('link[rel="icon"]');
+    if (iconLink && iconLink.href !== data.logoUrl) iconLink.href = data.logoUrl;
+  }
+
+  if (data.siteNameAr) {
+    currentSiteName = data.siteNameAr;
+    $('topbarNameAr').textContent = data.siteNameAr;
+    const d = $('drawerNameAr'); if (d) d.textContent = data.siteNameAr;
+  }
+  if (data.siteNameEn) {
+    $('topbarNameEn').textContent = data.siteNameEn;
+    const d = $('drawerNameEn'); if (d) d.textContent = data.siteNameEn;
+  }
+  if (data.tagline) {
+    const d = $('drawerSubtitle'); if (d) d.textContent = data.tagline;
+  }
+
+  const nameAr = data.siteNameAr || 'ميزان';
+  const nameEn = data.siteNameEn || 'MEEZAN';
+  const newTitle = `المكتبة | ${nameAr} ${nameEn}`;
+  if (document.title !== newTitle) document.title = newTitle;
+
+  applyColors(data);
+  updateWatermarkCSS();
+}
+
+function applyColors(data) {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const rootStyle = document.documentElement.style;
+
+  rootStyle.removeProperty('--primary');
+  rootStyle.removeProperty('--accent');
+
+  if (currentTheme === 'light' && data.lightColorsEnabled === true) {
+    if (data.lightPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.lightPrimary)) {
+      rootStyle.setProperty('--primary', data.lightPrimary);
+    }
+    if (data.lightAccent && /^#[0-9A-Fa-f]{6}$/.test(data.lightAccent)) {
+      rootStyle.setProperty('--accent', data.lightAccent);
+    }
+  } else if (currentTheme === 'dark' && data.darkColorsEnabled === true) {
+    if (data.darkPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.darkPrimary)) {
+      rootStyle.setProperty('--primary', data.darkPrimary);
+    }
+    if (data.darkAccent && /^#[0-9A-Fa-f]{6}$/.test(data.darkAccent)) {
+      rootStyle.setProperty('--accent', data.darkAccent);
+    }
+  }
+}
+
+// ============================================================
+// 💧 تحديث علامة مائية في CSS (للقراءة)
+// ============================================================
+function updateWatermarkCSS() {
+  if (!currentSiteLogoUrl) return;
+
+  const wrap = $('viewerContentWrap');
+  if (!wrap) return;
+
+  wrap.style.setProperty(
+    '--watermark-bg',
+    `url("${currentSiteLogoUrl}")`
+  );
+}
+
+// ============================================================
+// 📊 الحالة
+// ============================================================
+let allItems = [];
+let filteredItems = [];
+let currentFilter = 'all';
+let currentSearchQuery = '';
+
+// متغيرات شاشة الجزء
+let currentSummary = null;
+let currentParts = [];
+let currentPartIndex = 0;
+
+// ============================================================
+// 👤 تحميل بيانات المستخدم
+// ============================================================
+async function loadUserData() {
+  const userId = sessionStorage.getItem('meezan_user_id');
+  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
+  const role = sessionStorage.getItem('meezan_role') || 'student';
+
+  if (!userId && !username) return;
+
+  try {
+    const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+    const snap = await getDoc(doc(db, collectionName, 'all'));
+    if (!snap.exists()) return;
+
+    const items = snap.data().items || [];
+    let user = null;
+
+    if (userId) user = items.find(u => u.id === userId);
+    if (!user && username) {
+      user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
+    }
+
+    if (!user) return;
+
+    currentUser = user;
+    currentGrade = user.grade || '';
+
+    if (currentGrade) {
+      $('userGradeInfo').textContent = `استعرض الكتب والتلخيصات الخاصة بـ: ${currentGrade}`;
+    } else {
+      $('userGradeInfo').textContent = 'استعرض الكتب والتلخيصات المتاحة';
+    }
+
+  } catch (e) {
+    console.error('خطأ في تحميل المستخدم:', e);
+  }
+}
+
+// ============================================================
+// 🎨 عرض البطاقات
+// ============================================================
+function renderLibrary() {
+  const grid = $('libraryGrid');
+  const empty = $('emptyState');
+  grid.innerHTML = '';
+
+  // فلترة: منشور + للفرقة بتاعة المستخدم
+  let visible = allItems.filter(i => {
+    if (!i.published) return false;
+
+    // لو للعنصر فرق محددة → لازم تكون فرقة المستخدم ضمنها
+    if (Array.isArray(i.grades) && i.grades.length > 0) {
+      if (!currentGrade) return false;
+      return i.grades.includes(currentGrade);
+    }
+
+    // لو مفيش فرق محددة → للكل
+    return true;
+  });
+
+  // العدّادات
+  const total = visible.length;
+  const books = visible.filter(i => i.type === 'book').length;
+  const summaries = visible.filter(i => i.type === 'summary').length;
+
+  $('countAll').textContent = total;
+  $('countBooks').textContent = books;
+  $('countSummaries').textContent = summaries;
+
+  // الفلترة
+  let filtered = [...visible];
+
+  if (currentFilter === 'book') filtered = filtered.filter(i => i.type === 'book');
+  if (currentFilter === 'summary') filtered = filtered.filter(i => i.type === 'summary');
+
+  if (currentSearchQuery) {
+    filtered = filtered.filter(i =>
+      (i.title || '').toLowerCase().includes(currentSearchQuery) ||
+      (i.description || '').toLowerCase().includes(currentSearchQuery)
+    );
+  }
+
+  filtered.sort((a, b) => {
+    const da = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
+    const db = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return db - da;
+  });
+
+  filteredItems = filtered;
+
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+
+    if (allItems.length === 0) {
+      $('emptyTitle').textContent = 'لا توجد عناصر بعد';
+      $('emptyMessage').textContent = 'لم يتم نشر أي كتب أو تلخيصات حتى الآن';
+    } else if (currentGrade) {
+      $('emptyTitle').textContent = 'لا توجد عناصر لفرقتك';
+      $('emptyMessage').textContent = `لا توجد كتب أو تلخيصات منشورة لـ "${currentGrade}" حالياً`;
+    } else {
+      $('emptyTitle').textContent = 'لا توجد نتائج';
+      $('emptyMessage').textContent = 'جرّب تغيير الفلتر أو البحث';
+    }
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  filtered.forEach(item => {
+    grid.appendChild(createLibCard(item));
+  });
+}
+
+function createLibCard(item) {
+  const card = document.createElement('div');
+  card.className = 'lib-card';
+
+  const isBook = item.type === 'book';
+  const typeIcon = isBook ? 'fa-book' : 'fa-file-lines';
+  const typeLabel = isBook ? 'كتاب' : 'تلخيص';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'lib-card-header';
+
+  const iconWrap = document.createElement('div');
+  iconWrap.className = 'lib-card-icon';
+  iconWrap.innerHTML = `<i class="fas ${typeIcon}"></i>`;
+
+  const titleWrap = document.createElement('div');
+  titleWrap.className = 'lib-card-title-wrap';
+
+  const title = document.createElement('div');
+  title.className = 'lib-card-title';
+  title.textContent = item.title || 'بدون عنوان';
+
+  const typeChip = document.createElement('span');
+  typeChip.className = 'lib-card-type ' + item.type;
+  typeChip.innerHTML = `<i class="fas ${typeIcon}"></i> ${typeLabel}`;
+
+  titleWrap.appendChild(title);
+  titleWrap.appendChild(typeChip);
+
+  header.appendChild(iconWrap);
+  header.appendChild(titleWrap);
+  card.appendChild(header);
+
+  // الوصف
+  if (item.description) {
+    const desc = document.createElement('div');
+    desc.style.cssText = 'font-size:12.5px; color:var(--text-sub); font-weight:500; line-height:1.6; margin-bottom:12px; padding:8px 0;';
+    desc.textContent = item.description;
+    card.appendChild(desc);
+  }
+
+  // ===== قسم الكتاب =====
+  const bookSec = document.createElement('div');
+  bookSec.className = 'lib-section';
+
+  const bookLabel = document.createElement('div');
+  bookLabel.className = 'lib-section-label';
+  bookLabel.innerHTML = '<i class="fas fa-book"></i> الكتاب';
+  bookSec.appendChild(bookLabel);
+
+  const bookContent = document.createElement('div');
+  bookContent.className = 'lib-section-content';
+
+  if (item.bookUrl || item.bookFileUrl) {
+    if (item.bookUrl) {
+      const link = document.createElement('a');
+      link.className = 'lib-link-chip link';
+      link.href = item.bookUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = '<i class="fas fa-link"></i> فتح الرابط';
+      bookContent.appendChild(link);
+    }
+    if (item.bookFileUrl) {
+      const fileLink = document.createElement('a');
+      fileLink.className = 'lib-link-chip file';
+      fileLink.href = item.bookFileUrl;
+      fileLink.target = '_blank';
+      fileLink.rel = 'noopener noreferrer';
+      fileLink.download = item.bookFileName || '';
+      fileLink.innerHTML = '<i class="fas fa-file-download"></i> تحميل الملف';
+      bookContent.appendChild(fileLink);
+    }
+  } else {
+    const noData = document.createElement('div');
+    noData.className = 'lib-no-data';
+    noData.textContent = 'لم يُضف كتاب لهذا العنصر';
+    bookContent.appendChild(noData);
+  }
+
+  bookSec.appendChild(bookContent);
+  card.appendChild(bookSec);
+
+  // ===== قسم التلخيص (للتلخيص فقط) =====
+  if (!isBook) {
+    const sumSec = document.createElement('div');
+    sumSec.className = 'lib-section';
+
+    const sumLabel = document.createElement('div');
+    sumLabel.className = 'lib-section-label';
+    sumLabel.innerHTML = '<i class="fas fa-file-lines"></i> التلخيص';
+    sumSec.appendChild(sumLabel);
+
+    const sumContent = document.createElement('div');
+    sumContent.className = 'lib-section-content';
+
+    let hasAny = false;
+
+    if (item.summaryUrl) {
+      const link = document.createElement('a');
+      link.className = 'lib-link-chip link';
+      link.href = item.summaryUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = '<i class="fas fa-link"></i> فتح الرابط';
+      sumContent.appendChild(link);
+      hasAny = true;
+    }
+    if (item.summaryFileUrl) {
+      const fileLink = document.createElement('a');
+      fileLink.className = 'lib-link-chip file';
+      fileLink.href = item.summaryFileUrl;
+      fileLink.target = '_blank';
+      fileLink.rel = 'noopener noreferrer';
+      fileLink.download = item.summaryFileName || '';
+      fileLink.innerHTML = '<i class="fas fa-file-download"></i> تحميل الملف';
+      sumContent.appendChild(fileLink);
+      hasAny = true;
+    }
+
+    // زر فتح الأجزاء لو موجودة
+    if (item.partsCount > 0) {
+      const partsBtn = document.createElement('button');
+      partsBtn.className = 'lib-link-chip summary-btn';
+      partsBtn.innerHTML = `<i class="fas fa-list-ol"></i> فتح التلخيص (${item.partsCount} أجزاء)`;
+      partsBtn.addEventListener('click', () => openPartsPicker(item.id));
+      sumContent.appendChild(partsBtn);
+      hasAny = true;
+    }
+
+    if (!hasAny) {
+      const noData = document.createElement('div');
+      noData.className = 'lib-no-data';
+      noData.textContent = 'لم يُضف تلخيص بعد';
+      sumContent.appendChild(noData);
+    }
+
+    sumSec.appendChild(sumContent);
+    card.appendChild(sumSec);
+  }
+
+  // ===== الفرق =====
+  if (item.grades && item.grades.length > 0) {
+    const gradesWrap = document.createElement('div');
+    gradesWrap.className = 'lib-grades';
+
+    item.grades.forEach(g => {
+      const badge = document.createElement('span');
+      badge.className = 'lib-grade-badge';
+      badge.innerHTML = `<i class="fas fa-graduation-cap"></i> ${escapeHtml(g)}`;
+      gradesWrap.appendChild(badge);
+    });
+
+    card.appendChild(gradesWrap);
+  }
+
+  return card;
+}
+
+// ============================================================
+// 📋 Parts Picker — عرض الأجزاء
+// ============================================================
+async function openPartsPicker(summaryId) {
+  const item = allItems.find(i => i.id === summaryId);
+  if (!item) return;
+
+  currentSummary = item;
+  $('partsPickerTitle').textContent = `أجزاء: ${item.title}`;
+  $('partsList').innerHTML = `
+    <div style="text-align:center; padding:30px;">
+      <i class="fas fa-spinner fa-spin" style="font-size:32px; color:var(--accent);"></i>
+      <p style="margin-top:12px; color:var(--text-sub); font-weight:600;">جاري تحميل الأجزاء...</p>
+    </div>
+  `;
+
+  $('partsPickerOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const snap = await getDoc(doc(db, 'summaries', summaryId));
+
+    if (!snap.exists() || !Array.isArray(snap.data().parts)) {
+      currentParts = [];
+    } else {
+      currentParts = snap.data().parts.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
+    renderPartsList();
+  } catch (e) {
+    console.error(e);
+    currentParts = [];
+    renderPartsList();
+  }
+}
+
+function renderPartsList() {
+  const list = $('partsList');
+  list.innerHTML = '';
+
+  if (currentParts.length === 0) {
+    list.innerHTML = `
+      <div class="parts-empty">
+        <i class="fas fa-file-lines"></i>
+        <p>لا توجد أجزاء في هذا التلخيص بعد</p>
+      </div>
+    `;
+    return;
+  }
+
+  currentParts.forEach((part, index) => {
+    const row = document.createElement('button');
+    row.className = 'part-row';
+    row.type = 'button';
+
+    // احسب عدد الكلمات
+    const wordCount = (part.content || '').split(/\s+/).filter(w => w.length > 0).length;
+    const readingTime = Math.max(1, Math.round(wordCount / 200));
+
+    row.innerHTML = `
+      <div class="part-row-number">${index + 1}</div>
+      <div class="part-row-info">
+        <div class="part-row-title">${escapeHtml(part.title || `الجزء ${index + 1}`)}</div>
+        <div class="part-row-meta">
+          <span><i class="fas fa-align-right"></i> ${wordCount} كلمة</span>
+          <span><i class="fas fa-clock"></i> ${readingTime} دقيقة قراءة</span>
+        </div>
+      </div>
+      <div class="part-row-arrow">
+        <i class="fas fa-chevron-left"></i>
+      </div>
+    `;
+
+    row.addEventListener('click', () => openPartViewer(index));
+    list.appendChild(row);
+  });
+}
+
+$('partsPickerClose').addEventListener('click', () => {
+  $('partsPickerOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+  currentSummary = null;
+});
+
+$('partsPickerOverlay').addEventListener('click', (e) => {
+  if (e.target === $('partsPickerOverlay')) {
+    $('partsPickerOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+    currentSummary = null;
+  }
+});
+
+// ============================================================
+// 📖 Part Viewer — عرض الجزء كامل
+// ============================================================
+function openPartViewer(index) {
+  if (!currentSummary || !currentParts[index]) return;
+
+  currentPartIndex = index;
+
+  // إغلاق Picker
+  $('partsPickerOverlay').classList.remove('show');
+
+  // فتح العارض
+  $('partViewer').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  renderCurrentPart();
+}
+
+function renderCurrentPart() {
+  const part = currentParts[currentPartIndex];
+  if (!part) return;
+
+  $('viewerSummaryName').textContent = currentSummary.title || 'تلخيص';
+  $('viewerPartName').textContent = part.title || `الجزء ${currentPartIndex + 1}`;
+  $('viewerCounter').textContent = `${currentPartIndex + 1} / ${currentParts.length}`;
+  $('navIndicator').textContent = `${currentPartIndex + 1} / ${currentParts.length}`;
+
+  $('viewerContent').textContent = part.content || 'لا يوجد محتوى في هذا الجزء';
+
+  // scroll للأعلى
+  $('viewerBody').scrollTop = 0;
+
+  // تفعيل / تعطيل أزرار التنقل
+  $('navPrevBtn').disabled = currentPartIndex === 0;
+  $('navNextBtn').disabled = currentPartIndex === currentParts.length - 1;
+}
+
+$('viewerClose').addEventListener('click', () => {
+  $('partViewer').classList.remove('show');
+  document.body.style.overflow = '';
+});
+
+$('navPrevBtn').addEventListener('click', () => {
+  if (currentPartIndex > 0) {
+    currentPartIndex--;
+    renderCurrentPart();
+  }
+});
+
+$('navNextBtn').addEventListener('click', () => {
+  if (currentPartIndex < currentParts.length - 1) {
+    currentPartIndex++;
+    renderCurrentPart();
+  }
+});
+
+// ============================================================
+// 📄 توليد PDF مع Watermark
+// ============================================================
+$('viewerDownloadBtn').addEventListener('click', generatePDF);
+
+async function generatePDF() {
+  if (!currentSummary || !currentParts[currentPartIndex]) return;
+
+  const part = currentParts[currentPartIndex];
+  const btn = $('viewerDownloadBtn');
+
+  btn.disabled = true;
+  const origBtnHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التوليد...</span>';
+
+  // إظهار overlay التقدم
+  $('pdfOverlay').classList.add('show');
+  updatePDFProgress(0, 'جاري التحضير...');
+
+  try {
+    // ===== إنشاء عنصر HTML مؤقت للطباعة =====
+    const printWrap = document.createElement('div');
+    printWrap.style.cssText = `
+      position: fixed;
+      left: -99999px;
+      top: 0;
+      width: 794px;
+      padding: 60px 50px;
+      background: #FFFFFF;
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      color: #0B3D2E;
+      box-sizing: border-box;
+      z-index: -1;
+    `;
+
+    // محتوى النص
+    const partTitle = part.title || `الجزء ${currentPartIndex + 1}`;
+    const summaryTitle = currentSummary.title || 'تلخيص';
+    const partContent = part.content || '';
+    const fullName = currentUser?.fullName || currentUser?.username || 'مستخدم';
+
+    printWrap.innerHTML = `
+      <div style="position:relative; z-index:2;">
+        <div style="text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #C9A961;">
+          <img src="${currentSiteLogoUrl}" 
+               style="width:70px; height:70px; border-radius:50%; object-fit:contain; margin-bottom:12px;"
+               crossorigin="anonymous">
+          <div style="font-size:20px; font-weight:900; color:#0B3D2E;">${escapeHtml(currentSiteName)}</div>
+          <div style="font-size:11px; color:#5A6B66; font-weight:600; letter-spacing:2px; margin-top:4px;">MEEZAN PLATFORM</div>
+        </div>
+
+        <div style="background:#F8FBF9; border:2px solid #E0E5E1; border-radius:12px; padding:16px 20px; margin-bottom:24px;">
+          <div style="font-size:11px; color:#5A6B66; font-weight:700; margin-bottom:6px;">📚 التلخيص</div>
+          <div style="font-size:17px; font-weight:900; color:#0B3D2E; margin-bottom:12px;">${escapeHtml(summaryTitle)}</div>
+          <div style="display:flex; gap:20px; font-size:11px; color:#5A6B66; font-weight:600; flex-wrap:wrap;">
+            <span>📄 ${escapeHtml(partTitle)}</span>
+            <span>👤 ${escapeHtml(fullName)}</span>
+            <span>📅 ${new Date().toLocaleDateString('ar-EG')}</span>
+          </div>
+        </div>
+
+        <div style="font-size:16px; line-height:2; color:#0B3D2E; font-weight:500; white-space:pre-wrap; word-break:break-word;">
+          ${escapeHtml(partContent)}
+        </div>
+
+        <div style="margin-top:40px; padding-top:20px; border-top:2px dashed #E0E5E1; text-align:center; font-size:10px; color:#5A6B66; font-weight:600;">
+          © ${new Date().getFullYear()} ${escapeHtml(currentSiteName)} — جميع الحقوق محفوظة
+        </div>
+      </div>
+    `;
+
+    // إضافة علامة مائية شفافة
+    const watermark = document.createElement('div');
+    watermark.style.cssText = `
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.05;
+    `;
+    watermark.innerHTML = `
+      <img src="${currentSiteLogoUrl}" 
+           crossorigin="anonymous"
+           style="width: 400px; height: 400px; object-fit: contain;">
+    `;
+
+    // wrapper بحاجة position: relative
+    const outerWrap = document.createElement('div');
+    outerWrap.style.cssText = 'position: relative;';
+    outerWrap.appendChild(watermark);
+    outerWrap.appendChild(printWrap);
+
+    // لكن printWrap كـ fixed خارج الشاشة — نحط المحتوى الداخلي
+    // نستخدم بنية مختلفة:
+    printWrap.innerHTML = `
+      ${watermark.outerHTML}
+      <div style="position:relative; z-index:2;">
+        <div style="text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #C9A961;">
+          <img src="${currentSiteLogoUrl}" 
+               style="width:70px; height:70px; border-radius:50%; object-fit:contain; margin-bottom:12px;"
+               crossorigin="anonymous">
+          <div style="font-size:20px; font-weight:900; color:#0B3D2E;">${escapeHtml(currentSiteName)}</div>
+          <div style="font-size:11px; color:#5A6B66; font-weight:600; letter-spacing:2px; margin-top:4px;">MEEZAN PLATFORM</div>
+        </div>
+
+        <div style="background:#F8FBF9; border:2px solid #E0E5E1; border-radius:12px; padding:16px 20px; margin-bottom:24px;">
+          <div style="font-size:11px; color:#5A6B66; font-weight:700; margin-bottom:6px;">📚 التلخيص</div>
+          <div style="font-size:17px; font-weight:900; color:#0B3D2E; margin-bottom:12px;">${escapeHtml(summaryTitle)}</div>
+          <div style="display:flex; gap:20px; font-size:11px; color:#5A6B66; font-weight:600; flex-wrap:wrap;">
+            <span>📄 ${escapeHtml(partTitle)}</span>
+            <span>👤 ${escapeHtml(fullName)}</span>
+            <span>📅 ${new Date().toLocaleDateString('ar-EG')}</span>
+          </div>
+        </div>
+
+        <div style="font-size:16px; line-height:2; color:#0B3D2E; font-weight:500; white-space:pre-wrap; word-break:break-word;">
+          ${escapeHtml(partContent)}
+        </div>
+
+        <div style="margin-top:40px; padding-top:20px; border-top:2px dashed #E0E5E1; text-align:center; font-size:10px; color:#5A6B66; font-weight:600;">
+          © ${new Date().getFullYear()} ${escapeHtml(currentSiteName)} — جميع الحقوق محفوظة
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(printWrap);
+
+    updatePDFProgress(20, 'جاري تجهيز الخطوط...');
+    await new Promise(r => setTimeout(r, 300));
+
+    updatePDFProgress(40, 'جاري تحويل المحتوى...');
+
+    // ===== تحويل HTML إلى Canvas =====
+    const canvas = await html2canvas(printWrap, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#FFFFFF',
+      logging: false
+    });
+
+    updatePDFProgress(70, 'جاري توليد ملف PDF...');
+
+    // ===== إنشاء PDF =====
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidthMM = 210;
+    const pageHeightMM = 297;
+    const marginMM = 10;
+    const contentWidthMM = pageWidthMM - (marginMM * 2);
+
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const ratio = contentWidthMM / imgWidth;
+    const scaledHeightMM = imgHeight * ratio;
+
+    // لو المحتوى أكتر من صفحة واحدة → نقسمه
+    if (scaledHeightMM <= pageHeightMM - 20) {
+      // صفحة واحدة
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      pdf.addImage(imgData, 'JPEG', marginMM, 10, contentWidthMM, scaledHeightMM);
+
+    } else {
+      // صفحات متعددة
+      const pageContentHeightMM = pageHeightMM - 20;
+      const pageContentHeightPx = pageContentHeightMM / ratio;
+
+      let yOffsetPx = 0;
+      let pageNumber = 0;
+
+      while (yOffsetPx < imgHeight) {
+        const currentPageHeightPx = Math.min(pageContentHeightPx, imgHeight - yOffsetPx);
+
+        // create temp canvas for this page slice
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = imgWidth;
+        pageCanvas.height = currentPageHeightPx;
+
+        const ctx = pageCanvas.getContext('2d');
+        ctx.drawImage(
+          canvas,
+          0, yOffsetPx,
+          imgWidth, currentPageHeightPx,
+          0, 0,
+          imgWidth, currentPageHeightPx
+        );
+
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+        const pageHeightMM = currentPageHeightPx * ratio;
+
+        if (pageNumber > 0) pdf.addPage();
+        pdf.addImage(pageImgData, 'JPEG', marginMM, 10, contentWidthMM, pageHeightMM);
+
+        // إضافة رقم الصفحة في الأسفل
+        pdf.setFontSize(9);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          `صفحة ${pageNumber + 1}`,
+          pageWidthMM / 2,
+          pageHeightMM - 5,
+          { align: 'center' }
+        );
+
+        yOffsetPx += currentPageHeightPx;
+        pageNumber++;
+
+        // حد أقصى 50 صفحة كحماية
+        if (pageNumber > 50) break;
+      }
+    }
+
+    updatePDFProgress(90, 'جاري الحفظ...');
+
+    // اسم الملف
+    const fileName = `${summaryTitle}_${partTitle}.pdf`
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .substring(0, 100);
+
+    pdf.save(fileName + '.pdf');
+
+    // حذف العنصر المؤقت
+    document.body.removeChild(printWrap);
+
+    updatePDFProgress(100, 'تم بنجاح ✓');
+
+    setTimeout(() => {
+      $('pdfOverlay').classList.remove('show');
+      showToast('تم تحميل PDF بنجاح ✓', 'success');
+    }, 600);
+
+  } catch (err) {
+    console.error('PDF error:', err);
+    $('pdfOverlay').classList.remove('show');
+    showToast('حدث خطأ في توليد PDF: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origBtnHTML;
+  }
+}
+
+function updatePDFProgress(pct, text) {
+  $('pdfProgressFill').style.width = pct + '%';
+  $('pdfProgressText').textContent = pct + '%';
+  if (text) $('pdfMessage').textContent = text;
+}
+
+// ============================================================
+// 🔍 البحث والفلترة
+// ============================================================
+$('searchInput').addEventListener('input', (e) => {
+  currentSearchQuery = cleanInput(e.target.value).toLowerCase();
+  renderLibrary();
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.dataset.filter;
+    renderLibrary();
+  });
+});
+
+// ============================================================
+// ⌨️ Escape
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('partViewer').classList.contains('show')) {
+      $('partViewer').classList.remove('show');
+      document.body.style.overflow = '';
+    } else if ($('partsPickerOverlay').classList.contains('show')) {
+      $('partsPickerOverlay').classList.remove('show');
+      document.body.style.overflow = '';
+      currentSummary = null;
+    } else if ($('drawer').classList.contains('open')) {
+      closeDrawer();
+    }
+  }
+
+  // أسهم لوحة المفاتيح في شاشة العارض
+  if ($('partViewer').classList.contains('show')) {
+    if (e.key === 'ArrowLeft' && currentPartIndex < currentParts.length - 1) {
+      currentPartIndex++;
+      renderCurrentPart();
+    }
+    if (e.key === 'ArrowRight' && currentPartIndex > 0) {
+      currentPartIndex--;
+      renderCurrentPart();
+    }
+  }
+});
+
+// ============================================================
+// 📱 Drawer
+// ============================================================
+const drawer = $('drawer');
+const drawerOverlay = $('drawerOverlay');
+
+function openDrawer() {
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+$('mobileMenuBtn')?.addEventListener('click', openDrawer);
+$('drawerClose')?.addEventListener('click', closeDrawer);
+drawerOverlay?.addEventListener('click', closeDrawer);
+
+// ============================================================
+// 🚪 Logout
+// ============================================================
+function handleLogout() {
+  if (!confirm('هل تريد تسجيل الخروج؟')) return;
+  sessionStorage.removeItem('meezan_logged_in');
+  sessionStorage.removeItem('meezan_username');
+  sessionStorage.removeItem('meezan_role');
+  sessionStorage.removeItem('meezan_user_id');
+  sessionStorage.removeItem('meezan_user_data');
+  window.location.replace('login.html');
+}
+
+$('logoutBtn').addEventListener('click', handleLogout);
+$('drawerLogoutBtn').addEventListener('click', () => {
+  closeDrawer();
+  setTimeout(handleLogout, 300);
+});
+
+// ============================================================
+// 📡 Real-time
+// ============================================================
+const cachedSettings = loadCache(CACHE_SETTINGS);
+if (cachedSettings) {
+  currentSettings = cachedSettings;
+  applySettings(cachedSettings);
+}
+
+requestAnimationFrame(() => document.body.classList.add('ready'));
+
+onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
+  if (!snap.exists()) return;
+  const data = snap.data();
+  currentSettings = data;
+  applySettings(data);
+  saveCache(CACHE_SETTINGS, data);
+}, (err) => console.log('settings error:', err.message));
+
+new MutationObserver(() => {
+  if (currentSettings) applyColors(currentSettings);
+}).observe(document.documentElement, { attributes: ['data-theme'] });
+
+// ===== المكتبة =====
+onSnapshot(doc(db, 'settings', 'library'), (snap) => {
+  if (!snap.exists()) {
+    allItems = [];
+  } else {
+    const data = snap.data();
+    allItems = Array.isArray(data.items) ? data.items : [];
+  }
+  renderLibrary();
+}, (err) => {
+  console.log('library error:', err.message);
+  allItems = [];
+  renderLibrary();
+});
+
+// ============================================================
+// 🚀 Init
+// ============================================================
+async function init() {
+  await loadUserData();
+  updateWatermarkCSS();
+}
+
+init();
+
+// ============================================================
+// 🛡️ حماية
+// ============================================================
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
+    window.location.replace('login.html');
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
