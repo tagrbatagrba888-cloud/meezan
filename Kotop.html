@@ -1740,6 +1740,26 @@ function escapeHtml(text) {
 }
 
 // ============================================================
+// 💾 CACHE — القراءة الفورية
+// ============================================================
+const CACHE_SETTINGS = 'meezan_settings_cache';
+const CACHE_LIBRARY  = 'meezan_library_cache';
+const CACHE_USER     = 'meezan_user_cache';
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+// ============================================================
 // 💬 Toast
 // ============================================================
 let toastTimeout;
@@ -1798,23 +1818,8 @@ function updateDrawerTheme(theme) {
 }
 
 // ============================================================
-// 📦 Cache & Settings
+// 📊 الحالة العامة
 // ============================================================
-const CACHE_SETTINGS = 'meezan_settings_cache';
-
-function loadCache(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-
-function saveCache(key, data) {
-  try {
-    localStorage.setItem(key, JSON.stringify({ ...data, _cachedAt: Date.now() }));
-  } catch (e) {}
-}
-
 let currentSettings = null;
 let currentSiteName = 'ميزان';
 let currentSiteLogoUrl = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
@@ -1823,6 +1828,52 @@ let currentGrade = '';
 let currentUserId = null;
 let currentRole = 'student';
 
+let allItems = [];
+let filteredItems = [];
+let currentFilter = 'all';
+let currentSearchQuery = '';
+
+let currentSummary = null;
+let currentParts = [];
+let currentPartIndex = 0;
+
+// ============================================================
+// ⚡ خطوة 1: اقرأ الكاش فورًا واعرض كل شيء قبل أي اتصال
+// ============================================================
+function bootstrapFromCache() {
+  // 1) الإعدادات
+  const cachedSettings = loadCache(CACHE_SETTINGS);
+  if (cachedSettings) {
+    currentSettings = cachedSettings;
+    applySettings(cachedSettings);
+  }
+
+  // 2) المستخدم
+  const cachedUser = loadCache(CACHE_USER);
+  if (cachedUser) {
+    currentUser = cachedUser.user || null;
+    currentGrade = currentUser?.grade || '';
+    currentUserId = cachedUser.userId || sessionStorage.getItem('meezan_user_id');
+    currentRole = cachedUser.role || sessionStorage.getItem('meezan_role') || 'student';
+
+    if (currentGrade) {
+      $('userGradeInfo').textContent = `استعرض الكتب والتلخيصات الخاصة بـ: ${currentGrade}`;
+    } else {
+      $('userGradeInfo').textContent = 'استعرض الكتب والتلخيصات المتاحة';
+    }
+  }
+
+  // 3) المكتبة — اعرضها فورًا
+  const cachedLib = loadCache(CACHE_LIBRARY);
+  if (cachedLib && Array.isArray(cachedLib.items)) {
+    allItems = cachedLib.items;
+    renderLibrary();
+  }
+}
+
+// ============================================================
+// 🎨 تطبيق الإعدادات
+// ============================================================
 function applySettings(data) {
   if (!data) return;
 
@@ -1890,130 +1941,22 @@ function updateWatermarkCSS() {
 }
 
 // ============================================================
-// 📊 الحالة
+// 🎯 عرض المكتبة (نفس المنطق السابق)
 // ============================================================
-let allItems = [];
-let filteredItems = [];
-let currentFilter = 'all';
-let currentSearchQuery = '';
-let userDataLoaded = false;
-let libraryDataLoaded = false;
-
-// متغيرات شاشة الجزء
-let currentSummary = null;
-let currentParts = [];
-let currentPartIndex = 0;
-
-// ============================================================
-// 👤 تحميل بيانات المستخدم — REAL-TIME ⚡
-// ============================================================
-function startUserMonitoring() {
-  const userId = sessionStorage.getItem('meezan_user_id');
-  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
-  const role = sessionStorage.getItem('meezan_role') || 'student';
-
-  currentRole = role;
-  currentUserId = userId;
-
-  if (!userId && !username) {
-    userDataLoaded = true;
-    tryRenderLibrary();
-    return;
-  }
-
-  const collectionName = role === 'teacher' ? 'teachers' : 'users';
-
-  // ✅ onSnapshot بدل getDoc → فوري دايمًا
-  onSnapshot(doc(db, collectionName, 'all'), (snap) => {
-    if (!snap.exists()) {
-      userDataLoaded = true;
-      tryRenderLibrary();
-      return;
-    }
-
-    const items = snap.data().items || [];
-    let user = null;
-
-    if (userId) user = items.find(u => u.id === userId);
-    if (!user && username) {
-      user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
-    }
-
-    if (!user) {
-      userDataLoaded = true;
-      tryRenderLibrary();
-      return;
-    }
-
-    currentUser = user;
-    currentGrade = user.grade || '';
-
-    if (currentGrade) {
-      $('userGradeInfo').textContent = `استعرض الكتب والتلخيصات الخاصة بـ: ${currentGrade}`;
-    } else {
-      $('userGradeInfo').textContent = 'استعرض الكتب والتلخيصات المتاحة';
-    }
-
-    userDataLoaded = true;
-    tryRenderLibrary();
-
-  }, (err) => {
-    console.log('user error:', err.message);
-    userDataLoaded = true;
-    tryRenderLibrary();
-  });
-}
-
-// ============================================================
-// 📚 مراقبة المكتبة — REAL-TIME ⚡
-// ============================================================
-function startLibraryMonitoring() {
-  onSnapshot(doc(db, 'settings', 'library'), (snap) => {
-    if (!snap.exists()) {
-      allItems = [];
-    } else {
-      const data = snap.data();
-      allItems = Array.isArray(data.items) ? data.items : [];
-    }
-    libraryDataLoaded = true;
-    tryRenderLibrary();
-  }, (err) => {
-    console.log('library error:', err.message);
-    allItems = [];
-    libraryDataLoaded = true;
-    tryRenderLibrary();
-  });
-}
-
-// ============================================================
-// 🎯 عرض المكتبة (بعد تحميل كل من المستخدم والمكتبة)
-// ============================================================
-function tryRenderLibrary() {
-  if (userDataLoaded && libraryDataLoaded) {
-    renderLibrary();
-  }
-}
-
 function renderLibrary() {
   const grid = $('libraryGrid');
   const empty = $('emptyState');
   grid.innerHTML = '';
 
-  // فلترة
   let visible = allItems.filter(i => {
     if (!i.published) return false;
 
     if (Array.isArray(i.grades) && i.grades.length > 0) {
-      // لو للعنصر فرق محددة:
-      // - لو المستخدم عنده فرقة → لازم تكون ضمن الفرق
-      // - لو المستخدم مفيهوش فرقة → اعرضها (للأمان)
       if (currentGrade) {
         return i.grades.includes(currentGrade);
       }
       return true;
     }
-
-    // لو مفيش فرق محددة → للكل
     return true;
   });
 
@@ -2110,7 +2053,6 @@ function createLibCard(item) {
     card.appendChild(desc);
   }
 
-  // قسم الكتاب
   const bookSec = document.createElement('div');
   bookSec.className = 'lib-section';
 
@@ -2152,7 +2094,6 @@ function createLibCard(item) {
   bookSec.appendChild(bookContent);
   card.appendChild(bookSec);
 
-  // قسم التلخيص
   if (!isBook) {
     const sumSec = document.createElement('div');
     sumSec.className = 'lib-section';
@@ -2209,7 +2150,6 @@ function createLibCard(item) {
     card.appendChild(sumSec);
   }
 
-  // الفرق
   if (item.grades && item.grades.length > 0) {
     const gradesWrap = document.createElement('div');
     gradesWrap.className = 'lib-grades';
@@ -2641,41 +2581,97 @@ $('drawerLogoutBtn').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Real-time: Settings + Library
+// 🚀 Init — الكاش أولًا، ثم Firebase في الخلفية
 // ============================================================
-const cachedSettings = loadCache(CACHE_SETTINGS);
-if (cachedSettings) {
-  currentSettings = cachedSettings;
-  applySettings(cachedSettings);
-}
 
+// ⚡ 1) اعرض كل شيء فورًا من الكاش
+bootstrapFromCache();
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
-// إعدادات الموقع
-onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
-  if (!snap.exists()) return;
-  const data = snap.data();
-  currentSettings = data;
-  applySettings(data);
-  saveCache(CACHE_SETTINGS, data);
-}, (err) => console.log('settings error:', err.message));
+// 🌐 2) ابدأ الاتصال بـ Firebase وحدّث بصمت
+function startRealtime() {
+  // ===== إعدادات الموقع =====
+  onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    currentSettings = data;
+    applySettings(data);
+    saveCache(CACHE_SETTINGS, data);
+  }, (err) => console.log('settings error:', err.message));
 
-// مراقبة الوضع الليلي
+  // ===== المكتبة =====
+  onSnapshot(doc(db, 'settings', 'library'), (snap) => {
+    let items = [];
+    if (snap.exists()) {
+      const data = snap.data();
+      items = Array.isArray(data.items) ? data.items : [];
+    }
+
+    // قارن لو حصل تغيير فعلي
+    const newHash = JSON.stringify(items);
+    const oldHash = JSON.stringify(allItems);
+    if (newHash === oldHash) return;
+
+    allItems = items;
+    saveCache(CACHE_LIBRARY, { items });
+    renderLibrary();
+  }, (err) => console.log('library error:', err.message));
+
+  // ===== المستخدم =====
+  const userId = sessionStorage.getItem('meezan_user_id');
+  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
+  const role = sessionStorage.getItem('meezan_role') || 'student';
+  const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+  if (userId || username) {
+    onSnapshot(doc(db, collectionName, 'all'), (snap) => {
+      if (!snap.exists()) return;
+
+      const items = snap.data().items || [];
+      let user = null;
+
+      if (userId) user = items.find(u => u.id === userId);
+      if (!user && username) {
+        user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
+      }
+
+      if (!user) return;
+
+      currentUser = user;
+      currentUserId = userId;
+      currentRole = role;
+
+      const newGrade = user.grade || '';
+      const gradeChanged = newGrade !== currentGrade;
+      currentGrade = newGrade;
+
+      if (currentGrade) {
+        $('userGradeInfo').textContent = `استعرض الكتب والتلخيصات الخاصة بـ: ${currentGrade}`;
+      } else {
+        $('userGradeInfo').textContent = 'استعرض الكتب والتلخيصات المتاحة';
+      }
+
+      saveCache(CACHE_USER, { user, userId, role });
+
+      // أعد الرسم فقط لو الفرقة اتغيرت
+      if (gradeChanged) renderLibrary();
+
+    }, (err) => console.log('user error:', err.message));
+  }
+}
+
+// ابدأ Firebase بعد ما الصفحة تخلص أول إطار (مش هيأثر على السرعة)
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(startRealtime, { timeout: 1000 });
+} else {
+  setTimeout(startRealtime, 0);
+}
+
 new MutationObserver(() => {
   if (currentSettings) applyColors(currentSettings);
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
-// ============================================================
-// 🚀 Init — تشغيل المراقبة الفورية
-// ============================================================
-function init() {
-  // ⚡ ابدأ مراقبة المستخدم والمكتبة في نفس الوقت — Real-time
-  startUserMonitoring();
-  startLibraryMonitoring();
-  updateWatermarkCSS();
-}
-
-init();
+updateWatermarkCSS();
 
 // ============================================================
 // 🛡️ حماية
