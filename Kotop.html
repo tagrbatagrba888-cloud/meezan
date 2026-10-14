@@ -1684,8 +1684,7 @@
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
-</div>
-<script type="module">
+</div><script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
   getFirestore, doc, onSnapshot, getDoc, serverTimestamp 
@@ -1821,6 +1820,8 @@ let currentSiteName = 'ميزان';
 let currentSiteLogoUrl = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
 let currentUser = null;
 let currentGrade = '';
+let currentUserId = null;
+let currentRole = 'student';
 
 function applySettings(data) {
   if (!data) return;
@@ -1881,19 +1882,11 @@ function applyColors(data) {
   }
 }
 
-// ============================================================
-// 💧 تحديث علامة مائية في CSS (للقراءة)
-// ============================================================
 function updateWatermarkCSS() {
   if (!currentSiteLogoUrl) return;
-
   const wrap = $('viewerContentWrap');
   if (!wrap) return;
-
-  wrap.style.setProperty(
-    '--watermark-bg',
-    `url("${currentSiteLogoUrl}")`
-  );
+  wrap.style.setProperty('--watermark-bg', `url("${currentSiteLogoUrl}")`);
 }
 
 // ============================================================
@@ -1903,6 +1896,8 @@ let allItems = [];
 let filteredItems = [];
 let currentFilter = 'all';
 let currentSearchQuery = '';
+let userDataLoaded = false;
+let libraryDataLoaded = false;
 
 // متغيرات شاشة الجزء
 let currentSummary = null;
@@ -1910,20 +1905,31 @@ let currentParts = [];
 let currentPartIndex = 0;
 
 // ============================================================
-// 👤 تحميل بيانات المستخدم
+// 👤 تحميل بيانات المستخدم — REAL-TIME ⚡
 // ============================================================
-async function loadUserData() {
+function startUserMonitoring() {
   const userId = sessionStorage.getItem('meezan_user_id');
   const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
   const role = sessionStorage.getItem('meezan_role') || 'student';
 
-  if (!userId && !username) return;
+  currentRole = role;
+  currentUserId = userId;
 
-  try {
-    const collectionName = role === 'teacher' ? 'teachers' : 'users';
+  if (!userId && !username) {
+    userDataLoaded = true;
+    tryRenderLibrary();
+    return;
+  }
 
-    const snap = await getDoc(doc(db, collectionName, 'all'));
-    if (!snap.exists()) return;
+  const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+  // ✅ onSnapshot بدل getDoc → فوري دايمًا
+  onSnapshot(doc(db, collectionName, 'all'), (snap) => {
+    if (!snap.exists()) {
+      userDataLoaded = true;
+      tryRenderLibrary();
+      return;
+    }
 
     const items = snap.data().items || [];
     let user = null;
@@ -1933,7 +1939,11 @@ async function loadUserData() {
       user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
     }
 
-    if (!user) return;
+    if (!user) {
+      userDataLoaded = true;
+      tryRenderLibrary();
+      return;
+    }
 
     currentUser = user;
     currentGrade = user.grade || '';
@@ -1944,34 +1954,69 @@ async function loadUserData() {
       $('userGradeInfo').textContent = 'استعرض الكتب والتلخيصات المتاحة';
     }
 
-  } catch (e) {
-    console.error('خطأ في تحميل المستخدم:', e);
-  }
+    userDataLoaded = true;
+    tryRenderLibrary();
+
+  }, (err) => {
+    console.log('user error:', err.message);
+    userDataLoaded = true;
+    tryRenderLibrary();
+  });
 }
 
 // ============================================================
-// 🎨 عرض البطاقات
+// 📚 مراقبة المكتبة — REAL-TIME ⚡
 // ============================================================
+function startLibraryMonitoring() {
+  onSnapshot(doc(db, 'settings', 'library'), (snap) => {
+    if (!snap.exists()) {
+      allItems = [];
+    } else {
+      const data = snap.data();
+      allItems = Array.isArray(data.items) ? data.items : [];
+    }
+    libraryDataLoaded = true;
+    tryRenderLibrary();
+  }, (err) => {
+    console.log('library error:', err.message);
+    allItems = [];
+    libraryDataLoaded = true;
+    tryRenderLibrary();
+  });
+}
+
+// ============================================================
+// 🎯 عرض المكتبة (بعد تحميل كل من المستخدم والمكتبة)
+// ============================================================
+function tryRenderLibrary() {
+  if (userDataLoaded && libraryDataLoaded) {
+    renderLibrary();
+  }
+}
+
 function renderLibrary() {
   const grid = $('libraryGrid');
   const empty = $('emptyState');
   grid.innerHTML = '';
 
-  // فلترة: منشور + للفرقة بتاعة المستخدم
+  // فلترة
   let visible = allItems.filter(i => {
     if (!i.published) return false;
 
-    // لو للعنصر فرق محددة → لازم تكون فرقة المستخدم ضمنها
     if (Array.isArray(i.grades) && i.grades.length > 0) {
-      if (!currentGrade) return false;
-      return i.grades.includes(currentGrade);
+      // لو للعنصر فرق محددة:
+      // - لو المستخدم عنده فرقة → لازم تكون ضمن الفرق
+      // - لو المستخدم مفيهوش فرقة → اعرضها (للأمان)
+      if (currentGrade) {
+        return i.grades.includes(currentGrade);
+      }
+      return true;
     }
 
     // لو مفيش فرق محددة → للكل
     return true;
   });
 
-  // العدّادات
   const total = visible.length;
   const books = visible.filter(i => i.type === 'book').length;
   const summaries = visible.filter(i => i.type === 'summary').length;
@@ -1980,7 +2025,6 @@ function renderLibrary() {
   $('countBooks').textContent = books;
   $('countSummaries').textContent = summaries;
 
-  // الفلترة
   let filtered = [...visible];
 
   if (currentFilter === 'book') filtered = filtered.filter(i => i.type === 'book');
@@ -1995,8 +2039,8 @@ function renderLibrary() {
 
   filtered.sort((a, b) => {
     const da = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
-    const db = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
-    return db - da;
+    const db2 = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return db2 - da;
   });
 
   filteredItems = filtered;
@@ -2034,7 +2078,6 @@ function createLibCard(item) {
   const typeIcon = isBook ? 'fa-book' : 'fa-file-lines';
   const typeLabel = isBook ? 'كتاب' : 'تلخيص';
 
-  // Header
   const header = document.createElement('div');
   header.className = 'lib-card-header';
 
@@ -2060,7 +2103,6 @@ function createLibCard(item) {
   header.appendChild(titleWrap);
   card.appendChild(header);
 
-  // الوصف
   if (item.description) {
     const desc = document.createElement('div');
     desc.style.cssText = 'font-size:12.5px; color:var(--text-sub); font-weight:500; line-height:1.6; margin-bottom:12px; padding:8px 0;';
@@ -2068,7 +2110,7 @@ function createLibCard(item) {
     card.appendChild(desc);
   }
 
-  // ===== قسم الكتاب =====
+  // قسم الكتاب
   const bookSec = document.createElement('div');
   bookSec.className = 'lib-section';
 
@@ -2110,7 +2152,7 @@ function createLibCard(item) {
   bookSec.appendChild(bookContent);
   card.appendChild(bookSec);
 
-  // ===== قسم التلخيص (للتلخيص فقط) =====
+  // قسم التلخيص
   if (!isBook) {
     const sumSec = document.createElement('div');
     sumSec.className = 'lib-section';
@@ -2147,7 +2189,6 @@ function createLibCard(item) {
       hasAny = true;
     }
 
-    // زر فتح الأجزاء لو موجودة
     if (item.partsCount > 0) {
       const partsBtn = document.createElement('button');
       partsBtn.className = 'lib-link-chip summary-btn';
@@ -2168,7 +2209,7 @@ function createLibCard(item) {
     card.appendChild(sumSec);
   }
 
-  // ===== الفرق =====
+  // الفرق
   if (item.grades && item.grades.length > 0) {
     const gradesWrap = document.createElement('div');
     gradesWrap.className = 'lib-grades';
@@ -2187,7 +2228,7 @@ function createLibCard(item) {
 }
 
 // ============================================================
-// 📋 Parts Picker — عرض الأجزاء
+// 📋 Parts Picker
 // ============================================================
 async function openPartsPicker(summaryId) {
   const item = allItems.find(i => i.id === summaryId);
@@ -2241,7 +2282,6 @@ function renderPartsList() {
     row.className = 'part-row';
     row.type = 'button';
 
-    // احسب عدد الكلمات
     const wordCount = (part.content || '').split(/\s+/).filter(w => w.length > 0).length;
     const readingTime = Math.max(1, Math.round(wordCount / 200));
 
@@ -2279,17 +2319,14 @@ $('partsPickerOverlay').addEventListener('click', (e) => {
 });
 
 // ============================================================
-// 📖 Part Viewer — عرض الجزء كامل
+// 📖 Part Viewer
 // ============================================================
 function openPartViewer(index) {
   if (!currentSummary || !currentParts[index]) return;
 
   currentPartIndex = index;
 
-  // إغلاق Picker
   $('partsPickerOverlay').classList.remove('show');
-
-  // فتح العارض
   $('partViewer').classList.add('show');
   document.body.style.overflow = 'hidden';
 
@@ -2307,10 +2344,8 @@ function renderCurrentPart() {
 
   $('viewerContent').textContent = part.content || 'لا يوجد محتوى في هذا الجزء';
 
-  // scroll للأعلى
   $('viewerBody').scrollTop = 0;
 
-  // تفعيل / تعطيل أزرار التنقل
   $('navPrevBtn').disabled = currentPartIndex === 0;
   $('navNextBtn').disabled = currentPartIndex === currentParts.length - 1;
 }
@@ -2335,7 +2370,7 @@ $('navNextBtn').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📄 توليد PDF مع Watermark
+// 📄 PDF
 // ============================================================
 $('viewerDownloadBtn').addEventListener('click', generatePDF);
 
@@ -2349,12 +2384,10 @@ async function generatePDF() {
   const origBtnHTML = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التوليد...</span>';
 
-  // إظهار overlay التقدم
   $('pdfOverlay').classList.add('show');
   updatePDFProgress(0, 'جاري التحضير...');
 
   try {
-    // ===== إنشاء عنصر HTML مؤقت للطباعة =====
     const printWrap = document.createElement('div');
     printWrap.style.cssText = `
       position: fixed;
@@ -2370,70 +2403,12 @@ async function generatePDF() {
       z-index: -1;
     `;
 
-    // محتوى النص
     const partTitle = part.title || `الجزء ${currentPartIndex + 1}`;
     const summaryTitle = currentSummary.title || 'تلخيص';
     const partContent = part.content || '';
     const fullName = currentUser?.fullName || currentUser?.username || 'مستخدم';
 
     printWrap.innerHTML = `
-      <div style="position:relative; z-index:2;">
-        <div style="text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #C9A961;">
-          <img src="${currentSiteLogoUrl}" 
-               style="width:70px; height:70px; border-radius:50%; object-fit:contain; margin-bottom:12px;"
-               crossorigin="anonymous">
-          <div style="font-size:20px; font-weight:900; color:#0B3D2E;">${escapeHtml(currentSiteName)}</div>
-          <div style="font-size:11px; color:#5A6B66; font-weight:600; letter-spacing:2px; margin-top:4px;">MEEZAN PLATFORM</div>
-        </div>
-
-        <div style="background:#F8FBF9; border:2px solid #E0E5E1; border-radius:12px; padding:16px 20px; margin-bottom:24px;">
-          <div style="font-size:11px; color:#5A6B66; font-weight:700; margin-bottom:6px;">📚 التلخيص</div>
-          <div style="font-size:17px; font-weight:900; color:#0B3D2E; margin-bottom:12px;">${escapeHtml(summaryTitle)}</div>
-          <div style="display:flex; gap:20px; font-size:11px; color:#5A6B66; font-weight:600; flex-wrap:wrap;">
-            <span>📄 ${escapeHtml(partTitle)}</span>
-            <span>👤 ${escapeHtml(fullName)}</span>
-            <span>📅 ${new Date().toLocaleDateString('ar-EG')}</span>
-          </div>
-        </div>
-
-        <div style="font-size:16px; line-height:2; color:#0B3D2E; font-weight:500; white-space:pre-wrap; word-break:break-word;">
-          ${escapeHtml(partContent)}
-        </div>
-
-        <div style="margin-top:40px; padding-top:20px; border-top:2px dashed #E0E5E1; text-align:center; font-size:10px; color:#5A6B66; font-weight:600;">
-          © ${new Date().getFullYear()} ${escapeHtml(currentSiteName)} — جميع الحقوق محفوظة
-        </div>
-      </div>
-    `;
-
-    // إضافة علامة مائية شفافة
-    const watermark = document.createElement('div');
-    watermark.style.cssText = `
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.05;
-    `;
-    watermark.innerHTML = `
-      <img src="${currentSiteLogoUrl}" 
-           crossorigin="anonymous"
-           style="width: 400px; height: 400px; object-fit: contain;">
-    `;
-
-    // wrapper بحاجة position: relative
-    const outerWrap = document.createElement('div');
-    outerWrap.style.cssText = 'position: relative;';
-    outerWrap.appendChild(watermark);
-    outerWrap.appendChild(printWrap);
-
-    // لكن printWrap كـ fixed خارج الشاشة — نحط المحتوى الداخلي
-    // نستخدم بنية مختلفة:
-    printWrap.innerHTML = `
-      ${watermark.outerHTML}
       <div style="position:relative; z-index:2;">
         <div style="text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #C9A961;">
           <img src="${currentSiteLogoUrl}" 
@@ -2470,7 +2445,6 @@ async function generatePDF() {
 
     updatePDFProgress(40, 'جاري تحويل المحتوى...');
 
-    // ===== تحويل HTML إلى Canvas =====
     const canvas = await html2canvas(printWrap, {
       scale: 2,
       useCORS: true,
@@ -2481,7 +2455,6 @@ async function generatePDF() {
 
     updatePDFProgress(70, 'جاري توليد ملف PDF...');
 
-    // ===== إنشاء PDF =====
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -2499,14 +2472,10 @@ async function generatePDF() {
     const ratio = contentWidthMM / imgWidth;
     const scaledHeightMM = imgHeight * ratio;
 
-    // لو المحتوى أكتر من صفحة واحدة → نقسمه
     if (scaledHeightMM <= pageHeightMM - 20) {
-      // صفحة واحدة
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
       pdf.addImage(imgData, 'JPEG', marginMM, 10, contentWidthMM, scaledHeightMM);
-
     } else {
-      // صفحات متعددة
       const pageContentHeightMM = pageHeightMM - 20;
       const pageContentHeightPx = pageContentHeightMM / ratio;
 
@@ -2516,7 +2485,6 @@ async function generatePDF() {
       while (yOffsetPx < imgHeight) {
         const currentPageHeightPx = Math.min(pageContentHeightPx, imgHeight - yOffsetPx);
 
-        // create temp canvas for this page slice
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = imgWidth;
         pageCanvas.height = currentPageHeightPx;
@@ -2531,12 +2499,11 @@ async function generatePDF() {
         );
 
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
-        const pageHeightMM = currentPageHeightPx * ratio;
+        const pageHeightMMLocal = currentPageHeightPx * ratio;
 
         if (pageNumber > 0) pdf.addPage();
-        pdf.addImage(pageImgData, 'JPEG', marginMM, 10, contentWidthMM, pageHeightMM);
+        pdf.addImage(pageImgData, 'JPEG', marginMM, 10, contentWidthMM, pageHeightMMLocal);
 
-        // إضافة رقم الصفحة في الأسفل
         pdf.setFontSize(9);
         pdf.setTextColor(150, 150, 150);
         pdf.text(
@@ -2549,21 +2516,18 @@ async function generatePDF() {
         yOffsetPx += currentPageHeightPx;
         pageNumber++;
 
-        // حد أقصى 50 صفحة كحماية
         if (pageNumber > 50) break;
       }
     }
 
     updatePDFProgress(90, 'جاري الحفظ...');
 
-    // اسم الملف
     const fileName = `${summaryTitle}_${partTitle}.pdf`
       .replace(/[\\/:*?"<>|]/g, '_')
       .substring(0, 100);
 
     pdf.save(fileName + '.pdf');
 
-    // حذف العنصر المؤقت
     document.body.removeChild(printWrap);
 
     updatePDFProgress(100, 'تم بنجاح ✓');
@@ -2607,7 +2571,7 @@ document.querySelectorAll('.filter-chip').forEach(chip => {
 });
 
 // ============================================================
-// ⌨️ Escape
+// ⌨️ Escape + الأسهم
 // ============================================================
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -2623,7 +2587,6 @@ document.addEventListener('keydown', (e) => {
     }
   }
 
-  // أسهم لوحة المفاتيح في شاشة العارض
   if ($('partViewer').classList.contains('show')) {
     if (e.key === 'ArrowLeft' && currentPartIndex < currentParts.length - 1) {
       currentPartIndex++;
@@ -2678,7 +2641,7 @@ $('drawerLogoutBtn').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Real-time
+// 📡 Real-time: Settings + Library
 // ============================================================
 const cachedSettings = loadCache(CACHE_SETTINGS);
 if (cachedSettings) {
@@ -2688,6 +2651,7 @@ if (cachedSettings) {
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
+// إعدادات الموقع
 onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
   if (!snap.exists()) return;
   const data = snap.data();
@@ -2696,30 +2660,18 @@ onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
   saveCache(CACHE_SETTINGS, data);
 }, (err) => console.log('settings error:', err.message));
 
+// مراقبة الوضع الليلي
 new MutationObserver(() => {
   if (currentSettings) applyColors(currentSettings);
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
-// ===== المكتبة =====
-onSnapshot(doc(db, 'settings', 'library'), (snap) => {
-  if (!snap.exists()) {
-    allItems = [];
-  } else {
-    const data = snap.data();
-    allItems = Array.isArray(data.items) ? data.items : [];
-  }
-  renderLibrary();
-}, (err) => {
-  console.log('library error:', err.message);
-  allItems = [];
-  renderLibrary();
-});
-
 // ============================================================
-// 🚀 Init
+// 🚀 Init — تشغيل المراقبة الفورية
 // ============================================================
-async function init() {
-  await loadUserData();
+function init() {
+  // ⚡ ابدأ مراقبة المستخدم والمكتبة في نفس الوقت — Real-time
+  startUserMonitoring();
+  startLibraryMonitoring();
   updateWatermarkCSS();
 }
 
@@ -2740,6 +2692,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
 </body>
 </html>
