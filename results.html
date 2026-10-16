@@ -1232,7 +1232,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 74px 110px 200px;
+    padding: 68px 100px 190px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1318,15 +1318,18 @@
     font-size: 38px;
     font-weight: 700;
     color: #0B3D2E;
-    line-height: 1.25;
-    margin: 6px 0 0 0;
-    padding: 0 15px;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.35;
+    margin: 8px 0 0 0;
+    padding: 4px 20px;
+    max-width: 90%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+    text-align: center;
     letter-spacing: 0;
     unicode-bidi: isolate;
+    display: block;
   }
 
   .cert-name-underline {
@@ -1334,7 +1337,7 @@
     max-width: 70%;
     height: 2px;
     background: linear-gradient(90deg, transparent, #0B3D2E 50%, transparent);
-    margin: 6px 0 6px;
+    margin: 8px 0 6px;
     border-radius: 2px;
     flex-shrink: 0;
   }
@@ -2043,6 +2046,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
 
+// ============================================================
+// 🔒 الحماية
+// ============================================================
 if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
   window.location.replace('login.html');
 }
@@ -2060,6 +2066,35 @@ window.addEventListener('popstate', () => {
   }
 });
 
+// ============================================================
+// 📦 الكاش المحلي (localStorage) — للعرض الفوري
+// ============================================================
+const CACHE_KEYS = {
+  user:         'meezan_results2_user',
+  homeworks:    'meezan_results2_homeworks',
+  exams:        'meezan_results2_exams',
+  hwSubs:       'meezan_results2_hwsubs',
+  examSubs:     'meezan_results2_examsubs',
+  hidden:       'meezan_results2_hidden',
+  certSettings: 'meezan_results2_certsettings'
+};
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+// ============================================================
+// 🧹 Helpers
+// ============================================================
 function cleanInput(value) {
   if (typeof value !== 'string') return '';
   return value
@@ -2110,6 +2145,9 @@ function formatDateFull(iso) {
   } catch (e) { return '—'; }
 }
 
+// ============================================================
+// 📊 الحالة العامة
+// ============================================================
 let myUserData = null;
 let myHomeworks = [];
 let myExams = [];
@@ -2131,48 +2169,26 @@ let certSettings = {
 
 let currentCertData = null;
 
-async function waitForUserData(maxWaitMs = 3000) {
-  if (myUserData) return myUserData;
-  
-  const start = Date.now();
-  while (!myUserData && (Date.now() - start) < maxWaitMs) {
-    await new Promise(r => setTimeout(r, 100));
-  }
-  return myUserData;
-}
-
 // ============================================================
-// ✅ جلب الاسم الكامل — الأولوية القصوى للحقل fullName
+// ✅ الاسم الكامل
 // ============================================================
 function getStudentFullName() {
-  // 1) من Firebase (الأولوية الأولى)
   if (myUserData && typeof myUserData === 'object') {
-    // ✅ fullName أولاً — ده الاسم الكامل الرسمي
     if (myUserData.fullName && String(myUserData.fullName).trim()) {
       return String(myUserData.fullName).trim();
     }
-    // احتياطي: name
     if (myUserData.name && String(myUserData.name).trim()) {
       return String(myUserData.name).trim();
     }
-    // احتياطي: username
     if (myUserData.username && String(myUserData.username).trim()) {
       return String(myUserData.username).trim();
     }
   }
   
-  // 2) من sessionStorage — نحاول meezan_fullname أولاً
-  const fullNameFromSession = sessionStorage.getItem('meezan_fullname');
-  if (fullNameFromSession && fullNameFromSession.trim() && fullNameFromSession !== 'مستخدم') {
-    return fullNameFromSession.trim();
-  }
+  const s = sessionStorage.getItem('meezan_fullname')
+         || sessionStorage.getItem('meezan_username');
+  if (s && s.trim() && s !== 'مستخدم') return s.trim();
   
-  const usernameFromSession = sessionStorage.getItem('meezan_username');
-  if (usernameFromSession && usernameFromSession.trim() && usernameFromSession !== 'مستخدم') {
-    return usernameFromSession.trim();
-  }
-  
-  // 3) الافتراضي
   return 'مستخدم';
 }
 
@@ -2199,6 +2215,90 @@ function getStudentCode() {
   return userId || '—';
 }
 
+// ============================================================
+// ⚡ تطبيق البيانات من الكاش فوراً
+// ============================================================
+function applyFromCache() {
+  let hasAnything = false;
+
+  // 1. المستخدم
+  const cUser = loadCache(CACHE_KEYS.user);
+  if (cUser && cUser.data && cUser.data.user) {
+    const u = cUser.data.user;
+    if (String(u.id) === String(userId)) {
+      myUserData = u;
+      const fullName = u.fullName || u.name || u.username || 'مستخدم';
+      sessionStorage.setItem('meezan_fullname', fullName);
+      sessionStorage.setItem('meezan_username', fullName);
+      if (u.code || u.studentCode || u.id) {
+        sessionStorage.setItem('meezan_code', String(u.code || u.studentCode || u.id));
+      }
+      console.log('⚡ user from cache:', fullName);
+      hasAnything = true;
+    }
+  }
+
+  // 2. الواجبات
+  const cHw = loadCache(CACHE_KEYS.homeworks);
+  if (cHw && Array.isArray(cHw.data)) {
+    myHomeworks = cHw.data;
+    console.log(`⚡ ${myHomeworks.length} homeworks from cache`);
+    hasAnything = true;
+  }
+
+  // 3. الامتحانات
+  const cEx = loadCache(CACHE_KEYS.exams);
+  if (cEx && Array.isArray(cEx.data)) {
+    myExams = cEx.data;
+    console.log(`⚡ ${myExams.length} exams from cache`);
+    hasAnything = true;
+  }
+
+  // 4. تسليمات الواجبات
+  const cHwSubs = loadCache(CACHE_KEYS.hwSubs);
+  if (cHwSubs && cHwSubs.data) {
+    myHWSubs = cHwSubs.data;
+    hasAnything = true;
+  }
+
+  // 5. تسليمات الامتحانات
+  const cExSubs = loadCache(CACHE_KEYS.examSubs);
+  if (cExSubs && cExSubs.data) {
+    myExamSubs = cExSubs.data;
+    hasAnything = true;
+  }
+
+  // 6. المخفي
+  const cHidden = loadCache(CACHE_KEYS.hidden);
+  if (cHidden && cHidden.data) {
+    hiddenHomeworks = new Set(cHidden.data.homeworks || []);
+    hiddenExams = new Set(cHidden.data.exams || []);
+    hiddenStudentResults = {};
+    const hsr = cHidden.data.hiddenStudentResults || {};
+    Object.keys(hsr).forEach(k => {
+      hiddenStudentResults[k] = new Set(hsr[k] || []);
+    });
+    hasAnything = true;
+  }
+
+  // 7. إعدادات الشهادة
+  const cCert = loadCache(CACHE_KEYS.certSettings);
+  if (cCert && cCert.data) {
+    certSettings = { ...certSettings, ...cCert.data };
+    hasAnything = true;
+  }
+
+  if (hasAnything) {
+    refreshAll();
+    console.log('⚡ applyFromCache → render done');
+  } else {
+    console.log('📭 no cache yet');
+  }
+}
+
+// ============================================================
+// 🌙 الوضع
+// ============================================================
 const savedTheme = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 updateThemeIcon(savedTheme);
@@ -2233,6 +2333,9 @@ function updateDrawerTheme(t) {
   }
 }
 
+// ============================================================
+// 💬 Toast
+// ============================================================
 let toastTimeout;
 function showToast(text, type = 'success') {
   const toast = $('toast');
@@ -2259,6 +2362,9 @@ document.querySelectorAll('.main-tab').forEach(tab => {
   });
 });
 
+// ============================================================
+// 📊 Stats
+// ============================================================
 function updateStats() {
   const hwSubs = Object.values(myHWSubs).filter(s => s.submitted);
   const exSubs = Object.values(myExamSubs).filter(s => s.submitted);
@@ -2297,6 +2403,9 @@ function isHiddenForMe(type, itemId) {
   return hiddenSet.has(userId);
 }
 
+// ============================================================
+// 🎨 Homeworks
+// ============================================================
 function applyHWFilters() {
   const q = cleanInput($('searchHomeworks').value).toLowerCase();
   const filter = document.querySelector('[data-hw-filter].active')?.dataset.hwFilter || 'all';
@@ -2490,6 +2599,9 @@ function createHWCard(item) {
   return card;
 }
 
+// ============================================================
+// 🎨 Exams
+// ============================================================
 function applyExamFilters() {
   const q = cleanInput($('searchExams').value).toLowerCase();
   const filter = document.querySelector('[data-exam-filter].active')?.dataset.examFilter || 'all';
@@ -2683,6 +2795,9 @@ function createExamCard(item) {
   return card;
 }
 
+// ============================================================
+// 🔍 Search + Filters
+// ============================================================
 $('searchHomeworks').addEventListener('input', (e) => {
   $('clearSearchHomeworks').classList.toggle('show', !!cleanInput(e.target.value));
   applyHWFilters();
@@ -2721,6 +2836,9 @@ document.querySelectorAll('[data-exam-filter]').forEach(btn => {
   });
 });
 
+// ============================================================
+// 📖 Answers Modal
+// ============================================================
 function openAnswersModal(type, item, sub) {
   if (!sub || !sub.submitted) {
     return showToast('لم تقم بتسليم هذا ' + (type === 'homework' ? 'الواجب' : 'الامتحان') + ' بعد', 'warning');
@@ -2877,6 +2995,9 @@ $('answersModal').addEventListener('click', (e) => {
   if (e.target === $('answersModal')) closeAnswersModal();
 });
 
+// ============================================================
+// 🎓 Certificates
+// ============================================================
 function buildCertificates() {
   const certs = [];
   const MIN_PERCENT = 80;
@@ -3017,9 +3138,10 @@ function createCertCard(cert) {
   return card;
 }
 
-async function openCertModal(cert, mode = 'view') {
-  await waitForUserData(3000);
-
+// ============================================================
+// 🖼️ Certificate Modal
+// ============================================================
+function openCertModal(cert, mode = 'view') {
   currentCertData = cert;
   $('certModalSubtitle').textContent = `${cert.itemName} — ${cert.percent}%`;
 
@@ -3031,6 +3153,7 @@ async function openCertModal(cert, mode = 'view') {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       scaleCertificate();
+      autoFitStudentName();
     });
   });
 
@@ -3069,22 +3192,46 @@ function scaleCertificate() {
 window.addEventListener('resize', () => {
   if ($('certModal').classList.contains('show')) {
     scaleCertificate();
+    autoFitStudentName();
   }
 });
 
+// ✅ تصغير خط الاسم تلقائياً إذا كان طويلاً
+function autoFitStudentName() {
+  const nameEl = document.querySelector('#certificateRender .cert-student-name');
+  if (!nameEl) return;
+
+  const MAX_SIZE = 38;
+  const MIN_SIZE = 20;
+  let size = MAX_SIZE;
+
+  nameEl.style.fontSize = size + 'px';
+
+  const maxWidth = 760;
+
+  let guard = 0;
+  while (nameEl.scrollWidth > maxWidth && size > MIN_SIZE && guard < 30) {
+    size -= 1;
+    nameEl.style.fontSize = size + 'px';
+    guard++;
+  }
+
+  console.log('📏 autoFitStudentName → final size:', size + 'px', 
+              '| scrollWidth:', nameEl.scrollWidth);
+}
+
 // ============================================================
-// ✅ رسم الشهادة — الاسم الكامل بعد "تشهد إدارة منصة ميزان التعليمية بأن"
+// ✅ رسم الشهادة
 // ============================================================
 function renderCertHTML(cert) {
   const container = $('certificateRender');
 
-  // ✅ الاسم الكامل من Firebase أولاً (fullName)
   const studentName = getStudentFullName();
   const studentCode = getStudentCode();
   const typeLabel = cert.type === 'homework' ? 'الواجب' : 'الامتحان';
   const dateFormatted = formatDateFull(cert.date);
 
-  console.log('🎓 رسم الشهادة بالاسم:', studentName);
+  console.log('🎓 رسم الشهادة — الاسم:', studentName);
 
   container.innerHTML = `
     <div class="cert-frame-outer"></div>
@@ -3142,8 +3289,15 @@ function renderCertHTML(cert) {
       <i class="fas fa-certificate"></i>
     </div>
   `;
+
+  requestAnimationFrame(() => {
+    autoFitStudentName();
+  });
 }
 
+// ============================================================
+// 💾 تحويل الشهادة إلى Canvas
+// ============================================================
 async function renderCertToCanvas() {
   const element = $('certificateRender');
   if (!element) throw new Error('Certificate element not found');
@@ -3247,6 +3401,9 @@ async function renderCertToCanvas() {
   return canvas;
 }
 
+// ============================================================
+// 💾 تحميل صورة
+// ============================================================
 $('certDownloadImage').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3276,6 +3433,9 @@ $('certDownloadImage').addEventListener('click', async () => {
   }
 });
 
+// ============================================================
+// 💾 تحميل PDF
+// ============================================================
 $('certDownloadPdf').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3312,6 +3472,9 @@ $('certDownloadPdf').addEventListener('click', async () => {
   }
 });
 
+// ============================================================
+// 📤 مشاركة
+// ============================================================
 $('certShareBtn').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3352,6 +3515,9 @@ $('certShareBtn').addEventListener('click', async () => {
   }
 });
 
+// ============================================================
+// 🔍 Search Certs
+// ============================================================
 $('searchCerts').addEventListener('input', (e) => {
   $('clearSearchCerts').classList.toggle('show', !!cleanInput(e.target.value));
   renderCertificates();
@@ -3364,22 +3530,18 @@ $('clearSearchCerts').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Listeners
+// 📡 Listeners — مع حفظ في الكاش
 // ============================================================
 function startUserListener() {
   if (!userId) return;
-
   const collectionName = userRole === 'teacher' ? 'teachers' : 'users';
 
   onSnapshot(doc(db, collectionName, 'all'), (snap) => {
     if (!snap.exists()) return;
     
     const items = snap.data().items || [];
-    
     let user = null;
-    if (userId) {
-      user = items.find(u => String(u.id) === String(userId));
-    }
+    if (userId) user = items.find(u => String(u.id) === String(userId));
     
     if (!user) {
       const uname = cleanInput(sessionStorage.getItem('meezan_username') || '');
@@ -3391,29 +3553,32 @@ function startUserListener() {
     if (user) {
       myUserData = user;
 
-      // ✅ خزّن fullName (الاسم الكامل الرسمي) في sessionStorage
       const fullName = user.fullName || user.name || user.username || 'مستخدم';
-      if (fullName) {
-        sessionStorage.setItem('meezan_fullname', fullName);
-        sessionStorage.setItem('meezan_username', fullName);
-      }
+      sessionStorage.setItem('meezan_fullname', fullName);
+      sessionStorage.setItem('meezan_username', fullName);
 
       const code = user.code || user.studentCode || user.id || '';
-      if (code) {
-        sessionStorage.setItem('meezan_code', String(code));
-      }
+      sessionStorage.setItem('meezan_code', String(code));
 
-      console.log('✅ تم تحميل بيانات المستخدم:', {
-        id: user.id,
-        fullName: user.fullName,
-        name: user.name,
-        username: user.username,
-        الاسم_المستخدم_في_الشهادة: getStudentFullName()
-      });
+      // ✅ احفظ في الكاش
+      saveCache(CACHE_KEYS.user, { user, role: userRole });
+
+      console.log('✅ user loaded from Firestore:', { id: user.id, fullName: user.fullName });
+
+      // لو الشهادة مفتوحة، أعد رسمها
+      if (currentCertData && $('certModal').classList.contains('show')) {
+        renderCertHTML(currentCertData);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scaleCertificate();
+            autoFitStudentName();
+          });
+        });
+      }
 
       refreshAll();
     } else {
-      console.warn('⚠️ لم يتم العثور على المستخدم:', userId);
+      console.warn('⚠️ user not found:', userId);
     }
   }, (err) => console.log('❌ user error:', err.message));
 }
@@ -3434,6 +3599,16 @@ function startHiddenResultsListener() {
         hiddenStudentResults[k] = new Set(hsr[k] || []);
       });
     }
+
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.hidden, {
+      homeworks: Array.from(hiddenHomeworks),
+      exams: Array.from(hiddenExams),
+      hiddenStudentResults: Object.fromEntries(
+        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
+      )
+    });
+
     refreshAll();
   }, (err) => console.log('hidden error:', err.message));
 }
@@ -3442,6 +3617,8 @@ function startHomeworksListener() {
   onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
     const items = snap.exists() ? (snap.data().items || []) : [];
     myHomeworks = items.filter(h => h.status === 'published');
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.homeworks, myHomeworks);
     refreshAll();
   }, (err) => console.log('homeworks error:', err.message));
 }
@@ -3450,34 +3627,42 @@ function startExamsListener() {
   onSnapshot(doc(db, 'exams', 'all'), (snap) => {
     const items = snap.exists() ? (snap.data().items || []) : [];
     myExams = items.filter(e => e.status === 'published');
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.exams, myExams);
     refreshAll();
   }, (err) => console.log('exams error:', err.message));
 }
 
 function startHWSubsListener() {
   onSnapshot(doc(db, 'homework_subs', 'all'), (snap) => {
-    myHWSubs = {};
+    const newSubs = {};
     if (snap.exists()) {
       (snap.data().items || []).forEach(sub => {
         if (sub.userId === userId) {
-          myHWSubs[sub.homeworkId] = sub;
+          newSubs[sub.homeworkId] = sub;
         }
       });
     }
+    myHWSubs = newSubs;
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.hwSubs, myHWSubs);
     refreshAll();
   }, (err) => console.log('hw subs error:', err.message));
 }
 
 function startExamSubsListener() {
   onSnapshot(doc(db, 'exam_subs', 'all'), (snap) => {
-    myExamSubs = {};
+    const newSubs = {};
     if (snap.exists()) {
       (snap.data().items || []).forEach(sub => {
         if (sub.userId === userId) {
-          myExamSubs[sub.examId] = sub;
+          newSubs[sub.examId] = sub;
         }
       });
     }
+    myExamSubs = newSubs;
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.examSubs, myExamSubs);
     refreshAll();
   }, (err) => console.log('exam subs error:', err.message));
 }
@@ -3494,6 +3679,8 @@ function startCertSettingsListener() {
         siteNameAr: data.siteNameAr || certSettings.siteNameAr,
         siteNameEn: data.siteNameEn || certSettings.siteNameEn
       };
+      // ✅ احفظ في الكاش
+      saveCache(CACHE_KEYS.certSettings, certSettings);
     }
   }, (err) => console.log('cert settings error:', err.message));
 }
@@ -3523,8 +3710,18 @@ function refreshAll() {
   myExams = backupEx;
 }
 
+// ============================================================
+// 🚪 Logout — امسح الكاش
+// ============================================================
+function clearResultsCache() {
+  Object.values(CACHE_KEYS).forEach(k => {
+    try { localStorage.removeItem(k); } catch (e) {}
+  });
+}
+
 $('logoutBtn').addEventListener('click', () => {
   if (!confirm('هل تريد تسجيل الخروج؟')) return;
+  clearResultsCache();
   sessionStorage.clear();
   window.location.replace('login.html');
 });
@@ -3533,11 +3730,15 @@ $('drawerLogoutBtn').addEventListener('click', () => {
   closeDrawer();
   setTimeout(() => {
     if (!confirm('هل تريد تسجيل الخروج؟')) return;
+    clearResultsCache();
     sessionStorage.clear();
     window.location.replace('login.html');
   }, 300);
 });
 
+// ============================================================
+// 📱 Drawer
+// ============================================================
 const drawer = $('drawer');
 const drawerOverlay = $('drawerOverlay');
 const menuBtn = $('menuBtn');
@@ -3566,8 +3767,16 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ============================================================
+// 🚀 Init — اعرض من الكاش فوراً + listeners بالخلفية
+// ============================================================
+
+// ⚡ 1. اعرض البيانات من الكاش فوراً (0ms)
+applyFromCache();
+
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
+// ⚡ 2. ابدأ listeners بالتوازي (تحدّث الكاش لما يوصل جديد)
 startUserListener();
 startHiddenResultsListener();
 startHomeworksListener();

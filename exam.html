@@ -605,7 +605,6 @@
     letter-spacing: 2px;
   }
 
-  /* صندوق الفتح بمدة */
   .exam-open-box {
     padding: 14px;
     border-radius: 12px;
@@ -918,7 +917,6 @@
   .access-info-row strong { color: var(--primary); font-weight: 900; margin-right: auto; }
   [data-theme="dark"] .access-info-row strong { color: var(--accent); }
 
-  /* Instructions Modal */
   .instructions-icon {
     width: 90px;
     height: 90px;
@@ -974,7 +972,6 @@
   .instruction-item.warning i { background: linear-gradient(135deg, #C0392B, #E74C3C); }
   .instruction-item.success i { background: linear-gradient(135deg, #1E7A5A, #2ECC71); }
 
-  /* Solve Mode */
   .solve-mode {
     position: fixed;
     inset: 0;
@@ -1047,7 +1044,6 @@
     display: block;
   }
 
-  /* Exam Timer */
   .exam-timer {
     padding: 10px 16px;
     border-radius: 12px;
@@ -1785,7 +1781,6 @@
 
 </div>
 
-<!-- ============ Modal: Password ============ -->
 <div class="modal-overlay" id="passwordModal">
   <div class="modal-box">
     <div class="password-icon">
@@ -1811,7 +1806,6 @@
   </div>
 </div>
 
-<!-- ============ Modal: Access Info ============ -->
 <div class="modal-overlay" id="accessInfoModal">
   <div class="modal-box">
     <div class="access-info-icon">
@@ -1856,7 +1850,6 @@
   </div>
 </div>
 
-<!-- ============ Modal: Instructions ============ -->
 <div class="modal-overlay" id="instructionsModal">
   <div class="modal-box">
     <div class="instructions-icon">
@@ -1901,7 +1894,6 @@
   </div>
 </div>
 
-<!-- ============ Solve Mode ============ -->
 <div class="solve-mode" id="solveMode">
   <div class="solve-header">
     <div class="solve-header-inner">
@@ -1948,7 +1940,6 @@
   </div>
 </div>
 
-<!-- ============ Result Screen ============ -->
 <div class="result-screen" id="resultScreen">
   <div class="result-box">
     <div class="result-icon" id="resultIcon">
@@ -1975,7 +1966,6 @@
   </div>
 </div>
 
-<!-- ============ Modal: Confirm ============ -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box">
     <div class="modal-header" style="justify-content: center; border: none; padding: 0; margin-bottom: 16px;">
@@ -1999,13 +1989,11 @@
   </div>
 </div>
 
-<!-- ============ Toast ============ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
 
-<!-- ============ Drawer ============ -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
 <aside class="drawer" id="drawer">
@@ -2098,6 +2086,35 @@ window.addEventListener('popstate', () => {
 });
 
 // ============================================================
+// 📦 الكاش المحلي (localStorage) — للعرض الفوري
+// ============================================================
+const CACHE_KEYS = {
+  exams:    'meezan_exam_exams',
+  examSubs: 'meezan_exam_subs',
+  user:     'meezan_exam_user',
+  hidden:   'meezan_exam_hidden'
+};
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+function clearExamCache() {
+  Object.values(CACHE_KEYS).forEach(k => {
+    try { localStorage.removeItem(k); } catch (e) {}
+  });
+}
+
+// ============================================================
 // 🧹 التنظيف
 // ============================================================
 function cleanInput(value) {
@@ -2133,19 +2150,67 @@ let searchQuery = '';
 let currentExam = null;
 let currentAnswers = {};
 
-// ⏰ العدادات
 let examTimerInterval = null;
 let examEndAt = null;
 let countdownInterval = null;
 let isSubmitting = false;
 let hasWarned1Min = false;
 
-// مراقبة
 let userMonitoringUnsub = null;
 let hiddenResultsUnsub = null;
 
-// لعرض Modal الفتح مرة واحدة
 let shownAccessFor = new Set();
+
+// ============================================================
+// ⚡ تطبيق البيانات من الكاش فوراً
+// ============================================================
+function applyFromCache() {
+  let hasAnything = false;
+
+  // 1. الامتحانات
+  const cEx = loadCache(CACHE_KEYS.exams);
+  if (cEx && Array.isArray(cEx.data)) {
+    allExams = cEx.data;
+    console.log(`⚡ ${allExams.length} exams from cache`);
+    hasAnything = true;
+  }
+
+  // 2. تسليمات الطالب
+  const cSubs = loadCache(CACHE_KEYS.examSubs);
+  if (cSubs && cSubs.data) {
+    mySubs = cSubs.data;
+    console.log(`⚡ ${Object.keys(mySubs).length} subs from cache`);
+    hasAnything = true;
+  }
+
+  // 3. المستخدم (myGrade + openAccess + blockedItems + closedItems)
+  const cUser = loadCache(CACHE_KEYS.user);
+  if (cUser && cUser.data && cUser.data.user) {
+    myUserData = cUser.data.user;
+    myGrade = cUser.data.user?.grade || '';
+    console.log('⚡ user from cache, grade:', myGrade);
+    hasAnything = true;
+  }
+
+  // 4. المخفي
+  const cHidden = loadCache(CACHE_KEYS.hidden);
+  if (cHidden && cHidden.data) {
+    hiddenExams = new Set(cHidden.data.exams || []);
+    hiddenStudentResults = {};
+    const hsr = cHidden.data.hiddenStudentResults || {};
+    Object.keys(hsr).forEach(k => {
+      hiddenStudentResults[k] = new Set(hsr[k] || []);
+    });
+    hasAnything = true;
+  }
+
+  if (hasAnything) {
+    applyFilters();
+    console.log('⚡ applyFromCache → render done');
+  } else {
+    console.log('📭 no cache yet');
+  }
+}
 
 // ============================================================
 // 🌙 الوضع
@@ -2306,7 +2371,7 @@ function getDurationMs(value, unit) {
 }
 
 // ============================================================
-// ⏰ حالة وقت الامتحان (من createdAt/startAt)
+// ⏰ حالة وقت الامتحان
 // ============================================================
 function getExamTimeStatus(exam) {
   if (exam.status !== 'published') return 'draft';
@@ -2339,18 +2404,16 @@ function getExamTimeStatus(exam) {
 }
 
 // ============================================================
-// 🎨 حالة الامتحان للطالب (الترتيب الصحيح — مهم!)
+// 🎨 حالة الامتحان للطالب
 // ============================================================
 function getExamStatus(exam) {
   const sub = mySubs[exam.id];
   const key = `exam_${exam.id}`;
 
-  // ✅ 1) محظور؟ (أعلى أولوية)
   if (myUserData?.blockedItems && myUserData.blockedItems[key]) {
     return 'blocked';
   }
 
-  // ✅ 2) سُلِّم؟ (قبل الفتح — ده اللي كان ناقص)
   if (sub && sub.submitted) {
     if (sub.corrected) {
       const percent = sub.totalScore > 0 ? (sub.score / sub.totalScore) * 100 : 0;
@@ -2359,7 +2422,6 @@ function getExamStatus(exam) {
     return 'pending';
   }
 
-  // ✅ 3) مفتوح بمدة؟
   if (myUserData?.openAccess && myUserData.openAccess[key]) {
     const oa = myUserData.openAccess[key];
     if (new Date(oa.endAt) > new Date()) {
@@ -2368,12 +2430,10 @@ function getExamStatus(exam) {
     return 'closed';
   }
 
-  // ✅ 4) مغلق؟
   if (myUserData?.closedItems && myUserData.closedItems[key]) {
     return 'closed';
   }
 
-  // ✅ 5) حالة الوقت (قادم / منتهي / متاح)
   const timeStatus = getExamTimeStatus(exam);
   if (timeStatus === 'upcoming') return 'upcoming';
   if (timeStatus === 'expired') return 'expired';
@@ -2500,7 +2560,6 @@ function createExamCard(exam) {
     ? `<span class="exam-badge duration"><i class="fas fa-clock"></i> ${formatDuration(exam.durationValue, exam.durationUnit)}</span>`
     : '';
 
-  // النتيجة (بس لو مسلّم وليس مفتوح حالياً)
   let resultBoxHTML = '';
   const isResultHidden = (hiddenStudentResults[`exam_${exam.id}`] || new Set()).has(userId);
 
@@ -2523,7 +2582,6 @@ function createExamCard(exam) {
     `;
   }
 
-  // عداد الفتح بمدة (مفتوح من الإدارة)
   let openBoxHTML = '';
   if (status === 'opened' && myUserData?.openAccess?.[`exam_${exam.id}`]) {
     openBoxHTML = `
@@ -2537,7 +2595,6 @@ function createExamCard(exam) {
     `;
   }
 
-  // عداد الموعد (لو قادم)
   let countdownBoxHTML = '';
   if (status === 'upcoming' && exam.startAt) {
     countdownBoxHTML = `
@@ -2551,7 +2608,6 @@ function createExamCard(exam) {
     `;
   }
 
-  // الأزرار
   let actionsHTML = '';
 
   if (status === 'blocked') {
@@ -2752,7 +2808,6 @@ function handleStartExam(exam) {
     return;
   }
 
-  // لو مفتوح من الإدارة → أظهر Modal المعلومات
   if (status === 'opened' && !shownAccessFor.has(exam.id)) {
     showAccessInfoModal(exam);
     return;
@@ -2829,7 +2884,6 @@ $('passwordSubmit').addEventListener('click', async () => {
 
   closePasswordModal();
 
-  // لو مفتوح من الإدارة → أظهر Modal المعلومات
   const status = getExamStatus(exam);
   if (status === 'opened' && !shownAccessFor.has(exam.id)) {
     setTimeout(() => showAccessInfoModal(exam), 200);
@@ -2839,7 +2893,7 @@ $('passwordSubmit').addEventListener('click', async () => {
 });
 
 // ============================================================
-// 🎉 Access Info Modal (فتح بمدة)
+// 🎉 Access Info Modal
 // ============================================================
 let pendingAccessExam = null;
 
@@ -2946,7 +3000,6 @@ async function startExamMode(exam) {
   startExamTimer();
   addPreventExitListeners();
 
-  // سجّل بدء الطالب
   if (exam.passwordType === 'random') {
     try {
       const ref = doc(db, 'exam_subs', 'all');
@@ -3145,9 +3198,6 @@ function startExamTimer() {
   examTimerInterval = setInterval(updateTimer, 1000);
 }
 
-// ============================================================
-// 🔊 Alert Sound
-// ============================================================
 function playAlertSound() {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3329,7 +3379,6 @@ async function doSubmit(reason = 'manual') {
       updatedAt: new Date().toISOString()
     };
 
-    // ✅ احفظ التسليم في "all"
     const ref = doc(db, 'exam_subs', 'all');
     const snap = await getDoc(ref);
     let items = snap.exists() ? (snap.data().items || []) : [];
@@ -3349,7 +3398,7 @@ async function doSubmit(reason = 'manual') {
       updatedAt: serverTimestamp()
     });
 
-    // ✅✅✅ المهم: امسح openAccess وأضف closedItems تلقائياً
+    // ✅ امسح openAccess وأضف closedItems تلقائياً
     try {
       const userRef = doc(db, 'users', 'all');
       const userSnap = await getDoc(userRef);
@@ -3364,10 +3413,8 @@ async function doSubmit(reason = 'manual') {
           if (!usersList[uIdx].openAccess) usersList[uIdx].openAccess = {};
           if (!usersList[uIdx].closedItems) usersList[uIdx].closedItems = {};
 
-          // امسح الفتح
           delete usersList[uIdx].openAccess[key];
 
-          // أضف غلق تلقائي
           usersList[uIdx].closedItems[key] = {
             type: 'exam',
             itemId: exam.id,
@@ -3388,23 +3435,24 @@ async function doSubmit(reason = 'manual') {
       console.error('auto-close error:', e);
     }
 
-    // أوقف العداد
+    // ✅ حدّث كاش التسليمات فوراً
+    if (!mySubs) mySubs = {};
+    mySubs[exam.id] = subData;
+    saveCache(CACHE_KEYS.examSubs, mySubs);
+
     if (examTimerInterval) clearInterval(examTimerInterval);
     examTimerInterval = null;
     examEndAt = null;
 
     removePreventExitListeners();
 
-    // اقفل وضع الحل
     $('solveMode').classList.remove('show');
     document.body.style.overflow = '';
     currentExam = null;
     currentAnswers = {};
 
-    // امسح السجل
     shownAccessFor.clear();
 
-    // اعرض شاشة النتيجة
     showResultScreen(exam, {
       score, total, corrected, needsManual, reason
     });
@@ -3489,7 +3537,7 @@ $('resultBackBtn').addEventListener('click', closeResultScreen);
 // ============================================================
 // 🚫 شاشة الطرد
 // ============================================================
-function showKickScreen(type, reason) {
+function showKickScreen(type) {
   const screen = $('resultScreen');
   const iconEl = $('resultIcon');
   const titleEl = $('resultTitle');
@@ -3530,6 +3578,7 @@ async function handleLogout() {
     if (!c) return;
     await doSubmit('exit');
     setTimeout(() => {
+      clearExamCache();
       sessionStorage.clear();
       window.location.replace('login.html');
     }, 2000);
@@ -3544,6 +3593,7 @@ async function handleLogout() {
     okText: 'خروج'
   });
   if (!c) return;
+  clearExamCache();
   sessionStorage.clear();
   window.location.replace('login.html');
 }
@@ -3607,7 +3657,7 @@ document.querySelectorAll('[data-filter]').forEach(btn => {
 });
 
 // ============================================================
-// 📡 Listeners
+// 📡 Listeners — مع حفظ في الكاش
 // ============================================================
 function startUserGradeListener() {
   if (!userId) return;
@@ -3622,6 +3672,8 @@ function startUserGradeListener() {
     const user = items.find(u => u.id === userId);
     if (user) {
       myGrade = user.grade || '';
+      // ✅ احفظ في الكاش
+      saveCache(CACHE_KEYS.user, { user, userId });
       applyFilters();
     }
   }, (err) => console.log('user grade error:', err.message));
@@ -3634,6 +3686,8 @@ function startExamsListener() {
     } else {
       allExams = [];
     }
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.exams, allExams);
     applyFilters();
   }, (err) => console.log('exams error:', err.message));
 }
@@ -3649,6 +3703,8 @@ function startSubsListener() {
         }
       });
     }
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.examSubs, mySubs);
     applyFilters();
   }, (err) => console.log('subs error:', err.message));
 }
@@ -3665,6 +3721,7 @@ function startUserMonitoring() {
     const user = items.find(u => u.id === userId);
 
     if (!user) {
+      clearExamCache();
       sessionStorage.clear();
       window.location.replace('login.html');
       return;
@@ -3674,10 +3731,11 @@ function startUserMonitoring() {
     myUserData = user;
     myGrade = user.grade || '';
 
-    // كشف الفتح الجديد
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.user, { user, userId });
+
     detectNewOpenAccess(previousUser, user);
 
-    // لو داخل امتحان — افحص
     if (currentExam) {
       const examId = currentExam.id;
       const key = `exam_${examId}`;
@@ -3727,11 +3785,9 @@ function detectNewOpenAccess(prevUser, newUser) {
 async function forceKickCurrent(type) {
   if (!currentExam) return;
 
-  // اقفل وضع الحل
   $('solveMode').classList.remove('show');
   document.body.style.overflow = '';
 
-  // أوقف العداد
   if (examTimerInterval) clearInterval(examTimerInterval);
   examTimerInterval = null;
   examEndAt = null;
@@ -3806,6 +3862,10 @@ async function forceKickCurrent(type) {
 
     await setDoc(ref, { items, updatedAt: serverTimestamp() });
 
+    if (!mySubs) mySubs = {};
+    mySubs[exam.id] = subData;
+    saveCache(CACHE_KEYS.examSubs, mySubs);
+
   } catch (e) {
     console.error('force submit error:', e);
   }
@@ -3827,6 +3887,14 @@ function startHiddenResultsListener() {
       hiddenStudentResults[k] = new Set(hsr[k] || []);
     });
 
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.hidden, {
+      exams: Array.from(hiddenExams),
+      hiddenStudentResults: Object.fromEntries(
+        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
+      )
+    });
+
     applyFilters();
   }, (err) => console.log('hidden results error:', err.message));
 }
@@ -3834,8 +3902,13 @@ function startHiddenResultsListener() {
 // ============================================================
 // 🚀 Init
 // ============================================================
+
+// ⚡ 1. اعرض من الكاش فوراً (0ms)
+applyFromCache();
+
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
+// ⚡ 2. ابدأ listeners بالخلفية (تحدّث الكاش)
 startUserGradeListener();
 startExamsListener();
 startSubsListener();
