@@ -1897,9 +1897,11 @@ function updateDrawerTheme(theme) {
 }
 
 // ============================================================
-// 📦 كاش
+// 📦 كاش عام
 // ============================================================
 const CACHE_SETTINGS = 'meezan_user_login_settings_cache';
+const CACHE_NOTIFS = 'meezan_notifs_cache';
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 أيام
 
 function loadCache(key) {
   try {
@@ -1923,15 +1925,115 @@ let currentUserId = null;
 let currentSettings = null;
 let blockTriggered = false;
 
-let allNotifications = [];       // قائمة كاملة
+let allNotifications = [];
 let unreadIds = new Set();
-let notifIdsSet = [];            // IDs من user_notifications
-let readIdsSet = [];             // IDs من user_notifications
-let deletedIdsSet = [];          // IDs المحذوفة
+let notifIdsSet = [];
+let readIdsSet = [];
+let deletedIdsSet = [];
 let currentTab = 'all';
 
-// كاش تفاصيل الإشعارات (عشان نقلل القراءة من Firestore)
-const notifCache = new Map();    // notifId -> {title, body, type, url, senderName, createdAt}
+// كاش تفاصيل الإشعارات (في الذاكرة)
+const notifCache = new Map(); // notifId -> {title, body, type, url, senderName, createdAt}
+
+// ============================================================
+// 💾 كاش الإشعارات الدائم
+// ============================================================
+function saveNotifsCache() {
+  try {
+    const data = {
+      notifications: allNotifications,
+      notifIds: notifIdsSet,
+      readIds: readIdsSet,
+      deletedIds: deletedIdsSet,
+      cachedAt: Date.now()
+    };
+    localStorage.setItem(CACHE_NOTIFS, JSON.stringify(data));
+  } catch (e) {
+    console.log('cache save error:', e.message);
+  }
+}
+
+function loadNotifsCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_NOTIFS);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+
+    if (Date.now() - (data.cachedAt || 0) > CACHE_MAX_AGE) {
+      localStorage.removeItem(CACHE_NOTIFS);
+      return false;
+    }
+
+    allNotifications = data.notifications || [];
+    notifIdsSet = data.notifIds || [];
+    readIdsSet = data.readIds || [];
+    deletedIdsSet = data.deletedIds || [];
+
+    // املأ كاش التفاصيل في الذاكرة
+    allNotifications.forEach(n => {
+      notifCache.set(n.id, {
+        title: n.title,
+        body: n.body,
+        type: n.type,
+        url: n.url,
+        senderName: n.senderName,
+        createdAt: n.createdAt
+      });
+    });
+
+    unreadIds = new Set(allNotifications.filter(n => !n.read).map(n => n.id));
+    return true;
+  } catch (e) {
+    console.log('cache load error:', e.message);
+    return false;
+  }
+}
+
+// ============================================================
+// 🔗 تصنيف الروابط (داخلي / خارجي)
+// ============================================================
+function getLinkType(url) {
+  if (!url) return 'none';
+  const trimmed = url.trim();
+
+  // لو بيبدأ بـ http/https → خارجي، لكن لو نفس النطاق → داخلي
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const urlObj = new URL(trimmed);
+      if (urlObj.hostname === location.hostname) return 'internal';
+    } catch (e) {}
+    return 'external';
+  }
+
+  // مسار نسبي أو ملف → داخلي
+  if (/^(\.{0,2}\/|\/)/.test(trimmed) || /\.html?($|\?|#)/i.test(trimmed)) {
+    return 'internal';
+  }
+
+  return 'external';
+}
+
+// قائمة صفحات داخلية معروفة
+const INTERNAL_PAGES = [
+  'exam', 'exams', 'quiz', 'quizzes',
+  'homework', 'homeworks', 'assignment', 'assignments', 'tasks', 'task',
+  'lesson', 'lessons', 'course', 'courses',
+  'unit', 'units',
+  'profile', 'sora', 'settings',
+  'library', 'books', 'book',
+  'result', 'results', 'degree', 'degrees',
+  'video', 'videos', 'play',
+  'subject', 'subjects', 'class', 'classes'
+];
+
+function detectInternalPage(url) {
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  for (const page of INTERNAL_PAGES) {
+    if (lower.includes(page)) return page;
+  }
+  return null;
+}
 
 // ============================================================
 // 🎨 تطبيق الإعدادات
@@ -2047,13 +2149,12 @@ function renderUserInfo(user) {
 }
 
 // ============================================================
-// ⚡ جلب تفاصيل الإشعارات بسرعة (Batch + Cache)
+// ⚡ جلب تفاصيل الإشعارات (Parallel + Cache)
 // ============================================================
 async function fetchNotifDetails(ids) {
   const result = [];
   const missingIds = [];
 
-  // خد اللي في الكاش
   for (const id of ids) {
     if (notifCache.has(id)) {
       result.push({ id, ...notifCache.get(id) });
@@ -2062,7 +2163,6 @@ async function fetchNotifDetails(ids) {
     }
   }
 
-  // جلب الباقي على التوازي (Parallel) — أسرع بكتير
   if (missingIds.length > 0) {
     const promises = missingIds.map(async (id) => {
       try {
@@ -2093,21 +2193,31 @@ async function fetchNotifDetails(ids) {
 }
 
 // ============================================================
-// 📡 تحميل الإشعارات Real-time
+// 📡 تحميل الإشعارات Real-time مع كاش فوري
 // ============================================================
 function startNotificationsListener() {
   if (!currentUserId) return;
+
+  // ⚡ 1) اعرض الكاش فوراً (Instant Display)
+  const hasCache = loadNotifsCache();
+  if (hasCache && allNotifications.length > 0) {
+    renderNotifications();
+    updateBadges();
+  }
 
   const userNotifsRef = doc(db, 'user_notifications', currentUserId);
 
   onSnapshot(userNotifsRef, async (snap) => {
     if (!snap.exists()) {
-      allNotifications = [];
-      unreadIds.clear();
-      notifIdsSet = [];
-      readIdsSet = [];
-      deletedIdsSet = [];
-      renderNotifications();
+      if (!hasCache) {
+        allNotifications = [];
+        unreadIds.clear();
+        notifIdsSet = [];
+        readIdsSet = [];
+        deletedIdsSet = [];
+        renderNotifications();
+        saveNotifsCache();
+      }
       return;
     }
 
@@ -2116,20 +2226,44 @@ function startNotificationsListener() {
     const readIds = data.readIds || [];
     const deletedList = data.deletedIds || [];
 
-    // ⚡ فلترة سريعة
     const visibleIds = notifIds.filter(id => !deletedList.includes(id));
 
-    // ⚡ جلب التفاصيل (مع كاش + parallel)
-    const details = await fetchNotifDetails(visibleIds);
+    // ⚡ 2) لو مفيش تغيير في الـ IDs → حدّث read flags بس محلياً
+    const idsChanged = JSON.stringify([...visibleIds].sort()) !== JSON.stringify([...notifIdsSet].sort());
+    const readChanged = JSON.stringify([...readIds].sort()) !== JSON.stringify([...readIdsSet].sort());
 
-    // ترتيب بالأحدث
+    if (hasCache && !idsChanged && !readChanged && allNotifications.length > 0) {
+      allNotifications.forEach(n => {
+        n.read = readIds.includes(n.id);
+      });
+      unreadIds = new Set(allNotifications.filter(n => !n.read).map(n => n.id));
+      readIdsSet = readIds;
+      renderNotifications();
+      updateBadges();
+      return;
+    }
+
+    // ⚡ 3) لو نفس الإشعارات موجودة في الكاش، استعملها ومتجيبش من السيرفر
+    const newIds = visibleIds.filter(id => !notifCache.has(id));
+
+    let details;
+    if (newIds.length === 0 && hasCache && allNotifications.length > 0) {
+      details = visibleIds
+        .map(id => {
+          const cached = notifCache.get(id);
+          return cached ? { id, ...cached } : null;
+        })
+        .filter(Boolean);
+    } else {
+      details = await fetchNotifDetails(visibleIds);
+    }
+
     details.sort((a, b) => {
       const da = new Date(a.createdAt).getTime() || 0;
       const db_ = new Date(b.createdAt).getTime() || 0;
       return db_ - da;
     });
 
-    // ⚡ علّم read من غير ما تعمل loop على Firestore
     details.forEach(n => {
       n.read = readIds.includes(n.id);
     });
@@ -2142,10 +2276,13 @@ function startNotificationsListener() {
 
     renderNotifications();
     updateBadges();
+    saveNotifsCache(); // 💾 احفظ للتشغيل القادم
   }, (err) => {
     console.log('notifs listener error:', err.message);
-    allNotifications = [];
-    renderNotifications();
+    if (!hasCache) {
+      allNotifications = [];
+      renderNotifications();
+    }
   });
 }
 
@@ -2198,10 +2335,20 @@ function createNotifCard(notif) {
   const card = document.createElement('div');
   card.className = 'notif-card' + (notif.read ? '' : ' unread');
 
-  const typeInfo = getTypeInfo(notif.type);
+  // ✨ تحديد الأيقونة حسب نوع الرابط
+  let typeInfo = getTypeInfo(notif.type);
+  let displayType = notif.type;
+
+  if (notif.url) {
+    const linkType = getLinkType(notif.url);
+    if (linkType === 'internal' && (!notif.type || notif.type === 'none' || notif.type === 'link')) {
+      typeInfo = { icon: 'fa-arrow-left', label: 'صفحة داخلية' };
+      displayType = 'page';
+    }
+  }
 
   card.innerHTML = `
-    <div class="notif-icon ${notif.type || 'none'}">
+    <div class="notif-icon ${displayType || 'none'}">
       <i class="fas ${typeInfo.icon}"></i>
     </div>
     <div class="notif-content">
@@ -2213,7 +2360,7 @@ function createNotifCard(notif) {
       <div class="notif-meta">
         <span><i class="fas fa-user"></i> ${escapeHtml(notif.senderName)}</span>
         <span><i class="fas fa-clock"></i> ${formatDate(notif.createdAt)}</span>
-        ${notif.type && notif.type !== 'none' ? `<span class="notif-type-tag ${notif.type}"><i class="fas ${typeInfo.icon}"></i> ${typeInfo.label}</span>` : ''}
+        ${displayType && displayType !== 'none' ? `<span class="notif-type-tag ${displayType}"><i class="fas ${typeInfo.icon}"></i> ${typeInfo.label}</span>` : ''}
       </div>
     </div>
   `;
@@ -2295,17 +2442,33 @@ async function openNotifModal(notif) {
     `;
   }
 
+  // ============================================================
+  // 🔗 تحديد زر التحويل (داخلي vs خارجي)
+  // ============================================================
   const actionBtn = $('modalActionBtn');
-  if (notif.type === 'link' && notif.url) {
-    actionBtn.style.display = 'flex';
-    actionBtn.innerHTML = '<i class="fas fa-external-link-alt"></i><span>فتح الرابط</span>';
-    actionBtn.onclick = () => window.open(notif.url, '_blank', 'noopener');
-  } else if (notif.type === 'page' && notif.url) {
-    actionBtn.style.display = 'flex';
-    actionBtn.innerHTML = '<i class="fas fa-arrow-left"></i><span>الانتقال للصفحة</span>';
-    actionBtn.onclick = () => window.location.href = notif.url;
-  } else {
-    actionBtn.style.display = 'none';
+  const url = notif.url || '';
+  const linkType = getLinkType(url);
+  const internalPage = detectInternalPage(url);
+
+  actionBtn.style.display = 'none';
+  actionBtn.onclick = null;
+
+  if (url) {
+    if (linkType === 'internal' || (notif.type === 'page' && internalPage)) {
+      // 🏠 صفحة داخلية → تحويل مباشر بدون تاب جديد
+      actionBtn.style.display = 'flex';
+      actionBtn.innerHTML = '<i class="fas fa-arrow-left"></i><span>الانتقال للصفحة</span>';
+      actionBtn.onclick = () => {
+        window.location.href = url;
+      };
+    } else if (linkType === 'external' || notif.type === 'link') {
+      // 🌐 رابط خارجي → افتح في تاب جديد
+      actionBtn.style.display = 'flex';
+      actionBtn.innerHTML = '<i class="fas fa-external-link-alt"></i><span>فتح الرابط</span>';
+      actionBtn.onclick = () => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      };
+    }
   }
 
   $('notifModal').classList.add('show');
@@ -2339,7 +2502,6 @@ async function markAsRead(notifId) {
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    // تحديث محلي فوري
     const n = allNotifications.find(x => x.id === notifId);
     if (n) n.read = true;
     unreadIds.delete(notifId);
@@ -2347,6 +2509,7 @@ async function markAsRead(notifId) {
 
     updateBadges();
     renderNotifications();
+    saveNotifsCache(); // 💾
   } catch (e) {
     console.log('mark read error:', e.message);
   }
@@ -2372,7 +2535,6 @@ $('markAllReadBtn').addEventListener('click', async () => {
     const ref = doc(db, 'user_notifications', currentUserId);
     const allIds = allNotifications.map(n => n.id);
 
-    // استخدم arrayUnion لمجموعة كل الإشعارات
     await setDoc(ref, {
       readIds: arrayUnion(...allIds),
       updatedAt: serverTimestamp()
@@ -2384,6 +2546,7 @@ $('markAllReadBtn').addEventListener('click', async () => {
 
     renderNotifications();
     updateBadges();
+    saveNotifsCache(); // 💾
     showToast('تم تحديد الكل كمقروء', 'success');
   } catch (e) {
     console.log('mark all error:', e.message);
@@ -2429,6 +2592,7 @@ $('deleteAllBtn').addEventListener('click', async () => {
 
     renderNotifications();
     updateBadges();
+    saveNotifsCache(); // 💾
     showToast('تم حذف كل الإشعارات', 'success');
   } catch (e) {
     console.log('delete all error:', e.message);
@@ -2474,6 +2638,7 @@ $('modalDeleteBtn').addEventListener('click', async () => {
     closeNotifModal();
     renderNotifications();
     updateBadges();
+    saveNotifsCache(); // 💾
     showToast('تم حذف الإشعار', 'success');
   } catch (e) {
     console.log('delete one error:', e.message);
@@ -2520,6 +2685,7 @@ function forceLogout() {
   sessionStorage.removeItem('meezan_role');
   sessionStorage.removeItem('meezan_user_id');
   sessionStorage.removeItem('meezan_user_data');
+  localStorage.removeItem(CACHE_NOTIFS); // 🧹 امسح كاش الإشعارات
   window.location.replace('login.html');
 }
 
