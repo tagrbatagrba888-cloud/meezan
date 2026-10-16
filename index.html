@@ -22,7 +22,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-    
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   :root {
@@ -77,9 +76,6 @@
 
   body.ready { opacity: 1; }
 
-  /* ============================================================
-     الهيدر
-     ============================================================ */
   .topbar {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -190,7 +186,6 @@
     border-color: var(--error);
   }
 
-  /* ===== أيقونة صورة المستخدم ===== */
   .avatar-btn {
     width: 46px;
     height: 46px;
@@ -236,7 +231,6 @@
     border-color: var(--accent);
   }
 
-  /* شارة الإشعارات */
   .notif-btn {
     position: relative;
   }
@@ -267,7 +261,6 @@
     50% { transform: scale(1.15); }
   }
 
-  /* زر قائمة الطعام (موبايل) */
   .menu-btn {
     display: none;
     width: 42px;
@@ -291,9 +284,6 @@
     border-color: var(--primary);
   }
 
-  /* ============================================================
-     منطقة الترحيب
-     ============================================================ */
   .welcome-section {
     max-width: 1300px;
     margin: 24px auto 0;
@@ -397,9 +387,6 @@
     50% { transform: translateY(-6px); }
   }
 
-  /* ============================================================
-     شبكة الأزرار
-     ============================================================ */
   .buttons-section {
     max-width: 1300px;
     margin: 32px auto 40px;
@@ -555,7 +542,6 @@
     z-index: 2;
   }
 
-  /* زر عرض المزيد */
   .btn-show-more {
     grid-column: 1 / -1;
     padding: 16px 20px;
@@ -659,9 +645,6 @@
 
   .empty-state p { font-size: 13.5px; font-weight: 500; }
 
-  /* ============================================================
-     التذييل
-     ============================================================ */
   .page-footer {
     text-align: center;
     padding: 24px 20px 40px;
@@ -680,9 +663,6 @@
 
   [data-theme="dark"] .page-footer strong { color: var(--accent); }
 
-  /* ============================================================
-     📢 إشعار عابر
-     ============================================================ */
   .toast-notification {
     position: fixed;
     top: 20px;
@@ -704,7 +684,8 @@
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
     opacity: 0;
     max-width: calc(100vw - 32px);
-    pointer-events: none;
+    cursor: pointer;
+    pointer-events: auto;
   }
 
   .toast-notification.show {
@@ -735,19 +716,19 @@
     display: block;
     font-size: 14px;
     font-weight: 800;
-    margin-bottom: 3px;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .toast-notification .notif-body {
-    display: block;
-    font-size: 12.5px;
+  .toast-notification .notif-arrow {
     color: var(--text-sub);
-    font-weight: 500;
+    font-size: 12px;
+    flex-shrink: 0;
+    opacity: 0.6;
   }
 
-  /* ============================================================
-     📱 قائمة الطعام (يمين — موبايل فقط)
-     ============================================================ */
   .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -871,7 +852,6 @@
     transform: rotate(90deg);
   }
 
-  /* معلومات المستخدم في القائمة */
   .drawer-user-info {
     position: relative;
     z-index: 2;
@@ -1137,9 +1117,6 @@
     margin-bottom: 10px;
   }
 
-  /* ============================================================
-     🚫 شاشة الحظر
-     ============================================================ */
   .block-overlay {
     position: fixed;
     inset: 0;
@@ -1263,9 +1240,6 @@
     box-shadow: 0 12px 28px var(--shadow);
   }
 
-  /* ============================================================
-     🔔 نافذة تأكيد مخصصة
-     ============================================================ */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1440,9 +1414,6 @@
     box-shadow: 0 10px 26px rgba(192, 57, 43, 0.5);
   }
 
-  /* ============================================================
-     Toast خفيف
-     ============================================================ */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -1477,9 +1448,6 @@
   .toast.warning { border-color: var(--warning); }
   .toast.warning i { color: var(--warning); }
 
-  /* ============================================================
-     Responsive
-     ============================================================ */
   @media (max-width: 900px) {
     .topbar-inner { padding: 12px 16px; gap: 10px; }
     .topbar-logo { width: 40px; height: 40px; }
@@ -1621,9 +1589,6 @@
 </head>
 <body>
 
-<!-- ============================================================
-     الهيدر
-     ============================================================ -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -1639,7 +1604,6 @@
     </div>
 
     <div class="topbar-actions">
-      <!-- أيقونة صورة المستخدم -->
       <a href="sora.html" class="avatar-btn" id="userAvatarBtn" title="صفحتك الشخصية">
         <i class="fas fa-user" id="userAvatarIcon"></i>
       </a>
@@ -1657,7 +1621,6 @@
         <i class="fas fa-sign-out-alt"></i>
       </button>
 
-      <!-- زر قائمة الطعام (موبايل) -->
       <button class="menu-btn" id="menuBtn" aria-label="القائمة">
         <i class="fas fa-bars"></i>
       </button>
@@ -1665,9 +1628,6 @@
   </div>
 </header>
 
-<!-- ============================================================
-     منطقة الترحيب
-     ============================================================ -->
 <section class="welcome-section">
   <div class="welcome-card">
     <div class="welcome-content">
@@ -1693,9 +1653,6 @@
   </div>
 </section>
 
-<!-- ============================================================
-     شبكة الأزرار
-     ============================================================ -->
 <section class="buttons-section">
   <div class="section-header">
     <div class="section-header-left">
@@ -1733,18 +1690,12 @@
   </div>
 </section>
 
-<!-- ============================================================
-     التذييل
-     ============================================================ -->
 <footer class="page-footer">
   <span id="footerCopyright">
     <strong>ميزان | MEEZAN</strong> © 2026
   </span>
 </footer>
 
-<!-- ============================================================
-     📱 قائمة الطعام (يمين — موبايل فقط)
-     ============================================================ -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
 <aside class="drawer" id="drawer">
@@ -1821,20 +1772,14 @@
   </div>
 </aside>
 
-<!-- ============================================================
-     📢 الإشعار العابر (فوق - 2.5 ثانية)
-     ============================================================ -->
 <div class="toast-notification" id="toastNotif">
   <i class="fas fa-bell" id="toastNotifIcon"></i>
   <div class="notif-content">
     <span class="notif-title" id="toastNotifTitle">إشعار جديد</span>
-    <span class="notif-body" id="toastNotifBody">—</span>
   </div>
+  <i class="fas fa-chevron-left notif-arrow"></i>
 </div>
 
-<!-- ============================================================
-     🚫 شاشة الحظر (تعطيل / حذف)
-     ============================================================ -->
 <div class="block-overlay" id="blockOverlay">
   <div class="block-box">
     <div class="block-icon" id="blockIcon">
@@ -1865,9 +1810,6 @@
   </div>
 </div>
 
-<!-- ============================================================
-     🔔 نافذة تأكيد مخصصة (بدل confirm)
-     ============================================================ -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box-small">
     <div class="confirm-icon" id="confirmIcon">
@@ -1889,9 +1831,6 @@
   </div>
 </div>
 
-<!-- ============================================================
-     📝 نافذة إدخال مخصصة (بدل prompt)
-     ============================================================ -->
 <div class="modal-overlay" id="promptModal">
   <div class="modal-box-small">
     <div class="prompt-icon" id="promptIcon">
@@ -1917,13 +1856,11 @@
   </div>
 </div>
 
-<!-- ============================================================
-     Toast خفيف للرسائل السريعة
-     ============================================================ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -1951,7 +1888,6 @@ if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
   window.location.replace('login.html');
 }
 
-// منع الرجوع
 history.pushState(null, '', location.href);
 window.addEventListener('popstate', () => {
   if (sessionStorage.getItem('meezan_logged_in') === 'true') {
@@ -1974,7 +1910,7 @@ function cleanInput(value) {
 }
 
 // ============================================================
-// 📅 حقوق النشر مع السنة
+// 📅 حقوق النشر
 // ============================================================
 function buildCopyright(data) {
   const year = new Date().getFullYear();
@@ -2008,7 +1944,7 @@ function showToast(text, type = 'success') {
 }
 
 // ============================================================
-// 🔔 نافذة تأكيد مخصصة (بدل confirm)
+// 🔔 نافذة تأكيد مخصصة
 // ============================================================
 let confirmResolve = null;
 
@@ -2065,7 +2001,7 @@ $('confirmModal').addEventListener('click', (e) => {
 });
 
 // ============================================================
-// 📝 نافذة إدخال مخصصة (بدل prompt)
+// 📝 نافذة إدخال مخصصة
 // ============================================================
 let promptResolve = null;
 
@@ -2176,9 +2112,13 @@ function updateDrawerTheme(theme) {
 }
 
 // ============================================================
-// 📦 الكاش
+// 📦 الكاش المحلي (localStorage) — لعرض فوري للاسم والأزرار
 // ============================================================
-const CACHE_SETTINGS = 'meezan_user_login_settings_cache';
+const CACHE_KEYS = {
+  settings: 'meezan_home_settings_cache',
+  user:     'meezan_home_user_cache',
+  buttons:  'meezan_home_buttons_cache'
+};
 
 function loadCache(key) {
   try {
@@ -2202,7 +2142,6 @@ let currentRole = 'student';
 let currentUserId = null;
 let blockTriggered = false;
 
-// قائمة الأزرار
 const MAX_GRID_BUTTONS = 6;
 const MAX_DRAWER_BUTTONS = 6;
 let allCurrentButtons = [];
@@ -2271,45 +2210,15 @@ function applyColors(data) {
 }
 
 // ============================================================
-// 👤 تحميل بيانات المستخدم
+// 👤 تطبيق بيانات المستخدم (فوري من الكاش أو من Firestore)
 // ============================================================
-async function loadUserData() {
-  const userId = sessionStorage.getItem('meezan_user_id');
-  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
-  const role = sessionStorage.getItem('meezan_role') || 'student';
+function applyUser(user, role) {
+  if (!user) return;
+  currentUser = user;
+  currentRole = role || 'student';
+  currentUserId = user.id;
 
-  currentRole = role;
-  currentUserId = userId;
-
-  if (!userId && !username) return;
-
-  try {
-    const collectionName = role === 'teacher' ? 'teachers' : 'users';
-
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
-
-    if (!userSnap.exists()) return;
-
-    const items = userSnap.data().items || [];
-    let user = null;
-
-    if (userId) user = items.find(u => u.id === userId);
-    if (!user && username) {
-      user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
-    }
-
-    if (!user) return;
-
-    currentUser = user;
-    currentUserId = user.id;
-    renderUserInfo(user);
-    loadUserButtons(role);
-
-  } catch (e) {
-    console.error('خطأ في تحميل المستخدم:', e);
-  }
+  renderUserInfo(user);
 }
 
 // ============================================================
@@ -2357,9 +2266,6 @@ function renderUserInfo(user) {
   }
 }
 
-// ============================================================
-// 🖼️ تحديث صورة المستخدم في الهيدر
-// ============================================================
 function updateUserAvatar(user) {
   const avatarBtn = $('userAvatarBtn');
 
@@ -2372,37 +2278,6 @@ function updateUserAvatar(user) {
     const firstChar = (fullName || '؟').charAt(0).toUpperCase();
     avatarBtn.innerHTML = `<span style="font-weight:900; font-size:16px;">${firstChar}</span>`;
   }
-}
-
-// ============================================================
-// 🔘 تحميل الأزرار
-// ============================================================
-function loadUserButtons(role) {
-  const refName = role === 'teacher' ? 'user_buttons_teacher' : 'user_buttons_student';
-  const ref = doc(db, 'settings', refName);
-
-  onSnapshot(ref, (snap) => {
-    let items = [];
-    if (snap.exists()) {
-      items = snap.data().items || [];
-    }
-
-    allCurrentButtons = (items || [])
-      .filter(b => b && b.visible !== false && b.label)
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-    gridExpanded = false;
-    drawerExpanded = false;
-
-    renderGridButtons();
-    renderDrawerButtons();
-
-  }, (err) => {
-    console.log('buttons error:', err.message);
-    allCurrentButtons = [];
-    renderGridButtons();
-    renderDrawerButtons();
-  });
 }
 
 // ============================================================
@@ -2586,6 +2461,18 @@ function createButtonElement(btn) {
 }
 
 // ============================================================
+// 🎨 تطبيق الأزرار (من الكاش أو Firestore)
+// ============================================================
+function applyButtons(items) {
+  allCurrentButtons = (items || [])
+    .filter(b => b && b.visible !== false && b.label)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  renderGridButtons();
+  renderDrawerButtons();
+}
+
+// ============================================================
 // 🚫 شاشة الحظر
 // ============================================================
 function showBlockScreen(type, user) {
@@ -2694,6 +2581,7 @@ $('blockLogoutBtn').addEventListener('click', forceLogout);
 // 📡 مراقبة حالة المستخدم Real-time
 // ============================================================
 function startUserMonitoring() {
+  if (!currentUserId) return;
   const role = currentRole;
   const userId = currentUserId;
   const collectionName = role === 'teacher' ? 'teachers' : 'users';
@@ -2717,17 +2605,17 @@ function startUserMonitoring() {
       }
     }
 
-    currentUser = user;
-    renderUserInfo(user);
+    // ✅ تحديث الكاش المحلي بأحدث بيانات المستخدم
+    saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
+    applyUser(user, role);
 
   }, (err) => console.log('user monitor error:', err.message));
 }
 
 // ============================================================
-// 🔔 الإشعارات — موجّهة لكل مستخدم بشكل خاص
-// (تعتمد على user_notifications/{userId} في Firestore)
+// 🔔 الإشعارات — عنوان فقط + قابل للضغط
 // ============================================================
-let lastShownNotifIds = new Set();   // الإشعارات اللي اتعرضت في الجلسة
+let lastShownNotifIds = new Set();
 
 function startNotificationsListener() {
   if (!currentUserId) return;
@@ -2735,7 +2623,6 @@ function startNotificationsListener() {
   const userNotifsRef = doc(db, 'user_notifications', currentUserId);
 
   onSnapshot(userNotifsRef, async (snap) => {
-    // ===== لو المستخدم ماعندوش مستند إشعارات =====
     if (!snap.exists()) {
       $('notifBadge').classList.remove('show');
       $('drawerNotifBadge').classList.remove('show');
@@ -2747,12 +2634,10 @@ function startNotificationsListener() {
     const readIds = data.readIds || [];
     const deletedIds = data.deletedIds || [];
 
-    // ===== شيل المحذوف + المقروء =====
     const unreadNotifIds = notifIds.filter(id =>
       !deletedIds.includes(id) && !readIds.includes(id)
     );
 
-    // ===== تحديث الشارة =====
     const unreadCount = unreadNotifIds.length;
     if (unreadCount > 0) {
       $('notifBadge').classList.add('show');
@@ -2764,7 +2649,7 @@ function startNotificationsListener() {
       $('drawerNotifBadge').classList.remove('show');
     }
 
-    // ===== عرض Toast للإشعارات الجديدة فقط =====
+    // ✅ Toast للعنوان فقط — مرة واحدة لكل إشعار
     for (const nid of unreadNotifIds) {
       if (lastShownNotifIds.has(nid)) continue;
       lastShownNotifIds.add(nid);
@@ -2774,11 +2659,7 @@ function startNotificationsListener() {
         if (!nSnap.exists()) continue;
 
         const nData = nSnap.data();
-        showToastNotification(
-          nData.title || 'إشعار جديد',
-          nData.body || '',
-          'info'
-        );
+        showToastNotification(nData.title || 'إشعار جديد', 'info');
       } catch (e) {
         console.log('notif detail error:', e.message);
       }
@@ -2792,13 +2673,12 @@ function startNotificationsListener() {
 }
 
 // ============================================================
-// 📢 إشعار عابر (Toast علوي)
+// 📢 Toast علوي — العنوان فقط + ينقل لصفحة الإشعارات
 // ============================================================
 let toastNotifTimeout;
-function showToastNotification(title, body, type = 'info') {
+function showToastNotification(title, type = 'info') {
   const notif = $('toastNotif');
   $('toastNotifTitle').textContent = title;
-  $('toastNotifBody').textContent = body;
 
   const icons = {
     success: 'fa-check-circle',
@@ -2813,8 +2693,14 @@ function showToastNotification(title, body, type = 'info') {
   clearTimeout(toastNotifTimeout);
   toastNotifTimeout = setTimeout(() => {
     notif.classList.remove('show');
-  }, 2500);
+  }, 2800);
 }
+
+// ✅ الضغط على الـ Toast ينقل لصفحة الإشعارات
+$('toastNotif').addEventListener('click', () => {
+  $('toastNotif').classList.remove('show');
+  window.location.href = 'asharat.html';
+});
 
 // ============================================================
 // 📱 قائمة الطعام
@@ -2870,22 +2756,57 @@ drawerLogoutBtn?.addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Real-time: settings/login_user
+// ⚡ التطبيق الفوري من الكاش (يشتغل قبل أي اتصال)
 // ============================================================
-const cachedSettings = loadCache(CACHE_SETTINGS);
-if (cachedSettings) {
-  currentSettings = cachedSettings;
-  applySettings(cachedSettings);
+function applyFromCache() {
+  // 1. الإعدادات
+  const cachedSettings = loadCache(CACHE_KEYS.settings);
+  if (cachedSettings) {
+    currentSettings = cachedSettings;
+    applySettings(cachedSettings);
+  }
+
+  // 2. بيانات المستخدم (الاسم + الصورة + الفرقة)
+  const cachedUser = loadCache(CACHE_KEYS.user);
+  if (cachedUser && cachedUser.user) {
+    applyUser(cachedUser.user, cachedUser.role || 'student');
+  } else {
+    // احتياطي: من sessionStorage
+    const sessionData = sessionStorage.getItem('meezan_user_data');
+    if (sessionData) {
+      try {
+        const u = JSON.parse(sessionData);
+        const role = sessionStorage.getItem('meezan_role') || 'student';
+        const userId = sessionStorage.getItem('meezan_user_id') || '';
+        applyUser({ ...u, id: userId }, role);
+      } catch (e) {}
+    }
+  }
+
+  // 3. الأزرار
+  const cachedButtons = loadCache(CACHE_KEYS.buttons);
+  if (cachedButtons && cachedButtons.data) {
+    const role = cachedButtons.role || 'student';
+    if (role === (sessionStorage.getItem('meezan_role') || 'student')) {
+      applyButtons(cachedButtons.data);
+    }
+  }
 }
+
+// ⚡ شغّل الكاش فوراً
+applyFromCache();
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
+// ============================================================
+// 📡 Real-time: settings/login_user
+// ============================================================
 onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
   if (!snap.exists()) return;
   const data = snap.data();
   currentSettings = data;
   applySettings(data);
-  saveCache(CACHE_SETTINGS, data);
+  saveCache(CACHE_KEYS.settings, data);
 }, (err) => console.log('settings error:', err.message));
 
 new MutationObserver(() => {
@@ -2893,24 +2814,81 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
 // ============================================================
-// 🛡️ حماية إضافية
+// 📡 Real-time: الأزرار (مع حفظ في الكاش)
 // ============================================================
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
-    window.location.replace('login.html');
+function startButtonsListener(role) {
+  const refName = role === 'teacher' ? 'user_buttons_teacher' : 'user_buttons_student';
+  const ref = doc(db, 'settings', refName);
+
+  onSnapshot(ref, (snap) => {
+    let items = [];
+    if (snap.exists()) {
+      items = snap.data().items || [];
+    }
+    applyButtons(items);
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.buttons, { data: items, role });
+  }, (err) => {
+    console.log('buttons error:', err.message);
+    // اترك الكاش القديم ظاهر
+  });
+}
+
+// ============================================================
+// 👤 تحميل بيانات المستخدم من Firestore (مع حفظ في الكاش)
+// ============================================================
+async function loadUserDataFromFirestore() {
+  const userId = sessionStorage.getItem('meezan_user_id');
+  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
+  const role = sessionStorage.getItem('meezan_role') || 'student';
+
+  currentRole = role;
+  currentUserId = userId;
+
+  if (!userId && !username) return;
+
+  try {
+    const collectionName = role === 'teacher' ? 'teachers' : 'users';
+
+    const snap = await getDoc(doc(db, collectionName, 'all'));
+    if (!snap.exists()) return;
+
+    const items = snap.data().items || [];
+    let user = null;
+
+    if (userId) user = items.find(u => u.id === userId);
+    if (!user && username) {
+      user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
+    }
+
+    if (!user) return;
+
+    currentUser = user;
+    currentUserId = user.id;
+
+    // ✅ احفظ في الكاش
+    saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
+
+    renderUserInfo(user);
+    startUserMonitoring();
+    startNotificationsListener();
+
+  } catch (e) {
+    console.error('خطأ في تحميل المستخدم:', e);
   }
-});
+}
 
 // ============================================================
 // 🚀 Init
 // ============================================================
 async function init() {
-  await loadUserData();
+  const role = sessionStorage.getItem('meezan_role') || 'student';
 
-  if (currentUserId && currentUser) {
-    startUserMonitoring();
-    startNotificationsListener();   // 👈 النظام الجديد الموجّه
-  }
+  // شغّل مراقبة الأزرار فوراً (تحدّث الكاش)
+  startButtonsListener(role);
+
+  // حمّل بيانات المستخدم (بالتوازي)
+  await loadUserDataFromFirestore();
 }
 
 init();
