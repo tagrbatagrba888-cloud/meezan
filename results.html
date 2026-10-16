@@ -65,9 +65,6 @@
 
   body.ready { opacity: 1; }
 
-  /* ============================================================
-     Topbar
-     ============================================================ */
   .topbar {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -217,9 +214,6 @@
     border-color: var(--primary);
   }
 
-  /* ============================================================
-     Container + Stats
-     ============================================================ */
   .container {
     max-width: 1300px;
     margin: 0 auto;
@@ -287,9 +281,6 @@
     margin-top: 4px;
   }
 
-  /* ============================================================
-     Main Tabs
-     ============================================================ */
   .main-tabs {
     display: flex;
     gap: 6px;
@@ -356,9 +347,6 @@
     border: 1px solid var(--border);
   }
 
-  /* ============================================================
-     Section Content
-     ============================================================ */
   .section-content {
     display: none;
     animation: fadeIn 0.3s ease;
@@ -371,9 +359,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ============================================================
-     Toolbar + Search
-     ============================================================ */
   .toolbar {
     background: var(--bg-card);
     border-radius: 16px;
@@ -446,9 +431,6 @@
   .search-clear:hover { background: var(--error); color: #fff; }
   .search-clear.show { display: flex; }
 
-  /* ============================================================
-     Filter Chips
-     ============================================================ */
   .filter-row {
     display: flex;
     gap: 8px;
@@ -500,9 +482,6 @@
     border: 1px solid var(--border);
   }
 
-  /* ============================================================
-     Items Grid (Cards)
-     ============================================================ */
   .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -632,7 +611,6 @@
     overflow: hidden;
   }
 
-  /* ===== Score Box ===== */
   .score-box {
     padding: 16px;
     border-radius: 14px;
@@ -678,7 +656,6 @@
   .score-numbers { font-size: 12.5px; color: var(--text-sub); font-weight: 700; }
   .score-numbers strong { color: var(--text-main); font-weight: 900; }
 
-  /* ===== Action Buttons ===== */
   .item-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -720,9 +697,6 @@
   .btn-action.gold:hover { transform: translateY(-2px); }
   .btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-  /* ============================================================
-     Empty + Loading
-     ============================================================ */
   .empty-state {
     padding: 60px 24px;
     text-align: center;
@@ -756,9 +730,6 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ============================================================
-     Certificates Section
-     ============================================================ */
   .cert-intro {
     background: linear-gradient(135deg, rgba(201, 169, 97, 0.15), rgba(201, 169, 97, 0.05));
     border: 2px solid var(--accent);
@@ -877,9 +848,6 @@
     margin-top: 6px;
   }
 
-  /* ============================================================
-     Modal (General)
-     ============================================================ */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -958,7 +926,6 @@
 
   .modal-close:hover { background: var(--error); color: #fff; }
 
-  /* ============ Answer Question Card ============ */
   .ans-summary {
     display: flex;
     gap: 10px;
@@ -1100,9 +1067,6 @@
 
   .ans-answer-box.explanation-ans .ans-label { background: var(--info); color: #fff; }
 
-  /* ============================================================
-     Certificate Modal
-     ============================================================ */
   .cert-modal-overlay {
     position: fixed;
     inset: 0;
@@ -1139,9 +1103,6 @@
 
   .cert-modal-actions .btn-action { flex: 1; min-width: 140px; padding: 14px; }
 
-  /* ============================================================
-     🎓 CERTIFICATE — تصميم فاخر داخل فريم 1000x700
-     ============================================================ */
   .cert-wrapper {
     background: #E8E2D0;
     padding: 20px;
@@ -1520,9 +1481,6 @@
     opacity: 0.6;
   }
 
-  /* ============================================================
-     Toast
-     ============================================================ */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -1555,9 +1513,6 @@
   .toast.info { border-color: var(--info); }
   .toast.info i { color: var(--info); }
 
-  /* ============================================================
-     Drawer
-     ============================================================ */
   .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -1723,9 +1678,6 @@
   .drawer-btn.logout-btn .drawer-btn-icon { background: linear-gradient(135deg, #C0392B, #E74C3C); }
   .drawer-btn.logout-btn:hover { background: var(--error); color: #fff; border-color: var(--error); }
 
-  /* ============================================================
-     Responsive
-     ============================================================ */
   @media (max-width: 900px) {
     .topbar-inner { padding: 12px 16px; }
     .back-btn { width: 40px; height: 40px; font-size: 16px; }
@@ -1775,7 +1727,6 @@
 </head>
 <body>
 
-<!-- ============ Topbar ============ -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -1805,10 +1756,8 @@
   </div>
 </header>
 
-<!-- ============ Container ============ -->
 <div class="container">
 
-  <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon"><i class="fas fa-file-pen"></i></div>
@@ -1840,7 +1789,6 @@
     </div>
   </div>
 
-  <!-- Main Tabs -->
   <div class="main-tabs">
     <button class="main-tab active" data-tab="homeworks">
       <i class="fas fa-file-pen"></i>
@@ -1859,7 +1807,6 @@
     </button>
   </div>
 
-  <!-- ============ SECTION 1: HOMEWORKS ============ -->
   <div class="section-content active" id="section-homeworks">
     <div class="toolbar">
       <div class="search-wrapper">
@@ -1898,7 +1845,6 @@
     </div>
   </div>
 
-  <!-- ============ SECTION 2: EXAMS ============ -->
   <div class="section-content" id="section-exams">
     <div class="toolbar">
       <div class="search-wrapper">
@@ -1937,7 +1883,6 @@
     </div>
   </div>
 
-  <!-- ============ SECTION 3: CERTIFICATES ============ -->
   <div class="section-content" id="section-certificates">
     <div class="cert-intro">
       <i class="fas fa-award"></i>
@@ -1967,7 +1912,6 @@
 
 </div>
 
-<!-- ============ Modal: Answers ============ -->
 <div class="modal-overlay" id="answersModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -1986,7 +1930,6 @@
   </div>
 </div>
 
-<!-- ============ Modal: Certificate ============ -->
 <div class="cert-modal-overlay" id="certModal">
   <div class="cert-modal-content">
     <div class="modal-header">
@@ -2025,13 +1968,11 @@
   </div>
 </div>
 
-<!-- ============ Toast ============ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
 
-<!-- ============ Drawer ============ -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
 <aside class="drawer" id="drawer">
@@ -2079,7 +2020,6 @@
   </div>
 </aside>
 
-<!-- Load html2canvas + jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -2103,9 +2043,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
 
-// ============================================================
-// 🔒 الحماية
-// ============================================================
 if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
   window.location.replace('login.html');
 }
@@ -2123,9 +2060,6 @@ window.addEventListener('popstate', () => {
   }
 });
 
-// ============================================================
-// 🧹 Helpers
-// ============================================================
 function cleanInput(value) {
   if (typeof value !== 'string') return '';
   return value
@@ -2176,9 +2110,6 @@ function formatDateFull(iso) {
   } catch (e) { return '—'; }
 }
 
-// ============================================================
-// 📊 الحالة العامة
-// ============================================================
 let myUserData = null;
 let myHomeworks = [];
 let myExams = [];
@@ -2200,9 +2131,6 @@ let certSettings = {
 
 let currentCertData = null;
 
-// ============================================================
-// ✅ دالة انتظار تحميل بيانات المستخدم
-// ============================================================
 async function waitForUserData(maxWaitMs = 3000) {
   if (myUserData) return myUserData;
   
@@ -2214,31 +2142,40 @@ async function waitForUserData(maxWaitMs = 3000) {
 }
 
 // ============================================================
-// ✅ دالة جلب الاسم الكامل — بنفس طريقة index.html
+// ✅ جلب الاسم الكامل — الأولوية القصوى للحقل fullName
 // ============================================================
 function getStudentFullName() {
-  // 1) من myUserData — نفس ترتيب index.html
+  // 1) من Firebase (الأولوية الأولى)
   if (myUserData && typeof myUserData === 'object') {
-    if (myUserData.fullName && myUserData.fullName.trim()) {
-      return myUserData.fullName.trim();
+    // ✅ fullName أولاً — ده الاسم الكامل الرسمي
+    if (myUserData.fullName && String(myUserData.fullName).trim()) {
+      return String(myUserData.fullName).trim();
     }
-    if (myUserData.username && myUserData.username.trim()) {
-      return myUserData.username.trim();
+    // احتياطي: name
+    if (myUserData.name && String(myUserData.name).trim()) {
+      return String(myUserData.name).trim();
+    }
+    // احتياطي: username
+    if (myUserData.username && String(myUserData.username).trim()) {
+      return String(myUserData.username).trim();
     }
   }
   
-  // 2) من sessionStorage
-  const s = sessionStorage.getItem('meezan_fullname') 
-         || sessionStorage.getItem('meezan_username');
-  if (s && s.trim() && s !== 'مستخدم') return s.trim();
+  // 2) من sessionStorage — نحاول meezan_fullname أولاً
+  const fullNameFromSession = sessionStorage.getItem('meezan_fullname');
+  if (fullNameFromSession && fullNameFromSession.trim() && fullNameFromSession !== 'مستخدم') {
+    return fullNameFromSession.trim();
+  }
+  
+  const usernameFromSession = sessionStorage.getItem('meezan_username');
+  if (usernameFromSession && usernameFromSession.trim() && usernameFromSession !== 'مستخدم') {
+    return usernameFromSession.trim();
+  }
   
   // 3) الافتراضي
   return 'مستخدم';
 }
 
-// ============================================================
-// ✅ دالة جلب كود الطالب
-// ============================================================
 function getStudentCode() {
   if (myUserData && typeof myUserData === 'object') {
     const candidates = [
@@ -2262,9 +2199,6 @@ function getStudentCode() {
   return userId || '—';
 }
 
-// ============================================================
-// 🌙 الوضع
-// ============================================================
 const savedTheme = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 updateThemeIcon(savedTheme);
@@ -2299,9 +2233,6 @@ function updateDrawerTheme(t) {
   }
 }
 
-// ============================================================
-// 💬 Toast
-// ============================================================
 let toastTimeout;
 function showToast(text, type = 'success') {
   const toast = $('toast');
@@ -2319,9 +2250,6 @@ function showToast(text, type = 'success') {
   toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-// ============================================================
-// 🎯 Tabs
-// ============================================================
 document.querySelectorAll('.main-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
@@ -2331,9 +2259,6 @@ document.querySelectorAll('.main-tab').forEach(tab => {
   });
 });
 
-// ============================================================
-// 📊 Stats
-// ============================================================
 function updateStats() {
   const hwSubs = Object.values(myHWSubs).filter(s => s.submitted);
   const exSubs = Object.values(myExamSubs).filter(s => s.submitted);
@@ -2357,9 +2282,6 @@ function updateStats() {
   $('tabCertsCount').textContent = myCertificates.length;
 }
 
-// ============================================================
-// ✅ Helpers
-// ============================================================
 function calcPercent(score, total) {
   if (!total || total <= 0) return 0;
   return Math.round((score / total) * 100);
@@ -2375,9 +2297,6 @@ function isHiddenForMe(type, itemId) {
   return hiddenSet.has(userId);
 }
 
-// ============================================================
-// 🎨 Render Homeworks
-// ============================================================
 function applyHWFilters() {
   const q = cleanInput($('searchHomeworks').value).toLowerCase();
   const filter = document.querySelector('[data-hw-filter].active')?.dataset.hwFilter || 'all';
@@ -2571,9 +2490,6 @@ function createHWCard(item) {
   return card;
 }
 
-// ============================================================
-// 🎨 Render Exams
-// ============================================================
 function applyExamFilters() {
   const q = cleanInput($('searchExams').value).toLowerCase();
   const filter = document.querySelector('[data-exam-filter].active')?.dataset.examFilter || 'all';
@@ -2767,9 +2683,6 @@ function createExamCard(item) {
   return card;
 }
 
-// ============================================================
-// 🔍 Search + Filters
-// ============================================================
 $('searchHomeworks').addEventListener('input', (e) => {
   $('clearSearchHomeworks').classList.toggle('show', !!cleanInput(e.target.value));
   applyHWFilters();
@@ -2808,9 +2721,6 @@ document.querySelectorAll('[data-exam-filter]').forEach(btn => {
   });
 });
 
-// ============================================================
-// 📖 Answers Modal
-// ============================================================
 function openAnswersModal(type, item, sub) {
   if (!sub || !sub.submitted) {
     return showToast('لم تقم بتسليم هذا ' + (type === 'homework' ? 'الواجب' : 'الامتحان') + ' بعد', 'warning');
@@ -2967,9 +2877,6 @@ $('answersModal').addEventListener('click', (e) => {
   if (e.target === $('answersModal')) closeAnswersModal();
 });
 
-// ============================================================
-// 🎓 Certificates
-// ============================================================
 function buildCertificates() {
   const certs = [];
   const MIN_PERCENT = 80;
@@ -3110,9 +3017,6 @@ function createCertCard(cert) {
   return card;
 }
 
-// ============================================================
-// 🖼️ Certificate Modal — مع انتظار تحميل البيانات
-// ============================================================
 async function openCertModal(cert, mode = 'view') {
   await waitForUserData(3000);
 
@@ -3168,14 +3072,19 @@ window.addEventListener('resize', () => {
   }
 });
 
-// ✅ رسم الشهادة
+// ============================================================
+// ✅ رسم الشهادة — الاسم الكامل بعد "تشهد إدارة منصة ميزان التعليمية بأن"
+// ============================================================
 function renderCertHTML(cert) {
   const container = $('certificateRender');
 
+  // ✅ الاسم الكامل من Firebase أولاً (fullName)
   const studentName = getStudentFullName();
   const studentCode = getStudentCode();
   const typeLabel = cert.type === 'homework' ? 'الواجب' : 'الامتحان';
   const dateFormatted = formatDateFull(cert.date);
+
+  console.log('🎓 رسم الشهادة بالاسم:', studentName);
 
   container.innerHTML = `
     <div class="cert-frame-outer"></div>
@@ -3235,9 +3144,6 @@ function renderCertHTML(cert) {
   `;
 }
 
-// ============================================================
-// 💾 تحويل الشهادة إلى Canvas
-// ============================================================
 async function renderCertToCanvas() {
   const element = $('certificateRender');
   if (!element) throw new Error('Certificate element not found');
@@ -3341,9 +3247,6 @@ async function renderCertToCanvas() {
   return canvas;
 }
 
-// ============================================================
-// 💾 تحميل كصورة
-// ============================================================
 $('certDownloadImage').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3373,9 +3276,6 @@ $('certDownloadImage').addEventListener('click', async () => {
   }
 });
 
-// ============================================================
-// 💾 تحميل PDF
-// ============================================================
 $('certDownloadPdf').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3412,9 +3312,6 @@ $('certDownloadPdf').addEventListener('click', async () => {
   }
 });
 
-// ============================================================
-// 📤 مشاركة
-// ============================================================
 $('certShareBtn').addEventListener('click', async () => {
   if (!currentCertData) return;
 
@@ -3455,9 +3352,6 @@ $('certShareBtn').addEventListener('click', async () => {
   }
 });
 
-// ============================================================
-// 🔍 Search Certs
-// ============================================================
 $('searchCerts').addEventListener('input', (e) => {
   $('clearSearchCerts').classList.toggle('show', !!cleanInput(e.target.value));
   renderCertificates();
@@ -3470,12 +3364,11 @@ $('clearSearchCerts').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Listeners — بنفس طريقة index.html
+// 📡 Listeners
 // ============================================================
 function startUserListener() {
   if (!userId) return;
 
-  // ✅ نفس طريقة index.html — بتدعم teachers و users
   const collectionName = userRole === 'teacher' ? 'teachers' : 'users';
 
   onSnapshot(doc(db, collectionName, 'all'), (snap) => {
@@ -3488,7 +3381,6 @@ function startUserListener() {
       user = items.find(u => String(u.id) === String(userId));
     }
     
-    // احتياطي: لو مالقيناه بالـ ID، ندور بالـ username
     if (!user) {
       const uname = cleanInput(sessionStorage.getItem('meezan_username') || '');
       if (uname) {
@@ -3499,8 +3391,8 @@ function startUserListener() {
     if (user) {
       myUserData = user;
 
-      // ✅ نفس طريقة index.html بالظبط
-      const fullName = user.fullName || user.username || 'مستخدم';
+      // ✅ خزّن fullName (الاسم الكامل الرسمي) في sessionStorage
+      const fullName = user.fullName || user.name || user.username || 'مستخدم';
       if (fullName) {
         sessionStorage.setItem('meezan_fullname', fullName);
         sessionStorage.setItem('meezan_username', fullName);
@@ -3514,8 +3406,9 @@ function startUserListener() {
       console.log('✅ تم تحميل بيانات المستخدم:', {
         id: user.id,
         fullName: user.fullName,
+        name: user.name,
         username: user.username,
-        الحقول: Object.keys(user)
+        الاسم_المستخدم_في_الشهادة: getStudentFullName()
       });
 
       refreshAll();
@@ -3630,9 +3523,6 @@ function refreshAll() {
   myExams = backupEx;
 }
 
-// ============================================================
-// 🚪 Logout
-// ============================================================
 $('logoutBtn').addEventListener('click', () => {
   if (!confirm('هل تريد تسجيل الخروج؟')) return;
   sessionStorage.clear();
@@ -3648,9 +3538,6 @@ $('drawerLogoutBtn').addEventListener('click', () => {
   }, 300);
 });
 
-// ============================================================
-// 📱 Drawer
-// ============================================================
 const drawer = $('drawer');
 const drawerOverlay = $('drawerOverlay');
 const menuBtn = $('menuBtn');
@@ -3671,9 +3558,6 @@ function closeDrawer() {
 drawerClose?.addEventListener('click', closeDrawer);
 drawerOverlay?.addEventListener('click', closeDrawer);
 
-// ============================================================
-// ⌨️ Escape
-// ============================================================
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('answersModal').classList.contains('show')) closeAnswersModal();
@@ -3682,9 +3566,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ============================================================
-// 🚀 Init
-// ============================================================
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
 startUserListener();
