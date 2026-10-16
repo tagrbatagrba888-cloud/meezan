@@ -76,7 +76,6 @@
 
   body.ready { opacity: 1; }
 
-  /* ===== زر الوضع (ثابت) ===== */
   .theme-float {
     position: fixed;
     top: 20px;
@@ -108,14 +107,12 @@
     border-color: var(--accent);
   }
 
-  /* ===== الحاوية الرئيسية ===== */
   .main-container {
     display: flex;
     width: 100%;
     min-height: 100vh;
   }
 
-  /* ===== القسم الأيسر (اللوجو) ===== */
   .brand-side {
     flex: 1;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 60%, var(--primary-lighter) 100%);
@@ -194,7 +191,6 @@
 
   .brand-decoration i { color: var(--accent); font-size: 24px; }
 
-  /* ===== القسم الأيمن (الفورم) ===== */
   .form-side {
     flex: 1;
     background: var(--bg-card);
@@ -212,7 +208,6 @@
   .form-header h2 { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
   .form-header p { font-size: 13.5px; color: var(--text-sub); font-weight: 500; }
 
-  /* ===== Tabs ===== */
   .auth-tabs {
     display: flex;
     gap: 4px;
@@ -249,7 +244,6 @@
 
   [data-theme="dark"] .auth-tab.active { color: var(--bg-page); }
 
-  /* ===== Role selector ===== */
   .role-selector {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -316,7 +310,6 @@
     filter: grayscale(1);
   }
 
-  /* ===== Form ===== */
   .form-group { margin-bottom: 14px; position: relative; }
 
   .form-label {
@@ -408,7 +401,6 @@
 
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  /* ===== Buttons ===== */
   .btn {
     width: 100%;
     padding: 14px;
@@ -480,7 +472,6 @@
 
   .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* ===== Forgot Password ===== */
   .forgot-wrapper { text-align: center; margin-top: 14px; margin-bottom: 4px; }
 
   .forgot-link {
@@ -518,7 +509,6 @@
     background: var(--border);
   }
 
-  /* ===== Messages ===== */
   .message {
     padding: 12px 16px;
     border-radius: 12px;
@@ -588,7 +578,6 @@
   .disabled-msg .dm-row:first-of-type { border-top: none; }
   .disabled-msg .dm-row i { color: var(--error); width: 16px; }
 
-  /* ===== Spinner ===== */
   .spinner {
     width: 16px;
     height: 16px;
@@ -602,7 +591,6 @@
   .spinner.show { display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ===== Content switching ===== */
   .auth-content { display: none; animation: fadeIn 0.3s ease; }
   .auth-content.active { display: block; }
 
@@ -611,7 +599,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ===== Footer ===== */
   .form-footer {
     text-align: center;
     margin-top: 20px;
@@ -624,7 +611,6 @@
   .form-footer strong { color: var(--primary); font-weight: 800; }
   [data-theme="dark"] .form-footer strong { color: var(--accent); }
 
-  /* ===== Modal ===== */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -749,7 +735,6 @@
     border-radius: 12px;
   }
 
-  /* Google Info */
   .google-info {
     display: flex;
     align-items: center;
@@ -821,7 +806,6 @@
 
   .modal-error.show { display: block; }
 
-  /* Toast خفيف */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -852,18 +836,9 @@
   .toast.warning { border-color: var(--warning); }
   .toast.warning i { color: var(--warning); }
 
-  /* ============================================================
-     Responsive
-     ============================================================ */
   @media (max-width: 900px) {
     .main-container { flex-direction: column; }
-
-    .brand-side {
-      padding: 40px 20px 30px;
-      min-height: auto;
-      flex: 0 0 auto;
-    }
-
+    .brand-side { padding: 40px 20px 30px; min-height: auto; flex: 0 0 auto; }
     .brand-logo { width: 100px; height: 100px; padding: 8px; }
     .brand-title { font-size: 32px; margin-top: 16px; letter-spacing: 1px; }
     .brand-title .divider { font-size: 24px; }
@@ -872,18 +847,10 @@
     .brand-decoration { margin-top: 16px; }
     .brand-decoration span { width: 40px; }
     .brand-decoration i { font-size: 20px; }
-
-    .form-side {
-      padding: 24px 16px 40px;
-      flex: 1;
-      min-height: auto;
-      align-items: flex-start;
-    }
-
+    .form-side { padding: 24px 16px 40px; flex: 1; min-height: auto; align-items: flex-start; }
     .form-wrapper { max-width: 100%; }
     .form-header h2 { font-size: 20px; }
     .form-row { grid-template-columns: 1fr; }
-
     .theme-float { top: 14px; left: 14px; width: 42px; height: 42px; font-size: 16px; }
   }
 
@@ -906,7 +873,6 @@
     .brand-title { font-size: 64px; }
   }
 
-  /* Modal Mobile */
   @media (max-width: 600px) {
     .modal-box { padding: 24px 18px 20px; border-radius: 18px; }
     .modal-icon { width: 60px; height: 60px; font-size: 24px; margin-bottom: 16px; }
@@ -922,14 +888,12 @@
 </head>
 <body>
 
-<!-- ============ زر الوضع (ثابت) ============ -->
 <button class="theme-float" id="themeToggle" title="الوضع الليلي/النهاري">
   <i class="fas fa-moon" id="themeIcon"></i>
 </button>
 
 <div class="main-container">
 
-  <!-- ============ القسم الأيسر: اللوجو ============ -->
   <div class="brand-side">
     <div class="brand-content">
       <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" 
@@ -950,7 +914,6 @@
     </div>
   </div>
 
-  <!-- ============ القسم الأيمن: الفورم ============ -->
   <div class="form-side">
     <div class="form-wrapper">
 
@@ -959,7 +922,6 @@
         <p id="formSubtitle">أدخل بياناتك للوصول إلى حسابك</p>
       </div>
 
-      <!-- رسالة التعطيل -->
       <div class="message disabled-msg" id="disabledMsg">
         <div class="dm-title">
           <i class="fas fa-ban"></i>
@@ -979,7 +941,6 @@
         </div>
       </div>
 
-      <!-- رسائل عامة -->
       <div class="message error" id="errorMsg">
         <i class="fas fa-exclamation-circle"></i>
         <span id="errorText"></span>
@@ -995,7 +956,6 @@
         <span id="regClosedText">التسجيل مغلق حالياً من قبل الإدارة</span>
       </div>
 
-      <!-- Tabs -->
       <div class="auth-tabs" id="authTabs">
         <button class="auth-tab active" data-tab="login" type="button">
           <i class="fas fa-sign-in-alt"></i>
@@ -1007,7 +967,6 @@
         </button>
       </div>
 
-      <!-- ============ تسجيل الدخول ============ -->
       <div class="auth-content active" id="content-login">
         <div class="role-selector">
           <button type="button" class="role-option selected" data-role="student">
@@ -1080,7 +1039,6 @@
         </form>
       </div>
 
-      <!-- ============ إنشاء حساب ============ -->
       <div class="auth-content" id="content-register">
         <div class="role-selector">
           <button type="button" class="role-option selected" data-reg-role="student">
@@ -1205,9 +1163,6 @@
   </div>
 </div>
 
-<!-- ============================================================
-     🎯 نافذة إكمال بيانات Google (بدل prompt)
-     ============================================================ -->
 <div class="modal-overlay" id="googleDataModal">
   <div class="modal-box wide">
     <div class="modal-header">
@@ -1254,7 +1209,6 @@
         </div>
       </div>
 
-      <!-- الرقم القومي -->
       <div class="form-group" id="gNidGroup" style="display: none;">
         <label class="form-label">الرقم القومي <span class="required">*</span> <span class="hint">(14 رقم)</span></label>
         <div class="input-wrapper">
@@ -1263,7 +1217,6 @@
         </div>
       </div>
 
-      <!-- تاريخ الميلاد -->
       <div class="form-group" id="gBirthGroup">
         <label class="form-label">تاريخ الميلاد <span class="required">*</span> <span class="hint" id="gBirthHint"></span></label>
         <div class="input-wrapper">
@@ -1272,7 +1225,6 @@
         </div>
       </div>
 
-      <!-- الفرقة / المادة -->
       <div class="form-group">
         <label class="form-label" id="gGradeLabel">الفرقة الدراسية <span class="required">*</span></label>
         <div class="input-wrapper">
@@ -1295,9 +1247,6 @@
   </div>
 </div>
 
-<!-- ============================================================
-     🔔 نافذة تأكيد مخصصة
-     ============================================================ -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box small">
     <div class="modal-icon" id="confirmIcon">
@@ -1317,17 +1266,15 @@
   </div>
 </div>
 
-<!-- ============================================================
-     Toast خفيف
-     ============================================================ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { 
   getAuth, GoogleAuthProvider, signInWithPopup, signOut 
@@ -1351,6 +1298,16 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// ⚡ withTimeout — حتى لا تعلّق الواجهة أبداً
+// ============================================================
+function withTimeout(promise, ms = 8000, msg = 'انتهت المهلة، تحقق من الإنترنت') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(msg)), ms))
+  ]);
+}
 
 // ============================================================
 // 🧹 التنظيف
@@ -1549,6 +1506,57 @@ function saveCache(key, data) {
 }
 
 // ============================================================
+// ⚡ كاش في الذاكرة للمستخدمين (لتسريع القراءات المتكررة)
+// ============================================================
+const usersMemoryCache = {
+  users: { items: [], fetchedAt: 0 },
+  teachers: { items: [], fetchedAt: 0 }
+};
+
+const MEMORY_TTL = 60 * 1000; // 60 ثانية
+
+function getUsersFromMemory(collectionName) {
+  const c = usersMemoryCache[collectionName];
+  if (!c) return null;
+  if (Date.now() - c.fetchedAt > MEMORY_TTL) return null;
+  return c.items;
+}
+
+function setUsersToMemory(collectionName, items) {
+  const c = usersMemoryCache[collectionName];
+  if (!c) return;
+  c.items = items;
+  c.fetchedAt = Date.now();
+}
+
+function invalidateUsersMemory(collectionName) {
+  const c = usersMemoryCache[collectionName];
+  if (!c) return;
+  c.items = [];
+  c.fetchedAt = 0;
+}
+
+// ============================================================
+// ⚡ قراءة سريعة للمستخدمين (مع كاش + getDoc)
+// ============================================================
+async function fetchUsersFast(collectionName, useCache = true) {
+  if (useCache) {
+    const mem = getUsersFromMemory(collectionName);
+    if (mem && mem.length > 0) return mem;
+  }
+
+  const snap = await withTimeout(
+    getDoc(doc(db, collectionName, 'all')),
+    8000,
+    'تعذّر تحميل البيانات — تحقق من الإنترنت'
+  );
+
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  setUsersToMemory(collectionName, items);
+  return items;
+}
+
+// ============================================================
 // 📊 الحالة العامة
 // ============================================================
 let currentSettings = null;
@@ -1562,7 +1570,6 @@ let currentRegRole = 'student';
 let studentCategories = [];
 let teacherCategories = [];
 
-// لـ Google
 let googlePendingData = null;
 let googlePendingRole = 'student';
 
@@ -1597,13 +1604,11 @@ function applySettings(data) {
 
   $('copyrightText').innerHTML = buildCopyright(data);
 
-  // قفل التسجيلين
   studentLoginEnabled = data.studentLoginEnabled !== false;
   teacherLoginEnabled = data.teacherLoginEnabled !== false;
   studentRegisterEnabled = data.studentRegisterEnabled !== false;
   teacherRegisterEnabled = data.teacherRegisterEnabled !== false;
 
-  // الرقم القومي
   nationalIdEnabled = data.nationalIdEnabled === true;
   if (nationalIdEnabled) {
     $('regNidGroup').style.display = '';
@@ -1621,9 +1626,6 @@ function applySettings(data) {
   applyColors(data);
 }
 
-// ============================================================
-// 🔒 تطبيق حالة القفل على الأدوار
-// ============================================================
 function applyRoleStates() {
   document.querySelectorAll('[data-role]').forEach(btn => {
     const role = btn.dataset.role;
@@ -1905,7 +1907,7 @@ function updateGoogleGradeSelect(role) {
 }
 
 // ============================================================
-// 📡 Real-time: settings/login_user
+// 📡 Real-time settings
 // ============================================================
 const cachedSettings = loadCache(CACHE_SETTINGS);
 if (cachedSettings) {
@@ -1928,7 +1930,7 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
 // ============================================================
-// 📡 Real-time: الفرق والمواد
+// 📡 Real-time categories (للتسجيل فقط، لا يعطّل الدخول)
 // ============================================================
 onSnapshot(doc(db, 'users', 'categories'), (snap) => {
   if (snap.exists()) {
@@ -1988,7 +1990,7 @@ $('gNationalId').addEventListener('input', (e) => {
 });
 
 // ============================================================
-// 🚀 تسجيل الدخول
+// 🚀 تسجيل الدخول — سريع جداً
 // ============================================================
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2019,16 +2021,14 @@ $('loginForm').addEventListener('submit', async (e) => {
   icon.style.display = 'none';
   btnText.textContent = 'جاري التحقق...';
 
+  const t0 = performance.now();
+
   try {
     const collectionName = currentLoginRole === 'teacher' ? 'teachers' : 'users';
 
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    // ⚡ قراءة سريعة (getDoc + memory cache)
+    const items = await fetchUsersFast(collectionName, true);
 
-    if (!userSnap.exists()) throw new Error('لم يتم العثور على بيانات المستخدمين');
-
-    const items = userSnap.data().items || [];
     const user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
 
     if (!user) throw new Error('اسم المستخدم غير صحيح');
@@ -2048,29 +2048,22 @@ $('loginForm').addEventListener('submit', async (e) => {
       }
     }
 
-    spinner.classList.remove('show');
-    icon.style.display = '';
-    btnText.textContent = 'تسجيل الدخول';
-    btn.disabled = false;
+    // ✅ حفظ الجلسة أولاً (المستخدم جاهز للانتقال)
+    saveSession(user, currentLoginRole, username);
 
-    sessionStorage.setItem('meezan_logged_in', 'true');
-    sessionStorage.setItem('meezan_username', username);
-    sessionStorage.setItem('meezan_role', currentLoginRole);
-    sessionStorage.setItem('meezan_user_id', user.id);
-    sessionStorage.setItem('meezan_user_data', JSON.stringify({
-      fullName: user.fullName,
-      username: user.username,
-      avatarUrl: user.avatarUrl || '',
-      role: currentLoginRole
-    }));
-
-    await markUserOnline(collectionName, user.id);
+    // 🚀 التوجيه فوراً — بدون انتظار markUserOnline
+    const elapsed = Math.round(performance.now() - t0);
+    console.log(`⚡ Login took ${elapsed}ms`);
 
     $('loginUsername').value = '';
     $('loginPassword').value = '';
 
     showSuccess(`مرحباً ${user.fullName || username}! جاري التوجيه...`);
-    setTimeout(() => window.location.replace('index.html'), 800);
+
+    // ⚡ markUserOnline في الخلفية (لا يعطّل التوجيه)
+    markUserOnline(collectionName, user.id);
+
+    setTimeout(() => window.location.replace('index.html'), 400);
 
   } catch (err) {
     spinner.classList.remove('show');
@@ -2083,7 +2076,7 @@ $('loginForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-// 📝 إنشاء حساب
+// 📝 إنشاء حساب — سريع جداً
 // ============================================================
 $('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2138,14 +2131,13 @@ $('registerForm').addEventListener('submit', async (e) => {
   icon.style.display = 'none';
   btnText.textContent = 'جاري إنشاء الحساب...';
 
+  const t0 = performance.now();
+
   try {
     const collectionName = currentRegRole === 'teacher' ? 'teachers' : 'users';
 
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
-
-    let items = userSnap.exists() ? (userSnap.data().items || []) : [];
+    // ⚡ قراءة سريعة
+    let items = await fetchUsersFast(collectionName, true);
 
     if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
       throw new Error('اسم المستخدم موجود بالفعل');
@@ -2181,31 +2173,34 @@ $('registerForm').addEventListener('submit', async (e) => {
       updatedAt: now
     };
 
+    // ✅ تحديث الذاكرة فوراً (حتى لا نقرأ من السيرفر مرة أخرى)
     items.push(newUser);
+    setUsersToMemory(collectionName, items);
 
-    await setDoc(doc(db, collectionName, 'all'), {
-      items,
-      updatedAt: serverTimestamp()
-    });
+    // ⚡ كتابة أنحف عبر arrayUnion إذا المستند موجود
+    const allRef = doc(db, collectionName, 'all');
+    const snapCheck = await withTimeout(getDoc(allRef), 8000);
 
-    spinner.classList.remove('show');
-    icon.style.display = '';
-    btnText.textContent = 'إنشاء الحساب';
-    btn.disabled = false;
+    if (snapCheck.exists()) {
+      await withTimeout(updateDoc(allRef, {
+        items: arrayUnion(newUser),
+        updatedAt: serverTimestamp()
+      }), 10000, 'تأخّر الاتصال أثناء حفظ الحساب');
+    } else {
+      await withTimeout(setDoc(allRef, {
+        items: [newUser],
+        updatedAt: serverTimestamp()
+      }), 10000, 'تأخّر الاتصال أثناء حفظ الحساب');
+    }
 
-    sessionStorage.setItem('meezan_logged_in', 'true');
-    sessionStorage.setItem('meezan_username', username);
-    sessionStorage.setItem('meezan_role', currentRegRole);
-    sessionStorage.setItem('meezan_user_id', newUser.id);
-    sessionStorage.setItem('meezan_user_data', JSON.stringify({
-      fullName: newUser.fullName,
-      username: newUser.username,
-      avatarUrl: '',
-      role: currentRegRole
-    }));
+    // ✅ حفظ الجلسة
+    saveSession(newUser, currentRegRole, username);
+
+    const elapsed = Math.round(performance.now() - t0);
+    console.log(`⚡ Register took ${elapsed}ms`);
 
     showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    setTimeout(() => window.location.replace('index.html'), 1000);
+    setTimeout(() => window.location.replace('index.html'), 500);
 
   } catch (err) {
     spinner.classList.remove('show');
@@ -2263,25 +2258,16 @@ async function handleGoogleAuth(mode) {
     const role = mode === 'register' ? currentRegRole : currentLoginRole;
     const collectionName = role === 'teacher' ? 'teachers' : 'users';
 
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
-
-    let items = userSnap.exists() ? (userSnap.data().items || []) : [];
+    // ⚡ قراءة سريعة
+    let items = await fetchUsersFast(collectionName, true);
     const existing = items.find(u => (u.email || '').toLowerCase() === googleData.email.toLowerCase());
 
     if (mode === 'login') {
-      // ===== تسجيل دخول =====
       if (!existing) {
-        // ابحث في النوع الآخر
         const otherRole = role === 'teacher' ? 'student' : 'teacher';
         const otherCollection = otherRole === 'teacher' ? 'teachers' : 'users';
 
-        const otherSnap = await new Promise((resolve) => {
-          onSnapshot(doc(db, otherCollection, 'all'), (s) => resolve(s), { once: true });
-        });
-
-        const otherItems = otherSnap.exists() ? (otherSnap.data().items || []) : [];
+        let otherItems = await fetchUsersFast(otherCollection, true);
         const otherUser = otherItems.find(u => (u.email || '').toLowerCase() === googleData.email.toLowerCase());
 
         if (otherUser) {
@@ -2293,9 +2279,9 @@ async function handleGoogleAuth(mode) {
             }
           }
           saveSession(otherUser, otherRole, otherUser.username);
-          await markUserOnline(otherCollection, otherUser.id);
+          markUserOnline(otherCollection, otherUser.id);
           showSuccess(`مرحباً ${otherUser.fullName || otherUser.username}! جاري التوجيه...`);
-          setTimeout(() => window.location.replace('index.html'), 800);
+          setTimeout(() => window.location.replace('index.html'), 400);
           return;
         }
 
@@ -2310,36 +2296,34 @@ async function handleGoogleAuth(mode) {
         }
       }
 
-      // حدّث الصورة لو ما عندهاش
+      // تحديث الصورة لو ما عندهاش (في الخلفية، بدون انتظار)
       if (!existing.avatarUrl && googleData.photoURL) {
         const idx = items.findIndex(u => u.id === existing.id);
         if (idx !== -1) {
           items[idx].avatarUrl = googleData.photoURL;
           items[idx].googleAuth = true;
-          await setDoc(doc(db, collectionName, 'all'), {
+          setUsersToMemory(collectionName, items);
+          setDoc(doc(db, collectionName, 'all'), {
             items,
             updatedAt: serverTimestamp()
-          });
+          }).catch(() => {});
         }
       }
 
       saveSession(existing, role, existing.username);
-      await markUserOnline(collectionName, existing.id);
+      markUserOnline(collectionName, existing.id);
 
       showSuccess(`مرحباً ${existing.fullName || existing.username}! جاري التوجيه...`);
-      setTimeout(() => window.location.replace('index.html'), 800);
+      setTimeout(() => window.location.replace('index.html'), 400);
 
     } else {
-      // ===== إنشاء حساب بحساب Google =====
       if (existing) {
         throw new Error('هذا البريد مسجّل بالفعل — سجّل الدخول بدلاً من إنشاء حساب');
       }
 
-      // فتح نافذة إكمال البيانات
       googlePendingData = googleData;
       googlePendingRole = role;
 
-      // املأ الحقول
       $('googleEmail').textContent = googleData.email;
       $('googleName').textContent = googleData.displayName || 'بدون اسم';
 
@@ -2358,10 +2342,8 @@ async function handleGoogleAuth(mode) {
       $('gBirthDate').value = '';
       $('gBirthDate').disabled = false;
 
-      // قائمة الفرق/المواد
       updateGoogleGradeSelect(role);
 
-      // عرض/إخفاء حقل الرقم القومي
       if (nationalIdEnabled) {
         $('gNidGroup').style.display = '';
         $('gBirthHint').textContent = '(يُحدد تلقائياً)';
@@ -2375,7 +2357,7 @@ async function handleGoogleAuth(mode) {
 
       btn.disabled = false;
       btn.innerHTML = originalHTML;
-      return; // لا تكمل — ننتظر ملء النموذج
+      return;
     }
 
   } catch (err) {
@@ -2398,7 +2380,7 @@ async function handleGoogleAuth(mode) {
 }
 
 // ============================================================
-// 💾 حفظ بيانات Google
+// 💾 حفظ بيانات Google — سريع
 // ============================================================
 $('googleDataSave').addEventListener('click', async () => {
   if (!googlePendingData) return;
@@ -2413,7 +2395,6 @@ $('googleDataSave').addEventListener('click', async () => {
   const birthDate = $('gBirthDate').value;
   const grade = $('gGrade').value;
 
-  // ===== التحقق =====
   if (!fullName || fullName.length < 3) {
     errEl.textContent = 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل';
     errEl.classList.add('show');
@@ -2464,15 +2445,14 @@ $('googleDataSave').addEventListener('click', async () => {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
 
+  const t0 = performance.now();
+
   try {
     const role = googlePendingRole;
     const collectionName = role === 'teacher' ? 'teachers' : 'users';
 
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
-
-    let items = userSnap.exists() ? (userSnap.data().items || []) : [];
+    // ⚡ قراءة سريعة
+    let items = await fetchUsersFast(collectionName, true);
 
     if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
       throw new Error('اسم المستخدم موجود بالفعل');
@@ -2512,27 +2492,32 @@ $('googleDataSave').addEventListener('click', async () => {
     };
 
     items.push(newUser);
+    setUsersToMemory(collectionName, items);
 
-    await setDoc(doc(db, collectionName, 'all'), {
-      items,
-      updatedAt: serverTimestamp()
-    });
+    const allRef = doc(db, collectionName, 'all');
+    const snapCheck = await withTimeout(getDoc(allRef), 8000);
+
+    if (snapCheck.exists()) {
+      await withTimeout(updateDoc(allRef, {
+        items: arrayUnion(newUser),
+        updatedAt: serverTimestamp()
+      }), 10000, 'تأخّر الاتصال أثناء حفظ الحساب');
+    } else {
+      await withTimeout(setDoc(allRef, {
+        items: [newUser],
+        updatedAt: serverTimestamp()
+      }), 10000, 'تأخّر الاتصال أثناء حفظ الحساب');
+    }
 
     $('googleDataModal').classList.remove('show');
 
-    sessionStorage.setItem('meezan_logged_in', 'true');
-    sessionStorage.setItem('meezan_username', username);
-    sessionStorage.setItem('meezan_role', role);
-    sessionStorage.setItem('meezan_user_id', newUser.id);
-    sessionStorage.setItem('meezan_user_data', JSON.stringify({
-      fullName: newUser.fullName,
-      username: newUser.username,
-      avatarUrl: newUser.avatarUrl,
-      role: role
-    }));
+    saveSession(newUser, role, username);
+
+    const elapsed = Math.round(performance.now() - t0);
+    console.log(`⚡ Google Register took ${elapsed}ms`);
 
     showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    setTimeout(() => window.location.replace('index.html'), 1000);
+    setTimeout(() => window.location.replace('index.html'), 500);
 
   } catch (err) {
     console.error(err);
@@ -2559,7 +2544,6 @@ $('googleDataModal').addEventListener('click', async (e) => {
   }
 });
 
-// Escape
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('confirmModal').classList.contains('show')) closeConfirm(false);
@@ -2571,35 +2555,38 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// 💾 حفظ الجلسة
+// 💾 حفظ الجلسة (كانت موجودة تحت، نقلناها للأعلى)
 // ============================================================
 function saveSession(user, role, username) {
-  sessionStorage.setItem('meezan_logged_in', 'true');
-  sessionStorage.setItem('meezan_username', username);
-  sessionStorage.setItem('meezan_role', role);
-  sessionStorage.setItem('meezan_user_id', user.id);
-  sessionStorage.setItem('meezan_user_data', JSON.stringify({
-    fullName: user.fullName,
-    username: user.username,
-    avatarUrl: user.avatarUrl || '',
-    role: role
-  }));
+  try {
+    sessionStorage.setItem('meezan_logged_in', 'true');
+    sessionStorage.setItem('meezan_username', username);
+    sessionStorage.setItem('meezan_role', role);
+    sessionStorage.setItem('meezan_user_id', user.id);
+    sessionStorage.setItem('meezan_user_data', JSON.stringify({
+      fullName: user.fullName,
+      username: user.username,
+      avatarUrl: user.avatarUrl || '',
+      role: role
+    }));
+  } catch (e) {
+    console.log('saveSession error:', e.message);
+  }
 }
 
 // ============================================================
-// 🟢 تحديث حالة الاتصال
+// 🟢 تحديث حالة الاتصال — سريع (بدون await في المسار الحرج)
 // ============================================================
 async function markUserOnline(collectionName, userId) {
   try {
-    const snap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    const snap = await getDoc(doc(db, collectionName, 'all'));
     if (!snap.exists()) return;
     const items = snap.data().items || [];
     const idx = items.findIndex(u => u.id === userId);
     if (idx === -1) return;
     items[idx].isOnline = true;
     items[idx].lastSeen = new Date().toISOString();
+    setUsersToMemory(collectionName, items);
     await setDoc(doc(db, collectionName, 'all'), {
       items,
       updatedAt: serverTimestamp()
@@ -2644,10 +2631,13 @@ if ('serviceWorker' in navigator) {
 
 // Init
 updateGradeSelect();
-</script>
 
-</body>
-</html>
+// ⚡ اجلب المستخدمين في الخلفية ليكون الكاش جاهزاً قبل أول تسجيل دخول
+setTimeout(() => {
+  fetchUsersFast('users', false).catch(() => {});
+  fetchUsersFast('teachers', false).catch(() => {});
+}, 300);
+</script>
 
 </body>
 </html>
