@@ -260,6 +260,18 @@
     animation: pulseOnline 2s ease-in-out infinite;
   }
 
+  .support-avatar.offline::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #95A5A6;
+    border: 2px solid var(--bg-card);
+  }
+
   @keyframes pulseOnline {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }
@@ -285,6 +297,9 @@
     align-items: center;
     gap: 5px;
   }
+
+  .support-status.offline { color: var(--text-sub); }
+  .support-status.waiting { color: var(--warning); }
 
   .support-status i {
     font-size: 8px;
@@ -394,6 +409,11 @@
     align-self: flex-start;
   }
 
+  .msg.system {
+    align-self: center;
+    max-width: 90%;
+  }
+
   .msg-avatar {
     width: 36px;
     height: 36px;
@@ -449,6 +469,28 @@
     background: linear-gradient(135deg, rgba(41, 128, 185, 0.08), rgba(41, 128, 185, 0.03));
     border-color: rgba(41, 128, 185, 0.3);
   }
+
+  .msg.system .msg-content {
+    background: var(--bg-input);
+    border-color: var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-sub);
+    text-align: center;
+    padding: 6px 14px;
+  }
+
+  .msg-sender-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .msg.bot .msg-sender-name { color: var(--info); }
 
   .msg-text {
     font-size: 14px;
@@ -1007,6 +1049,48 @@
   @media (min-width: 901px) {
     .chat-container { max-width: 900px; }
   }
+
+  /* ===== حالة "انتظار الأدمن" ===== */
+  .waiting-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.05));
+    border: 1.5px solid var(--warning);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--warning);
+    animation: msgIn 0.3s ease;
+  }
+
+  .waiting-banner.show { display: flex; }
+
+  .waiting-banner i {
+    font-size: 18px;
+    animation: pulseOnline 1.5s ease-in-out infinite;
+  }
+
+  /* ===== حالة "البوت متوقف" ===== */
+  .bot-offline-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(149, 165, 166, 0.1);
+    border: 1.5px solid #95A5A6;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-sub);
+    animation: msgIn 0.3s ease;
+  }
+
+  .bot-offline-banner.show { display: flex; }
+  .bot-offline-banner i { font-size: 16px; }
 </style>
 </head>
 <body>
@@ -1067,11 +1151,11 @@
         </a>
         <div class="header-info">
           <div class="support-avatar online" id="supportAvatar">
-            <i class="fas fa-headset"></i>
+            <i class="fas fa-robot" id="supportAvatarIcon"></i>
           </div>
           <div class="support-info">
             <div class="support-name" id="supportName">ميزان الذكي</div>
-            <div class="support-status">
+            <div class="support-status" id="supportStatusWrap">
               <i class="fas fa-circle"></i>
               <span id="supportStatus">متصل الآن</span>
             </div>
@@ -1089,6 +1173,19 @@
   </header>
 
   <div class="chat-container">
+
+    <!-- Banner: انتظار الأدمن -->
+    <div class="waiting-banner" id="waitingBanner">
+      <i class="fas fa-clock"></i>
+      <span>تم تحويل محادثتك للدعم البشري — سيتم الرد عليك في أقرب وقت</span>
+    </div>
+
+    <!-- Banner: البوت متوقف -->
+    <div class="bot-offline-banner" id="botOfflineBanner">
+      <i class="fas fa-power-off"></i>
+      <span>البوت الذكي متوقف حالياً — يمكنك التحويل للدعم البشري</span>
+    </div>
+
     <div class="chat-box">
       <div class="chat-messages" id="chatMessages"></div>
 
@@ -1156,6 +1253,7 @@
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -1188,6 +1286,12 @@ function cleanInput(v) {
     .trim();
 }
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : String(text);
+  return div.innerHTML;
+}
+
 // ============================================================
 // 📊 الحالة
 // ============================================================
@@ -1199,22 +1303,57 @@ let currentUserName = '';
 let sessionId = null;
 let unsubscribeMessages = null;
 let unsubscribeUser = null;
-let unsubscribeBot = null;
+let unsubscribeBotSettings = null;
+
+// حالة المحادثة
 let isTransferredToSupport = false;
 let isClosed = false;
-let attachType = 'image';
+let claimedBy = null;
+let claimedByName = null;
 
-// الإعدادات
-let botSettings = {
+// كاش
+let lastRenderedMessagesHash = '';
+let lastBotReplyForMsgId = null;
+let botReplyInProgress = false;
+
+// مؤقت إشارة الكتابة
+let typingSignalTimeout = null;
+let isSendingTypingSignal = false;
+
+// إعدادات البوت
+const DEFAULT_BOT_SETTINGS = {
   enabled: true,
   accessDb: true,
   autoGreet: true,
+  typingSignal: true,
+  botName: 'ميزان الذكي',
+  // API
+  apiEnabled: false,
+  apiUrl: '',
+  apiKey: '',
+  apiModel: '',
+  apiHeaders: '',
+  apiMaxTokens: 500,
+  apiTemperature: 0.7,
+  apiTimeout: 30,
+  // Persona
+  systemPrompt: 'أنت "ميزان الذكي"، مساعد دعم فني ذكي ولطيف في منصة MEEZAN التعليمية.',
+  contextTemplate: '== بيانات المستخدم ==\nالاسم: {name}\nالدور: {role}\nالكود: {code}\nالفرقة: {grade}\nالهاتف: {phone}\nالامتحانات: {completedExams}/{totalExams}\nالواجبات: {completedHomeworks}/{totalHomeworks}\n== نهاية البيانات ==',
+  // Messages
   welcomeMsg: 'أهلاً بك يا {name} 👋\nأنا ميزان الذكي، مساعدك في المنصة.\nكيف أقدر أساعدك اليوم؟',
-  transferMsg: '✅ تم تحويل محادثتك لفريق الدعم الفني.\nسيتم الرد عليك في أقرب وقت.\nشكراً لصبرك 🌸'
+  transferMsg: '✅ تم تحويل محادثتك لفريق الدعم الفني.\nسيتم الرد عليك في أقرب وقت ممكن.\nشكراً لصبرك 🌸',
+  apiErrorMsg: '⚠️ حدث خطأ مؤقت، جاري تحويلك للدعم البشري.'
 };
 
-// للبوت — منع تكرار الردود
-const processedBotReplies = new Set();
+let botSettings = { ...DEFAULT_BOT_SETTINGS };
+
+// كاش بيانات المستخدمين (لبوت)
+const userDataCache = new Map();
+let cachedUsers = null;
+let cachedTeachers = null;
+let cachedUsersTime = 0;
+let cachedTeachersTime = 0;
+const CACHE_TTL = 60000;
 
 // ============================================================
 // 💬 Toast
@@ -1245,7 +1384,6 @@ function checkLoginStatus() {
   currentUserId = sessionStorage.getItem('meezan_user_id') || null;
   const username = sessionStorage.getItem('meezan_username') || '';
 
-  // في وضع الضيف (دخل من daam كمستخدم غير مسجل)
   const guestMode = sessionStorage.getItem('meezan_guest_mode') === 'true';
   const guestName = sessionStorage.getItem('meezan_guest_name') || '';
   const guestPhone = sessionStorage.getItem('meezan_guest_phone') || '';
@@ -1253,7 +1391,6 @@ function checkLoginStatus() {
   if (isLoggedIn && username) {
     loadLoggedInUser();
   } else if (guestMode && guestName && guestPhone) {
-    // ضيف سبق وسجل بياناته
     currentRole = 'guest';
     currentUserId = 'guest_' + guestPhone;
     currentUserName = guestName;
@@ -1275,7 +1412,6 @@ async function loadLoggedInUser() {
     const userId = currentUserId;
     const username = sessionStorage.getItem('meezan_username') || '';
 
-    // جرّب الكاش أولاً
     const cachedData = sessionStorage.getItem('meezan_user_data');
     if (cachedData) {
       try {
@@ -1286,7 +1422,6 @@ async function loadLoggedInUser() {
 
     if (!currentUserName) currentUserName = username;
 
-    // جرّب Firestore للحصول على بيانات أكمل
     const userSnap = await new Promise((resolve) => {
       onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
     });
@@ -1360,7 +1495,6 @@ $('guestForm').addEventListener('submit', async (e) => {
   try {
     localStorage.setItem('meezan_guest_data', JSON.stringify({ name, phone }));
 
-    // ابحث عن المستخدم في Firestore
     let foundUser = null;
     let foundRole = 'guest';
     let foundCollection = 'users';
@@ -1382,14 +1516,12 @@ $('guestForm').addEventListener('submit', async (e) => {
     }
 
     if (foundUser) {
-      // وجدناه
       currentUser = foundUser;
       currentRole = foundRole;
       currentUserId = foundUser.id;
       currentUserName = foundUser.fullName || name;
       sessionId = 'chat_' + foundUser.id;
 
-      // احفظ جلسة
       sessionStorage.setItem('meezan_logged_in', 'true');
       sessionStorage.setItem('meezan_username', foundUser.username || name);
       sessionStorage.setItem('meezan_role', foundRole);
@@ -1403,7 +1535,6 @@ $('guestForm').addEventListener('submit', async (e) => {
 
       showToast('تم التحقق من حسابك ✓', 'success');
     } else {
-      // ضيف جديد
       currentRole = 'guest';
       currentUserId = 'guest_' + phone;
       currentUserName = name;
@@ -1437,13 +1568,67 @@ function openChat() {
 }
 
 // ============================================================
-// 📡 تحميل الإعدادات من Firestore
+// 📡 مراقبة الإعدادات Real-time
 // ============================================================
-onSnapshot(doc(db, 'settings', 'bot'), (snap) => {
-  if (snap.exists()) {
-    botSettings = { ...botSettings, ...snap.data() };
+function startBotSettingsListener() {
+  if (unsubscribeBotSettings) unsubscribeBotSettings();
+
+  unsubscribeBotSettings = onSnapshot(doc(db, 'settings', 'bot'), (snap) => {
+    if (snap.exists()) {
+      botSettings = { ...DEFAULT_BOT_SETTINGS, ...snap.data() };
+    } else {
+      botSettings = { ...DEFAULT_BOT_SETTINGS };
+    }
+    updateHeaderFromSettings();
+    updateBannersVisibility();
+  }, (e) => {
+    console.warn('bot settings error:', e);
+    botSettings = { ...DEFAULT_BOT_SETTINGS };
+  });
+}
+
+function updateHeaderFromSettings() {
+  const nameEl = $('supportName');
+  const iconEl = $('supportAvatarIcon');
+
+  // إذا في محادثة بشرية → اسم الدعم
+  if (isTransferredToSupport || claimedBy) {
+    return;
   }
-}, (e) => {});
+
+  // وإلا → اسم البوت
+  nameEl.textContent = botSettings.botName || 'ميزان الذكي';
+  if (iconEl) iconEl.className = 'fas fa-robot';
+}
+
+function updateBannersVisibility() {
+  // Banner: انتظار الأدمن
+  const waitingBanner = $('waitingBanner');
+  if (isTransferredToSupport || claimedBy) {
+    waitingBanner.classList.add('show');
+  } else {
+    waitingBanner.classList.remove('show');
+  }
+
+  // Banner: البوت متوقف
+  const botOfflineBanner = $('botOfflineBanner');
+  const botAvailable = isBotAvailable();
+  if (!botAvailable && !isTransferredToSupport && !claimedBy && !isClosed) {
+    botOfflineBanner.classList.add('show');
+  } else {
+    botOfflineBanner.classList.remove('show');
+  }
+}
+
+// ============================================================
+// 🎯 هل البوت متاح؟
+// ============================================================
+function isBotAvailable() {
+  return botSettings.enabled === true &&
+         !isTransferredToSupport &&
+         !claimedBy &&
+         !isClosed;
+}
 
 // ============================================================
 // 📡 تحميل الرسائل Real-time
@@ -1454,11 +1639,7 @@ function loadMessages() {
   const ref = doc(db, 'support_chats', sessionId);
 
   unsubscribeMessages = onSnapshot(ref, (snap) => {
-    const messagesEl = $('chatMessages');
-    messagesEl.innerHTML = '';
-
     if (!snap.exists()) {
-      // لا توجد رسائل — أرسل ترحيب من البوت
       initChat();
       return;
     }
@@ -1466,10 +1647,30 @@ function loadMessages() {
     const data = snap.data();
     const messages = data.messages || [];
 
-    // تحديث حالات الجلسة
+    // تحديث الحالة
     isTransferredToSupport = data.isTransferred === true;
     isClosed = data.isClosed === true;
+    claimedBy = data.claimedBy || null;
+    claimedByName = data.claimedByName || null;
+
+    // حدّث الهيدر
+    updateHeaderState();
+
+    // تحديث الأزرار والبانرات
     updateTransferButton();
+    updateBannersVisibility();
+
+    // hash للرسائل (لتجنب إعادة الرسم لو مفيش تغيير)
+    const hash = messages.map(m => m.id).join('|');
+    if (hash === lastRenderedMessagesHash && messages.length > 0) {
+      // بس ممكن يكون فيه تغيير في actionsUsed → نعيد الرسم
+      const actionsUsedHash = messages.map(m => m.actionsUsed ? '1' : '0').join('');
+      if (actionsUsedHash === (window._lastActionsHash || '')) {
+        return;
+      }
+      window._lastActionsHash = actionsUsedHash;
+    }
+    lastRenderedMessagesHash = hash;
 
     // رتّب
     messages.sort((a, b) => {
@@ -1483,33 +1684,65 @@ function loadMessages() {
       return;
     }
 
-    messages.forEach(msg => {
-      renderMessage(msg);
-    });
+    // ارسم
+    const messagesEl = $('chatMessages');
+    messagesEl.innerHTML = '';
+    messages.forEach(msg => renderMessage(msg));
 
-    scrollToBottom();
-
-    // لو محادثة مغلقة → أظهر تنبيه
+    // لو مغلقة
     if (isClosed) {
       const closedMsg = document.createElement('div');
-      closedMsg.style.cssText = `
-        text-align: center;
-        padding: 14px;
-        background: rgba(192, 57, 43, 0.08);
-        border: 1px solid rgba(192, 57, 43, 0.3);
-        border-radius: 12px;
-        color: var(--error);
-        font-size: 13px;
-        font-weight: 700;
-        margin-top: 10px;
-      `;
-      closedMsg.innerHTML = '<i class="fas fa-lock"></i> هذه المحادثة مغلقة';
+      closedMsg.className = 'msg system';
+      closedMsg.innerHTML = `<div class="msg-content"><i class="fas fa-lock"></i> هذه المحادثة مغلقة</div>`;
       messagesEl.appendChild(closedMsg);
     }
+
+    scrollToBottom();
 
   }, (err) => {
     console.error('messages error:', err);
   });
+}
+
+function updateHeaderState() {
+  const nameEl = $('supportName');
+  const statusEl = $('supportStatus');
+  const statusWrap = $('supportStatusWrap');
+  const avatar = $('supportAvatar');
+  const avatarIcon = $('supportAvatarIcon');
+
+  if (claimedBy) {
+    // مشرف بشري يرد
+    nameEl.textContent = claimedByName || 'الدعم الفني';
+    statusEl.textContent = 'متصل الآن';
+    statusWrap.className = 'support-status';
+    avatar.classList.remove('offline');
+    avatar.classList.add('online');
+    if (avatarIcon) avatarIcon.className = 'fas fa-headset';
+  } else if (isTransferredToSupport) {
+    // منتظر مشرف
+    nameEl.textContent = 'الدعم الفني';
+    statusEl.textContent = 'بانتظار الرد';
+    statusWrap.className = 'support-status waiting';
+    avatar.classList.remove('online');
+    avatar.classList.add('offline');
+    if (avatarIcon) avatarIcon.className = 'fas fa-headset';
+  } else {
+    // البوت
+    nameEl.textContent = botSettings.botName || 'ميزان الذكي';
+    if (isBotAvailable()) {
+      statusEl.textContent = 'متصل الآن';
+      statusWrap.className = 'support-status';
+      avatar.classList.remove('offline');
+      avatar.classList.add('online');
+    } else {
+      statusEl.textContent = 'متوقف';
+      statusWrap.className = 'support-status offline';
+      avatar.classList.remove('online');
+      avatar.classList.add('offline');
+    }
+    if (avatarIcon) avatarIcon.className = 'fas fa-robot';
+  }
 }
 
 // ============================================================
@@ -1517,7 +1750,7 @@ function loadMessages() {
 // ============================================================
 async function initChat() {
   try {
-    const welcome = (botSettings.welcomeMsg || 'أهلاً بك 👋').replace('{name}', currentUserName);
+    const welcome = (botSettings.welcomeMsg || 'أهلاً بك 👋').replace(/\{name\}/g, currentUserName);
 
     const messages = [
       {
@@ -1548,7 +1781,6 @@ async function initChat() {
       updatedAt: serverTimestamp()
     });
 
-    // حدّث آخر ظهور
     updateLastSeen();
 
   } catch (e) {
@@ -1562,14 +1794,25 @@ async function initChat() {
 function renderMessage(msg) {
   const messagesEl = $('chatMessages');
   const type = msg.sender || 'user';
+
+  // رسالة نظام
+  if (msg.isSystem) {
+    const el = document.createElement('div');
+    el.className = 'msg system';
+    el.innerHTML = `<div class="msg-content">${escapeHtml(msg.text || '')}</div>`;
+    messagesEl.appendChild(el);
+    return;
+  }
+
   const text = msg.text || '';
   const mediaUrl = msg.mediaUrl || '';
   const mediaType = msg.mediaType || '';
   const actions = msg.actions || [];
   const time = msg.createdAt ? new Date(msg.createdAt) : new Date();
+  const senderName = msg.senderName || '';
 
   const msgDiv = document.createElement('div');
-  msgDiv.className = `msg ${type === 'user' ? 'user' : (type === 'support' ? 'support' : 'bot')}`;
+  msgDiv.className = `msg ${type === 'user' ? 'user' : (type === 'support' || type === 'admin' ? 'support' : 'bot')}`;
 
   // الأفاتار
   const avatarDiv = document.createElement('div');
@@ -1594,6 +1837,13 @@ function renderMessage(msg) {
 
   let html = '';
 
+  // اسم المرسل (للبوت والدعم)
+  if (type === 'bot') {
+    html += `<div class="msg-sender-name"><i class="fas fa-robot"></i> ${escapeHtml(botSettings.botName || 'ميزان الذكي')}</div>`;
+  } else if (type === 'support' || type === 'admin') {
+    html += `<div class="msg-sender-name" style="color:var(--accent);"><i class="fas fa-headset"></i> ${escapeHtml(senderName || 'الدعم')}</div>`;
+  }
+
   if (text) {
     html += `<div class="msg-text">${escapeHtml(text)}</div>`;
   }
@@ -1615,8 +1865,8 @@ function renderMessage(msg) {
 
   contentDiv.innerHTML = html;
 
-  // الأزرار التفاعلية (للبوت فقط)
-  if (type === 'bot' && actions.length > 0 && !msg.actionsUsed) {
+  // الأزرار التفاعلية (للبوت فقط + غير مستخدمة + البوت متاح)
+  if (type === 'bot' && actions.length > 0 && !msg.actionsUsed && isBotAvailable()) {
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'msg-actions';
 
@@ -1642,12 +1892,6 @@ function renderMessage(msg) {
   msgDiv.appendChild(avatarDiv);
   msgDiv.appendChild(contentDiv);
   messagesEl.appendChild(msgDiv);
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 function formatTimeAgo(date) {
@@ -1717,7 +1961,7 @@ async function saveMessage(message) {
 }
 
 // ============================================================
-// 📤 إرسال رسالة
+// 📤 إرسال رسالة من المستخدم
 // ============================================================
 async function sendMessage(text = '', mediaUrl = '', mediaType = '') {
   if (isClosed) {
@@ -1726,7 +1970,6 @@ async function sendMessage(text = '', mediaUrl = '', mediaType = '') {
   }
 
   const msgText = cleanInput(text);
-
   if (!msgText && !mediaUrl) return;
 
   try {
@@ -1737,19 +1980,14 @@ async function sendMessage(text = '', mediaUrl = '', mediaType = '') {
       mediaType: mediaType
     });
 
-    // حدّث آخر ظهور
     updateLastSeen();
 
-    // لو محوّل للدعم → البوت ما يردش
-    if (isTransferredToSupport) {
-      return;
-    }
-
-    // البوت يرد لو مفعّل
-    if (botSettings.enabled && !isTransferredToSupport && !isClosed) {
-      setTimeout(() => {
-        respondWithBot(msgText, mediaUrl);
-      }, 800);
+    // ✅ إذا البوت متاح → شغّل الرد
+    if (isBotAvailable() && msgText && !mediaUrl) {
+      // علّم آخر رسالة (لمنع التكرار)
+      lastBotReplyForMsgId = null;
+      // ابدأ الرد
+      respondWithBot(msgText);
     }
 
   } catch (e) {
@@ -1765,98 +2003,379 @@ async function updateLastSeen() {
   try {
     await setDoc(doc(db, 'support_chats', sessionId), {
       isUserOnline: true,
-      lastSeen: new Date().toISOString(),
-      updatedAt: serverTimestamp()
+      lastSeen: new Date().toISOString()
     }, { merge: true });
   } catch (e) {}
 }
 
 // ============================================================
-// 🤖 ردود البوت
+// ⌨️ إشارة الكتابة الفورية (للمستخدم)
 // ============================================================
-async function sendBotMessage(text, actions = [], delay = 1200) {
-  // أظهر مؤشر الكتابة
-  $('typingIndicator').classList.remove('hidden');
-  scrollToBottom();
+function sendUserTypingSignal() {
+  if (!sessionId) return;
+  if (isSendingTypingSignal) {
+    clearTimeout(typingSignalTimeout);
+  } else {
+    isSendingTypingSignal = true;
+    // إرسال إشارة البدء
+    setDoc(doc(db, 'support_chats', sessionId), {
+      userTypingAt: new Date().toISOString()
+    }, { merge: true }).catch(() => {});
+  }
 
-  await new Promise(r => setTimeout(r, delay));
-
-  $('typingIndicator').classList.add('hidden');
-
-  await saveMessage({
-    sender: 'bot',
-    text: text,
-    actions: actions
-  });
-
-  scrollToBottom();
+  typingSignalTimeout = setTimeout(() => {
+    isSendingTypingSignal = false;
+    setDoc(doc(db, 'support_chats', sessionId), {
+      userTypingAt: null
+    }, { merge: true }).catch(() => {});
+  }, 2500);
 }
 
-function respondWithBot(userText, mediaUrl) {
-  const lower = (userText || '').toLowerCase();
+// ============================================================
+// 🧠 منطق البوت (API + Fallback)
+// ============================================================
+
+/**
+ * جلب بيانات المستخدم من Firestore
+ */
+async function fetchUserData(userId, role) {
+  if (!userId || role === 'guest') return null;
+
+  const cacheKey = `${role}_${userId}`;
+  const now = Date.now();
+  const cached = userDataCache.get(cacheKey);
+  if (cached && (now - cached.time) < CACHE_TTL) {
+    return cached.data;
+  }
+
+  const collName = role === 'teacher' ? 'teachers' : 'users';
+
+  if (role === 'teacher' && cachedTeachers && (now - cachedTeachersTime) < CACHE_TTL) {
+    const found = cachedTeachers.find(u => u.id === userId);
+    userDataCache.set(cacheKey, { data: found, time: now });
+    return found;
+  }
+  if (role !== 'teacher' && cachedUsers && (now - cachedUsersTime) < CACHE_TTL) {
+    const found = cachedUsers.find(u => u.id === userId);
+    userDataCache.set(cacheKey, { data: found, time: now });
+    return found;
+  }
+
+  try {
+    const snap = await getDoc(doc(db, collName, 'all'));
+    if (snap.exists()) {
+      const items = snap.data().items || [];
+      if (role === 'teacher') {
+        cachedTeachers = items;
+        cachedTeachersTime = now;
+      } else {
+        cachedUsers = items;
+        cachedUsersTime = now;
+      }
+      const found = items.find(u => u.id === userId);
+      userDataCache.set(cacheKey, { data: found, time: now });
+      return found;
+    }
+  } catch (e) {
+    console.warn('fetchUserData error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * بناء سياق المستخدم
+ */
+function buildUserContext(chat, userData) {
+  const name = userData?.fullName || chat.userName || 'مستخدم';
+  const role = chat.userRole === 'teacher' ? 'معلم' : (chat.userRole === 'student' ? 'طالب' : 'ضيف');
+  const code = userData?.code || chat.userCode || '—';
+  const grade = userData?.grade || '—';
+  const phone = userData?.phone || chat.userPhone || '—';
+  const completedExams = userData?.completedExams || 0;
+  const totalExams = userData?.totalExams || 0;
+  const completedHomeworks = userData?.completedHomeworks || 0;
+  const totalHomeworks = userData?.totalHomeworks || 0;
+
+  let template = botSettings.contextTemplate || '';
+  if (!template) return '';
+
+  return template
+    .replace(/\{name\}/g, name)
+    .replace(/\{role\}/g, role)
+    .replace(/\{code\}/g, code)
+    .replace(/\{grade\}/g, grade)
+    .replace(/\{phone\}/g, phone)
+    .replace(/\{completedExams\}/g, completedExams)
+    .replace(/\{totalExams\}/g, totalExams)
+    .replace(/\{completedHomeworks\}/g, completedHomeworks)
+    .replace(/\{totalHomeworks\}/g, totalHomeworks);
+}
+
+/**
+ * استدعاء الـ API الخارجي
+ */
+async function callExternalAPI(userMessage, chat, userData) {
+  if (!botSettings.apiEnabled || !botSettings.apiUrl) {
+    return { ok: false, reason: 'api_disabled' };
+  }
+
+  const systemPrompt = botSettings.systemPrompt || DEFAULT_BOT_SETTINGS.systemPrompt;
+  const userContext = buildUserContext(chat, userData);
+
+  const systemContent = systemPrompt + (userContext ? '\n\n' + userContext : '');
+
+  const history = (chat.messages || []).slice(-10).map(m => ({
+    role: m.sender === 'user' ? 'user' : 'assistant',
+    content: m.text || ''
+  }));
+
+  const body = {
+    model: botSettings.apiModel || 'default',
+    messages: [
+      { role: 'system', content: systemContent },
+      ...history,
+      { role: 'user', content: userMessage }
+    ],
+    max_tokens: parseInt(botSettings.apiMaxTokens) || 500,
+    temperature: parseFloat(botSettings.apiTemperature) || 0.7
+  };
+
+  let extraHeaders = {};
+  if (botSettings.apiHeaders) {
+    try { extraHeaders = JSON.parse(botSettings.apiHeaders); } catch (e) {}
+  }
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...extraHeaders
+  };
+
+  if (botSettings.apiKey && !headers['Authorization']) {
+    headers['Authorization'] = 'Bearer ' + botSettings.apiKey;
+  }
+
+  const controller = new AbortController();
+  const timeoutMs = (parseInt(botSettings.apiTimeout) || 30) * 1000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(botSettings.apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      return { ok: false, reason: 'http_' + res.status };
+    }
+
+    const data = await res.json();
+
+    let replyText = '';
+    if (data.choices && data.choices[0]?.message?.content) {
+      replyText = data.choices[0].message.content;
+    } else if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      replyText = data.candidates[0].content.parts[0].text;
+    } else if (data.content && typeof data.content === 'string') {
+      replyText = data.content;
+    } else if (data.reply) {
+      replyText = data.reply;
+    } else if (data.message) {
+      replyText = typeof data.message === 'string' ? data.message : data.message.content;
+    } else if (data.response) {
+      replyText = data.response;
+    } else if (typeof data === 'string') {
+      replyText = data;
+    }
+
+    if (!replyText) {
+      return { ok: false, reason: 'empty_response' };
+    }
+
+    return { ok: true, text: replyText.trim() };
+
+  } catch (e) {
+    clearTimeout(timer);
+    console.warn('API error:', e.message);
+    return { ok: false, reason: e.name === 'AbortError' ? 'timeout' : 'network' };
+  }
+}
+
+/**
+ * رد البوت الرئيسي
+ */
+async function respondWithBot(userText) {
+  if (!isBotAvailable()) return;
+  if (botReplyInProgress) return;
+  botReplyInProgress = true;
+
   const name = currentUser?.fullName || currentUserName || 'صديقي';
 
-  // وسائط
-  if (mediaUrl) {
-    sendBotMessage('شكراً على المشاركة! 📎\nلو محتاج رد فوري، حوّل للدعم البشري.');
+  // جلب بيانات المستخدم
+  let userData = null;
+  if (botSettings.accessDb && currentUserId) {
+    userData = await fetchUserData(currentUserId, currentRole);
+  }
+
+  // 1) جرب الـ API
+  let reply = null;
+
+  if (botSettings.apiEnabled && botSettings.apiUrl) {
+    // أظهر مؤشر الكتابة
+    if (botSettings.typingSignal !== false) {
+      $('typingIndicator').classList.remove('hidden');
+      scrollToBottom();
+    }
+
+    const apiResult = await callExternalAPI(userText, {
+      ...currentUser,
+      userName: currentUserName,
+      userRole: currentRole,
+      userCode: currentUser?.code || '',
+      userPhone: currentUser?.phone || sessionStorage.getItem('meezan_guest_phone') || '',
+      messages: (await getDoc(doc(db, 'support_chats', sessionId))).data()?.messages || []
+    }, userData);
+
+    if (apiResult.ok) {
+      reply = {
+        text: apiResult.text,
+        actions: []
+      };
+    } else {
+      // فشل API
+      console.warn('API failed:', apiResult.reason);
+
+      // ✅ الخيار B: البوت المحلي لا يعمل، ويُحوَّل للدعم
+      if (botSettings.apiEnabled) {
+        // أرسل رسالة تحويل
+        await new Promise(r => setTimeout(r, 800));
+
+        // أظهر مؤشر الكتابة
+        $('typingIndicator').classList.add('hidden');
+
+        // حوّل للدعم
+        await triggerTransferToSupport();
+        botReplyInProgress = false;
+        return;
+      }
+
+      // Fallback للمحلي (لن يحدث لأننا نستخدم B)
+      reply = buildLocalBotReply(userText, name, userData);
+    }
+  } else {
+    // لا API → البوت المحلي
+    // أظهر مؤشر الكتابة
+    if (botSettings.typingSignal !== false) {
+      $('typingIndicator').classList.remove('hidden');
+      scrollToBottom();
+    }
+
+    await new Promise(r => setTimeout(r, 700));
+
+    reply = buildLocalBotReply(userText, name, userData);
+  }
+
+  // أخفِ المؤشر
+  $('typingIndicator').classList.add('hidden');
+
+  if (!reply) {
+    botReplyInProgress = false;
     return;
   }
 
-  // فاضي
-  if (!lower) return;
-
-  // ============================================================
-  // الترحيب
-  // ============================================================
-  if (/مرحبا|اهلا|أهلا|هلا|السلام|صباح|مساء|هاي|hi|hello/i.test(lower)) {
-    const welcome = (botSettings.welcomeMsg || 'أهلاً بك 👋').replace('{name}', name);
-    sendBotMessage(welcome, getMainMenu());
+  // لو طلب تحويل
+  if (reply.transferToSupport) {
+    await triggerTransferToSupport();
+    botReplyInProgress = false;
     return;
   }
 
-  // ============================================================
-  // القائمة الرئيسية
-  // ============================================================
-  if (/قائمه|قائمة|رجوع|back|الرئيسية|menu|خيارات/i.test(lower)) {
-    sendBotMessage(`تمام يا ${name}، اختر من القائمة:`, getMainMenu());
-    return;
+  // احفظ رسالة البوت
+  try {
+    await saveMessage({
+      sender: 'bot',
+      text: reply.text,
+      actions: reply.actions || []
+    });
+    scrollToBottom();
+  } catch (e) {
+    console.error('bot save error:', e);
   }
 
-  // ============================================================
-  // معلوماتي
-  // ============================================================
-  if (/معلوماتي|حسابي|بياناتي|من انا|انا مين/i.test(lower)) {
+  botReplyInProgress = false;
+}
+
+// ============================================================
+// 🧠 البوت المحلي (محسّن - احترافي)
+// ============================================================
+function buildLocalBotReply(userText, name, userData) {
+  const lower = (userText || '').toLowerCase().trim();
+
+  const has = (...kws) => kws.some(k => lower.includes(k));
+
+  // ============ ترحيب ============
+  if (has('مرحبا', 'اهلا', 'أهلا', 'السلام', 'هاي', 'hi', 'hello', 'صباح', 'مساء', 'ازيك', 'إزيك', 'هلا')) {
+    const welcome = (botSettings.welcomeMsg || 'أهلاً بك 👋').replace(/\{name\}/g, name);
+    return {
+      text: welcome,
+      actions: getMainMenu()
+    };
+  }
+
+  // ============ القائمة ============
+  if (has('قائمه', 'قائمة', 'رجوع', 'back', 'الرئيسية', 'menu', 'خيارات', 'ابدأ', 'ابدا')) {
+    return {
+      text: `تمام يا ${name}، اختر من القائمة:`,
+      actions: getMainMenu()
+    };
+  }
+
+  // ============ معلوماتي ============
+  if (has('معلوماتي', 'حسابي', 'بياناتي', 'من انا', 'انا مين', 'بروفايل', 'profile')) {
     let txt = `📊 معلوماتك يا ${name}:\n\n`;
-    txt += `• الكود: ${currentUser?.code || currentUserId || '—'}\n`;
-    if (currentUser) {
+    const code = userData?.code || currentUser?.code || currentUserId || '—';
+    txt += `• الكود: ${code}\n`;
+
+    if (userData) {
+      txt += `• الاسم: ${userData.fullName || name}\n`;
+      txt += `• ${currentRole === 'teacher' ? 'المادة' : 'الفرقة'}: ${userData.grade || '—'}\n`;
+      if (userData.phone) txt += `• الهاتف: ${userData.phone}\n`;
+      if (userData.email) txt += `• البريد: ${userData.email}\n`;
+    } else if (currentUser) {
       txt += `• اسم المستخدم: ${currentUser.username || '—'}\n`;
       txt += `• ${currentRole === 'teacher' ? 'المادة' : 'الفرقة'}: ${currentUser.grade || '—'}\n`;
-      if (currentUser.phone) txt += `• الهاتف: ${currentUser.phone}\n`;
-      if (currentUser.email) txt += `• البريد: ${currentUser.email}\n`;
     }
-    sendBotMessage(txt, [
-      { id: 'stats', label: '📊 نسبة تفوقي', icon: 'fa-chart-line' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+
+    return {
+      text: txt,
+      actions: [
+        { id: 'stats', label: '📊 نسبة تفوقي', icon: 'fa-chart-line' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // نسبة التفوق
-  // ============================================================
-  if (/نسبه|نسبة|تفوق|معدل|درجات|نتيجه|نتيجة|مستوى/i.test(lower)) {
-    if (!currentUser) {
-      sendBotMessage('للأسف ماعندي بيانات كافية. جرب تسجيل الدخول أولاً.', [
-        { id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' },
-        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-      ]);
-      return;
+  // ============ نسبة التفوق ============
+  if (has('نسبه', 'نسبة', 'تفوق', 'معدل', 'درجات', 'نتيجه', 'نتيجة', 'مستوى')) {
+    if (!userData && !currentUser) {
+      return {
+        text: 'للأسف ماعندي بيانات كافية. سجّل دخولك أولاً.',
+        actions: [
+          { id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' },
+          { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+        ]
+      };
     }
 
-    const cE = Number(currentUser.completedExams) || 0;
-    const tE = Number(currentUser.totalExams) || 0;
-    const cH = Number(currentUser.completedHomeworks) || 0;
-    const tH = Number(currentUser.totalHomeworks) || 0;
+    const u = userData || currentUser;
+    const cE = Number(u.completedExams) || 0;
+    const tE = Number(u.totalExams) || 0;
+    const cH = Number(u.completedHomeworks) || 0;
+    const tH = Number(u.totalHomeworks) || 0;
     const total = tE + tH;
     const done = cE + cH;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -1868,173 +2387,177 @@ function respondWithBot(userText, mediaUrl) {
     else if (pct >= 50) { emoji = '👍'; msgTxt = 'جيد'; }
     else if (pct >= 30) { emoji = '💪'; msgTxt = 'استمر'; }
 
-    sendBotMessage(`${emoji} نسبة تفوقك يا ${name}: ${pct}%\n\n` +
-                   `• الامتحانات: ${cE} / ${tE}\n` +
-                   `• الواجبات: ${cH} / ${tH}\n\n` +
-                   `${msgTxt}! ${pct >= 70 ? 'استمر 👏' : 'تحتاج مزيد من الجهد 💪'}`, [
-      { id: 'exams', label: '📝 الامتحانات', icon: 'fa-file-pen' },
-      { id: 'homeworks', label: '📚 الواجبات', icon: 'fa-book' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+    return {
+      text: `${emoji} نسبة تفوقك يا ${name}: ${pct}%\n\n` +
+            `• الامتحانات: ${cE} / ${tE}\n` +
+            `• الواجبات: ${cH} / ${tH}\n\n` +
+            `${msgTxt}! ${pct >= 70 ? 'استمر 👏' : 'تحتاج مزيد من الجهد 💪'}`,
+      actions: [
+        { id: 'exams', label: '📝 الامتحانات', icon: 'fa-file-pen' },
+        { id: 'homeworks', label: '📚 الواجبات', icon: 'fa-book' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // الامتحانات
-  // ============================================================
-  if (/امتحان|اختبار|exam/i.test(lower)) {
-    if (!currentUser) {
-      sendBotMessage('سجّل الدخول أولاً لأتمكن من عرض امتحاناتك.', [
-        { id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }
-      ]);
-      return;
+  // ============ الامتحانات ============
+  if (has('امتحان', 'اختبار', 'exam')) {
+    const u = userData || currentUser;
+    if (!u) {
+      return {
+        text: 'سجّل الدخول أولاً لأتمكن من عرض امتحاناتك.',
+        actions: [{ id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }]
+      };
     }
-    sendBotMessage(`📝 امتحاناتك يا ${name}:\n\n` +
-                   `• المكتملة: ${currentUser.completedExams || 0}\n` +
-                   `• الإجمالية: ${currentUser.totalExams || 0}\n\n` +
-                   `لمعرفة المزيد، افتح صفحة ملفك الشخصي من sora.html`, [
-      { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+    return {
+      text: `📝 امتحاناتك يا ${name}:\n\n` +
+            `• المكتملة: ${u.completedExams || 0}\n` +
+            `• الإجمالية: ${u.totalExams || 0}\n\n` +
+            `لمعرفة المزيد، افتح ملفك الشخصي`,
+      actions: [
+        { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // الواجبات
-  // ============================================================
-  if (/واجب|واجبات|homework/i.test(lower)) {
-    if (!currentUser) {
-      sendBotMessage('سجّل الدخول أولاً لأتمكن من عرض واجباتك.', [
-        { id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }
-      ]);
-      return;
+  // ============ الواجبات ============
+  if (has('واجب', 'واجبات', 'homework')) {
+    const u = userData || currentUser;
+    if (!u) {
+      return {
+        text: 'سجّل الدخول أولاً لأتمكن من عرض واجباتك.',
+        actions: [{ id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }]
+      };
     }
-    sendBotMessage(`📚 واجباتك يا ${name}:\n\n` +
-                   `• المكتملة: ${currentUser.completedHomeworks || 0}\n` +
-                   `• الإجمالية: ${currentUser.totalHomeworks || 0}`, [
-      { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+    return {
+      text: `📚 واجباتك يا ${name}:\n\n` +
+            `• المكتملة: ${u.completedHomeworks || 0}\n` +
+            `• الإجمالية: ${u.totalHomeworks || 0}`,
+      actions: [
+        { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // كلمة السر
-  // ============================================================
-  if (/كلمه|كلمة|باسورد|password|سر|نسيت/i.test(lower)) {
-    sendBotMessage('🔑 بخصوص كلمة السر:\n\n' +
-                   '• لتغييرها: افتح sora.html → اضغط على حقل كلمة السر → اكتب الجديدة → احفظ\n' +
-                   '• لو نسيتها: تواصل مع الدعم البشري\n' +
-                   '• لو حسابك مقفول: حوّل للدعم', [
-      { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
-      { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ كلمة السر ============
+  if (has('كلمه', 'كلمة', 'باسورد', 'password', 'سر', 'نسيت', 'نسيتها')) {
+    return {
+      text: '🔑 بخصوص كلمة السر:\n\n' +
+            '• لتغييرها: افتح sora.html → حقل كلمة السر → اكتب الجديدة → احفظ\n' +
+            '• لو نسيتها: تواصل مع الدعم البشري\n' +
+            '• لو حسابك مقفول: حوّل للدعم',
+      actions: [
+        { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
+        { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // تسجيل الدخول
-  // ============================================================
-  if (/دخول|تسجيل|login|حساب جديد/i.test(lower)) {
-    sendBotMessage('🚪 لتسجيل الدخول:\n\n' +
-                   '1. افتح login.html\n' +
-                   '2. اختر نوع حسابك (طالب/معلم)\n' +
-                   '3. اكتب اسم المستخدم وكلمة السر\n\n' +
-                   'أو استخدم "الدخول بحساب Google" 🌐', [
-      { id: 'open_login', label: '🔐 صفحة الدخول', icon: 'fa-sign-in-alt' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ تسجيل الدخول ============
+  if (has('دخول', 'تسجيل', 'login', 'حساب جديد')) {
+    return {
+      text: '🚪 لتسجيل الدخول:\n\n' +
+            '1. افتح login.html\n' +
+            '2. اختر نوع حسابك (طالب/معلم)\n' +
+            '3. اكتب اسم المستخدم وكلمة السر\n\n' +
+            'أو استخدم "الدخول بحساب Google" 🌐',
+      actions: [
+        { id: 'open_login', label: '🔐 صفحة الدخول', icon: 'fa-sign-in-alt' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // الحساب معطل
-  // ============================================================
-  if (/معطل|محظور|مقفول|ايقاف|إيقاف|ban/i.test(lower)) {
-    sendBotMessage('🚫 بخصوص التعطيل:\n\n' +
-                   '• سبب التعطيل يظهر عند محاولة الدخول\n' +
-                   '• فيه عداد تنازلي للمدة المتبقية\n\n' +
-                   'لو التعطيل ظلم → حوّل للدعم البشري', [
-      { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ الحساب معطل ============
+  if (has('معطل', 'محظور', 'مقفول', 'ايقاف', 'إيقاف', 'ban', 'حظر')) {
+    return {
+      text: '🚫 بخصوص التعطيل:\n\n' +
+            '• سبب التعطيل يظهر عند محاولة الدخول\n' +
+            '• فيه عداد تنازلي للمدة المتبقية\n\n' +
+            'لو التعطيل ظلم → حوّل للدعم البشري',
+      actions: [
+        { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // الفرقة / المادة
-  // ============================================================
-  if (/فرقه|فرقة|صف|سنه|سنة|ماده|مادة|مواد|grade/i.test(lower)) {
-    const grade = currentUser?.grade || '—';
-    sendBotMessage(`🎓 ${currentRole === 'teacher' ? 'موادك' : 'فرقتك'} يا ${name}:\n\n` +
-                   `• ${currentRole === 'teacher' ? 'المادة' : 'الفرقة'}: ${grade}\n\n` +
-                   `للتغيير، تواصل مع الدعم`, [
-      { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ الفرقة / المادة ============
+  if (has('فرقه', 'فرقة', 'صف', 'سنه', 'سنة', 'ماده', 'مادة', 'مواد', 'grade')) {
+    const u = userData || currentUser;
+    const grade = u?.grade || '—';
+    return {
+      text: `🎓 ${currentRole === 'teacher' ? 'موادك' : 'فرقتك'} يا ${name}:\n\n` +
+            `• ${currentRole === 'teacher' ? 'المادة' : 'الفرقة'}: ${grade}\n\n` +
+            `للتغيير، تواصل مع الدعم`,
+      actions: [
+        { id: 'support', label: '💬 التحويل للدعم', icon: 'fa-headset', type: 'danger' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // صفحة رئيسية
-  // ============================================================
-  if (/رئيسيه|رئيسية|الموقع|الصفحة|home/i.test(lower)) {
-    sendBotMessage('🏠 للعودة للصفحة الرئيسية، اضغط الزر التالي:', [
-      { id: 'open_index', label: '🏠 الرئيسية', icon: 'fa-home' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ الرئيسية ============
+  if (has('رئيسيه', 'رئيسية', 'الموقع', 'الصفحة', 'home')) {
+    return {
+      text: '🏠 للعودة للصفحة الرئيسية، اضغط الزر التالي:',
+      actions: [
+        { id: 'open_index', label: '🏠 الرئيسية', icon: 'fa-home' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // الإشعارات
-  // ============================================================
-  if (/اشعار|إشعار|notif|تنبيه/i.test(lower)) {
-    sendBotMessage('🔔 لإشعاراتك:\n\nافتح ashara.html من الصفحة الرئيسية', [
-      { id: 'open_notif', label: '🔔 الإشعارات', icon: 'fa-bell' },
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ الإشعارات ============
+  if (has('اشعار', 'إشعار', 'notif', 'تنبيه')) {
+    return {
+      text: '🔔 لإشعاراتك:\n\nافتح ashara.html من الصفحة الرئيسية',
+      actions: [
+        { id: 'open_notif', label: '🔔 الإشعارات', icon: 'fa-bell' },
+        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
+      ]
+    };
   }
 
-  // ============================================================
-  // شكر
-  // ============================================================
-  if (/شكر|thanks|thx|تسلم/i.test(lower)) {
-    sendBotMessage(`العفو يا ${name}! 🌟\nأنا هنا دايماً لو احتجت أي حاجة.`, [
-      { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-    ]);
-    return;
+  // ============ شكر ============
+  if (has('شكر', 'thanks', 'thx', 'تسلم', 'مشكور')) {
+    return {
+      text: `العفو يا ${name}! 🌟\nأنا هنا دايماً لو احتجت أي حاجة.`,
+      actions: [{ id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }]
+    };
   }
 
-  // ============================================================
-  // وداع
-  // ============================================================
-  if (/سلام|وداع|باي|bye/i.test(lower)) {
-    sendBotMessage(`في رعاية الله يا ${name}! 👋\nارجعلي لو احتجت أي مساعدة.`, []);
-    return;
+  // ============ وداع ============
+  if (has('سلام', 'وداع', 'باي', 'bye', 'الى اللقاء')) {
+    return {
+      text: `في رعاية الله يا ${name}! 👋\nارجعلي لو احتجت أي مساعدة.`,
+      actions: []
+    };
   }
 
-  // ============================================================
-  // طلب الدعم البشري
-  // ============================================================
-  if (/دعم|بشري|مسؤول|موظف|احكي مع حد|اتكلم مع حد/i.test(lower)) {
-    triggerTransferToSupport();
-    return;
+  // ============ طلب الدعم البشري ============
+  if (has('دعم', 'بشري', 'مسؤول', 'موظف', 'احكي مع حد', 'اتكلم مع حد', 'مشكله', 'مشكلة', 'شكوى')) {
+    return {
+      transferToSupport: true,
+      text: botSettings.transferMsg || '✅ تم التحويل للدعم'
+    };
   }
 
-  // ============================================================
-  // رد افتراضي
-  // ============================================================
-  sendBotMessage(`معلش يا ${name}، مش فاهم قصدك بالظبط 🤔\n\n` +
-                 `جرّب تسأل عن:\n` +
-                 `• معلوماتي\n` +
-                 `• نسبة تفوقي\n` +
-                 `• الامتحانات والواجبات\n` +
-                 `• كلمة السر\n` +
-                 `• التعطيل\n\n` +
-                 `أو اختر من القائمة:`, getMainMenu());
+  // ============ رد افتراضي ============
+  return {
+    text: `معلش يا ${name}، مش فاهم قصدك بالظبط 🤔\n\n` +
+          `جرّب تسأل عن:\n` +
+          `• معلوماتي\n` +
+          `• نسبة تفوقي\n` +
+          `• الامتحانات والواجبات\n` +
+          `• كلمة السر\n` +
+          `• التعطيل\n\n` +
+          `أو اختر من القائمة:`,
+    actions: getMainMenu()
+  };
 }
 
 // ============================================================
@@ -2065,7 +2588,6 @@ function getMainMenu() {
     ];
   }
 
-  // ضيف
   return [
     { id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' },
     { id: 'support', label: '💬 الدعم البشري', icon: 'fa-headset', type: 'danger' }
@@ -2073,45 +2595,45 @@ function getMainMenu() {
 }
 
 // ============================================================
-// 🖱️ معالجة الضغط على زر في الشات
+// 🖱️ معالجة الضغط على زر
 // ============================================================
 async function handleActionClick(action, originalMsgId) {
   if (!action) return;
 
-  // علّم الرسالة كمستخدمة (لإخفاء الأزرار)
+  // علّم الرسالة كمستخدمة
   await markActionsUsed(originalMsgId);
 
   switch (action.id) {
     case 'main_menu':
-      sendMessage('القائمة الرئيسية');
+      sendUserAction('القائمة الرئيسية');
       break;
 
     case 'my_info':
-      sendMessage('معلوماتي');
+      sendUserAction('معلوماتي');
       break;
 
     case 'stats':
-      sendMessage('نسبة تفوقي');
+      sendUserAction('نسبة تفوقي');
       break;
 
     case 'exams':
-      sendMessage('الامتحانات');
+      sendUserAction('الامتحانات');
       break;
 
     case 'homeworks':
-      sendMessage('الواجبات');
+      sendUserAction('الواجبات');
       break;
 
     case 'password':
-      sendMessage('كلمة السر');
+      sendUserAction('كلمة السر');
       break;
 
     case 'grade':
-      sendMessage('فرقتي');
+      sendUserAction('فرقتي');
       break;
 
     case 'notifications':
-      sendMessage('الإشعارات');
+      sendUserAction('الإشعارات');
       break;
 
     case 'support':
@@ -2119,28 +2641,49 @@ async function handleActionClick(action, originalMsgId) {
       break;
 
     case 'open_login':
-      sendMessage('تسجيل الدخول');
+      sendUserAction('تسجيل الدخول');
       break;
 
     case 'open_sora':
     case 'sora':
-      sendMessage('فتح الملف الشخصي');
+      sendUserAction('فتح الملف الشخصي');
       setTimeout(() => window.location.href = 'sora.html', 800);
       break;
 
     case 'open_index':
-      sendMessage('فتح الرئيسية');
+      sendUserAction('فتح الرئيسية');
       setTimeout(() => window.location.href = 'index.html', 800);
       break;
 
     case 'open_notif':
-      sendMessage('فتح الإشعارات');
+      sendUserAction('فتح الإشعارات');
       setTimeout(() => window.location.href = 'ashara.html', 800);
       break;
 
     default:
-      // إرسال نص الزر كرسالة
-      sendMessage(action.label.replace(/[📊⭐📝📚🔑🎓🔔💬🔐🏠👤🔙]/g, '').trim());
+      sendUserAction(action.label.replace(/[📊⭐📝📚🔑🎓🔔💬🔐🏠👤🔙]/g, '').trim());
+  }
+}
+
+// إرسال رسالة من المستخدم بسبب ضغط زر (تُحسب كرسالة)
+async function sendUserAction(text) {
+  if (!text) return;
+  const msgText = cleanInput(text);
+  if (!msgText) return;
+
+  try {
+    await saveMessage({
+      sender: 'user',
+      text: msgText
+    });
+
+    updateLastSeen();
+
+    if (isBotAvailable()) {
+      respondWithBot(msgText);
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -2155,7 +2698,7 @@ async function markActionsUsed(msgId) {
     const messages = data.messages || [];
 
     const idx = messages.findIndex(m => m.id === msgId);
-    if (idx !== -1) {
+    if (idx !== -1 && !messages[idx].actionsUsed) {
       messages[idx].actionsUsed = true;
       await setDoc(ref, { messages, updatedAt: serverTimestamp() }, { merge: true });
     }
@@ -2178,6 +2721,8 @@ async function triggerTransferToSupport() {
 
   isTransferredToSupport = true;
   updateTransferButton();
+  updateBannersVisibility();
+  updateHeaderState();
 
   try {
     await setDoc(doc(db, 'support_chats', sessionId), {
@@ -2186,7 +2731,6 @@ async function triggerTransferToSupport() {
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    // رسالة تأكيد من البوت
     await saveMessage({
       sender: 'bot',
       text: botSettings.transferMsg || '✅ تم تحويل محادثتك للدعم'
@@ -2203,6 +2747,8 @@ async function cancelTransfer() {
 
   isTransferredToSupport = false;
   updateTransferButton();
+  updateBannersVisibility();
+  updateHeaderState();
 
   try {
     await setDoc(doc(db, 'support_chats', sessionId), {
@@ -2210,10 +2756,17 @@ async function cancelTransfer() {
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    await saveMessage({
-      sender: 'bot',
-      text: '🔙 تم إلغاء التحويل. أنا هنا للمساعدة مرة أخرى.'
-    });
+    if (botSettings.returnMsg) {
+      await saveMessage({
+        sender: 'bot',
+        text: botSettings.returnMsg
+      });
+    } else {
+      await saveMessage({
+        sender: 'bot',
+        text: '🔙 تم إلغاء التحويل. أنا هنا للمساعدة مرة أخرى.'
+      });
+    }
 
     showToast('تم إلغاء التحويل', 'info');
   } catch (e) {
@@ -2225,16 +2778,12 @@ function updateTransferButton() {
   const btn = $('transferBtn');
   const txt = $('transferBtnText');
 
-  if (isTransferredToSupport) {
+  if (isTransferredToSupport || claimedBy) {
     btn.classList.add('cancel');
     txt.textContent = 'إلغاء التحويل';
-    $('supportName').textContent = 'الدعم الفني';
-    $('supportStatus').textContent = 'بانتظار الرد';
   } else {
     btn.classList.remove('cancel');
     txt.textContent = 'تحويل للدعم';
-    $('supportName').textContent = 'ميزان الذكي';
-    $('supportStatus').textContent = 'متصل الآن';
   }
 }
 
@@ -2261,6 +2810,11 @@ $('chatInput').addEventListener('keydown', (e) => {
 $('chatInput').addEventListener('input', function() {
   this.style.height = 'auto';
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+
+  // إشارة الكتابة
+  if (sessionId) {
+    sendUserTypingSignal();
+  }
 });
 
 // ============================================================
@@ -2273,6 +2827,8 @@ $('attachBtn').addEventListener('click', () => {
   attachType = 'image';
   updateAttachTypeBtns();
 });
+
+let attachType = 'image';
 
 function updateAttachTypeBtns() {
   $('typeImageBtn').classList.toggle('active', attachType === 'image');
@@ -2322,7 +2878,7 @@ $('attachSend').addEventListener('click', async () => {
 });
 
 // ============================================================
-// 📡 مراقبة حالة المستخدم (تعطيل / حذف)
+// 📡 مراقبة حالة المستخدم
 // ============================================================
 function startUserMonitoring() {
   if (currentRole === 'guest') return;
@@ -2336,7 +2892,6 @@ function startUserMonitoring() {
     const user = items.find(u => u.id === currentUserId);
 
     if (!user) {
-      // حُذف
       handleUserRemoved();
       return;
     }
@@ -2349,7 +2904,6 @@ function startUserMonitoring() {
       }
     }
 
-    // حدّث البيانات
     currentUser = user;
     currentUserName = user.fullName || currentUserName;
 
@@ -2357,7 +2911,6 @@ function startUserMonitoring() {
 }
 
 function handleUserRemoved() {
-  // شاشة حظر
   const overlay = document.createElement('div');
   overlay.style.cssText = `
     position: fixed; inset: 0;
@@ -2450,9 +3003,14 @@ document.addEventListener('keydown', (e) => {
 // 🚀 Init
 // ============================================================
 requestAnimationFrame(() => document.body.classList.add('ready'));
+
+// ابدأ مراقبة الإعدادات أولاً
+startBotSettingsListener();
+
+// ثم افحص الدخول
 checkLoginStatus();
 
-// لما المستخدم يغادر — حدّث آخر ظهور
+// لما المستخدم يغادر
 window.addEventListener('beforeunload', () => {
   if (sessionId) {
     try {
@@ -2463,6 +3021,7 @@ window.addEventListener('beforeunload', () => {
     } catch (e) {}
   }
 });
+
 </script>
 
 </body>
