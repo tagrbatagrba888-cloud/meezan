@@ -63,7 +63,6 @@
 
   body.ready { opacity: 1; }
 
-  /* ===== الهيدر (يتحرك مع الصفحة) ===== */
   .header {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -176,14 +175,12 @@
     border-color: var(--error);
   }
 
-  /* ===== Container ===== */
   .container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 24px 20px 60px;
   }
 
-  /* ===== قسم الصورة الرمزية ===== */
   .avatar-hero {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 60%, var(--primary-lighter) 100%);
     border-radius: 24px;
@@ -305,7 +302,6 @@
 
   .avatar-badge i { color: var(--accent-light); font-size: 13px; }
 
-  /* أزرار تغيير الصورة */
   .avatar-actions {
     display: flex;
     gap: 8px;
@@ -336,7 +332,6 @@
 
   .btn-avatar i { font-size: 14px; }
 
-  /* ===== Card ===== */
   .card {
     background: var(--bg-card);
     border-radius: 18px;
@@ -384,7 +379,6 @@
     font-weight: 700;
   }
 
-  /* ===== Form ===== */
   .form-group { margin-bottom: 16px; }
 
   .form-label {
@@ -420,7 +414,7 @@
     z-index: 2;
   }
 
-  .form-input {
+  .form-input, .form-select {
     width: 100%;
     padding: 13px 42px 13px 42px;
     font-size: 14px;
@@ -434,23 +428,32 @@
     font-weight: 600;
   }
 
-  .form-input:focus {
+  .form-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235A6B66'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 14px center;
+    background-size: 20px;
+    padding-left: 44px;
+  }
+
+  [data-theme="dark"] .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239BAEA6'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  }
+
+  .form-input:focus, .form-select:focus {
     border-color: var(--primary);
     background: var(--bg-card);
     box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
   }
 
-  [data-theme="dark"] .form-input:focus {
+  [data-theme="dark"] .form-input:focus, [data-theme="dark"] .form-select:focus {
     box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.15);
   }
 
   .form-input::placeholder { color: #A8B5B1; font-weight: 400; }
-
-  .form-input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: var(--bg-input);
-  }
 
   .toggle-password {
     position: absolute;
@@ -476,7 +479,6 @@
     background: rgba(11, 61, 46, 0.08);
   }
 
-  /* زر حفظ */
   .btn-save {
     width: 100%;
     padding: 14px;
@@ -510,7 +512,6 @@
     transform: none;
   }
 
-  /* ===== الحقول المقفلة ===== */
   .locked-row {
     display: flex;
     align-items: center;
@@ -612,7 +613,6 @@
     flex-shrink: 0;
   }
 
-  /* ===== قسم الإحصائيات ===== */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -682,7 +682,6 @@
     font-weight: 700;
   }
 
-  /* نسبة التفوق */
   .excellence-box {
     background: linear-gradient(135deg, rgba(201, 169, 97, 0.12), rgba(201, 169, 97, 0.05));
     border: 2px solid var(--accent);
@@ -766,7 +765,6 @@
     margin-top: 10px;
   }
 
-  /* ===== Tabs المظهر ===== */
   .theme-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -835,7 +833,6 @@
     font-weight: 700;
   }
 
-  /* ===== Toast ===== */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -866,7 +863,6 @@
   .toast.warning { border-color: var(--warning); }
   .toast.warning i { color: var(--warning); }
 
-  /* ===== Modal ===== */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -995,7 +991,6 @@
     box-shadow: 0 6px 18px rgba(230, 126, 34, 0.4);
   }
 
-  /* ===== Modal الصورة ===== */
   .modal-box.wide { max-width: 560px; text-align: right; }
 
   .modal-header {
@@ -1028,7 +1023,6 @@
     color: var(--text-main);
   }
 
-  /* Tabs نوع الصورة */
   .avatar-tabs {
     display: flex;
     gap: 6px;
@@ -1067,7 +1061,6 @@
   .avatar-tab-content { display: none; }
   .avatar-tab-content.active { display: block; }
 
-  /* معاينة الصورة */
   .avatar-preview-big {
     width: 140px;
     height: 140px;
@@ -1122,7 +1115,6 @@
     font-weight: 600;
   }
 
-  /* ===== Responsive ===== */
   @media (max-width: 900px) {
     .header-inner { padding: 12px 16px; gap: 10px; }
     .back-btn { width: 38px; height: 38px; font-size: 15px; }
@@ -1160,7 +1152,7 @@
     .card-title { font-size: 15px; margin-bottom: 16px; }
     .card-title i { width: 34px; height: 34px; font-size: 14px; }
 
-    .form-input { padding: 12px 38px 12px 38px; font-size: 13px; }
+    .form-input, .form-select { padding: 12px 38px 12px 38px; font-size: 13px; }
 
     .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .stat-box { padding: 14px 10px; }
@@ -1197,7 +1189,6 @@
 </head>
 <body>
 
-<!-- ============ الهيدر ============ -->
 <header class="header">
   <div class="header-inner">
     <div class="header-left">
@@ -1219,7 +1210,6 @@
 
 <div class="container">
 
-  <!-- ============ قسم الصورة ============ -->
   <div class="avatar-hero">
     <div class="avatar-hero-content">
 
@@ -1259,7 +1249,6 @@
     </div>
   </div>
 
-  <!-- ============ معلومات قابلة للتعديل ============ -->
   <div class="card">
     <div class="card-title">
       <i class="fas fa-pen"></i>
@@ -1303,29 +1292,30 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-graduation-cap" style="color:var(--accent); font-size:12px;"></i>
+        <span id="editGradeLabel">الفرقة الدراسية</span>
+      </label>
+      <div class="input-wrapper">
+        <i class="fas fa-graduation-cap input-icon" id="editGradeIcon"></i>
+        <select class="form-select" id="editGrade">
+          <option value="">— اختر —</option>
+        </select>
+      </div>
+    </div>
+
     <button class="btn-save" id="saveInfoBtn">
       <i class="fas fa-save"></i>
       حفظ التعديلات
     </button>
   </div>
 
-  <!-- ============ معلومات ثابتة ============ -->
   <div class="card">
     <div class="card-title">
       <i class="fas fa-lock"></i>
       <span>معلومات ثابتة</span>
       <span class="badge">تحتاج دعم</span>
-    </div>
-
-    <div class="locked-row">
-      <div class="locked-icon"><i class="fas fa-graduation-cap"></i></div>
-      <div class="locked-info">
-        <div class="locked-label" id="lockGradeLabel">الفرقة الدراسية</div>
-        <div class="locked-value ar" id="lockGradeValue">—</div>
-      </div>
-      <button class="locked-btn" data-field="grade" title="تعديل — تواصل مع الدعم">
-        <i class="fas fa-lock"></i>
-      </button>
     </div>
 
     <div class="locked-row">
@@ -1378,7 +1368,6 @@
     </div>
   </div>
 
-  <!-- ============ الإحصائيات ============ -->
   <div class="card">
     <div class="card-title">
       <i class="fas fa-chart-bar"></i>
@@ -1426,7 +1415,6 @@
     </div>
   </div>
 
-  <!-- ============ المظهر ============ -->
   <div class="card">
     <div class="card-title">
       <i class="fas fa-palette"></i>
@@ -1447,7 +1435,6 @@
 
 </div>
 
-<!-- ============ نافذة تغيير الصورة ============ -->
 <div class="modal-overlay" id="avatarModal">
   <div class="modal-box wide">
     <div class="modal-header">
@@ -1497,7 +1484,6 @@
   </div>
 </div>
 
-<!-- ============ نافذة تأكيد عامة ============ -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box">
     <div class="modal-icon" id="confirmIcon">
@@ -1517,11 +1503,11 @@
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -1549,6 +1535,10 @@ if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
   window.location.replace('login.html');
 }
 
+// ✅ userId في الـ global scope — مهم جداً
+const userId = sessionStorage.getItem('meezan_user_id');
+const userRole = sessionStorage.getItem('meezan_role') || 'student';
+
 history.pushState(null, '', location.href);
 window.addEventListener('popstate', () => {
   if (sessionStorage.getItem('meezan_logged_in') === 'true') {
@@ -1557,6 +1547,37 @@ window.addEventListener('popstate', () => {
     window.location.replace('login.html');
   }
 });
+
+// ============================================================
+// 📦 الكاش المحلي (localStorage)
+// ============================================================
+const CACHE_KEYS = {
+  user:       'meezan_sora_user',
+  exams:      'meezan_sora_exams',
+  examSubs:   'meezan_sora_examSubs',
+  homeworks:  'meezan_sora_homeworks',
+  hwSubs:     'meezan_sora_hwSubs',
+  categories: 'meezan_sora_categories'
+};
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, _cachedAt: Date.now() }));
+  } catch (e) {}
+}
+
+function clearSoraCache() {
+  Object.values(CACHE_KEYS).forEach(k => {
+    try { localStorage.removeItem(k); } catch (e) {}
+  });
+}
 
 // ============================================================
 // 🧹 التنظيف
@@ -1599,18 +1620,91 @@ function decryptPassword(encrypted) {
 }
 
 // ============================================================
-// 📊 حالة الصفحة
+// 📊 الحالة العامة
 // ============================================================
 let currentUser = null;
-let currentRole = 'student';
-let currentUserId = null;
-let collectionName = 'users';
+let collectionName = userRole === 'teacher' ? 'teachers' : 'users';
 
-let pendingAvatar = null; // للصورة المؤقتة قبل الحفظ
-let pendingAvatarType = 'url'; // url | upload
+let allExams = [];
+let allExamSubs = [];
+let allHomeworks = [];
+let allHwSubs = [];
+let allCategories = [];
+
+let pendingAvatarType = 'url';
 let uploadedAvatarBase64 = '';
 
 let blockTriggered = false;
+
+// ============================================================
+// ⚡ تطبيق البيانات من الكاش فوراً
+// ============================================================
+function applyFromCache() {
+  let hasAnything = false;
+
+  try {
+    // 1. المستخدم
+    const cUser = loadCache(CACHE_KEYS.user);
+    if (cUser && cUser.data && cUser.data.user) {
+      const u = cUser.data.user;
+      if (String(u.id) === String(userId)) {
+        currentUser = u;
+        console.log('⚡ user from cache:', u.fullName);
+        renderUser(u);
+        hasAnything = true;
+      }
+    }
+
+    // 2. الامتحانات
+    const cEx = loadCache(CACHE_KEYS.exams);
+    if (cEx && Array.isArray(cEx.data)) {
+      allExams = cEx.data;
+      console.log(`⚡ ${allExams.length} exams from cache`);
+      hasAnything = true;
+    }
+
+    // 3. تسليمات الامتحانات
+    const cExSubs = loadCache(CACHE_KEYS.examSubs);
+    if (cExSubs && Array.isArray(cExSubs.data)) {
+      allExamSubs = cExSubs.data;
+      hasAnything = true;
+    }
+
+    // 4. الواجبات
+    const cHw = loadCache(CACHE_KEYS.homeworks);
+    if (cHw && Array.isArray(cHw.data)) {
+      allHomeworks = cHw.data;
+      console.log(`⚡ ${allHomeworks.length} homeworks from cache`);
+      hasAnything = true;
+    }
+
+    // 5. تسليمات الواجبات
+    const cHwSubs = loadCache(CACHE_KEYS.hwSubs);
+    if (cHwSubs && Array.isArray(cHwSubs.data)) {
+      allHwSubs = cHwSubs.data;
+      hasAnything = true;
+    }
+
+    // 6. الفئات
+    const cCats = loadCache(CACHE_KEYS.categories);
+    if (cCats && Array.isArray(cCats.data)) {
+      allCategories = cCats.data;
+      updateGradeSelect();
+      hasAnything = true;
+    }
+
+    if (hasAnything && currentUser) {
+      renderStats();
+      console.log('⚡ applyFromCache → render done');
+    } else if (hasAnything) {
+      console.log('⚡ applyFromCache → data cached, waiting for user');
+    } else {
+      console.log('📭 no cache yet');
+    }
+  } catch (e) {
+    console.error('applyFromCache error:', e);
+  }
+}
 
 // ============================================================
 // 💬 Toast
@@ -1619,6 +1713,7 @@ let toastTimeout;
 function showToast(text, type = 'success') {
   const toast = $('toast');
   const icon = $('toastIcon');
+  if (!toast || !icon) return;
   $('toastText').textContent = text;
   toast.className = 'toast show ' + type;
   const icons = {
@@ -1723,102 +1818,240 @@ $('togglePassword').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 تحميل بيانات المستخدم — Real-time
+// 📡 Listener 1: بيانات المستخدم
 // ============================================================
 function startUserListener() {
-  const userId = sessionStorage.getItem('meezan_user_id');
-  const role = sessionStorage.getItem('meezan_role') || 'student';
-
-  currentRole = role;
-  currentUserId = userId;
-  collectionName = role === 'teacher' ? 'teachers' : 'users';
-
   onSnapshot(doc(db, collectionName, 'all'), (snap) => {
-    if (!snap.exists()) return;
+    try {
+      if (!snap.exists()) return;
 
-    const items = snap.data().items || [];
-    const user = items.find(u => u.id === userId);
+      const items = snap.data().items || [];
+      const user = items.find(u => String(u.id) === String(userId));
 
-    if (!user) {
-      // حُذف المستخدم
-      if (!blockTriggered) {
-        blockTriggered = true;
-        showToast('تم حذف حسابك — جاري الخروج...', 'error');
-        setTimeout(forceLogout, 2000);
-      }
-      return;
-    }
-
-    // تعطيل
-    if (user.isDisabled === true) {
-      const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
-      if (!expired) {
+      if (!user) {
         if (!blockTriggered) {
           blockTriggered = true;
-          showToast('حسابك معطّل حالياً', 'error');
+          showToast('تم حذف حسابك — جاري الخروج...', 'error');
           setTimeout(forceLogout, 2000);
         }
         return;
       }
+
+      if (user.isDisabled === true) {
+        const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
+        if (!expired) {
+          if (!blockTriggered) {
+            blockTriggered = true;
+            showToast('حسابك معطّل حالياً', 'error');
+            setTimeout(forceLogout, 2000);
+          }
+          return;
+        }
+      }
+
+      currentUser = user;
+      saveCache(CACHE_KEYS.user, { user });
+      renderUser(user);
+
+    } catch (e) {
+      console.error('user listener error:', e);
     }
-
-    currentUser = user;
-    renderUser(user);
-
   }, (err) => console.log('user error:', err.message));
+}
+
+// ============================================================
+// 📡 Listener 2: قائمة الفئات (الفرق)
+// ============================================================
+function startCategoriesListener() {
+  const collection = userRole === 'teacher' ? 'teachers' : 'users';
+
+  onSnapshot(doc(db, collection, 'categories'), (snap) => {
+    try {
+      if (snap.exists()) {
+        allCategories = snap.data().items || [];
+        saveCache(CACHE_KEYS.categories, allCategories);
+        updateGradeSelect();
+      }
+    } catch (e) {
+      console.error('categories error:', e);
+    }
+  }, (err) => console.log('categories error:', err.message));
+}
+
+function updateGradeSelect() {
+  const select = $('editGrade');
+  if (!select) return;
+
+  const currentValue = select.value || (currentUser?.grade || '');
+
+  select.innerHTML = '<option value="">— اختر —</option>';
+
+  allCategories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+
+  // لو فيه قيمة حالية، اخترها (أو أضفها لو غير موجودة)
+  if (currentValue) {
+    if (!allCategories.includes(currentValue)) {
+      const opt = document.createElement('option');
+      opt.value = currentValue;
+      opt.textContent = currentValue;
+      select.appendChild(opt);
+    }
+    select.value = currentValue;
+  }
+}
+
+// ============================================================
+// 📡 Listener 3: الامتحانات
+// ============================================================
+function startExamsListener() {
+  onSnapshot(doc(db, 'exams', 'all'), (snap) => {
+    try {
+      if (snap.exists()) {
+        allExams = snap.data().items || [];
+      } else {
+        allExams = [];
+      }
+      saveCache(CACHE_KEYS.exams, allExams);
+      if (currentUser) renderStats();
+    } catch (e) {
+      console.error('exams error:', e);
+    }
+  }, (err) => console.log('exams error:', err.message));
+}
+
+// ============================================================
+// 📡 Listener 4: تسليمات الامتحانات
+// ============================================================
+function startExamSubsListener() {
+  onSnapshot(doc(db, 'exam_subs', 'all'), (snap) => {
+    try {
+      if (snap.exists()) {
+        allExamSubs = snap.data().items || [];
+      } else {
+        allExamSubs = [];
+      }
+      saveCache(CACHE_KEYS.examSubs, allExamSubs);
+      if (currentUser) renderStats();
+    } catch (e) {
+      console.error('exam_subs error:', e);
+    }
+  }, (err) => console.log('exam_subs error:', err.message));
+}
+
+// ============================================================
+// 📡 Listener 5: الواجبات
+// ============================================================
+function startHomeworksListener() {
+  onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
+    try {
+      if (snap.exists()) {
+        allHomeworks = snap.data().items || [];
+      } else {
+        allHomeworks = [];
+      }
+      saveCache(CACHE_KEYS.homeworks, allHomeworks);
+      if (currentUser) renderStats();
+    } catch (e) {
+      console.error('homeworks error:', e);
+    }
+  }, (err) => console.log('homeworks error:', err.message));
+}
+
+// ============================================================
+// 📡 Listener 6: تسليمات الواجبات
+// ============================================================
+function startHwSubsListener() {
+  onSnapshot(doc(db, 'homework_subs', 'all'), (snap) => {
+    try {
+      if (snap.exists()) {
+        allHwSubs = snap.data().items || [];
+      } else {
+        allHwSubs = [];
+      }
+      saveCache(CACHE_KEYS.hwSubs, allHwSubs);
+      if (currentUser) renderStats();
+    } catch (e) {
+      console.error('hw_subs error:', e);
+    }
+  }, (err) => console.log('hw_subs error:', err.message));
 }
 
 // ============================================================
 // 🎨 عرض بيانات المستخدم
 // ============================================================
 function renderUser(user) {
-  const fullName = user.fullName || user.username || 'مستخدم';
+  if (!user) return;
 
-  // الصورة الكبيرة
-  updateAvatarBig(user);
+  try {
+    const fullName = user.fullName || user.username || 'مستخدم';
 
-  // الاسم واليوزر
-  $('avatarName').textContent = fullName;
-  $('avatarUsername').textContent = '@' + (user.username || '—');
+    // الصورة الكبيرة
+    updateAvatarBig(user);
 
-  // الدور
-  const isTeacher = currentRole === 'teacher';
-  $('roleText').textContent = isTeacher ? 'حساب معلم' : 'حساب طالب';
+    // الاسم واليوزر
+    $('avatarName').textContent = fullName;
+    $('avatarUsername').textContent = '@' + (user.username || '—');
 
-  const roleBadgeIcon = $('roleBadge').querySelector('i');
-  if (roleBadgeIcon) {
-    roleBadgeIcon.className = isTeacher ? 'fas fa-chalkboard-user' : 'fas fa-user-graduate';
+    // الدور
+    const isTeacher = userRole === 'teacher';
+    $('roleText').textContent = isTeacher ? 'حساب معلم' : 'حساب طالب';
+
+    const roleBadgeIcon = $('roleBadge').querySelector('i');
+    if (roleBadgeIcon) {
+      roleBadgeIcon.className = isTeacher ? 'fas fa-chalkboard-user' : 'fas fa-user-graduate';
+    }
+
+    // الفرقة / المادة
+    if (user.grade) {
+      $('gradeText').textContent = user.grade;
+    } else {
+      $('gradeText').textContent = 'غير محدد';
+    }
+
+    // تسمية حقل الفرقة
+    $('editGradeLabel').textContent = isTeacher ? 'المادة الدراسية' : 'الفرقة الدراسية';
+
+    // الحقول القابلة للتعديل
+    $('editFullName').value = user.fullName || '';
+    $('editUsername').value = user.username || '';
+    $('editPassword').value = decryptPassword(user.passwordEncrypted) || '';
+
+    // ضع قيمة الفرقة في القائمة المنسدلة
+    const gradeSelect = $('editGrade');
+    if (gradeSelect) {
+      if (user.grade) {
+        if (!allCategories.includes(user.grade)) {
+          const opt = document.createElement('option');
+          opt.value = user.grade;
+          opt.textContent = user.grade;
+          gradeSelect.appendChild(opt);
+        }
+        gradeSelect.value = user.grade;
+      } else {
+        gradeSelect.value = '';
+      }
+    }
+
+    // الحقول المقفلة
+    $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
+    $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
+    $('lockPhoneValue').textContent = user.phone || 'غير مسجل';
+    $('lockEmailValue').textContent = user.email || 'غير مسجل';
+
+    // الإحصائيات
+    renderStats();
+
+    // زر حذف الصورة
+    $('avatarRemoveBtn').style.display = user.avatarUrl ? 'inline-flex' : 'none';
+
+  } catch (e) {
+    console.error('renderUser error:', e);
   }
-
-  // الفرقة / المادة
-  if (user.grade) {
-    $('gradeText').textContent = user.grade;
-    $('lockGradeLabel').textContent = isTeacher ? 'المادة الدراسية' : 'الفرقة الدراسية';
-    $('lockGradeValue').textContent = user.grade;
-  } else {
-    $('gradeText').textContent = 'غير محدد';
-    $('lockGradeValue').textContent = 'غير محدد';
-  }
-
-  // الحقول القابلة للتعديل
-  $('editFullName').value = user.fullName || '';
-  $('editUsername').value = user.username || '';
-  $('editPassword').value = decryptPassword(user.passwordEncrypted) || '';
-
-  // الحقول المقفلة
-  $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
-  $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
-  $('lockPhoneValue').textContent = user.phone || 'غير مسجل';
-  $('lockEmailValue').textContent = user.email || 'غير مسجل';
-
-  // الإحصائيات
-  renderStats(user);
-
-  // زر حذف الصورة
-  $('avatarRemoveBtn').style.display = user.avatarUrl ? 'inline-flex' : 'none';
-
-  // شارة الأيقونة في الهيرو
-  // (تحديث فقط إن تغيّرت الصورة)
 }
 
 // ============================================================
@@ -1826,6 +2059,8 @@ function renderUser(user) {
 // ============================================================
 function updateAvatarBig(user) {
   const big = $('avatarBig');
+  if (!big) return;
+
   if (user.avatarUrl) {
     big.innerHTML = `<img src="${user.avatarUrl}" alt="${user.fullName || ''}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
   } else {
@@ -1836,40 +2071,88 @@ function updateAvatarBig(user) {
 }
 
 // ============================================================
-// 📊 الإحصائيات
+// 📊 الإحصائيات — من البيانات الفعلية
 // ============================================================
-function renderStats(user) {
-  // الكود
-  $('statCode').textContent = user.code || '—';
+function renderStats() {
+  if (!currentUser) return;
 
-  // الامتحانات
-  const completedExams = Number(user.completedExams) || 0;
-  const totalExams = Number(user.totalExams) || 0;
-  $('statExams').innerHTML = `${completedExams} <small>/ ${totalExams}</small>`;
+  try {
+    // 1. الكود الشخصي
+    $('statCode').textContent = currentUser.code || '—';
 
-  // الواجبات
-  const completedHW = Number(user.completedHomeworks) || 0;
-  const totalHW = Number(user.totalHomeworks) || 0;
-  $('statHomework').innerHTML = `${completedHW} <small>/ ${totalHW}</small>`;
+    const userGrade = currentUser.grade || '';
 
-  // نسبة التفوق
-  const totalAll = totalExams + totalHW;
-  const completedAll = completedExams + completedHW;
-  const rate = totalAll > 0 ? Math.round((completedAll / totalAll) * 100) : 0;
+    // ✅ 2. الامتحانات المتاحة للطالب
+    const availableExams = allExams.filter(e => 
+      e.status === 'published' && (!e.grade || e.grade === userGrade)
+    );
+    const availableExamIds = new Set(availableExams.map(e => e.id));
 
-  $('excellenceValue').innerHTML = `${rate}<small>%</small>`;
-  $('excellenceFill').style.width = rate + '%';
+    // ✅ 3. الامتحانات المكتملة من الطالب — فقط من المتاحة
+    const completedExams = allExamSubs.filter(s => 
+      String(s.userId) === String(userId) && 
+      s.submitted === true &&
+      availableExamIds.has(s.examId)
+    );
 
-  // النص
-  let text = 'لم تبدأ بعد';
-  if (rate > 0 && rate < 30) text = 'تحتاج إلى مزيد من الجهد';
-  else if (rate >= 30 && rate < 50) text = 'بداية جيدة — استمر';
-  else if (rate >= 50 && rate < 70) text = 'أداء جيد — يمكنك الأفضل';
-  else if (rate >= 70 && rate < 85) text = 'أداء ممتاز — استمر';
-  else if (rate >= 85 && rate < 100) text = 'ممتاز — اقتربت من الكمال';
-  else if (rate === 100) text = '🎉 تفوق كامل — أنت رائع!';
+    $('statExams').innerHTML = `${completedExams.length} <small>/ ${availableExams.length}</small>`;
 
-  $('excellenceText').textContent = text;
+    // ✅ 4. الواجبات المتاحة للطالب
+    const availableHomeworks = allHomeworks.filter(h =>
+      h.status === 'published' && (!h.grade || h.grade === userGrade)
+    );
+    const availableHwIds = new Set(availableHomeworks.map(h => h.id));
+
+    // ✅ 5. الواجبات المكتملة
+    const completedHomeworks = allHwSubs.filter(s =>
+      String(s.userId) === String(userId) && 
+      s.submitted === true &&
+      availableHwIds.has(s.homeworkId)
+    );
+
+    $('statHomework').innerHTML = `${completedHomeworks.length} <small>/ ${availableHomeworks.length}</small>`;
+
+    // ✅ 6. نسبة التفوق
+    const totalItems = availableExams.length + availableHomeworks.length;
+    const completedItems = completedExams.length + completedHomeworks.length;
+    const rate = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+    $('excellenceValue').innerHTML = `${rate}<small>%</small>`;
+    $('excellenceFill').style.width = rate + '%';
+
+    // 7. النص
+    let text = 'لم تبدأ بعد';
+    if (totalItems === 0) {
+      text = 'لا توجد امتحانات أو واجبات متاحة لفرقتك';
+    } else if (rate === 0) {
+      text = 'لم تبدأ بعد — ابدأ الآن!';
+    } else if (rate > 0 && rate < 30) {
+      text = 'تحتاج إلى مزيد من الجهد';
+    } else if (rate >= 30 && rate < 50) {
+      text = 'بداية جيدة — استمر';
+    } else if (rate >= 50 && rate < 70) {
+      text = 'أداء جيد — يمكنك الأفضل';
+    } else if (rate >= 70 && rate < 85) {
+      text = 'أداء ممتاز — استمر';
+    } else if (rate >= 85 && rate < 100) {
+      text = 'ممتاز — اقتربت من الكمال';
+    } else if (rate === 100) {
+      text = '🎉 تفوق كامل — أنت رائع!';
+    }
+
+    $('excellenceText').textContent = text;
+
+    console.log('📊 stats updated:', {
+      availableExams: availableExams.length,
+      completedExams: completedExams.length,
+      availableHomeworks: availableHomeworks.length,
+      completedHomeworks: completedHomeworks.length,
+      rate
+    });
+
+  } catch (e) {
+    console.error('renderStats error:', e);
+  }
 }
 
 function formatDateOnly(dateStr) {
@@ -1891,8 +2174,8 @@ $('saveInfoBtn').addEventListener('click', async () => {
   const newFullName = cleanInput($('editFullName').value);
   const newUsername = cleanInput($('editUsername').value);
   const newPassword = cleanInput($('editPassword').value);
+  const newGrade = $('editGrade').value;
 
-  // التحقق
   if (!newFullName || newFullName.length < 3) {
     return showToast('الاسم الكامل يجب أن يكون 3 أحرف على الأقل', 'error');
   }
@@ -1905,19 +2188,21 @@ $('saveInfoBtn').addEventListener('click', async () => {
   if (!newPassword || newPassword.length < 6) {
     return showToast('كلمة السر يجب أن تكون 6 أحرف على الأقل', 'error');
   }
+  if (!newGrade) {
+    return showToast('الرجاء اختيار ' + (userRole === 'teacher' ? 'المادة الدراسية' : 'الفرقة الدراسية'), 'error');
+  }
 
-  // لا يوجد تغيير
   const currentPassword = decryptPassword(currentUser.passwordEncrypted) || '';
   const noChange =
-    newFullName === currentUser.fullName &&
+    newFullName === (currentUser.fullName || '') &&
     newUsername.toLowerCase() === (currentUser.username || '').toLowerCase() &&
-    newPassword === currentPassword;
+    newPassword === currentPassword &&
+    newGrade === (currentUser.grade || '');
 
   if (noChange) {
     return showToast('لا يوجد تعديلات جديدة', 'warning');
   }
 
-  // تأكيد
   const confirmed = await showConfirm({
     title: 'حفظ التعديلات',
     message: 'هل تريد حفظ التعديلات على بياناتك؟',
@@ -1933,16 +2218,12 @@ $('saveInfoBtn').addEventListener('click', async () => {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
   try {
-    // اقرأ القائمة كاملة
-    const snap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    const snap = await getDoc(doc(db, collectionName, 'all'));
 
     if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
 
     const items = snap.data().items || [];
 
-    // تحقق من تفرد اسم المستخدم
     if (newUsername.toLowerCase() !== (currentUser.username || '').toLowerCase()) {
       const dup = items.find(u =>
         u.id !== currentUser.id &&
@@ -1955,7 +2236,6 @@ $('saveInfoBtn').addEventListener('click', async () => {
       }
     }
 
-    // عدّل بيانات المستخدم
     const idx = items.findIndex(u => u.id === currentUser.id);
     if (idx === -1) throw new Error('لم يتم العثور على حسابك');
 
@@ -1964,16 +2244,15 @@ $('saveInfoBtn').addEventListener('click', async () => {
       fullName: newFullName,
       username: newUsername,
       passwordEncrypted: encryptPassword(newPassword),
+      grade: newGrade,
       updatedAt: new Date().toISOString()
     };
 
-    // حدّث Firestore
     await setDoc(doc(db, collectionName, 'all'), {
       items,
       updatedAt: serverTimestamp()
     });
 
-    // حدّث sessionStorage
     sessionStorage.setItem('meezan_username', newUsername);
     const userData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}');
     userData.fullName = newFullName;
@@ -1992,14 +2271,13 @@ $('saveInfoBtn').addEventListener('click', async () => {
 });
 
 // ============================================================
-// 🔒 الأزرار المقفلة — تواصل مع الدعم
+// 🔒 الأزرار المقفلة
 // ============================================================
 document.querySelectorAll('.locked-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const field = btn.dataset.field;
 
     const fieldNames = {
-      grade: 'الفرقة الدراسية',
       nationalId: 'الرقم القومي',
       birthDate: 'تاريخ الميلاد',
       phone: 'رقم الهاتف',
@@ -2036,13 +2314,11 @@ function openAvatarModal() {
   pendingAvatarType = 'url';
   uploadedAvatarBase64 = '';
 
-  // إعادة تعيين التبويبات
   document.querySelectorAll('.avatar-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.avatar-tab[data-avatar-type="url"]').classList.add('active');
   document.querySelectorAll('.avatar-tab-content').forEach(c => c.classList.remove('active'));
   $('avatarType-url').classList.add('active');
 
-  // URL الحالي (لو مش Base64)
   if (currentUser.avatarUrl && !currentUser.avatarUrl.startsWith('data:')) {
     $('avatarUrlInput').value = currentUser.avatarUrl;
   } else {
@@ -2051,7 +2327,6 @@ function openAvatarModal() {
   $('avatarFileInput').value = '';
   $('avatarUploadStatus').style.display = 'none';
 
-  // معاينة
   updateAvatarPreview(currentUser.avatarUrl || '');
 
   $('avatarModal').classList.add('show');
@@ -2068,7 +2343,6 @@ function updateAvatarPreview(url) {
   }
 }
 
-// تبويبات نوع الصورة
 document.querySelectorAll('.avatar-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const type = tab.dataset.avatarType;
@@ -2079,7 +2353,6 @@ document.querySelectorAll('.avatar-tab').forEach(tab => {
     document.querySelectorAll('.avatar-tab-content').forEach(c => c.classList.remove('active'));
     $(`avatarType-${type}`).classList.add('active');
 
-    // معاينة حسب النوع
     if (type === 'url') {
       const url = cleanInput($('avatarUrlInput').value);
       updateAvatarPreview(url);
@@ -2090,7 +2363,6 @@ document.querySelectorAll('.avatar-tab').forEach(tab => {
   });
 });
 
-// معاينة عند كتابة رابط
 $('avatarUrlInput').addEventListener('input', () => {
   if (pendingAvatarType === 'url') {
     const url = cleanInput($('avatarUrlInput').value);
@@ -2098,7 +2370,6 @@ $('avatarUrlInput').addEventListener('input', () => {
   }
 });
 
-// رفع صورة
 $('avatarFileInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -2117,7 +2388,6 @@ $('avatarFileInput').addEventListener('change', (e) => {
   reader.readAsDataURL(file);
 });
 
-// إلغاء
 $('avatarCancel').addEventListener('click', () => {
   $('avatarModal').classList.remove('show');
 });
@@ -2125,7 +2395,6 @@ $('avatarModal').addEventListener('click', (e) => {
   if (e.target === $('avatarModal')) $('avatarModal').classList.remove('show');
 });
 
-// حفظ الصورة
 $('avatarSave').addEventListener('click', async () => {
   if (!currentUser) return;
 
@@ -2149,9 +2418,7 @@ $('avatarSave').addEventListener('click', async () => {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
   try {
-    const snap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    const snap = await getDoc(doc(db, collectionName, 'all'));
 
     if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
 
@@ -2199,9 +2466,7 @@ $('avatarRemoveBtn').addEventListener('click', async () => {
   if (!confirmed) return;
 
   try {
-    const snap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    const snap = await getDoc(doc(db, collectionName, 'all'));
 
     if (!snap.exists()) return;
 
@@ -2244,6 +2509,7 @@ $('logoutBtn').addEventListener('click', async () => {
 });
 
 function forceLogout() {
+  clearSoraCache();
   sessionStorage.removeItem('meezan_logged_in');
   sessionStorage.removeItem('meezan_username');
   sessionStorage.removeItem('meezan_role');
@@ -2264,8 +2530,25 @@ window.addEventListener('pageshow', (e) => {
 // ============================================================
 // 🚀 Init
 // ============================================================
+
+// ⚡ 1. اعرض من الكاش فوراً
+applyFromCache();
+
 requestAnimationFrame(() => document.body.classList.add('ready'));
+
+// ⚡ 2. ابدأ listeners بالخلفية
 startUserListener();
+startCategoriesListener();
+startExamsListener();
+startExamSubsListener();
+startHomeworksListener();
+startHwSubsListener();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 
 </body>
