@@ -2067,7 +2067,7 @@ window.addEventListener('popstate', () => {
 });
 
 // ============================================================
-// 📦 الكاش المحلي (localStorage) — للعرض الفوري
+// 📦 الكاش
 // ============================================================
 const CACHE_KEYS = {
   user:         'meezan_results2_user',
@@ -2149,14 +2149,23 @@ function formatDateFull(iso) {
 // 📊 الحالة العامة
 // ============================================================
 let myUserData = null;
-let myHomeworks = [];
-let myExams = [];
+let myGrade = ''; // ⚡ جديد: grade للطالب
+let myHomeworksAll = []; // ⚡ جديد: كل الواجبات
+let myExamsAll = []; // ⚡ جديد: كل الامتحانات
 let myHWSubs = {};
 let myExamSubs = {};
 let hiddenHomeworks = new Set();
 let hiddenExams = new Set();
 let hiddenStudentResults = {};
 let myCertificates = [];
+
+// ⚡ الحالة: هل وصلت بيانات الطالب؟
+let userDataLoaded = false;
+let hiddenDataLoaded = false;
+
+// ⚡ منع الرسم المتكرر
+let renderTimer = null;
+let lastDataHash = '';
 
 let certSettings = {
   adminName: 'مدير المنصة',
@@ -2216,6 +2225,18 @@ function getStudentCode() {
 }
 
 // ============================================================
+// 🔍 فلترة حسب الفرقة
+// ============================================================
+function filterByMyGrade(items) {
+  if (!myGrade) return [];
+  return items.filter(item => {
+    // لو الواجب/الامتحان مالوش grade محدد → يظهر لكل الفرق
+    if (!item.grade) return true;
+    return item.grade === myGrade;
+  });
+}
+
+// ============================================================
 // ⚡ تطبيق البيانات من الكاش فوراً
 // ============================================================
 function applyFromCache() {
@@ -2227,13 +2248,15 @@ function applyFromCache() {
     const u = cUser.data.user;
     if (String(u.id) === String(userId)) {
       myUserData = u;
+      myGrade = u.grade || '';
+      userDataLoaded = true;
       const fullName = u.fullName || u.name || u.username || 'مستخدم';
       sessionStorage.setItem('meezan_fullname', fullName);
       sessionStorage.setItem('meezan_username', fullName);
       if (u.code || u.studentCode || u.id) {
         sessionStorage.setItem('meezan_code', String(u.code || u.studentCode || u.id));
       }
-      console.log('⚡ user from cache:', fullName);
+      console.log('⚡ user from cache:', fullName, '| grade:', myGrade);
       hasAnything = true;
     }
   }
@@ -2241,16 +2264,16 @@ function applyFromCache() {
   // 2. الواجبات
   const cHw = loadCache(CACHE_KEYS.homeworks);
   if (cHw && Array.isArray(cHw.data)) {
-    myHomeworks = cHw.data;
-    console.log(`⚡ ${myHomeworks.length} homeworks from cache`);
+    myHomeworksAll = cHw.data;
+    console.log(`⚡ ${myHomeworksAll.length} homeworks from cache`);
     hasAnything = true;
   }
 
   // 3. الامتحانات
   const cEx = loadCache(CACHE_KEYS.exams);
   if (cEx && Array.isArray(cEx.data)) {
-    myExams = cEx.data;
-    console.log(`⚡ ${myExams.length} exams from cache`);
+    myExamsAll = cEx.data;
+    console.log(`⚡ ${myExamsAll.length} exams from cache`);
     hasAnything = true;
   }
 
@@ -2278,6 +2301,7 @@ function applyFromCache() {
     Object.keys(hsr).forEach(k => {
       hiddenStudentResults[k] = new Set(hsr[k] || []);
     });
+    hiddenDataLoaded = true;
     hasAnything = true;
   }
 
@@ -2288,11 +2312,11 @@ function applyFromCache() {
     hasAnything = true;
   }
 
-  if (hasAnything) {
-    refreshAll();
+  if (hasAnything && userDataLoaded) {
+    scheduleRefresh();
     console.log('⚡ applyFromCache → render done');
   } else {
-    console.log('📭 no cache yet');
+    console.log('📭 no cache yet (or user not loaded)');
   }
 }
 
@@ -2369,22 +2393,29 @@ function updateStats() {
   const hwSubs = Object.values(myHWSubs).filter(s => s.submitted);
   const exSubs = Object.values(myExamSubs).filter(s => s.submitted);
 
-  $('statHomeworks').textContent = hwSubs.length;
-  $('statExams').textContent = exSubs.length;
+  // ⚡ فلترة حسب الفرقة
+  const visibleHwIds = new Set(filterByMyGrade(myHomeworksAll).map(h => String(h.id)));
+  const visibleExIds = new Set(filterByMyGrade(myExamsAll).map(e => String(e.id)));
+
+  const hwSubsFiltered = hwSubs.filter(s => visibleHwIds.has(String(s.homeworkId)));
+  const exSubsFiltered = exSubs.filter(s => visibleExIds.has(String(s.examId)));
+
+  $('statHomeworks').textContent = hwSubsFiltered.length;
+  $('statExams').textContent = exSubsFiltered.length;
 
   let passedCount = 0;
-  hwSubs.forEach(s => {
+  hwSubsFiltered.forEach(s => {
     if (s.corrected && s.totalScore > 0 && (s.score / s.totalScore) * 100 >= 50) passedCount++;
   });
-  exSubs.forEach(s => {
+  exSubsFiltered.forEach(s => {
     if (s.corrected && s.totalScore > 0 && (s.score / s.totalScore) * 100 >= 50) passedCount++;
   });
 
   $('statPassed').textContent = passedCount;
   $('statCerts').textContent = myCertificates.length;
 
-  $('tabHomeworksCount').textContent = myHomeworks.length;
-  $('tabExamsCount').textContent = myExams.length;
+  $('tabHomeworksCount').textContent = visibleHwIds.size;
+  $('tabExamsCount').textContent = visibleExIds.size;
   $('tabCertsCount').textContent = myCertificates.length;
 }
 
@@ -2404,17 +2435,42 @@ function isHiddenForMe(type, itemId) {
 }
 
 // ============================================================
-// 🎨 Homeworks
+// 📅 scheduleRefresh — debounce
 // ============================================================
-function applyHWFilters() {
-  const q = cleanInput($('searchHomeworks').value).toLowerCase();
-  const filter = document.querySelector('[data-hw-filter].active')?.dataset.hwFilter || 'all';
+function scheduleRefresh() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => refreshAll(), 50);
+}
 
-  let visibleHomeworks = myHomeworks.filter(hw => {
+// ============================================================
+// 🎨 Homeworks — فلترة مباشرة
+// ============================================================
+function getVisibleHomeworks() {
+  if (!userDataLoaded) return [];
+  // ✅ فلترة بالفرقة + المخفي
+  return filterByMyGrade(myHomeworksAll).filter(hw => {
+    if (hw.status !== 'published') return false;
     if (hiddenHomeworks.has(hw.id)) return false;
     if (isHiddenForMe('homework', hw.id)) return false;
     return true;
   });
+}
+
+function getVisibleExams() {
+  if (!userDataLoaded) return [];
+  return filterByMyGrade(myExamsAll).filter(exam => {
+    if (exam.status !== 'published') return false;
+    if (hiddenExams.has(exam.id)) return false;
+    if (isHiddenForMe('exam', exam.id)) return false;
+    return true;
+  });
+}
+
+function applyHWFilters() {
+  const q = cleanInput($('searchHomeworks').value).toLowerCase();
+  const filter = document.querySelector('[data-hw-filter].active')?.dataset.hwFilter || 'all';
+
+  let visibleHomeworks = getVisibleHomeworks();
 
   let list = visibleHomeworks.map(hw => {
     const sub = myHWSubs[hw.id];
@@ -2444,11 +2500,7 @@ function applyHWFilters() {
 }
 
 function updateHWFilterCounts() {
-  const visible = myHomeworks.filter(hw => {
-    if (hiddenHomeworks.has(hw.id)) return false;
-    if (isHiddenForMe('homework', hw.id)) return false;
-    return true;
-  });
+  const visible = getVisibleHomeworks();
 
   const all = visible.map(hw => {
     const sub = myHWSubs[hw.id];
@@ -2470,12 +2522,22 @@ function renderHomeworksList(list) {
   const grid = $('homeworksGrid');
   grid.innerHTML = '';
 
+  if (!userDataLoaded) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل بياناتك...</div>
+      </div>
+    `;
+    return;
+  }
+
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-file-pen"></i>
         <h3>لا توجد واجبات</h3>
-        <p>لم يتم العثور على واجبات مطابقة</p>
+        <p>لم يتم العثور على واجبات لفرقتك</p>
       </div>
     `;
     return;
@@ -2600,17 +2662,13 @@ function createHWCard(item) {
 }
 
 // ============================================================
-// 🎨 Exams
+// 🎨 Exams — فلترة مباشرة
 // ============================================================
 function applyExamFilters() {
   const q = cleanInput($('searchExams').value).toLowerCase();
   const filter = document.querySelector('[data-exam-filter].active')?.dataset.examFilter || 'all';
 
-  let visibleExams = myExams.filter(exam => {
-    if (hiddenExams.has(exam.id)) return false;
-    if (isHiddenForMe('exam', exam.id)) return false;
-    return true;
-  });
+  let visibleExams = getVisibleExams();
 
   let list = visibleExams.map(exam => {
     const sub = myExamSubs[exam.id];
@@ -2640,11 +2698,7 @@ function applyExamFilters() {
 }
 
 function updateExamFilterCounts() {
-  const visible = myExams.filter(exam => {
-    if (hiddenExams.has(exam.id)) return false;
-    if (isHiddenForMe('exam', exam.id)) return false;
-    return true;
-  });
+  const visible = getVisibleExams();
 
   const all = visible.map(exam => {
     const sub = myExamSubs[exam.id];
@@ -2666,12 +2720,22 @@ function renderExamsList(list) {
   const grid = $('examsGrid');
   grid.innerHTML = '';
 
+  if (!userDataLoaded) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل بياناتك...</div>
+      </div>
+    `;
+    return;
+  }
+
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-graduation-cap"></i>
         <h3>لا توجد امتحانات</h3>
-        <p>لم يتم العثور على امتحانات مطابقة</p>
+        <p>لم يتم العثور على امتحانات لفرقتك</p>
       </div>
     `;
     return;
@@ -2999,13 +3063,15 @@ $('answersModal').addEventListener('click', (e) => {
 // 🎓 Certificates
 // ============================================================
 function buildCertificates() {
+  if (!userDataLoaded) return;
+
   const certs = [];
   const MIN_PERCENT = 80;
 
-  myHomeworks.forEach(hw => {
-    if (hiddenHomeworks.has(hw.id)) return;
-    if (isHiddenForMe('homework', hw.id)) return;
+  const visibleHw = getVisibleHomeworks();
+  const visibleEx = getVisibleExams();
 
+  visibleHw.forEach(hw => {
     const sub = myHWSubs[hw.id];
     if (!sub || !sub.submitted || !sub.corrected) return;
 
@@ -3025,10 +3091,7 @@ function buildCertificates() {
     });
   });
 
-  myExams.forEach(exam => {
-    if (hiddenExams.has(exam.id)) return;
-    if (isHiddenForMe('exam', exam.id)) return;
-
+  visibleEx.forEach(exam => {
     const sub = myExamSubs[exam.id];
     if (!sub || !sub.submitted || !sub.corrected) return;
 
@@ -3057,6 +3120,17 @@ function buildCertificates() {
 function renderCertificates() {
   const grid = $('certsGrid');
   grid.innerHTML = '';
+
+  if (!userDataLoaded) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الشهادات...</div>
+      </div>
+    `;
+    updateStats();
+    return;
+  }
 
   const q = cleanInput($('searchCerts')?.value || '').toLowerCase();
   let list = myCertificates;
@@ -3196,7 +3270,6 @@ window.addEventListener('resize', () => {
   }
 });
 
-// ✅ تصغير خط الاسم تلقائياً إذا كان طويلاً
 function autoFitStudentName() {
   const nameEl = document.querySelector('#certificateRender .cert-student-name');
   if (!nameEl) return;
@@ -3215,9 +3288,6 @@ function autoFitStudentName() {
     nameEl.style.fontSize = size + 'px';
     guard++;
   }
-
-  console.log('📏 autoFitStudentName → final size:', size + 'px', 
-              '| scrollWidth:', nameEl.scrollWidth);
 }
 
 // ============================================================
@@ -3230,8 +3300,6 @@ function renderCertHTML(cert) {
   const studentCode = getStudentCode();
   const typeLabel = cert.type === 'homework' ? 'الواجب' : 'الامتحان';
   const dateFormatted = formatDateFull(cert.date);
-
-  console.log('🎓 رسم الشهادة — الاسم:', studentName);
 
   container.innerHTML = `
     <div class="cert-frame-outer"></div>
@@ -3530,8 +3598,10 @@ $('clearSearchCerts').addEventListener('click', () => {
 });
 
 // ============================================================
-// 📡 Listeners — مع حفظ في الكاش
+// 📡 Listeners
 // ============================================================
+
+// ⚡ المستخدم — يجيب grade
 function startUserListener() {
   if (!userId) return;
   const collectionName = userRole === 'teacher' ? 'teachers' : 'users';
@@ -3552,6 +3622,8 @@ function startUserListener() {
 
     if (user) {
       myUserData = user;
+      myGrade = user.grade || ''; // ⚡ مهم جداً
+      userDataLoaded = true;
 
       const fullName = user.fullName || user.name || user.username || 'مستخدم';
       sessionStorage.setItem('meezan_fullname', fullName);
@@ -3560,12 +3632,10 @@ function startUserListener() {
       const code = user.code || user.studentCode || user.id || '';
       sessionStorage.setItem('meezan_code', String(code));
 
-      // ✅ احفظ في الكاش
       saveCache(CACHE_KEYS.user, { user, role: userRole });
 
-      console.log('✅ user loaded from Firestore:', { id: user.id, fullName: user.fullName });
+      console.log('✅ user loaded:', { id: user.id, fullName, grade: myGrade });
 
-      // لو الشهادة مفتوحة، أعد رسمها
       if (currentCertData && $('certModal').classList.contains('show')) {
         renderCertHTML(currentCertData);
         requestAnimationFrame(() => {
@@ -3576,7 +3646,7 @@ function startUserListener() {
         });
       }
 
-      refreshAll();
+      scheduleRefresh();
     } else {
       console.warn('⚠️ user not found:', userId);
     }
@@ -3600,7 +3670,8 @@ function startHiddenResultsListener() {
       });
     }
 
-    // ✅ احفظ في الكاش
+    hiddenDataLoaded = true;
+
     saveCache(CACHE_KEYS.hidden, {
       homeworks: Array.from(hiddenHomeworks),
       exams: Array.from(hiddenExams),
@@ -3609,27 +3680,26 @@ function startHiddenResultsListener() {
       )
     });
 
-    refreshAll();
+    scheduleRefresh();
   }, (err) => console.log('hidden error:', err.message));
 }
 
 function startHomeworksListener() {
   onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
     const items = snap.exists() ? (snap.data().items || []) : [];
-    myHomeworks = items.filter(h => h.status === 'published');
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.homeworks, myHomeworks);
-    refreshAll();
+    // ⚡ خزّن الكل (بدون فلترة) — الفلترة بتحصل في getVisibleHomeworks
+    myHomeworksAll = items;
+    saveCache(CACHE_KEYS.homeworks, myHomeworksAll);
+    scheduleRefresh();
   }, (err) => console.log('homeworks error:', err.message));
 }
 
 function startExamsListener() {
   onSnapshot(doc(db, 'exams', 'all'), (snap) => {
     const items = snap.exists() ? (snap.data().items || []) : [];
-    myExams = items.filter(e => e.status === 'published');
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.exams, myExams);
-    refreshAll();
+    myExamsAll = items;
+    saveCache(CACHE_KEYS.exams, myExamsAll);
+    scheduleRefresh();
   }, (err) => console.log('exams error:', err.message));
 }
 
@@ -3644,9 +3714,8 @@ function startHWSubsListener() {
       });
     }
     myHWSubs = newSubs;
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.hwSubs, myHWSubs);
-    refreshAll();
+    scheduleRefresh();
   }, (err) => console.log('hw subs error:', err.message));
 }
 
@@ -3661,9 +3730,8 @@ function startExamSubsListener() {
       });
     }
     myExamSubs = newSubs;
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.examSubs, myExamSubs);
-    refreshAll();
+    scheduleRefresh();
   }, (err) => console.log('exam subs error:', err.message));
 }
 
@@ -3679,39 +3747,47 @@ function startCertSettingsListener() {
         siteNameAr: data.siteNameAr || certSettings.siteNameAr,
         siteNameEn: data.siteNameEn || certSettings.siteNameEn
       };
-      // ✅ احفظ في الكاش
       saveCache(CACHE_KEYS.certSettings, certSettings);
     }
   }, (err) => console.log('cert settings error:', err.message));
 }
 
+// ============================================================
+// 🔄 refreshAll — بدون backup/restore
+// ============================================================
 function refreshAll() {
-  const grade = myUserData?.grade || '';
-
-  const hwFiltered = grade
-    ? myHomeworks.filter(h => !h.grade || h.grade === grade)
-    : myHomeworks;
-
-  const examFiltered = grade
-    ? myExams.filter(e => !e.grade || e.grade === grade)
-    : myExams;
-
-  const backupHw = myHomeworks;
-  const backupEx = myExams;
-  myHomeworks = hwFiltered;
-  myExams = examFiltered;
+  // لو لسه grade مش معروف، متعرضش أي حاجة
+  if (!userDataLoaded) {
+    // اعرض loading فقط
+    const hwGrid = $('homeworksGrid');
+    if (hwGrid && hwGrid.querySelector('.item-card') === null) {
+      hwGrid.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner"></i>
+          <div>جاري تحميل بياناتك...</div>
+        </div>
+      `;
+    }
+    const exGrid = $('examsGrid');
+    if (exGrid && exGrid.querySelector('.item-card') === null) {
+      exGrid.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner"></i>
+          <div>جاري تحميل بياناتك...</div>
+        </div>
+      `;
+    }
+    return;
+  }
 
   applyHWFilters();
   applyExamFilters();
   buildCertificates();
   updateStats();
-
-  myHomeworks = backupHw;
-  myExams = backupEx;
 }
 
 // ============================================================
-// 🚪 Logout — امسح الكاش
+// 🚪 Logout
 // ============================================================
 function clearResultsCache() {
   Object.values(CACHE_KEYS).forEach(k => {
@@ -3768,15 +3844,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// 🚀 Init — اعرض من الكاش فوراً + listeners بالخلفية
+// 🚀 Init
 // ============================================================
-
-// ⚡ 1. اعرض البيانات من الكاش فوراً (0ms)
 applyFromCache();
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
-// ⚡ 2. ابدأ listeners بالتوازي (تحدّث الكاش لما يوصل جديد)
 startUserListener();
 startHiddenResultsListener();
 startHomeworksListener();

@@ -1772,12 +1772,7 @@
     </button>
   </div>
 
-  <div class="exams-grid" id="examsGrid">
-    <div class="loading-state">
-      <i class="fas fa-spinner"></i>
-      <div>جاري تحميل الامتحانات...</div>
-    </div>
-  </div>
+  <div class="exams-grid" id="examsGrid"></div>
 
 </div>
 
@@ -2086,7 +2081,7 @@ window.addEventListener('popstate', () => {
 });
 
 // ============================================================
-// 📦 الكاش المحلي (localStorage) — للعرض الفوري
+// 📦 الكاش
 // ============================================================
 const CACHE_KEYS = {
   exams:    'meezan_exam_exams',
@@ -2141,6 +2136,7 @@ let filteredExams = [];
 let mySubs = {};
 let myGrade = '';
 let myUserData = null;
+let myUserAccess = null;
 let hiddenExams = new Set();
 let hiddenStudentResults = {};
 
@@ -2153,13 +2149,17 @@ let currentAnswers = {};
 let examTimerInterval = null;
 let examEndAt = null;
 let countdownInterval = null;
+let openCountdownInterval = null;
 let isSubmitting = false;
 let hasWarned1Min = false;
 
-let userMonitoringUnsub = null;
-let hiddenResultsUnsub = null;
+let userAccessUnsub = null;
 
 let shownAccessFor = new Set();
+
+let renderTimer = null;
+let lastDataHash = '';
+let hasLoadedOnce = false;
 
 // ============================================================
 // ⚡ تطبيق البيانات من الكاش فوراً
@@ -2167,7 +2167,6 @@ let shownAccessFor = new Set();
 function applyFromCache() {
   let hasAnything = false;
 
-  // 1. الامتحانات
   const cEx = loadCache(CACHE_KEYS.exams);
   if (cEx && Array.isArray(cEx.data)) {
     allExams = cEx.data;
@@ -2175,7 +2174,6 @@ function applyFromCache() {
     hasAnything = true;
   }
 
-  // 2. تسليمات الطالب
   const cSubs = loadCache(CACHE_KEYS.examSubs);
   if (cSubs && cSubs.data) {
     mySubs = cSubs.data;
@@ -2183,16 +2181,19 @@ function applyFromCache() {
     hasAnything = true;
   }
 
-  // 3. المستخدم (myGrade + openAccess + blockedItems + closedItems)
   const cUser = loadCache(CACHE_KEYS.user);
-  if (cUser && cUser.data && cUser.data.user) {
-    myUserData = cUser.data.user;
-    myGrade = cUser.data.user?.grade || '';
+  if (cUser && cUser.data) {
+    if (cUser.data.user) {
+      myUserData = cUser.data.user;
+      myGrade = cUser.data.user?.grade || '';
+    }
+    if (cUser.data.access) {
+      myUserAccess = cUser.data.access;
+    }
     console.log('⚡ user from cache, grade:', myGrade);
     hasAnything = true;
   }
 
-  // 4. المخفي
   const cHidden = loadCache(CACHE_KEYS.hidden);
   if (cHidden && cHidden.data) {
     hiddenExams = new Set(cHidden.data.exams || []);
@@ -2205,10 +2206,9 @@ function applyFromCache() {
   }
 
   if (hasAnything) {
-    applyFilters();
+    hasLoadedOnce = true;
+    applyFilters(true);
     console.log('⚡ applyFromCache → render done');
-  } else {
-    console.log('📭 no cache yet');
   }
 }
 
@@ -2316,6 +2316,22 @@ $('confirmModal').addEventListener('click', (e) => {
   if (e.target === $('confirmModal')) closeConfirm(false);
 });
 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+    if ($('passwordModal').classList.contains('show')) closePasswordModal();
+    if ($('accessInfoModal').classList.contains('show')) {
+      $('accessInfoModal').classList.remove('show');
+      pendingAccessExam = null;
+    }
+    if ($('instructionsModal').classList.contains('show')) {
+      $('instructionsModal').classList.remove('show');
+      currentExam = null;
+    }
+    if ($('drawer').classList.contains('open')) closeDrawer();
+  }
+});
+
 // ============================================================
 // 🕒 Helpers
 // ============================================================
@@ -2371,6 +2387,34 @@ function getDurationMs(value, unit) {
 }
 
 // ============================================================
+// 🔗 getMyAccess — يدمج user_access + users/all
+// ============================================================
+function getMyAccess() {
+  const a1 = myUserAccess || {};
+  const a2 = myUserData || {};
+
+  // ✅ دمج: user_access له الأولوية، لكن لو فيه حاجة في users/all مش في user_access نضيفها
+  const merged = {
+    openAccess:   { ...(a2.openAccess   || {}), ...(a1.openAccess   || {}) },
+    blockedItems: { ...(a2.blockedItems || {}), ...(a1.blockedItems || {}) },
+    closedItems:  { ...(a2.closedItems  || {}), ...(a1.closedItems  || {}) }
+  };
+
+  // ✅ الأهم: لو فيه openAccess نشط، امسح الـ closedItems المقابل له
+  // عشان الفتح الجديد يغلب الإغلاق القديم
+  Object.keys(merged.openAccess).forEach(k => {
+    const oa = merged.openAccess[k];
+    if (oa && oa.endAt && new Date(oa.endAt) > new Date()) {
+      if (merged.closedItems[k]) {
+        delete merged.closedItems[k];
+      }
+    }
+  });
+
+  return merged;
+}
+
+// ============================================================
 // ⏰ حالة وقت الامتحان
 // ============================================================
 function getExamTimeStatus(exam) {
@@ -2404,16 +2448,24 @@ function getExamTimeStatus(exam) {
 }
 
 // ============================================================
-// 🎨 حالة الامتحان للطالب
+// 🎨 getExamStatus — ترتيب أوضح
 // ============================================================
 function getExamStatus(exam) {
   const sub = mySubs[exam.id];
   const key = `exam_${exam.id}`;
+  const access = getMyAccess();
 
-  if (myUserData?.blockedItems && myUserData.blockedItems[key]) {
-    return 'blocked';
+  // 1) محظور
+  if (access.blockedItems[key]) return 'blocked';
+
+  // 2) openAccess نشط → opened (أعلى أولوية بعد blocked)
+  if (access.openAccess[key]) {
+    const oa = access.openAccess[key];
+    if (new Date(oa.endAt) > new Date()) return 'opened';
+    return 'closed';
   }
 
+  // 3) فيه تسليم
   if (sub && sub.submitted) {
     if (sub.corrected) {
       const percent = sub.totalScore > 0 ? (sub.score / sub.totalScore) * 100 : 0;
@@ -2422,18 +2474,10 @@ function getExamStatus(exam) {
     return 'pending';
   }
 
-  if (myUserData?.openAccess && myUserData.openAccess[key]) {
-    const oa = myUserData.openAccess[key];
-    if (new Date(oa.endAt) > new Date()) {
-      return 'opened';
-    }
-    return 'closed';
-  }
+  // 4) closedItems (بعد ما شيكنا على openAccess)
+  if (access.closedItems[key]) return 'closed';
 
-  if (myUserData?.closedItems && myUserData.closedItems[key]) {
-    return 'closed';
-  }
-
+  // 5) الوقت
   const timeStatus = getExamTimeStatus(exam);
   if (timeStatus === 'upcoming') return 'upcoming';
   if (timeStatus === 'expired') return 'expired';
@@ -2457,9 +2501,120 @@ function getStatusInfo(status) {
 }
 
 // ============================================================
-// 🎨 Render Exams
+// 🧹 Reset exam
 // ============================================================
-function applyFilters() {
+async function resetExamForUser(examId) {
+  const key = `exam_${examId}`;
+  console.log(`🧹 resetting exam ${examId}`);
+
+  // 1) امسح من mySubs المحلي
+  if (mySubs && mySubs[examId]) {
+    delete mySubs[examId];
+    saveCache(CACHE_KEYS.examSubs, mySubs);
+  }
+
+  // 2) امسح التسليم القديم من Firebase
+  try {
+    const ref = doc(db, 'exam_subs', 'all');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      let items = snap.data().items || [];
+      const before = items.length;
+      items = items.filter(s => !(s.examId === examId && s.userId === userId));
+      if (items.length !== before) {
+        await setDoc(ref, { items, updatedAt: serverTimestamp() });
+        console.log(`🧹 removed old exam submission ${examId}`);
+      }
+    }
+  } catch (e) {
+    console.error('reset exam submission error:', e);
+  }
+
+  // 3) امسح closedItems القديمة من user_access + users/all
+  try {
+    const uaRef = doc(db, 'user_access', userId);
+    const uaSnap = await getDoc(uaRef);
+    if (uaSnap.exists()) {
+      const uaData = uaSnap.data();
+      if (uaData.closedItems && uaData.closedItems[key]) {
+        delete uaData.closedItems[key];
+        await setDoc(uaRef, { closedItems: uaData.closedItems, updatedAt: serverTimestamp() }, { merge: true });
+        console.log(`🧹 removed closedItems[${key}] from user_access`);
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const userRef = doc(db, 'users', 'all');
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const usersList = userSnap.data().items || [];
+      const uIdx = usersList.findIndex(u => u.id === userId);
+      if (uIdx !== -1 && usersList[uIdx].closedItems && usersList[uIdx].closedItems[key]) {
+        delete usersList[uIdx].closedItems[key];
+        await setDoc(userRef, { items: usersList, updatedAt: serverTimestamp() });
+        console.log(`🧹 removed closedItems[${key}] from users/all`);
+      }
+    }
+  } catch (e) {}
+
+  // 4) امسح hidden flag
+  try {
+    const ref = doc(db, 'settings', 'hidden_results');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      const hsr = data.hiddenStudentResults || {};
+      if (hsr[key] && hsr[key].includes(userId)) {
+        hsr[key] = hsr[key].filter(id => id !== userId);
+        await setDoc(ref, { ...data, hiddenStudentResults: hsr });
+      }
+    }
+  } catch (e) {}
+
+  if (hiddenStudentResults[key]) {
+    hiddenStudentResults[key].delete(userId);
+  }
+}
+
+// ============================================================
+// 🎨 Hash
+// ============================================================
+function computeDataHash() {
+  const access = getMyAccess();
+  return JSON.stringify({
+    ex: allExams.map(e => `${e.id}:${e.status}:${e.grade || ''}:${e.startAt || ''}`).sort(),
+    subs: Object.keys(mySubs).sort().map(k => {
+      const s = mySubs[k];
+      return `${k}:${s?.submitted ? 1 : 0}:${s?.corrected ? 1 : 0}:${s?.score || 0}`;
+    }),
+    grade: myGrade,
+    hidden: Array.from(hiddenExams).sort(),
+    hiddenResults: Object.keys(hiddenStudentResults).sort().map(k =>
+      `${k}:${Array.from(hiddenStudentResults[k]).sort().join(',')}`
+    ),
+    openAccess: Object.keys(access.openAccess).sort(),
+    blocked: Object.keys(access.blockedItems).sort(),
+    closed: Object.keys(access.closedItems).sort(),
+    filter: currentFilter,
+    q: searchQuery,
+    loaded: hasLoadedOnce
+  });
+}
+
+// ============================================================
+// 🎨 Render
+// ============================================================
+function scheduleRender(force = false) {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => applyFilters(force), 50);
+}
+
+function applyFilters(force = false) {
+  const hash = computeDataHash();
+  if (!force && hash === lastDataHash) return;
+  lastDataHash = hash;
+
   const q = cleanInput(searchQuery).toLowerCase();
   let base = allExams.filter(e => e.status === 'published');
 
@@ -2509,21 +2664,56 @@ function updateFilterCounts() {
 
 function renderExams() {
   const grid = $('examsGrid');
-  grid.innerHTML = '';
 
-  if (filteredExams.length === 0) {
+  if (!hasLoadedOnce) {
     grid.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-graduation-cap"></i>
-        <h3>${allExams.length === 0 ? 'لا توجد امتحانات بعد' : 'لا توجد نتائج'}</h3>
-        <p>${allExams.length === 0 ? 'سيتم عرض الامتحانات هنا عند إضافتها لفرقتك' : 'جرّب البحث بكلمة أخرى'}</p>
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الامتحانات...</div>
       </div>
     `;
     return;
   }
 
+  if (filteredExams.length === 0) {
+    const noData = allExams.length === 0;
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-graduation-cap"></i>
+        <h3>${noData ? 'لا توجد امتحانات بعد' : 'لا توجد نتائج'}</h3>
+        <p>${noData ? 'سيتم عرض الامتحانات هنا عند إضافتها لفرقتك' : 'جرّب البحث بكلمة أخرى'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  const loadingEl = grid.querySelector('.loading-state, .empty-state');
+  if (loadingEl) loadingEl.remove();
+
+  const existing = new Map();
+  grid.querySelectorAll('.exam-card').forEach(el => {
+    existing.set(String(el.dataset.examId), el);
+  });
+
+  const seen = new Set();
+
   filteredExams.forEach(exam => {
-    grid.appendChild(createExamCard(exam));
+    const idStr = String(exam.id);
+    seen.add(idStr);
+    const oldCard = existing.get(idStr);
+    const newCard = createExamCard(exam);
+
+    if (oldCard) {
+      if (oldCard.outerHTML !== newCard.outerHTML) {
+        oldCard.replaceWith(newCard);
+      }
+    } else {
+      grid.appendChild(newCard);
+    }
+  });
+
+  existing.forEach((el, id) => {
+    if (!seen.has(id)) el.remove();
   });
 
   startCountdowns();
@@ -2563,7 +2753,7 @@ function createExamCard(exam) {
   let resultBoxHTML = '';
   const isResultHidden = (hiddenStudentResults[`exam_${exam.id}`] || new Set()).has(userId);
 
-  if (sub && sub.submitted && sub.corrected && !isResultHidden) {
+  if (status !== 'opened' && sub && sub.submitted && sub.corrected && !isResultHidden) {
     const percent = sub.totalScore > 0 ? Math.round((sub.score / sub.totalScore) * 100) : 0;
     const passed = percent >= 50;
     resultBoxHTML = `
@@ -2573,7 +2763,7 @@ function createExamCard(exam) {
         <span class="exam-result-score">${sub.score} / ${sub.totalScore}</span>
       </div>
     `;
-  } else if (sub && sub.submitted && sub.corrected && isResultHidden) {
+  } else if (status !== 'opened' && sub && sub.submitted && sub.corrected && isResultHidden) {
     resultBoxHTML = `
       <div class="exam-result-box hidden-result">
         <i class="fas fa-eye-slash"></i>
@@ -2583,7 +2773,8 @@ function createExamCard(exam) {
   }
 
   let openBoxHTML = '';
-  if (status === 'opened' && myUserData?.openAccess?.[`exam_${exam.id}`]) {
+  const access = getMyAccess();
+  if (status === 'opened' && access.openAccess[`exam_${exam.id}`]) {
     openBoxHTML = `
       <div class="exam-open-box" data-open-countdown="${exam.id}">
         <i class="fas fa-hourglass-half"></i>
@@ -2750,7 +2941,7 @@ function startCountdowns() {
 
       if (diff <= 0) {
         elValue.textContent = 'بدأ الآن';
-        setTimeout(() => applyFilters(), 1000);
+        setTimeout(() => applyFilters(true), 1000);
       } else {
         elValue.textContent = formatCountdownArabic(diff);
       }
@@ -2759,10 +2950,13 @@ function startCountdowns() {
 }
 
 function startOpenAccessCountdowns() {
-  setInterval(() => {
+  if (openCountdownInterval) clearInterval(openCountdownInterval);
+
+  openCountdownInterval = setInterval(() => {
     document.querySelectorAll('[data-open-countdown]').forEach(el => {
       const examId = parseInt(el.dataset.openCountdown);
-      const oa = myUserData?.openAccess?.[`exam_${examId}`];
+      const access = getMyAccess();
+      const oa = access.openAccess[`exam_${examId}`];
       if (!oa) return;
 
       const endAt = new Date(oa.endAt);
@@ -2774,7 +2968,7 @@ function startOpenAccessCountdowns() {
       if (diff <= 0) {
         elValue.textContent = 'انتهى الوقت';
         el.classList.add('danger');
-        setTimeout(() => applyFilters(), 1500);
+        setTimeout(() => applyFilters(true), 1500);
       } else {
         elValue.textContent = formatTime(diff);
         if (diff < 5 * 60 * 1000) {
@@ -2790,7 +2984,7 @@ function startOpenAccessCountdowns() {
 // ============================================================
 // 🎯 Start Exam
 // ============================================================
-function handleStartExam(exam) {
+async function handleStartExam(exam) {
   const status = getExamStatus(exam);
 
   if (status === 'blocked') {
@@ -2799,6 +2993,18 @@ function handleStartExam(exam) {
 
   if (status === 'closed') {
     return showToast('🔒 هذا الامتحان مغلق من قبل الإدارة', 'warning');
+  }
+
+  if (status === 'upcoming') {
+    return showToast('⏳ لم يبدأ الامتحان بعد', 'warning');
+  }
+
+  if (status === 'expired') {
+    return showToast('⏰ انتهى وقت الامتحان', 'warning');
+  }
+
+  if (status === 'opened') {
+    await resetExamForUser(exam.id);
   }
 
   shownAccessFor.delete(exam.id);
@@ -2898,7 +3104,8 @@ $('passwordSubmit').addEventListener('click', async () => {
 let pendingAccessExam = null;
 
 function showAccessInfoModal(exam) {
-  const oa = myUserData?.openAccess?.[`exam_${exam.id}`];
+  const access = getMyAccess();
+  const oa = access.openAccess[`exam_${exam.id}`];
   if (!oa) {
     showInstructionsModal(exam);
     return;
@@ -3398,44 +3605,58 @@ async function doSubmit(reason = 'manual') {
       updatedAt: serverTimestamp()
     });
 
-    // ✅ امسح openAccess وأضف closedItems تلقائياً
+    // ✅ user_access: امسح openAccess وأضف closedItems
+    try {
+      const accessKey = `exam_${exam.id}`;
+      const uaRef = doc(db, 'user_access', userId);
+      const uaSnap = await getDoc(uaRef);
+      const uaData = uaSnap.exists() ? uaSnap.data() : {};
+
+      const openAccess = uaData.openAccess || {};
+      const closedItems = uaData.closedItems || {};
+
+      delete openAccess[accessKey];
+      closedItems[accessKey] = {
+        type: 'exam',
+        itemId: exam.id,
+        closedAt: new Date().toISOString(),
+        closedBy: 'auto_after_submit',
+        autoClosed: true
+      };
+
+      await setDoc(uaRef, {
+        openAccess,
+        closedItems,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      console.log('✅ تم غلق الامتحان في user_access');
+    } catch (e) {
+      console.error('auto-close user_access error:', e);
+    }
+
+    // fallback: users/all
     try {
       const userRef = doc(db, 'users', 'all');
       const userSnap = await getDoc(userRef);
-
       if (userSnap.exists()) {
         const usersList = userSnap.data().items || [];
         const uIdx = usersList.findIndex(u => u.id === userId);
-
         if (uIdx !== -1) {
           const key = `exam_${exam.id}`;
-
           if (!usersList[uIdx].openAccess) usersList[uIdx].openAccess = {};
           if (!usersList[uIdx].closedItems) usersList[uIdx].closedItems = {};
-
           delete usersList[uIdx].openAccess[key];
-
           usersList[uIdx].closedItems[key] = {
-            type: 'exam',
-            itemId: exam.id,
+            type: 'exam', itemId: exam.id,
             closedAt: new Date().toISOString(),
-            closedBy: 'auto_after_submit',
-            autoClosed: true
+            closedBy: 'auto_after_submit', autoClosed: true
           };
-
-          await setDoc(userRef, {
-            items: usersList,
-            updatedAt: serverTimestamp()
-          });
-
-          console.log('✅ تم غلق الامتحان تلقائياً بعد التسليم');
+          await setDoc(userRef, { items: usersList, updatedAt: serverTimestamp() });
         }
       }
-    } catch (e) {
-      console.error('auto-close error:', e);
-    }
+    } catch (e) {}
 
-    // ✅ حدّث كاش التسليمات فوراً
     if (!mySubs) mySubs = {};
     mySubs[exam.id] = subData;
     saveCache(CACHE_KEYS.examSubs, mySubs);
@@ -3457,7 +3678,7 @@ async function doSubmit(reason = 'manual') {
       score, total, corrected, needsManual, reason
     });
 
-    applyFilters();
+    scheduleRender(true);
 
   } catch (e) {
     console.error(e);
@@ -3529,7 +3750,7 @@ function showResultScreen(exam, { score, total, corrected, needsManual, reason }
 function closeResultScreen() {
   $('resultScreen').classList.remove('show');
   document.body.style.overflow = '';
-  applyFilters();
+  scheduleRender(true);
 }
 
 $('resultBackBtn').addEventListener('click', closeResultScreen);
@@ -3637,14 +3858,14 @@ drawerOverlay?.addEventListener('click', closeDrawer);
 $('searchInput').addEventListener('input', (e) => {
   searchQuery = e.target.value;
   $('searchClear').classList.toggle('show', !!cleanInput(searchQuery));
-  applyFilters();
+  scheduleRender();
 });
 
 $('searchClear').addEventListener('click', () => {
   $('searchInput').value = '';
   searchQuery = '';
   $('searchClear').classList.remove('show');
-  applyFilters();
+  scheduleRender();
 });
 
 document.querySelectorAll('[data-filter]').forEach(btn => {
@@ -3652,33 +3873,13 @@ document.querySelectorAll('[data-filter]').forEach(btn => {
     currentFilter = btn.dataset.filter;
     document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    applyFilters();
+    scheduleRender();
   });
 });
 
 // ============================================================
-// 📡 Listeners — مع حفظ في الكاش
+// 📡 Listeners
 // ============================================================
-function startUserGradeListener() {
-  if (!userId) return;
-  if (userRole === 'teacher') {
-    myGrade = '';
-    return;
-  }
-
-  onSnapshot(doc(db, 'users', 'all'), (snap) => {
-    if (!snap.exists()) return;
-    const items = snap.data().items || [];
-    const user = items.find(u => u.id === userId);
-    if (user) {
-      myGrade = user.grade || '';
-      // ✅ احفظ في الكاش
-      saveCache(CACHE_KEYS.user, { user, userId });
-      applyFilters();
-    }
-  }, (err) => console.log('user grade error:', err.message));
-}
-
 function startExamsListener() {
   onSnapshot(doc(db, 'exams', 'all'), (snap) => {
     if (snap.exists()) {
@@ -3686,9 +3887,8 @@ function startExamsListener() {
     } else {
       allExams = [];
     }
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.exams, allExams);
-    applyFilters();
+    scheduleRender();
   }, (err) => console.log('exams error:', err.message));
 }
 
@@ -3703,50 +3903,45 @@ function startSubsListener() {
         }
       });
     }
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.examSubs, mySubs);
-    applyFilters();
+    scheduleRender();
   }, (err) => console.log('subs error:', err.message));
 }
 
-function startUserMonitoring() {
+function startUserAccessListener() {
   if (!userId) return;
-  if (userRole === 'teacher') return;
 
-  if (userMonitoringUnsub) userMonitoringUnsub();
+  if (userAccessUnsub) userAccessUnsub();
 
-  userMonitoringUnsub = onSnapshot(doc(db, 'users', 'all'), (snap) => {
-    if (!snap.exists()) return;
-    const items = snap.data().items || [];
-    const user = items.find(u => u.id === userId);
+  userAccessUnsub = onSnapshot(doc(db, 'user_access', userId), (snap) => {
+    const previousAccess = myUserAccess;
 
-    if (!user) {
-      clearExamCache();
-      sessionStorage.clear();
-      window.location.replace('login.html');
-      return;
+    if (snap.exists()) {
+      myUserAccess = snap.data();
+    } else {
+      myUserAccess = null;
     }
 
-    const previousUser = myUserData;
-    myUserData = user;
-    myGrade = user.grade || '';
+    const cUser = loadCache(CACHE_KEYS.user) || { data: {} };
+    saveCache(CACHE_KEYS.user, {
+      user: cUser.data?.user || myUserData,
+      access: myUserAccess
+    });
 
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.user, { user, userId });
-
-    detectNewOpenAccess(previousUser, user);
+    detectNewOpenAccess(previousAccess, myUserAccess);
 
     if (currentExam) {
       const examId = currentExam.id;
       const key = `exam_${examId}`;
+      const access = getMyAccess();
 
-      if (user.blockedItems && user.blockedItems[key]) {
+      if (access.blockedItems[key]) {
         forceKickCurrent('blocked');
         return;
       }
 
-      if (user.closedItems && user.closedItems[key]) {
-        const oa = user.openAccess?.[key];
+      if (access.closedItems[key]) {
+        const oa = access.openAccess[key];
         if (!oa || new Date(oa.endAt) <= new Date()) {
           forceKickCurrent('closed');
           return;
@@ -3754,32 +3949,120 @@ function startUserMonitoring() {
       }
     }
 
-    applyFilters();
-  }, (err) => console.log('user monitor error:', err.message));
+    scheduleRender();
+  }, (err) => {
+    console.log('user_access error:', err.message);
+  });
 }
 
-function detectNewOpenAccess(prevUser, newUser) {
-  if (!newUser.openAccess) return;
+function startUserGradeListener() {
+  if (!userId) return;
+  if (userRole === 'teacher') {
+    myGrade = '';
+    return;
+  }
 
-  Object.keys(newUser.openAccess).forEach(key => {
-    const wasNotOpenBefore = !prevUser?.openAccess?.[key];
+  onSnapshot(doc(db, 'users', 'all'), (snap) => {
+    if (!snap.exists()) return;
+    const items = snap.data().items || [];
+    const user = items.find(u => u.id === userId);
+    if (user) {
+      const previousUser = myUserData;
+      myUserData = user;
+      myGrade = user.grade || '';
+      const cUser = loadCache(CACHE_KEYS.user) || { data: {} };
+      saveCache(CACHE_KEYS.user, {
+        user,
+        access: cUser.data?.access || myUserAccess
+      });
+
+      // ✅ كمان كشف فتح جديد لو جاء من users/all
+      detectNewOpenAccessFromUser(previousUser, user);
+
+      scheduleRender();
+    }
+  }, (err) => console.log('user grade error:', err.message));
+}
+
+function startHiddenResultsListener() {
+  onSnapshot(doc(db, 'settings', 'hidden_results'), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    hiddenExams = new Set(data.exams || []);
+
+    hiddenStudentResults = {};
+    const hsr = data.hiddenStudentResults || {};
+    Object.keys(hsr).forEach(k => {
+      hiddenStudentResults[k] = new Set(hsr[k] || []);
+    });
+
+    saveCache(CACHE_KEYS.hidden, {
+      exams: Array.from(hiddenExams),
+      hiddenStudentResults: Object.fromEntries(
+        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
+      )
+    });
+
+    scheduleRender();
+  }, (err) => console.log('hidden results error:', err.message));
+}
+
+async function detectNewOpenAccess(prevAccess, newAccess) {
+  if (!newAccess?.openAccess) return;
+
+  const keys = Object.keys(newAccess.openAccess);
+  for (const key of keys) {
+    const wasNotOpenBefore = !prevAccess?.openAccess?.[key];
     const examIdStr = key.replace('exam_', '');
     const examId = parseInt(examIdStr);
+    if (isNaN(examId)) continue;
 
-    if (isNaN(examId)) return;
-
-    const oa = newUser.openAccess[key];
-    if (!oa || new Date(oa.endAt) <= new Date()) return;
+    const oa = newAccess.openAccess[key];
+    if (!oa || new Date(oa.endAt) <= new Date()) continue;
 
     if (wasNotOpenBefore && !shownAccessFor.has(examId)) {
+      await resetExamForUser(examId);
+
       const exam = allExams.find(e => e.id === examId);
       if (exam) {
         shownAccessFor.add(examId);
         const remainingMs = new Date(oa.endAt) - new Date();
         showToast(`🔓 تم فتح "${exam.name}" لك — متبقي ${formatDurationHuman(remainingMs)}`, 'info');
       }
+
+      applyFilters(true);
     }
-  });
+  }
+}
+
+// ✅ نفس الفكرة بس من users/all
+async function detectNewOpenAccessFromUser(prevUser, newUser) {
+  if (!newUser?.openAccess) return;
+
+  const keys = Object.keys(newUser.openAccess);
+  for (const key of keys) {
+    const wasNotOpenBefore = !prevUser?.openAccess?.[key];
+    const examIdStr = key.replace('exam_', '');
+    const examId = parseInt(examIdStr);
+    if (isNaN(examId)) continue;
+
+    const oa = newUser.openAccess[key];
+    if (!oa || new Date(oa.endAt) <= new Date()) continue;
+
+    if (wasNotOpenBefore && !shownAccessFor.has(examId)) {
+      await resetExamForUser(examId);
+
+      const exam = allExams.find(e => e.id === examId);
+      if (exam) {
+        shownAccessFor.add(examId);
+        const remainingMs = new Date(oa.endAt) - new Date();
+        showToast(`🔓 تم فتح "${exam.name}" لك — متبقي ${formatDurationHuman(remainingMs)}`, 'info');
+      }
+
+      applyFilters(true);
+    }
+  }
 }
 
 async function forceKickCurrent(type) {
@@ -3874,46 +4157,86 @@ async function forceKickCurrent(type) {
   currentAnswers = {};
 }
 
-function startHiddenResultsListener() {
-  onSnapshot(doc(db, 'settings', 'hidden_results'), (snap) => {
-    if (!snap.exists()) return;
-    const data = snap.data();
+// ============================================================
+// 🔄 Migration (شغّلها مرة واحدة من console)
+// ============================================================
+window.__migrateUserAccessExams = async function() {
+  try {
+    const userRef = doc(db, 'users', 'all');
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      console.log('❌ users/all not found');
+      return;
+    }
+    const users = snap.data().items || [];
+    console.log(`🔄 migrating ${users.length} users...`);
 
-    hiddenExams = new Set(data.exams || []);
-
-    hiddenStudentResults = {};
-    const hsr = data.hiddenStudentResults || {};
-    Object.keys(hsr).forEach(k => {
-      hiddenStudentResults[k] = new Set(hsr[k] || []);
-    });
-
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.hidden, {
-      exams: Array.from(hiddenExams),
-      hiddenStudentResults: Object.fromEntries(
-        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
-      )
-    });
-
-    applyFilters();
-  }, (err) => console.log('hidden results error:', err.message));
-}
+    let migrated = 0;
+    for (const u of users) {
+      if (!u.id) continue;
+      const accessData = {
+        openAccess: u.openAccess || {},
+        blockedItems: u.blockedItems || {},
+        closedItems: u.closedItems || {},
+        updatedAt: serverTimestamp()
+      };
+      try {
+        await setDoc(doc(db, 'user_access', u.id), accessData, { merge: true });
+        migrated++;
+      } catch (e) {
+        console.error(`❌ failed for ${u.id}:`, e.message);
+      }
+    }
+    console.log(`✅ migrated ${migrated}/${users.length} users`);
+    alert(`تم ترحيل ${migrated} طالب بنجاح`);
+  } catch (e) {
+    console.error(e);
+    alert('خطأ في الترحيل: ' + e.message);
+  }
+};
 
 // ============================================================
 // 🚀 Init
 // ============================================================
-
-// ⚡ 1. اعرض من الكاش فوراً (0ms)
 applyFromCache();
+
+if (!hasLoadedOnce) {
+  const grid = $('examsGrid');
+  if (grid && !grid.querySelector('.exam-card')) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الامتحانات...</div>
+      </div>
+    `;
+  }
+}
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
-// ⚡ 2. ابدأ listeners بالخلفية (تحدّث الكاش)
-startUserGradeListener();
 startExamsListener();
 startSubsListener();
-startUserMonitoring();
+startUserAccessListener();
+startUserGradeListener();
 startHiddenResultsListener();
+
+let loadedTimer = setInterval(() => {
+  if (allExams.length > 0 || Object.keys(mySubs).length > 0 || myUserAccess) {
+    if (!hasLoadedOnce) {
+      hasLoadedOnce = true;
+      clearInterval(loadedTimer);
+      scheduleRender(true);
+    }
+  }
+}, 500);
+
+setTimeout(() => {
+  if (!hasLoadedOnce) {
+    hasLoadedOnce = true;
+    clearInterval(loadedTimer);
+    scheduleRender(true);
+  }
+}, 5000);
 
 window.addEventListener('pageshow', (e) => {
   if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {

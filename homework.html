@@ -1656,12 +1656,7 @@
     </button>
   </div>
 
-  <div class="homeworks-grid" id="homeworksGrid">
-    <div class="loading-state">
-      <i class="fas fa-spinner"></i>
-      <div>جاري تحميل الواجبات...</div>
-    </div>
-  </div>
+  <div class="homeworks-grid" id="homeworksGrid"></div>
 
 </div>
 
@@ -1926,7 +1921,7 @@ window.addEventListener('popstate', () => {
 });
 
 // ============================================================
-// 📦 الكاش المحلي (localStorage) — للعرض الفوري
+// 📦 الكاش
 // ============================================================
 const CACHE_KEYS = {
   homeworks: 'meezan_hw_homeworks',
@@ -1981,6 +1976,7 @@ let filteredHomeworks = [];
 let mySubs = {};
 let myGrade = '';
 let myUserData = null;
+let myUserAccess = null;
 let hiddenHomeworks = new Set();
 let hiddenStudentResults = {};
 
@@ -1990,11 +1986,15 @@ let searchQuery = '';
 let currentHomework = null;
 let currentAnswers = {};
 
-let userMonitoringUnsub = null;
-let hiddenResultsUnsub = null;
+let userAccessUnsub = null;
 
 let shownAccessFor = new Set();
 let countdownInterval = null;
+let openCountdownInterval = null;
+
+let renderTimer = null;
+let lastDataHash = '';
+let hasLoadedOnce = false;
 
 // ============================================================
 // ⚡ تطبيق البيانات من الكاش فوراً
@@ -2002,7 +2002,6 @@ let countdownInterval = null;
 function applyFromCache() {
   let hasAnything = false;
 
-  // 1. الواجبات
   const cHw = loadCache(CACHE_KEYS.homeworks);
   if (cHw && Array.isArray(cHw.data)) {
     allHomeworks = cHw.data;
@@ -2010,7 +2009,6 @@ function applyFromCache() {
     hasAnything = true;
   }
 
-  // 2. تسليمات الطالب
   const cSubs = loadCache(CACHE_KEYS.hwSubs);
   if (cSubs && cSubs.data) {
     mySubs = cSubs.data;
@@ -2018,16 +2016,19 @@ function applyFromCache() {
     hasAnything = true;
   }
 
-  // 3. المستخدم (myGrade + openAccess + blockedItems + closedItems)
   const cUser = loadCache(CACHE_KEYS.user);
-  if (cUser && cUser.data && cUser.data.user) {
-    myUserData = cUser.data.user;
-    myGrade = cUser.data.user?.grade || '';
+  if (cUser && cUser.data) {
+    if (cUser.data.user) {
+      myUserData = cUser.data.user;
+      myGrade = cUser.data.user?.grade || '';
+    }
+    if (cUser.data.access) {
+      myUserAccess = cUser.data.access;
+    }
     console.log('⚡ user from cache, grade:', myGrade);
     hasAnything = true;
   }
 
-  // 4. المخفي
   const cHidden = loadCache(CACHE_KEYS.hidden);
   if (cHidden && cHidden.data) {
     hiddenHomeworks = new Set(cHidden.data.homeworks || []);
@@ -2040,10 +2041,9 @@ function applyFromCache() {
   }
 
   if (hasAnything) {
-    applyFilters();
+    hasLoadedOnce = true;
+    applyFilters(true);
     console.log('⚡ applyFromCache → render done');
-  } else {
-    console.log('📭 no cache yet');
   }
 }
 
@@ -2155,7 +2155,10 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('confirmModal').classList.contains('show')) closeConfirm(false);
     if ($('passwordModal').classList.contains('show')) closePasswordModal();
-    if ($('accessInfoModal').classList.contains('show')) $('accessInfoModal').classList.remove('show');
+    if ($('accessInfoModal').classList.contains('show')) {
+      $('accessInfoModal').classList.remove('show');
+      window.__pendingAccessHW = null;
+    }
     if ($('drawer').classList.contains('open')) closeDrawer();
   }
 });
@@ -2192,16 +2195,130 @@ function formatDurationHuman(ms) {
 }
 
 // ============================================================
-// 🎨 حالة الواجب
+// 🔗 getMyAccess — يدمج user_access + users/all
+// ============================================================
+function getMyAccess() {
+  const a1 = myUserAccess || {};
+  const a2 = myUserData || {};
+
+  const merged = {
+    openAccess:   { ...(a2.openAccess   || {}), ...(a1.openAccess   || {}) },
+    blockedItems: { ...(a2.blockedItems || {}), ...(a1.blockedItems || {}) },
+    closedItems:  { ...(a2.closedItems  || {}), ...(a1.closedItems  || {}) }
+  };
+
+  // ✅ لو فيه openAccess نشط، امسح الـ closedItems المقابل له
+  Object.keys(merged.openAccess).forEach(k => {
+    const oa = merged.openAccess[k];
+    if (oa && oa.endAt && new Date(oa.endAt) > new Date()) {
+      if (merged.closedItems[k]) {
+        delete merged.closedItems[k];
+      }
+    }
+  });
+
+  return merged;
+}
+
+// ============================================================
+// 🧹 Reset homework
+// ============================================================
+async function resetHomeworkForUser(hwId) {
+  const key = `homework_${hwId}`;
+  console.log(`🧹 resetting homework ${hwId}`);
+
+  // 1) امسح المسودة المحلية
+  try { localStorage.removeItem('hw_draft_' + hwId); } catch (e) {}
+
+  // 2) امسح من mySubs المحلي
+  if (mySubs && mySubs[hwId]) {
+    delete mySubs[hwId];
+    saveCache(CACHE_KEYS.hwSubs, mySubs);
+  }
+
+  // 3) امسح التسليم القديم من Firebase
+  try {
+    const ref = doc(db, 'homework_subs', 'all');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      let items = snap.data().items || [];
+      const before = items.length;
+      items = items.filter(s => !(s.homeworkId === hwId && s.userId === userId));
+      if (items.length !== before) {
+        await setDoc(ref, { items, updatedAt: serverTimestamp() });
+        console.log(`🧹 removed old submission for hw ${hwId}`);
+      }
+    }
+  } catch (e) {
+    console.error('reset submission error:', e);
+  }
+
+  // 4) امسح closedItems القديمة من user_access + users/all
+  try {
+    const uaRef = doc(db, 'user_access', userId);
+    const uaSnap = await getDoc(uaRef);
+    if (uaSnap.exists()) {
+      const uaData = uaSnap.data();
+      if (uaData.closedItems && uaData.closedItems[key]) {
+        delete uaData.closedItems[key];
+        await setDoc(uaRef, { closedItems: uaData.closedItems, updatedAt: serverTimestamp() }, { merge: true });
+        console.log(`🧹 removed closedItems[${key}] from user_access`);
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const userRef = doc(db, 'users', 'all');
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const usersList = userSnap.data().items || [];
+      const uIdx = usersList.findIndex(u => u.id === userId);
+      if (uIdx !== -1 && usersList[uIdx].closedItems && usersList[uIdx].closedItems[key]) {
+        delete usersList[uIdx].closedItems[key];
+        await setDoc(userRef, { items: usersList, updatedAt: serverTimestamp() });
+        console.log(`🧹 removed closedItems[${key}] from users/all`);
+      }
+    }
+  } catch (e) {}
+
+  // 5) امسح hidden flag
+  try {
+    const ref = doc(db, 'settings', 'hidden_results');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      const hsr = data.hiddenStudentResults || {};
+      if (hsr[key] && hsr[key].includes(userId)) {
+        hsr[key] = hsr[key].filter(id => id !== userId);
+        await setDoc(ref, { ...data, hiddenStudentResults: hsr });
+      }
+    }
+  } catch (e) {}
+
+  if (hiddenStudentResults[key]) {
+    hiddenStudentResults[key].delete(userId);
+  }
+}
+
+// ============================================================
+// 🎨 getHomeworkStatus — ترتيب أوضح
 // ============================================================
 function getHomeworkStatus(hw) {
   const sub = mySubs[hw.id];
   const key = `homework_${hw.id}`;
+  const access = getMyAccess();
 
-  if (myUserData?.blockedItems && myUserData.blockedItems[key]) {
-    return 'blocked';
+  // 1) محظور
+  if (access.blockedItems[key]) return 'blocked';
+
+  // 2) openAccess نشط → opened (أعلى أولوية بعد blocked)
+  if (access.openAccess[key]) {
+    const oa = access.openAccess[key];
+    if (new Date(oa.endAt) > new Date()) return 'opened';
+    return 'closed';
   }
 
+  // 3) فيه تسليم
   if (sub && sub.submitted) {
     if (sub.corrected) {
       const percent = sub.totalScore > 0 ? (sub.score / sub.totalScore) * 100 : 0;
@@ -2210,18 +2327,10 @@ function getHomeworkStatus(hw) {
     return 'pending';
   }
 
-  if (myUserData?.openAccess && myUserData.openAccess[key]) {
-    const oa = myUserData.openAccess[key];
-    if (new Date(oa.endAt) > new Date()) {
-      return 'opened';
-    }
-    return 'closed';
-  }
+  // 4) closedItems (بعد ما شيكنا على openAccess)
+  if (access.closedItems[key]) return 'closed';
 
-  if (myUserData?.closedItems && myUserData.closedItems[key]) {
-    return 'closed';
-  }
-
+  // 5) مسودة
   const draftKey = 'hw_draft_' + hw.id;
   if (localStorage.getItem(draftKey)) {
     return 'draft';
@@ -2245,9 +2354,44 @@ function getHomeworkStatusLabel(status) {
 }
 
 // ============================================================
-// 🎨 Render Homeworks
+// 🎨 Hash
 // ============================================================
-function applyFilters() {
+function computeDataHash() {
+  const access = getMyAccess();
+  return JSON.stringify({
+    hw: allHomeworks.map(h => `${h.id}:${h.status}:${h.grade || ''}`).sort(),
+    subs: Object.keys(mySubs).sort().map(k => {
+      const s = mySubs[k];
+      return `${k}:${s?.submitted ? 1 : 0}:${s?.corrected ? 1 : 0}:${s?.score || 0}`;
+    }),
+    grade: myGrade,
+    hidden: Array.from(hiddenHomeworks).sort(),
+    hiddenResults: Object.keys(hiddenStudentResults).sort().map(k =>
+      `${k}:${Array.from(hiddenStudentResults[k]).sort().join(',')}`
+    ),
+    openAccess: Object.keys(access.openAccess).sort(),
+    blocked: Object.keys(access.blockedItems).sort(),
+    closed: Object.keys(access.closedItems).sort(),
+    filter: currentFilter,
+    q: searchQuery,
+    drafts: allHomeworks.map(h => localStorage.getItem('hw_draft_' + h.id) ? h.id : 0).filter(Boolean),
+    loaded: hasLoadedOnce
+  });
+}
+
+// ============================================================
+// 🎨 Render
+// ============================================================
+function scheduleRender(force = false) {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => applyFilters(force), 50);
+}
+
+function applyFilters(force = false) {
+  const hash = computeDataHash();
+  if (!force && hash === lastDataHash) return;
+  lastDataHash = hash;
+
   const q = cleanInput(searchQuery).toLowerCase();
   let base = allHomeworks.filter(h => h.status === 'published');
 
@@ -2290,21 +2434,57 @@ function updateFilterCounts() {
 
 function renderHomeworks() {
   const grid = $('homeworksGrid');
-  grid.innerHTML = '';
 
-  if (filteredHomeworks.length === 0) {
+  if (!hasLoadedOnce) {
     grid.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-file-pen"></i>
-        <h3>${allHomeworks.length === 0 ? 'لا توجد واجبات بعد' : 'لا توجد نتائج'}</h3>
-        <p>${allHomeworks.length === 0 ? 'سيتم عرض الواجبات هنا عند إضافتها لفرقتك' : 'جرّب البحث بكلمة أخرى'}</p>
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الواجبات...</div>
       </div>
     `;
     return;
   }
 
+  if (filteredHomeworks.length === 0) {
+    const noData = allHomeworks.length === 0;
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-file-pen"></i>
+        <h3>${noData ? 'لا توجد واجبات بعد' : 'لا توجد نتائج'}</h3>
+        <p>${noData ? 'سيتم عرض الواجبات هنا عند إضافتها لفرقتك' : 'جرّب البحث بكلمة أخرى'}</p>
+      </div>
+    `;
+    startOpenAccessCountdowns();
+    return;
+  }
+
+  const loadingEl = grid.querySelector('.loading-state, .empty-state');
+  if (loadingEl) loadingEl.remove();
+
+  const existing = new Map();
+  grid.querySelectorAll('.hw-card').forEach(el => {
+    existing.set(String(el.dataset.hwId), el);
+  });
+
+  const seen = new Set();
+
   filteredHomeworks.forEach(hw => {
-    grid.appendChild(createHomeworkCard(hw));
+    const idStr = String(hw.id);
+    seen.add(idStr);
+    const oldCard = existing.get(idStr);
+    const newCard = createHomeworkCard(hw);
+
+    if (oldCard) {
+      if (oldCard.outerHTML !== newCard.outerHTML) {
+        oldCard.replaceWith(newCard);
+      }
+    } else {
+      grid.appendChild(newCard);
+    }
+  });
+
+  existing.forEach((el, id) => {
+    if (!seen.has(id)) el.remove();
   });
 
   startOpenAccessCountdowns();
@@ -2339,7 +2519,7 @@ function createHomeworkCard(hw) {
   let resultBoxHTML = '';
   const isResultHidden = (hiddenStudentResults[`homework_${hw.id}`] || new Set()).has(userId);
 
-  if (sub && sub.submitted && sub.corrected && !isResultHidden) {
+  if (status !== 'opened' && sub && sub.submitted && sub.corrected && !isResultHidden) {
     const percent = sub.totalScore > 0 ? Math.round((sub.score / sub.totalScore) * 100) : 0;
     const passed = percent >= 50;
     resultBoxHTML = `
@@ -2349,7 +2529,7 @@ function createHomeworkCard(hw) {
         <span class="hw-result-score">${sub.score} / ${sub.totalScore}</span>
       </div>
     `;
-  } else if (sub && sub.submitted && sub.corrected && isResultHidden) {
+  } else if (status !== 'opened' && sub && sub.submitted && sub.corrected && isResultHidden) {
     resultBoxHTML = `
       <div class="hw-result-box hidden-result">
         <i class="fas fa-eye-slash"></i>
@@ -2359,7 +2539,8 @@ function createHomeworkCard(hw) {
   }
 
   let openAccessBoxHTML = '';
-  if (status === 'opened' && myUserData?.openAccess?.[`homework_${hw.id}`]) {
+  const access = getMyAccess();
+  if (status === 'opened' && access.openAccess[`homework_${hw.id}`]) {
     openAccessBoxHTML = `
       <div class="hw-countdown-box" data-open-countdown="${hw.id}">
         <i class="fas fa-hourglass-half"></i>
@@ -2370,6 +2551,8 @@ function createHomeworkCard(hw) {
       </div>
     `;
   }
+
+  const hasDraft = !!localStorage.getItem('hw_draft_' + hw.id);
 
   let actionsHTML = '';
 
@@ -2391,7 +2574,7 @@ function createHomeworkCard(hw) {
     actionsHTML = `
       <button class="btn-action primary" data-action="start">
         <i class="fas fa-play"></i>
-        <span>ابدأ الحل</span>
+        <span>${hasDraft ? 'تكملة الحل' : 'ابدأ الحل'}</span>
       </button>
     `;
   } else if (status === 'draft') {
@@ -2405,7 +2588,7 @@ function createHomeworkCard(hw) {
     actionsHTML = `
       <button class="btn-action primary" data-action="start" style="background: linear-gradient(135deg, #2980B9, #3498DB); box-shadow: 0 6px 18px rgba(41, 128, 185, 0.4);">
         <i class="fas fa-bolt"></i>
-        <span>ابدأ الآن (مفتوح لك)</span>
+        <span>${hasDraft ? 'تكملة الحل (مفتوح لك)' : 'ابدأ الآن (مفتوح لك)'}</span>
       </button>
     `;
   } else if (status === 'pending') {
@@ -2485,15 +2668,16 @@ function createHomeworkCard(hw) {
 }
 
 // ============================================================
-// ⏰ العدادات التنازلية
+// ⏰ العدادات
 // ============================================================
 function startOpenAccessCountdowns() {
-  if (countdownInterval) clearInterval(countdownInterval);
+  if (openCountdownInterval) clearInterval(openCountdownInterval);
 
-  countdownInterval = setInterval(() => {
+  openCountdownInterval = setInterval(() => {
     document.querySelectorAll('[data-open-countdown]').forEach(el => {
       const hwId = parseInt(el.dataset.openCountdown);
-      const oa = myUserData?.openAccess?.[`homework_${hwId}`];
+      const access = getMyAccess();
+      const oa = access.openAccess[`homework_${hwId}`];
       if (!oa) return;
 
       const endAt = new Date(oa.endAt);
@@ -2504,7 +2688,7 @@ function startOpenAccessCountdowns() {
       if (diff <= 0) {
         elValue.textContent = 'انتهى الوقت';
         el.classList.add('danger');
-        setTimeout(() => applyFilters(), 1500);
+        setTimeout(() => applyFilters(true), 1500);
       } else {
         elValue.textContent = formatTimeRemaining(diff);
         if (diff < 5 * 60 * 1000) {
@@ -2520,7 +2704,7 @@ function startOpenAccessCountdowns() {
 // ============================================================
 // 🎯 Start Homework
 // ============================================================
-function handleStartHomework(hw) {
+async function handleStartHomework(hw) {
   const status = getHomeworkStatus(hw);
 
   if (status === 'blocked') {
@@ -2529,6 +2713,10 @@ function handleStartHomework(hw) {
 
   if (status === 'closed') {
     return showToast('🔒 هذا الواجب مغلق من قبل الإدارة', 'warning');
+  }
+
+  if (status === 'opened') {
+    await resetHomeworkForUser(hw.id);
   }
 
   shownAccessFor.delete(hw.id);
@@ -2613,7 +2801,7 @@ $('passwordSubmit').addEventListener('click', async () => {
 // ============================================================
 // 🎬 Solve Mode
 // ============================================================
-function startSolveMode(hw) {
+async function startSolveMode(hw) {
   const status = getHomeworkStatus(hw);
   if (status === 'blocked' || status === 'closed') {
     return showToast('لا يمكنك فتح هذا الواجب حالياً', 'error');
@@ -2624,11 +2812,12 @@ function startSolveMode(hw) {
     return;
   }
 
-  actuallyStartSolve(hw);
+  await actuallyStartSolve(hw);
 }
 
 function showAccessInfoModal(hw) {
-  const oa = myUserData?.openAccess?.[`homework_${hw.id}`];
+  const access = getMyAccess();
+  const oa = access.openAccess[`homework_${hw.id}`];
   if (!oa) {
     actuallyStartSolve(hw);
     return;
@@ -2647,13 +2836,13 @@ function showAccessInfoModal(hw) {
   window.__pendingAccessHW = hw;
 }
 
-$('accessInfoStart').addEventListener('click', () => {
+$('accessInfoStart').addEventListener('click', async () => {
   $('accessInfoModal').classList.remove('show');
   const hw = window.__pendingAccessHW;
   if (hw) {
     shownAccessFor.add(hw.id);
     window.__pendingAccessHW = null;
-    actuallyStartSolve(hw);
+    await actuallyStartSolve(hw);
   }
 });
 
@@ -2669,18 +2858,26 @@ $('accessInfoModal').addEventListener('click', (e) => {
   }
 });
 
-function actuallyStartSolve(hw) {
+async function actuallyStartSolve(hw) {
+  const status = getHomeworkStatus(hw);
+  const draftKey = 'hw_draft_' + hw.id;
+  const hasDraft = !!localStorage.getItem(draftKey);
+
   currentHomework = hw;
   currentAnswers = {};
 
-  const draftKey = 'hw_draft_' + hw.id;
-  try {
-    const saved = localStorage.getItem(draftKey);
-    if (saved) {
-      currentAnswers = JSON.parse(saved);
+  // ✅ لو opened و مفيش مسودة محفوظة، امسح القديم مرة واحدة وابدأ من صفحة بيضاء
+  // لو فيه مسودة، نحمّلها
+  if (status === 'opened' && !hasDraft) {
+    await resetHomeworkForUser(hw.id);
+    currentAnswers = {};
+  } else if (hasDraft) {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) currentAnswers = JSON.parse(saved);
+    } catch (e) {
+      console.error('draft load error:', e);
     }
-  } catch (e) {
-    console.error('draft load error:', e);
   }
 
   $('solveTitle').textContent = hw.name;
@@ -2699,13 +2896,11 @@ function actuallyStartSolve(hw) {
 
 function exitSolveMode() {
   saveDraft();
-
   $('solveMode').classList.remove('show');
   document.body.style.overflow = '';
   currentHomework = null;
   currentAnswers = {};
-
-  applyFilters();
+  scheduleRender(true);
 }
 
 $('solveExitBtn').addEventListener('click', async () => {
@@ -2898,7 +3093,7 @@ $('solveSaveDraftBtn').addEventListener('click', async () => {
   if (!c) return;
 
   exitSolveMode();
-  showToast('✅ تم حفظ المسودة', 'success');
+  showToast('✅ تم حفظ المسودة — تقدر تكمل لاحقاً', 'success');
 });
 
 // ============================================================
@@ -3012,54 +3207,66 @@ async function doSubmit() {
 
     await setDoc(ref, { items, updatedAt: serverTimestamp() });
 
-    // ✅ امسح openAccess وأضف closedItems تلقائياً
+    // ✅ user_access: امسح openAccess وأضف closedItems
+    try {
+      const accessKey = `homework_${hw.id}`;
+      const uaRef = doc(db, 'user_access', userId);
+      const uaSnap = await getDoc(uaRef);
+      const uaData = uaSnap.exists() ? uaSnap.data() : {};
+
+      const openAccess = uaData.openAccess || {};
+      const closedItems = uaData.closedItems || {};
+
+      delete openAccess[accessKey];
+      closedItems[accessKey] = {
+        type: 'homework',
+        itemId: hw.id,
+        closedAt: new Date().toISOString(),
+        closedBy: 'auto_after_submit',
+        autoClosed: true
+      };
+
+      await setDoc(uaRef, {
+        openAccess,
+        closedItems,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      console.log('✅ تم غلق الواجب في user_access');
+    } catch (e) {
+      console.error('auto-close user_access error:', e);
+    }
+
+    // fallback: users/all
     try {
       const userRef = doc(db, 'users', 'all');
       const userSnap = await getDoc(userRef);
-
       if (userSnap.exists()) {
         const usersList = userSnap.data().items || [];
         const uIdx = usersList.findIndex(u => u.id === userId);
-
         if (uIdx !== -1) {
           const key = `homework_${hw.id}`;
-
           if (!usersList[uIdx].openAccess) usersList[uIdx].openAccess = {};
           if (!usersList[uIdx].closedItems) usersList[uIdx].closedItems = {};
-
           delete usersList[uIdx].openAccess[key];
-
           usersList[uIdx].closedItems[key] = {
-            type: 'homework',
-            itemId: hw.id,
+            type: 'homework', itemId: hw.id,
             closedAt: new Date().toISOString(),
-            closedBy: 'auto_after_submit',
-            autoClosed: true
+            closedBy: 'auto_after_submit', autoClosed: true
           };
-
-          await setDoc(userRef, {
-            items: usersList,
-            updatedAt: serverTimestamp()
-          });
-
-          console.log('✅ تم غلق الواجب تلقائياً بعد التسليم');
+          await setDoc(userRef, { items: usersList, updatedAt: serverTimestamp() });
         }
       }
-    } catch (e) {
-      console.error('auto-close error:', e);
-    }
+    } catch (e) {}
 
-    // ✅ حدّث كاش التسليمات فوراً
     if (!mySubs) mySubs = {};
     mySubs[hw.id] = subData;
     saveCache(CACHE_KEYS.hwSubs, mySubs);
 
-    // امسح المسودة والسجل
     localStorage.removeItem('hw_draft_' + hw.id);
     shownAccessFor.delete(hw.id);
 
     exitSolveMode();
-
     showResultScreen(hw, { score, total, corrected, needsManual });
 
   } catch (e) {
@@ -3121,13 +3328,13 @@ function showResultScreen(hw, { score, total, corrected, needsManual }) {
 function closeResultScreen() {
   $('resultScreen').classList.remove('show');
   document.body.style.overflow = '';
-  applyFilters();
+  scheduleRender(true);
 }
 
 $('resultBackBtn').addEventListener('click', closeResultScreen);
 
 // ============================================================
-// 🚫 شاشة الطرد
+// 🚫 Kick screen
 // ============================================================
 function showKickScreen(type) {
   const screen = $('resultScreen');
@@ -3207,14 +3414,14 @@ drawerOverlay?.addEventListener('click', closeDrawer);
 $('searchInput').addEventListener('input', (e) => {
   searchQuery = e.target.value;
   $('searchClear').classList.toggle('show', !!cleanInput(searchQuery));
-  applyFilters();
+  scheduleRender();
 });
 
 $('searchClear').addEventListener('click', () => {
   $('searchInput').value = '';
   searchQuery = '';
   $('searchClear').classList.remove('show');
-  applyFilters();
+  scheduleRender();
 });
 
 document.querySelectorAll('[data-filter]').forEach(btn => {
@@ -3222,13 +3429,86 @@ document.querySelectorAll('[data-filter]').forEach(btn => {
     currentFilter = btn.dataset.filter;
     document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    applyFilters();
+    scheduleRender();
   });
 });
 
 // ============================================================
-// 📡 Listeners — مع حفظ في الكاش
+// 📡 Listeners
 // ============================================================
+function startHomeworksListener() {
+  onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
+    if (snap.exists()) {
+      allHomeworks = snap.data().items || [];
+    } else {
+      allHomeworks = [];
+    }
+    saveCache(CACHE_KEYS.homeworks, allHomeworks);
+    scheduleRender();
+  }, (err) => console.log('homeworks error:', err.message));
+}
+
+function startSubsListener() {
+  onSnapshot(doc(db, 'homework_subs', 'all'), (snap) => {
+    mySubs = {};
+    if (snap.exists()) {
+      const items = snap.data().items || [];
+      items.forEach(sub => {
+        if (sub.userId === userId) mySubs[sub.homeworkId] = sub;
+      });
+    }
+    saveCache(CACHE_KEYS.hwSubs, mySubs);
+    scheduleRender();
+  }, (err) => console.log('subs error:', err.message));
+}
+
+function startUserAccessListener() {
+  if (!userId) return;
+
+  if (userAccessUnsub) userAccessUnsub();
+
+  userAccessUnsub = onSnapshot(doc(db, 'user_access', userId), (snap) => {
+    const previousAccess = myUserAccess;
+
+    if (snap.exists()) {
+      myUserAccess = snap.data();
+    } else {
+      myUserAccess = null;
+    }
+
+    const cUser = loadCache(CACHE_KEYS.user) || { data: {} };
+    saveCache(CACHE_KEYS.user, {
+      user: cUser.data?.user || myUserData,
+      access: myUserAccess
+    });
+
+    detectNewOpenAccess(previousAccess, myUserAccess);
+
+    if (currentHomework) {
+      const hwId = currentHomework.id;
+      const key = `homework_${hwId}`;
+      const access = getMyAccess();
+
+      if (access.blockedItems[key]) {
+        forceKickCurrent('blocked');
+        return;
+      }
+
+      if (access.closedItems[key]) {
+        const oa = access.openAccess[key];
+        if (!oa || new Date(oa.endAt) <= new Date()) {
+          forceKickCurrent('closed');
+          return;
+        }
+      }
+    }
+
+    scheduleRender();
+  }, (err) => {
+    console.log('user_access error:', err.message);
+  });
+}
+
 function startUserGradeListener() {
   if (!userId) return;
   if (userRole === 'teacher') {
@@ -3241,115 +3521,102 @@ function startUserGradeListener() {
     const items = snap.data().items || [];
     const user = items.find(u => u.id === userId);
     if (user) {
+      const previousUser = myUserData;
+      myUserData = user;
       myGrade = user.grade || '';
-      // ✅ احفظ في الكاش
-      saveCache(CACHE_KEYS.user, { user, userId });
-      applyFilters();
+      const cUser = loadCache(CACHE_KEYS.user) || { data: {} };
+      saveCache(CACHE_KEYS.user, {
+        user,
+        access: cUser.data?.access || myUserAccess
+      });
+
+      // ✅ كمان كشف فتح جديد لو جاء من users/all
+      detectNewOpenAccessFromUser(previousUser, user);
+
+      scheduleRender();
     }
   }, (err) => console.log('user grade error:', err.message));
 }
 
-function startHomeworksListener() {
-  onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
-    if (snap.exists()) {
-      allHomeworks = snap.data().items || [];
-    } else {
-      allHomeworks = [];
-    }
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.homeworks, allHomeworks);
-    applyFilters();
-  }, (err) => console.log('homeworks error:', err.message));
-}
-
-function startSubsListener() {
-  onSnapshot(doc(db, 'homework_subs', 'all'), (snap) => {
-    mySubs = {};
-    if (snap.exists()) {
-      const items = snap.data().items || [];
-      items.forEach(sub => {
-        if (sub.userId === userId) {
-          mySubs[sub.homeworkId] = sub;
-        }
-      });
-    }
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.hwSubs, mySubs);
-    applyFilters();
-  }, (err) => console.log('subs error:', err.message));
-}
-
-function startUserMonitoring() {
-  if (!userId) return;
-  if (userRole === 'teacher') return;
-
-  if (userMonitoringUnsub) userMonitoringUnsub();
-
-  userMonitoringUnsub = onSnapshot(doc(db, 'users', 'all'), (snap) => {
+function startHiddenResultsListener() {
+  onSnapshot(doc(db, 'settings', 'hidden_results'), (snap) => {
     if (!snap.exists()) return;
-    const items = snap.data().items || [];
-    const user = items.find(u => u.id === userId);
+    const data = snap.data();
 
-    if (!user) {
-      clearHomeworkCache();
-      sessionStorage.clear();
-      window.location.replace('login.html');
-      return;
-    }
+    hiddenHomeworks = new Set(data.homeworks || []);
 
-    const previousUser = myUserData;
-    myUserData = user;
-    myGrade = user.grade || '';
+    hiddenStudentResults = {};
+    const hsr = data.hiddenStudentResults || {};
+    Object.keys(hsr).forEach(k => {
+      hiddenStudentResults[k] = new Set(hsr[k] || []);
+    });
 
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.user, { user, userId });
+    saveCache(CACHE_KEYS.hidden, {
+      homeworks: Array.from(hiddenHomeworks),
+      hiddenStudentResults: Object.fromEntries(
+        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
+      )
+    });
 
-    detectNewOpenAccess(previousUser, user);
-
-    if (currentHomework) {
-      const hwId = currentHomework.id;
-      const key = `homework_${hwId}`;
-
-      if (user.blockedItems && user.blockedItems[key]) {
-        forceKickCurrent('blocked');
-        return;
-      }
-
-      if (user.closedItems && user.closedItems[key]) {
-        const oa = user.openAccess?.[key];
-        if (!oa || new Date(oa.endAt) <= new Date()) {
-          forceKickCurrent('closed');
-          return;
-        }
-      }
-    }
-
-    applyFilters();
-  }, (err) => console.log('user monitor error:', err.message));
+    scheduleRender();
+  }, (err) => console.log('hidden results error:', err.message));
 }
 
-function detectNewOpenAccess(prevUser, newUser) {
-  if (!newUser.openAccess) return;
+async function detectNewOpenAccess(prevAccess, newAccess) {
+  if (!newAccess?.openAccess) return;
 
-  Object.keys(newUser.openAccess).forEach(key => {
-    const wasNotOpenBefore = !prevUser?.openAccess?.[key];
+  const keys = Object.keys(newAccess.openAccess);
+  for (const key of keys) {
+    const wasNotOpenBefore = !prevAccess?.openAccess?.[key];
     const hwIdStr = key.replace('homework_', '');
     const hwId = parseInt(hwIdStr);
+    if (isNaN(hwId)) continue;
 
-    if (isNaN(hwId)) return;
-
-    const oa = newUser.openAccess[key];
-    if (!oa || new Date(oa.endAt) <= new Date()) return;
+    const oa = newAccess.openAccess[key];
+    if (!oa || new Date(oa.endAt) <= new Date()) continue;
 
     if (wasNotOpenBefore && !shownAccessFor.has(hwId)) {
+      await resetHomeworkForUser(hwId);
+
       const hw = allHomeworks.find(h => h.id === hwId);
       if (hw) {
         shownAccessFor.add(hwId);
         const remainingMs = new Date(oa.endAt) - new Date();
         showToast(`🔓 تم فتح "${hw.name}" لك — متبقي ${formatDurationHuman(remainingMs)}`, 'info');
       }
+
+      applyFilters(true);
     }
-  });
+  }
+}
+
+// ✅ نفس الفكرة بس من users/all
+async function detectNewOpenAccessFromUser(prevUser, newUser) {
+  if (!newUser?.openAccess) return;
+
+  const keys = Object.keys(newUser.openAccess);
+  for (const key of keys) {
+    const wasNotOpenBefore = !prevUser?.openAccess?.[key];
+    const hwIdStr = key.replace('homework_', '');
+    const hwId = parseInt(hwIdStr);
+    if (isNaN(hwId)) continue;
+
+    const oa = newUser.openAccess[key];
+    if (!oa || new Date(oa.endAt) <= new Date()) continue;
+
+    if (wasNotOpenBefore && !shownAccessFor.has(hwId)) {
+      await resetHomeworkForUser(hwId);
+
+      const hw = allHomeworks.find(h => h.id === hwId);
+      if (hw) {
+        shownAccessFor.add(hwId);
+        const remainingMs = new Date(oa.endAt) - new Date();
+        showToast(`🔓 تم فتح "${hw.name}" لك — متبقي ${formatDurationHuman(remainingMs)}`, 'info');
+      }
+
+      applyFilters(true);
+    }
+  }
 }
 
 async function forceKickCurrent(type) {
@@ -3357,7 +3624,6 @@ async function forceKickCurrent(type) {
 
   $('solveMode').classList.remove('show');
   document.body.style.overflow = '';
-
   showKickScreen(type === 'blocked' ? 'blocked' : 'closed');
 
   try {
@@ -3392,9 +3658,7 @@ async function forceKickCurrent(type) {
     }
 
     let password = '';
-    if (hw.passwordType === 'random') {
-      password = mySubs[hw.id]?.password || '';
-    }
+    if (hw.passwordType === 'random') password = mySubs[hw.id]?.password || '';
 
     const subData = {
       homeworkId: hw.id,
@@ -3426,7 +3690,6 @@ async function forceKickCurrent(type) {
 
     await setDoc(ref, { items, updatedAt: serverTimestamp() });
 
-    // ✅ حدّث الكاش
     if (!mySubs) mySubs = {};
     mySubs[hw.id] = subData;
     saveCache(CACHE_KEYS.hwSubs, mySubs);
@@ -3441,46 +3704,86 @@ async function forceKickCurrent(type) {
   currentAnswers = {};
 }
 
-function startHiddenResultsListener() {
-  onSnapshot(doc(db, 'settings', 'hidden_results'), (snap) => {
-    if (!snap.exists()) return;
-    const data = snap.data();
+// ============================================================
+// 🔄 Migration
+// ============================================================
+window.__migrateUserAccess = async function() {
+  try {
+    const userRef = doc(db, 'users', 'all');
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      console.log('❌ users/all not found');
+      return;
+    }
+    const users = snap.data().items || [];
+    console.log(`🔄 migrating ${users.length} users...`);
 
-    hiddenHomeworks = new Set(data.homeworks || []);
-
-    hiddenStudentResults = {};
-    const hsr = data.hiddenStudentResults || {};
-    Object.keys(hsr).forEach(k => {
-      hiddenStudentResults[k] = new Set(hsr[k] || []);
-    });
-
-    // ✅ احفظ في الكاش
-    saveCache(CACHE_KEYS.hidden, {
-      homeworks: Array.from(hiddenHomeworks),
-      hiddenStudentResults: Object.fromEntries(
-        Object.entries(hiddenStudentResults).map(([k, v]) => [k, Array.from(v)])
-      )
-    });
-
-    applyFilters();
-  }, (err) => console.log('hidden results error:', err.message));
-}
+    let migrated = 0;
+    for (const u of users) {
+      if (!u.id) continue;
+      const accessData = {
+        openAccess: u.openAccess || {},
+        blockedItems: u.blockedItems || {},
+        closedItems: u.closedItems || {},
+        updatedAt: serverTimestamp()
+      };
+      try {
+        await setDoc(doc(db, 'user_access', u.id), accessData, { merge: true });
+        migrated++;
+      } catch (e) {
+        console.error(`❌ failed for ${u.id}:`, e.message);
+      }
+    }
+    console.log(`✅ migrated ${migrated}/${users.length} users`);
+    alert(`تم ترحيل ${migrated} طالب بنجاح`);
+  } catch (e) {
+    console.error(e);
+    alert('خطأ في الترحيل: ' + e.message);
+  }
+};
 
 // ============================================================
 // 🚀 Init
 // ============================================================
-
-// ⚡ 1. اعرض من الكاش فوراً (0ms)
 applyFromCache();
+
+if (!hasLoadedOnce) {
+  const grid = $('homeworksGrid');
+  if (grid && !grid.querySelector('.hw-card')) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل الواجبات...</div>
+      </div>
+    `;
+  }
+}
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
-// ⚡ 2. ابدأ listeners بالخلفية (تحدّث الكاش)
-startUserGradeListener();
 startHomeworksListener();
 startSubsListener();
-startUserMonitoring();
+startUserAccessListener();
+startUserGradeListener();
 startHiddenResultsListener();
+
+let loadedTimer = setInterval(() => {
+  if (allHomeworks.length > 0 || Object.keys(mySubs).length > 0 || myUserAccess) {
+    if (!hasLoadedOnce) {
+      hasLoadedOnce = true;
+      clearInterval(loadedTimer);
+      scheduleRender(true);
+    }
+  }
+}, 500);
+
+setTimeout(() => {
+  if (!hasLoadedOnce) {
+    hasLoadedOnce = true;
+    clearInterval(loadedTimer);
+    scheduleRender(true);
+  }
+}, 5000);
 
 window.addEventListener('pageshow', (e) => {
   if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
