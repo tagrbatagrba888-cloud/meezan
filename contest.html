@@ -64,7 +64,6 @@
 
   body.ready { opacity: 1; }
 
-  /* ============ Topbar ============ */
   .topbar {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -214,14 +213,12 @@
     border-color: var(--primary);
   }
 
-  /* ============ Container ============ */
   .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 24px 20px 100px;
   }
 
-  /* ============ Page Header ============ */
   .page-header {
     text-align: center;
     margin-bottom: 30px;
@@ -246,7 +243,6 @@
     font-weight: 600;
   }
 
-  /* ============ Stats ============ */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -306,7 +302,6 @@
     margin-top: 4px;
   }
 
-  /* ============ Filter Row ============ */
   .filter-row {
     display: flex;
     gap: 8px;
@@ -358,7 +353,6 @@
     border: 1px solid var(--border);
   }
 
-  /* ============ Contests Grid ============ */
   .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -557,6 +551,9 @@
   .badge.watching { color: var(--info); border-color: var(--info); background: rgba(41, 128, 185, 0.08); }
   .badge.kicked { color: var(--error); border-color: var(--error); background: rgba(192, 57, 43, 0.08); }
   .badge.pending { color: var(--warning); border-color: var(--warning); background: rgba(230, 126, 34, 0.08); }
+  .badge.auto-accept { color: var(--success); border-color: var(--success); background: rgba(30, 122, 90, 0.1); }
+  .badge.grade { color: var(--info); border-color: var(--info); background: rgba(41, 128, 185, 0.08); }
+  .badge.all-grades { color: #8E44AD; border-color: #8E44AD; background: rgba(142, 68, 173, 0.08); }
 
   [data-theme="dark"] .badge.questions { color: var(--accent); border-color: var(--accent); background: rgba(201, 169, 97, 0.12); }
 
@@ -589,15 +586,12 @@
 
   [data-theme="dark"] .btn-enter { color: var(--bg-page); }
 
-  .btn-enter:hover {
+  .btn-enter:hover:not(.disabled):not(.pending) {
     transform: translateY(-2px);
     box-shadow: 0 10px 26px var(--shadow);
   }
 
-  .btn-enter.view-only {
-    background: linear-gradient(135deg, #2980B9, #3498DB);
-  }
-
+  .btn-enter.view-only { background: linear-gradient(135deg, #2980B9, #3498DB); }
   .btn-enter.disabled {
     background: var(--bg-input);
     color: var(--text-sub);
@@ -605,22 +599,13 @@
     cursor: not-allowed;
     box-shadow: none;
   }
-
-  .btn-enter.disabled:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .btn-enter.join {
-    background: linear-gradient(135deg, #E67E22, #F39C12);
-  }
-
+  .btn-enter.disabled:hover { transform: none; box-shadow: none; }
+  .btn-enter.join { background: linear-gradient(135deg, #E67E22, #F39C12); }
   .btn-enter.pending {
     background: linear-gradient(135deg, #95A5A6, #BDC3C7);
     cursor: wait;
   }
 
-  /* ============ Empty & Loading ============ */
   .empty-state {
     padding: 60px 24px;
     text-align: center;
@@ -673,7 +658,6 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ============ Chat Room Modal ============ */
   .chat-modal-overlay {
     position: fixed;
     inset: 0;
@@ -696,6 +680,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
   }
 
   .chat-header {
@@ -745,17 +730,9 @@
     color: #fff;
   }
 
-  .chat-header-badge.contestant {
-    background: rgba(46, 204, 113, 0.9);
-  }
-
-  .chat-header-badge.viewer {
-    background: rgba(41, 128, 185, 0.9);
-  }
-
-  .chat-header-badge.kicked {
-    background: rgba(192, 57, 43, 0.9);
-  }
+  .chat-header-badge.contestant { background: rgba(46, 204, 113, 0.9); }
+  .chat-header-badge.viewer { background: rgba(41, 128, 185, 0.9); }
+  .chat-header-badge.kicked { background: rgba(192, 57, 43, 0.9); }
 
   .chat-header-actions {
     display: flex;
@@ -776,10 +753,29 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    position: relative;
   }
 
   .chat-icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
   .chat-icon-btn.close:hover { background: var(--error); }
+
+  .chat-icon-btn .badge-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--error);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary);
+  }
 
   .chat-body {
     flex: 1;
@@ -812,7 +808,6 @@
   .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .chat-messages::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  /* ============ Messages ============ */
   .msg {
     display: flex;
     gap: 10px;
@@ -829,6 +824,7 @@
   .msg.admin { align-self: center; max-width: 85%; }
   .msg.system { align-self: center; max-width: 90%; }
   .msg.self { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.question { align-self: center; max-width: 95%; width: 100%; }
 
   .msg-avatar {
     width: 38px;
@@ -844,21 +840,10 @@
     border: 2px solid var(--accent);
   }
 
-  .msg.user .msg-avatar {
-    background: linear-gradient(135deg, #0B3D2E, #1E7A5A);
-    color: #fff;
-  }
+  .msg.user .msg-avatar { background: linear-gradient(135deg, #0B3D2E, #1E7A5A); color: #fff; }
+  .msg.self .msg-avatar { background: linear-gradient(135deg, #2980B9, #3498DB); color: #fff; }
 
-  .msg.self .msg-avatar {
-    background: linear-gradient(135deg, #2980B9, #3498DB);
-    color: #fff;
-  }
-
-  .msg-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
   .msg-content {
     background: var(--bg-card);
@@ -886,6 +871,7 @@
     box-shadow: 0 6px 20px rgba(201, 169, 97, 0.35);
     padding: 12px 18px;
     position: relative;
+    width: 100%;
   }
 
   [data-theme="dark"] .msg.admin .msg-content {
@@ -914,14 +900,8 @@
     letter-spacing: 0.5px;
   }
 
-  .msg.admin .msg-sender-name {
-    color: #8B6914;
-    font-size: 12.5px;
-  }
-
-  .msg.self .msg-sender-name {
-    color: rgba(255, 255, 255, 0.9);
-  }
+  .msg.admin .msg-sender-name { color: #8B6914; font-size: 12.5px; }
+  .msg.self .msg-sender-name { color: rgba(255, 255, 255, 0.9); }
 
   [data-theme="dark"] .msg.admin .msg-sender-name { color: var(--accent-light); }
 
@@ -933,17 +913,9 @@
     white-space: pre-wrap;
   }
 
-  .msg.admin .msg-text {
-    font-size: 15.5px;
-    font-weight: 600;
-    color: #5A4A1E;
-  }
-
+  .msg.admin .msg-text { font-size: 15.5px; font-weight: 600; color: #5A4A1E; }
   [data-theme="dark"] .msg.admin .msg-text { color: #F5EBC8; }
-
-  .msg.self .msg-text {
-    color: #fff;
-  }
+  .msg.self .msg-text { color: #fff; }
 
   .msg-meta {
     font-size: 10.5px;
@@ -957,13 +929,6 @@
   }
 
   .msg.self .msg-meta { color: rgba(255, 255, 255, 0.8); }
-
-  /* === سؤال === */
-  .msg.question {
-    align-self: center;
-    max-width: 95%;
-    width: 100%;
-  }
 
   .msg.question .msg-content {
     background: linear-gradient(135deg, rgba(41, 128, 185, 0.08), rgba(52, 152, 219, 0.03));
@@ -1008,12 +973,51 @@
     margin-right: 6px;
   }
 
+  .timer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--warning);
+    color: var(--warning);
+    font-size: 11px;
+    font-weight: 800;
+    margin-right: 6px;
+    margin-bottom: 8px;
+    font-family: 'Cairo', monospace;
+    direction: ltr;
+  }
+
+  .timer-badge.expired {
+    border-color: var(--error);
+    color: var(--error);
+    background: rgba(192, 57, 43, 0.08);
+  }
+
+  .target-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(201, 169, 97, 0.15);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    margin-right: 6px;
+    margin-bottom: 8px;
+  }
+
   .question-title-chat {
     font-size: 16px;
     font-weight: 800;
     color: var(--text-main);
     line-height: 1.6;
     margin-bottom: 12px;
+    margin-top: 8px;
   }
 
   .question-options-chat {
@@ -1061,9 +1065,15 @@
     color: var(--success);
   }
 
-  .question-option-chat.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  .question-option-chat.disabled { opacity: 0.6; cursor: not-allowed; }
+  .question-option-chat.target-highlight {
+    border-color: var(--accent);
+    animation: targetPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes targetPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 97, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(201, 169, 97, 0); }
   }
 
   .question-option-chat .option-letter {
@@ -1129,10 +1139,7 @@
     box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.1);
   }
 
-  .question-essay-input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  .question-essay-input:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .question-submit-btn {
     padding: 10px 20px;
@@ -1177,10 +1184,18 @@
     margin-top: 10px;
   }
 
-  /* === نظام === */
-  .msg.system {
-    align-self: center;
-    max-width: 80%;
+  .question-waiting-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(230, 126, 34, 0.1);
+    border: 1.5px solid var(--warning);
+    color: var(--warning);
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-top: 10px;
   }
 
   .msg.system .msg-content {
@@ -1195,12 +1210,8 @@
     box-shadow: none;
   }
 
-  .msg.system .msg-text {
-    font-size: 12.5px;
-    color: var(--text-sub);
-  }
+  .msg.system .msg-text { font-size: 12.5px; color: var(--text-sub); }
 
-  /* === طلب انضمام === */
   .msg.join-request .msg-content {
     background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(243, 156, 18, 0.04));
     border: 2.5px solid var(--warning);
@@ -1235,7 +1246,6 @@
     margin-bottom: 10px;
   }
 
-  /* ============ Chat Input ============ */
   .chat-input-area {
     background: var(--bg-card);
     border-top: 1px solid var(--border);
@@ -1304,7 +1314,6 @@
 
   .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* View-only banner */
   .view-only-banner {
     background: linear-gradient(135deg, rgba(41, 128, 185, 0.1), rgba(52, 152, 219, 0.05));
     border: 1.5px solid var(--info);
@@ -1320,12 +1329,8 @@
     flex-shrink: 0;
   }
 
-  .view-only-banner i {
-    font-size: 20px;
-    flex-shrink: 0;
-  }
+  .view-only-banner i { font-size: 20px; flex-shrink: 0; }
 
-  /* ============ Chat Sidebar ============ */
   .chat-sidebar {
     width: 340px;
     background: var(--bg-card);
@@ -1363,9 +1368,7 @@
 
   [data-theme="dark"] .chat-sidebar-header .count-badge { color: var(--bg-page); }
 
-  .chat-sidebar-section {
-    padding: 12px;
-  }
+  .chat-sidebar-section { padding: 12px; }
 
   .chat-sidebar-section-title {
     font-size: 11px;
@@ -1394,14 +1397,9 @@
     transition: all 0.2s;
   }
 
-  .contestant-item:hover {
-    border-color: var(--accent);
-  }
+  .contestant-item:hover { border-color: var(--accent); }
 
-  .contestant-item.finished {
-    border-color: var(--success);
-    background: rgba(30, 122, 90, 0.06);
-  }
+  .contestant-item.finished { border-color: var(--success); background: rgba(30, 122, 90, 0.06); }
 
   .contestant-item.winner {
     border-color: var(--accent);
@@ -1409,10 +1407,7 @@
     box-shadow: 0 4px 14px rgba(201, 169, 97, 0.3);
   }
 
-  .contestant-item.self {
-    border-color: var(--info);
-    background: rgba(41, 128, 185, 0.06);
-  }
+  .contestant-item.self { border-color: var(--info); background: rgba(41, 128, 185, 0.06); }
 
   .contestant-avatar {
     width: 40px;
@@ -1432,16 +1427,9 @@
 
   [data-theme="dark"] .contestant-avatar { color: var(--bg-page); }
 
-  .contestant-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .contestant-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-  .contestant-info {
-    flex: 1;
-    min-width: 0;
-  }
+  .contestant-info { flex: 1; min-width: 0; }
 
   .contestant-name {
     font-size: 13.5px;
@@ -1477,7 +1465,6 @@
   .contestant-status.finished { color: var(--success); }
   .contestant-status.winner { color: var(--accent); }
 
-  /* ============ Leaderboard ============ */
   .leaderboard-list {
     display: flex;
     flex-direction: column;
@@ -1497,10 +1484,7 @@
     overflow: hidden;
   }
 
-  .leaderboard-item:hover {
-    border-color: var(--accent);
-    transform: translateX(-3px);
-  }
+  .leaderboard-item:hover { border-color: var(--accent); transform: translateX(-3px); }
 
   .leaderboard-item.rank-1 {
     border-color: #C9A961;
@@ -1577,16 +1561,9 @@
 
   [data-theme="dark"] .leaderboard-avatar { color: var(--bg-page); }
 
-  .leaderboard-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .leaderboard-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-  .leaderboard-info {
-    flex: 1;
-    min-width: 0;
-  }
+  .leaderboard-info { flex: 1; min-width: 0; }
 
   .leaderboard-name {
     font-size: 13px;
@@ -1619,16 +1596,8 @@
     flex-wrap: wrap;
   }
 
-  .leaderboard-stats span {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-  }
-
-  .leaderboard-stats i {
-    color: var(--accent);
-    font-size: 10px;
-  }
+  .leaderboard-stats span { display: inline-flex; align-items: center; gap: 3px; }
+  .leaderboard-stats i { color: var(--accent); font-size: 10px; }
 
   .leaderboard-score {
     font-size: 15px;
@@ -1642,7 +1611,6 @@
     border: 1.5px solid var(--accent);
   }
 
-  /* My score card */
   .my-score-box {
     background: linear-gradient(135deg, rgba(41, 128, 185, 0.1), rgba(52, 152, 219, 0.05));
     border: 2px solid var(--info);
@@ -1675,24 +1643,13 @@
 
   .my-score-row:last-child { border-bottom: none; }
 
-  .my-score-label {
-    color: var(--text-sub);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
+  .my-score-label { color: var(--text-sub); display: flex; align-items: center; gap: 5px; }
 
-  .my-score-value {
-    color: var(--text-main);
-    font-weight: 900;
-    font-size: 14px;
-  }
-
+  .my-score-value { color: var(--text-main); font-weight: 900; font-size: 14px; }
   .my-score-value.accent { color: var(--accent); }
   .my-score-value.success { color: var(--success); }
   .my-score-value.info { color: var(--info); }
 
-  /* ============ Toast ============ */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -1725,7 +1682,73 @@
   .toast.info { border-color: var(--info); }
   .toast.info i { color: var(--info); }
 
-  /* ============ Drawer ============ */
+  .in-chat-notify {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--bg-card);
+    border: 2px solid var(--success);
+    border-radius: 14px;
+    padding: 14px 24px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+    opacity: 0;
+    transition: all 0.35s ease;
+    pointer-events: none;
+    max-width: calc(100% - 40px);
+  }
+
+  .in-chat-notify.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .in-chat-notify i {
+    font-size: 22px;
+    color: var(--success);
+    flex-shrink: 0;
+  }
+
+  .in-chat-notify.error { border-color: var(--error); }
+  .in-chat-notify.error i { color: var(--error); }
+  .in-chat-notify.warning { border-color: var(--warning); }
+  .in-chat-notify.warning i { color: var(--warning); }
+  .in-chat-notify.info { border-color: var(--info); }
+  .in-chat-notify.info i { color: var(--info); }
+
+  .winner-banner {
+    background: linear-gradient(135deg, #C9A961, #E0C888);
+    color: #0B3D2E;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-size: 18px;
+    font-weight: 900;
+    animation: winnerGlow 2s ease-in-out infinite;
+    box-shadow: 0 10px 30px rgba(201, 169, 97, 0.5);
+    flex-shrink: 0;
+  }
+
+  @keyframes winnerGlow {
+    0%, 100% { box-shadow: 0 10px 30px rgba(201, 169, 97, 0.5); }
+    50% { box-shadow: 0 10px 50px rgba(201, 169, 97, 0.8); }
+  }
+
+  .winner-banner i {
+    font-size: 28px;
+  }
+
   .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -1891,33 +1914,6 @@
   .drawer-btn.logout-btn .drawer-btn-icon { background: linear-gradient(135deg, #C0392B, #E74C3C); }
   .drawer-btn.logout-btn:hover { background: var(--error); color: #fff; border-color: var(--error); }
 
-  /* Leave button (withdraw) */
-  .leave-contest-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 2px solid var(--error);
-    background: rgba(192, 57, 43, 0.08);
-    color: var(--error);
-    font-family: 'Cairo', sans-serif;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
-    margin-top: 8px;
-  }
-
-  .leave-contest-btn:hover {
-    background: var(--error);
-    color: #fff;
-    transform: translateY(-2px);
-  }
-
-  /* ============ Responsive ============ */
   @media (max-width: 1000px) {
     .chat-sidebar { width: 280px; }
   }
@@ -1937,11 +1933,9 @@
     }
 
     .chat-sidebar.mobile-open { transform: translateX(0); }
-
     .chat-modal-content { position: relative; overflow: hidden; }
     .chat-header-sub { font-size: 10.5px; }
     .chat-header-title { font-size: 15px; }
-
     .msg { max-width: 88%; }
     .msg.admin { max-width: 92%; }
     .msg.question { max-width: 98%; }
@@ -1983,7 +1977,6 @@
 </head>
 <body>
 
-<!-- ============ Topbar ============ -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -2013,7 +2006,6 @@
   </div>
 </header>
 
-<!-- ============ Container ============ -->
 <div class="container">
 
   <div class="page-header">
@@ -2083,7 +2075,7 @@
 
 </div>
 
-<!-- ============ CHAT ROOM MODAL ============ -->
+<!-- CHAT ROOM MODAL -->
 <div class="chat-modal-overlay" id="chatModal">
   <div class="chat-modal-content">
 
@@ -2102,8 +2094,12 @@
       </div>
 
       <div class="chat-header-actions">
+        <button class="chat-icon-btn" id="chatJoinBtn" title="انضم للمسابقة" style="display:none;">
+          <i class="fas fa-user-plus"></i>
+        </button>
         <button class="chat-icon-btn" id="chatToggleSidebar" title="قائمة المتسابقين">
           <i class="fas fa-users"></i>
+          <span class="badge-count" id="sidebarBadge" style="display:none;">0</span>
         </button>
         <button class="chat-icon-btn close" id="chatCloseBtn" title="إغلاق">
           <i class="fas fa-times"></i>
@@ -2114,6 +2110,8 @@
     <div class="chat-body">
 
       <div class="chat-main">
+        <div id="winnerBannerWrap"></div>
+
         <div class="chat-messages" id="chatMessages">
           <div class="loading-state">
             <i class="fas fa-spinner"></i>
@@ -2170,13 +2168,11 @@
   </div>
 </div>
 
-<!-- ============ Toast ============ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastText"></span>
 </div>
 
-<!-- ============ Drawer ============ -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
 <aside class="drawer" id="drawer">
@@ -2219,10 +2215,12 @@
     </div>
   </div>
 </aside>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, updateDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2317,7 +2315,7 @@ function formatDuration(seconds) {
 }
 
 // ============================================================
-// 🌙 الوضع
+// 🌙 Theme
 // ============================================================
 const savedTheme = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -2374,21 +2372,77 @@ function showToast(text, type = 'success') {
 }
 
 // ============================================================
+// 💬 In-Chat Notify
+// ============================================================
+let inChatNotifyTimeout;
+function showInChatNotify(text, type = 'success') {
+  const existing = document.querySelector('.in-chat-notify');
+  if (existing) existing.remove();
+
+  const notify = document.createElement('div');
+  notify.className = 'in-chat-notify ' + type;
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  notify.innerHTML = `
+    <i class="fas ${icons[type] || icons.success}"></i>
+    <span>${escapeHtml(text)}</span>
+  `;
+
+  const chatBody = $('chatModal').querySelector('.chat-body');
+  if (chatBody) {
+    chatBody.appendChild(notify);
+    setTimeout(() => notify.classList.add('show'), 50);
+    clearTimeout(inChatNotifyTimeout);
+    inChatNotifyTimeout = setTimeout(() => {
+      notify.classList.remove('show');
+      setTimeout(() => notify.remove(), 400);
+    }, 3500);
+  }
+}
+
+// ============================================================
 // 📊 الحالة العامة
 // ============================================================
 let allContests = [];
 let filteredContests = [];
 let currentFilter = 'all';
 let userData = null;
+let userLoaded = false;
 
 // Chat state
 let currentChatContestId = null;
 let currentChatContest = null;
 let unsubscribeChat = null;
-let unsubscribeContestants = null;
 let countdownInterval = null;
-let myRole = 'viewer'; // 'contestant' | 'viewer' | 'kicked' | 'pending'
+let myRole = 'viewer';
 let currentRoomData = null;
+let timerTickInterval = null;
+let lastSeenWinnerId = null;
+let lastSeenKicked = false;
+let lastMessagesHash = '';
+
+// ============================================================
+// 🎯 فلترة المسابقات حسب فرقة الطالب (⭐ الإصلاح الأساسي)
+// ============================================================
+function isContestForMe(contest) {
+  if (!userData) return false;
+  
+  // لو المسابقة لكل الفرق → تظهر للجميع
+  if (contest.allGrades === true) return true;
+  
+  // لو المسابقة لفرق محددة → يفحص إذا فرقة الطالب موجودة
+  if (!contest.grades || contest.grades.length === 0) return false;
+  
+  // مقارنة صارمة
+  const myGrade = (userData.grade || '').trim();
+  if (!myGrade) return false;
+  
+  return contest.grades.some(g => g.trim() === myGrade);
+}
 
 // ============================================================
 // 📡 Listeners
@@ -2397,25 +2451,72 @@ function startUserListener() {
   if (!userId) return;
 
   onSnapshot(doc(db, 'users', 'all'), (snap) => {
-    if (!snap.exists()) return;
+    if (!snap.exists()) {
+      userLoaded = true;
+      renderContests();
+      return;
+    }
     const items = snap.data().items || [];
     const user = items.find(u => u.id === userId);
     if (user) {
       userData = user;
-      renderContests();
     }
-  }, (err) => console.log('user error:', err.message));
+    userLoaded = true;
+    applyFilters();
+    updateStats();
+
+    // تحديث الـ role لو الشات مفتوح
+    if (currentChatContestId) {
+      determineMyRoleSync();
+      updateRoleBadge();
+      updateChatInputState();
+    }
+  }, (err) => {
+    console.log('user error:', err.message);
+    userLoaded = true;
+    renderContests();
+  });
 }
 
 function startContestsListener() {
   onSnapshot(doc(db, 'contests', 'all'), (snap) => {
     if (snap.exists()) {
-      allContests = (snap.data().items || []).filter(c => c.status === 'published');
+      const all = (snap.data().items || []).filter(c => c.status === 'published');
+      // ⭐ فلترة أولية - إظهار فقط المسابقات المخصصة لفرقتي
+      allContests = all.filter(c => isContestForMe(c));
     } else {
       allContests = [];
     }
     applyFilters();
     updateStats();
+
+    if (currentChatContestId) {
+      const updated = allContests.find(c => c.id === currentChatContestId);
+      if (updated) {
+        const previousWinnerId = currentChatContest?.winner?.id;
+        const previousKickedList = currentChatContest?.kickedUsers || [];
+
+        currentChatContest = updated;
+
+        const newWinnerId = updated.winner?.id || null;
+        if (newWinnerId && newWinnerId !== previousWinnerId) {
+          showInChatNotify(`🏆 مبروك! فاز ${updated.winner.name}`, 'success');
+          renderWinnerBanner(updated.winner);
+        }
+
+        const kickedUsers = updated.kickedUsers || [];
+        if (kickedUsers.includes(userId) && !previousKickedList.includes(userId)) {
+          showInChatNotify('🚫 تم طردك من المسابقة', 'error');
+          myRole = 'viewer';
+          updateRoleBadge();
+        }
+
+        determineMyRoleSync();
+        updateRoleBadge();
+        updateChatInputState();
+        renderWinner(currentRoomData?.winner);
+      }
+    }
   }, (err) => console.log('contests error:', err.message));
 }
 
@@ -2423,14 +2524,9 @@ function startContestsListener() {
 // 📊 Stats + Filters
 // ============================================================
 function updateStats() {
-  const now = new Date();
-  const available = allContests.filter(c => !c.roomStatus || c.roomStatus === 'waiting').length;
-  const active = allContests.filter(c => {
-    if (c.roomStatus === 'finished') return false;
-    const startAt = c.startAt ? new Date(c.startAt) : null;
-    return startAt && startAt <= now;
-  }).length;
-  const finished = allContests.filter(c => c.roomStatus === 'finished').length;
+  const available = allContests.filter(c => getContestStatus(c) !== 'finished').length;
+  const active = allContests.filter(c => getContestStatus(c) === 'active').length;
+  const finished = allContests.filter(c => getContestStatus(c) === 'finished').length;
   const wins = allContests.filter(c => c.winner && c.winner.id === userId).length;
 
   $('statAvailable').textContent = available;
@@ -2444,7 +2540,9 @@ function getContestStatus(contest) {
 
   const now = new Date();
   const startAt = contest.startAt ? new Date(contest.startAt) : null;
+  const endAt = contest.endAt ? new Date(contest.endAt) : null;
 
+  if (endAt && endAt <= now) return 'finished';
   if (startAt && startAt > now) return 'upcoming';
   return 'active';
 }
@@ -2485,12 +2583,33 @@ function renderContests() {
   const grid = $('contestsGrid');
   grid.innerHTML = '';
 
+  if (!userLoaded) {
+    grid.innerHTML = `
+      <div class="loading-state">
+        <i class="fas fa-spinner"></i>
+        <div>جاري تحميل المسابقات...</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (!userData) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-user-slash"></i>
+        <h3>تعذّر تحميل بياناتك</h3>
+        <p>الرجاء إعادة تسجيل الدخول</p>
+      </div>
+    `;
+    return;
+  }
+
   if (filteredContests.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-trophy"></i>
-        <h3>${allContests.length === 0 ? 'لا توجد مسابقات متاحة' : 'لا توجد نتائج'}</h3>
-        <p>${allContests.length === 0 ? 'ترقب إعلان المسابقات الجديدة قريباً' : 'جرّب فلتر آخر'}</p>
+        <h3>${allContests.length === 0 ? 'لا توجد مسابقات متاحة لفرقتك' : 'لا توجد نتائج'}</h3>
+        <p>${allContests.length === 0 ? 'ترقب إعلان المسابقات لفرقة "' + escapeHtml(userData.grade || 'غير محددة') + '" قريباً' : 'جرّب فلتر آخر'}</p>
       </div>
     `;
     return;
@@ -2527,18 +2646,29 @@ function createContestCard(contest) {
     imageHtml = `<img src="${escapeHtml(contest.imageUrl)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-trophy\\'></i>'">`;
   }
 
-  // Time box
   let timeBoxHTML = '';
   const now = new Date();
   const startAt = contest.startAt ? new Date(contest.startAt) : null;
+  const endAt = contest.endAt ? new Date(contest.endAt) : null;
 
-  if (startAt && startAt > now) {
+  if (startAt && startAt > now && status !== 'finished') {
     const diff = startAt - now;
     timeBoxHTML = `
       <div class="item-time-box" data-countdown="${contest.id}">
         <i class="fas fa-hourglass-start"></i>
         <div class="time-info">
           <span class="time-label">تبدأ بعد</span>
+          <span class="time-value" id="countdown-${contest.id}">${formatCountdown(diff)}</span>
+        </div>
+      </div>
+    `;
+  } else if (endAt && endAt > now && startAt && startAt <= now) {
+    const diff = endAt - now;
+    timeBoxHTML = `
+      <div class="item-time-box" data-countdown="${contest.id}">
+        <i class="fas fa-hourglass-end"></i>
+        <div class="time-info">
+          <span class="time-label">تنتهي بعد</span>
           <span class="time-value" id="countdown-${contest.id}">${formatCountdown(diff)}</span>
         </div>
       </div>
@@ -2555,25 +2685,29 @@ function createContestCard(contest) {
     `;
   }
 
-  // Winner badge
   const winnerBadge = contest.winner
     ? `<span class="badge winner"><i class="fas fa-crown"></i> ${escapeHtml(contest.winner.name || '')}</span>`
     : '';
 
-  // My status badge
+  const autoAcceptBadge = contest.autoAccept !== false
+    ? `<span class="badge auto-accept"><i class="fas fa-bolt"></i> قبول تلقائي</span>`
+    : '';
+
+  // Badge الفرقة
+  const gradeBadge = contest.allGrades === true
+    ? `<span class="badge all-grades"><i class="fas fa-globe"></i> كل الفرق</span>`
+    : `<span class="badge grade"><i class="fas fa-graduation-cap"></i> ${escapeHtml(userData?.grade || '')}</span>`;
+
   let myStatusBadge = '';
   const myStatus = getMyContestStatus(contest);
   if (myStatus === 'contestant') {
     myStatusBadge = `<span class="badge joined"><i class="fas fa-check-circle"></i> أنت متسابق</span>`;
-  } else if (myStatus === 'viewer') {
-    myStatusBadge = `<span class="badge watching"><i class="fas fa-eye"></i> أنت مشاهد</span>`;
   } else if (myStatus === 'kicked') {
-    myStatusBadge = `<span class="badge kicked"><i class="fas fa-user-slash"></i> مشاهد (تم طردك)</span>`;
+    myStatusBadge = `<span class="badge kicked"><i class="fas fa-user-slash"></i> مشاهد (مطرود)</span>`;
   } else if (myStatus === 'pending') {
     myStatusBadge = `<span class="badge pending"><i class="fas fa-hourglass-half"></i> بانتظار الموافقة</span>`;
   }
 
-  // Determine button
   let btnText = 'ادخل المسابقة';
   let btnClass = '';
   let btnIcon = 'fa-sign-in-alt';
@@ -2584,9 +2718,8 @@ function createContestCard(contest) {
     btnClass = 'view-only';
     btnIcon = 'fa-eye';
   } else if (status === 'upcoming') {
-    // قادمة: تسجيل فقط، بدون دخول
     if (myStatus === 'contestant') {
-      btnText = 'أنت مسجل ✓ (بانتظار البدء)';
+      btnText = 'أنت مسجل ✓';
       btnClass = 'disabled';
       btnIcon = 'fa-check-circle';
       btnAction = 'none';
@@ -2612,7 +2745,6 @@ function createContestCard(contest) {
       btnAction = 'join';
     }
   } else if (status === 'active') {
-    // جارية: دخول الشات
     if (myStatus === 'contestant') {
       btnText = 'ادخل المسابقة';
       btnIcon = 'fa-sign-in-alt';
@@ -2667,21 +2799,24 @@ function createContestCard(contest) {
       ${timeBoxHTML}
 
       <div class="item-badges">
-        <span class="badge questions"><i class="fas fa-list-check"></i> ${questionsCount} سؤال</span>
+        ${gradeBadge}
+        <span class="badge questions"><i class="fas fa-list-check"></i> ${questionsCount}</span>
+        ${autoAcceptBadge}
         ${myStatusBadge}
         ${winnerBadge}
       </div>
     </div>
 
     <div class="item-footer">
-      <button class="btn-enter ${btnClass}" data-action="${btnAction}">
+      <button class="btn-enter ${btnClass}" data-action="${btnAction}" data-contest-id="${contest.id}">
         <i class="fas ${btnIcon}"></i>
         <span>${btnText}</span>
       </button>
     </div>
   `;
 
-  card.querySelector('[data-action]').addEventListener('click', () => {
+  card.querySelector('[data-action]').addEventListener('click', (e) => {
+    e.stopPropagation();
     if (btnAction === 'none') return;
     if (btnAction === 'join') {
       requestJoin(contest);
@@ -2716,27 +2851,32 @@ setInterval(() => {
   document.querySelectorAll('[data-countdown]').forEach(el => {
     const contestId = parseInt(el.dataset.countdown);
     const contest = allContests.find(c => c.id === contestId);
-    if (!contest || !contest.startAt) return;
+    if (!contest) return;
 
-    const startAt = new Date(contest.startAt);
-    const diff = startAt - now;
     const el2 = $('countdown-' + contestId);
     if (!el2) return;
 
-    if (diff <= 0) {
-      el2.textContent = 'بدأت الآن';
-    } else {
-      el2.textContent = formatCountdown(diff);
+    const startAt = contest.startAt ? new Date(contest.startAt) : null;
+    const endAt = contest.endAt ? new Date(contest.endAt) : null;
+
+    let target = null;
+    if (startAt && startAt > now) target = startAt;
+    else if (endAt && endAt > now) target = endAt;
+
+    if (target) {
+      const diff = target - now;
+      el2.textContent = diff <= 0 ? 'الآن' : formatCountdown(diff);
     }
   });
 }, 1000);
 
 // ============================================================
-// 📝 Request Join (يطلب الانضمام)
+// 📝 Request Join
 // ============================================================
 async function requestJoin(contest) {
   try {
     if (!userId) return showToast('يجب تسجيل الدخول', 'error');
+    if (!userData) return showToast('بياناتك غير محملة', 'error');
 
     const contestRef = doc(db, 'contests', 'all');
     const contestSnap = await getDoc(contestRef);
@@ -2747,76 +2887,136 @@ async function requestJoin(contest) {
     if (idx === -1) return;
 
     const c = items[idx];
-    const contestantIds = c.contestantIds || [];
+    const contestantIds = [...(c.contestantIds || [])];
     const kickedUsers = c.kickedUsers || [];
-    const pendingJoins = c.pendingJoins || [];
+    const pendingJoins = [...(c.pendingJoins || [])];
+    const contestants = [...(c.contestants || [])];
+    const autoAccept = c.autoAccept !== false;
+    const maxContestants = c.maxContestants || 1;
 
-    // تحقق
     if (kickedUsers.includes(userId)) {
       return showToast('لا يمكنك الانضمام (مطرود)', 'error');
     }
-
     if (contestantIds.includes(userId)) {
       return showToast('أنت مسجل بالفعل', 'warning');
     }
-
     if (pendingJoins.includes(userId)) {
       return showToast('طلبك قيد المراجعة', 'info');
     }
-
-    if (contestantIds.length >= (c.maxContestants || 1)) {
+    if (contestantIds.length >= maxContestants) {
       return showToast('المسابقة ممتلئة', 'warning');
     }
 
-    // أضف للـ pendingJoins
-    pendingJoins.push(userId);
+    // ⚡ القبول التلقائي
+    if (autoAccept) {
+      const newContestant = {
+        id: userId,
+        name: userData.fullName || userName,
+        avatarUrl: userData.avatarUrl || '',
+        joinedAt: new Date().toISOString(),
+        finished: false
+      };
 
-    items[idx] = {
-      ...c,
-      pendingJoins,
-      updatedAt: new Date().toISOString()
-    };
+      contestantIds.push(userId);
+      contestants.push(newContestant);
+      const newPending = pendingJoins.filter(id => id !== userId);
 
-    await setDoc(contestRef, { items, updatedAt: serverTimestamp() });
+      items[idx] = {
+        ...c,
+        contestantIds,
+        contestants,
+        pendingJoins: newPending,
+        contestantsCount: contestantIds.length,
+        updatedAt: new Date().toISOString()
+      };
 
-    // أرسل رسالة طلب انضمام في الشات (حتى لو قادمة، لتظهر للأدمن)
-    const roomRef = doc(db, 'contest_rooms', String(contest.id));
-    const roomSnap = await getDoc(roomRef);
+      await setDoc(contestRef, { items, updatedAt: serverTimestamp() });
 
-    let roomData = {};
-    let messages = [];
-    if (roomSnap.exists()) {
-      roomData = roomSnap.data();
-      messages = roomData.messages || [];
-    }
+      // أضف رسالة نظام
+      const roomRef = doc(db, 'contest_rooms', String(contest.id));
+      const sysMsg = {
+        id: 'sys_' + Date.now(),
+        sender: 'system',
+        type: 'system',
+        text: `⚡ انضم ${newContestant.name} تلقائياً`,
+        createdAt: new Date().toISOString()
+      };
 
-    // تحقق إذا كان يوجد طلب معلّق مسبق لهذا المستخدم
-    const hasPending = messages.some(m =>
-      m.type === 'join_request' && m.senderId === userId && !m.processed
-    );
+      // تأكد الغرفة موجودة
+      const roomSnap = await getDoc(roomRef);
+      if (!roomSnap.exists()) {
+        await setDoc(roomRef, {
+          contestId: contest.id,
+          messages: [sysMsg],
+          contestants,
+          kickedUsers: [],
+          allowViewersChat: false,
+          roomStatus: 'waiting',
+          answers: {},
+          createdAt: serverTimestamp()
+        });
+      } else {
+        await updateDoc(roomRef, {
+          contestants,
+          messages: arrayUnion(sysMsg),
+          updatedAt: serverTimestamp()
+        });
+      }
 
-    if (!hasPending) {
-      messages.push({
+      showToast('⚡ تم انضمامك تلقائياً!', 'success');
+
+      setTimeout(() => {
+        enterContest({ ...contest, contestantIds, contestants });
+      }, 500);
+
+    } else {
+      // ✋ القبول اليدوي
+      pendingJoins.push(userId);
+
+      items[idx] = {
+        ...c,
+        pendingJoins,
+        updatedAt: new Date().toISOString()
+      };
+
+      await setDoc(contestRef, { items, updatedAt: serverTimestamp() });
+
+      // أرسل طلب في الشات
+      const roomRef = doc(db, 'contest_rooms', String(contest.id));
+      const roomSnap = await getDoc(roomRef);
+
+      const joinMsg = {
         id: 'join_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         sender: 'user',
         senderId: userId,
-        senderName: userData?.fullName || userName,
-        senderAvatar: userData?.avatarUrl || '',
+        senderName: userData.fullName || userName,
+        senderAvatar: userData.avatarUrl || '',
         type: 'join_request',
         processed: false,
         accepted: false,
         createdAt: new Date().toISOString()
-      });
+      };
 
-      await setDoc(roomRef, {
-        contestId: contest.id,
-        ...roomData,
-        messages,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      if (!roomSnap.exists()) {
+        await setDoc(roomRef, {
+          contestId: contest.id,
+          messages: [joinMsg],
+          contestants: [],
+          kickedUsers: [],
+          allowViewersChat: false,
+          roomStatus: 'waiting',
+          answers: {},
+          createdAt: serverTimestamp()
+        });
+      } else {
+        await updateDoc(roomRef, {
+          messages: arrayUnion(joinMsg),
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      showToast('📩 تم إرسال طلب الانضمام', 'info');
     }
-
-    showToast('📩 تم إرسال طلب الانضمام — بانتظار موافقة الأدمن', 'success');
 
   } catch (e) {
     console.error('join request error:', e);
@@ -2825,62 +3025,63 @@ async function requestJoin(contest) {
 }
 
 // ============================================================
-// 🚪 Enter Contest (الدخول للشات)
+// 🚪 Enter Contest
 // ============================================================
 async function enterContest(contest) {
   const status = getContestStatus(contest);
 
-  // منع الدخول إلا لو المسابقة جارية أو منتهية (للعرض)
   if (status === 'upcoming') {
-    return showToast('المسابقة لم تبدأ بعد — يمكنك التسجيل فقط', 'info');
+    return showToast('المسابقة لم تبدأ بعد', 'info');
   }
 
   currentChatContestId = contest.id;
   currentChatContest = contest;
+  lastSeenWinnerId = contest.winner?.id || null;
+  lastSeenKicked = (contest.kickedUsers || []).includes(userId);
+  lastMessagesHash = '';
 
   $('chatTitle').textContent = contest.name;
   $('chatModal').classList.add('show');
   document.body.style.overflow = 'hidden';
 
-  await determineMyRole();
+  determineMyRoleSync();
+  updateRoleBadge();
+  updateChatInputState();
+  renderWinnerBanner(contest.winner);
 
   startChatListener();
   startCountdownTimer();
+  startTimerTick();
 
   setTimeout(() => {
     $('chatInput').focus();
   }, 300);
 }
 
-async function determineMyRole() {
-  try {
-    const contest = currentChatContest;
-    const kickedUsers = contest.kickedUsers || [];
-    const contestantIds = contest.contestantIds || [];
-
-    if (kickedUsers.includes(userId)) {
-      myRole = 'viewer'; // مطرود → مشاهد
-      updateRoleBadge();
-      return;
-    }
-
-    if (contestantIds.includes(userId)) {
-      myRole = 'contestant';
-      updateRoleBadge();
-      return;
-    }
-
+function determineMyRoleSync() {
+  if (!currentChatContest) {
     myRole = 'viewer';
-    updateRoleBadge();
-  } catch (e) {
-    console.error('role determination error:', e);
+    return;
+  }
+
+  const kickedUsers = currentChatContest.kickedUsers || [];
+  const contestantIds = currentChatContest.contestantIds || [];
+  const pendingJoins = currentChatContest.pendingJoins || [];
+
+  if (contestantIds.includes(userId)) {
+    myRole = 'contestant';
+  } else if (kickedUsers.includes(userId)) {
+    myRole = 'kicked';
+  } else if (pendingJoins.includes(userId)) {
+    myRole = 'pending';
+  } else {
     myRole = 'viewer';
-    updateRoleBadge();
   }
 }
 
 function updateRoleBadge() {
   const badge = $('chatRoleBadge');
+  const joinBtn = $('chatJoinBtn');
   if (!badge) return;
 
   const isKicked = currentChatContest?.kickedUsers?.includes(userId);
@@ -2888,12 +3089,24 @@ function updateRoleBadge() {
   if (myRole === 'contestant') {
     badge.className = 'chat-header-badge contestant';
     badge.innerHTML = '<i class="fas fa-user-check"></i> متسابق';
+    if (joinBtn) joinBtn.style.display = 'none';
+  } else if (myRole === 'pending') {
+    badge.className = 'chat-header-badge viewer';
+    badge.innerHTML = '<i class="fas fa-hourglass-half"></i> بانتظار الموافقة';
+    if (joinBtn) joinBtn.style.display = 'none';
   } else if (isKicked) {
     badge.className = 'chat-header-badge kicked';
     badge.innerHTML = '<i class="fas fa-user-slash"></i> مشاهد (مطرود)';
+    if (joinBtn) joinBtn.style.display = 'none';
   } else {
     badge.className = 'chat-header-badge viewer';
     badge.innerHTML = '<i class="fas fa-eye"></i> مشاهد';
+
+    if (joinBtn && currentChatContest) {
+      const isFull = (currentChatContest.contestantsCount || 0) >= (currentChatContest.maxContestants || 1);
+      if (!isFull) joinBtn.style.display = 'flex';
+      else joinBtn.style.display = 'none';
+    }
   }
 
   updateChatInputState();
@@ -2915,25 +3128,16 @@ function updateChatInputState() {
     return;
   }
 
-  // viewer
-  const allowViewersChat = currentRoomData?.allowViewersChat === true;
-
-  if (isKicked) {
-    // مطرود → مشاهد بصلاحيات مشاهد عادي
-    if (allowViewersChat) {
-      input.disabled = false;
-      sendBtn.disabled = false;
-      input.placeholder = 'اكتب رسالتك كـ مشاهد...';
-      banner.style.display = 'none';
-    } else {
-      input.disabled = true;
-      sendBtn.disabled = true;
-      input.placeholder = 'مشاهد — لا يمكنك الكتابة حالياً';
-      banner.style.display = 'flex';
-      text.textContent = '👁️ تم طردك من المسابقة — أنت مشاهد فقط الآن';
-    }
+  if (myRole === 'pending') {
+    input.disabled = true;
+    sendBtn.disabled = true;
+    input.placeholder = 'بانتظار موافقة الأدمن';
+    banner.style.display = 'flex';
+    text.textContent = '⏳ طلبك قيد المراجعة';
     return;
   }
+
+  const allowViewersChat = currentRoomData?.allowViewersChat === true;
 
   if (allowViewersChat) {
     input.disabled = false;
@@ -2945,12 +3149,14 @@ function updateChatInputState() {
     sendBtn.disabled = true;
     input.placeholder = 'أنت مشاهد — لا يمكنك الكتابة';
     banner.style.display = 'flex';
-    text.textContent = '👁️ أنت مشاهد فقط — بانتظار السماح من المدير';
+    text.textContent = isKicked
+      ? '👁️ تم طردك — أنت مشاهد فقط'
+      : '👁️ أنت مشاهد فقط — بانتظار السماح';
   }
 }
 
 // ============================================================
-// 📡 Chat Listener
+// 📡 Chat Listener - REAL-TIME
 // ============================================================
 function startChatListener() {
   if (unsubscribeChat) unsubscribeChat();
@@ -2958,52 +3164,115 @@ function startChatListener() {
   const roomRef = doc(db, 'contest_rooms', String(currentChatContestId));
 
   unsubscribeChat = onSnapshot(roomRef, (snap) => {
-    if (!snap.exists()) {
-      setDoc(roomRef, {
-        contestId: currentChatContestId,
-        messages: [],
-        contestants: [],
-        kickedUsers: [],
-        allowViewersChat: false,
-        roomStatus: 'waiting',
-        createdAt: serverTimestamp()
-      }, { merge: true });
-      return;
-    }
+    if (!snap.exists()) return;
 
+    const previousRoomData = currentRoomData;
     currentRoomData = snap.data();
     const messages = currentRoomData.messages || [];
     const kickedUsers = currentRoomData.kickedUsers || [];
 
-    if (kickedUsers.includes(userId) && myRole === 'contestant') {
-      myRole = 'viewer';
+    if (kickedUsers.includes(userId) && !lastSeenKicked) {
+      if (myRole === 'contestant') {
+        showInChatNotify('🚫 تم طردك من المسابقة', 'error');
+      }
+      lastSeenKicked = true;
+      myRole = 'kicked';
       updateRoleBadge();
-      showToast('🚫 تم طردك من المسابقة', 'error');
     }
 
-    renderMessages(messages);
+    const contestantIds = currentChatContest?.contestantIds || [];
+    if (myRole === 'pending' && contestantIds.includes(userId)) {
+      showInChatNotify('✅ تم قبول انضمامك!', 'success');
+      myRole = 'contestant';
+      updateRoleBadge();
+    }
+
+    const winner = currentRoomData.winner;
+    if (winner && winner.id !== lastSeenWinnerId) {
+      lastSeenWinnerId = winner.id;
+      showInChatNotify(`🏆 فاز ${winner.name}!`, 'success');
+      renderWinnerBanner(winner);
+    } else if (!winner) {
+      renderWinnerBanner(null);
+    }
+
+    if (previousRoomData && previousRoomData.allowViewersChat !== currentRoomData.allowViewersChat) {
+      if (currentRoomData.allowViewersChat) {
+        showInChatNotify('💬 تم السماح للمشاهدين بالكتابة', 'info');
+      } else {
+        showInChatNotify('🔇 تم إيقاف الكتابة للمشاهدين', 'info');
+      }
+    }
+
+    // ⭐ رسم الرسائل فقط لو تغيرت (لتجنب إعادة الرسم غير الضرورية)
+    const messagesHash = messages.map(m => m.id || m.createdAt || '').join('|');
+    if (messagesHash !== lastMessagesHash) {
+      lastMessagesHash = messagesHash;
+      renderMessages(messages);
+    }
+
     renderContestants(currentRoomData.contestants || []);
     renderWinner(currentRoomData.winner);
     renderLeaderboard();
     updateChatInputState();
+    updateSidebarBadge();
   }, (err) => console.log('chat error:', err.message));
 }
 
+function updateSidebarBadge() {
+  if (!currentRoomData) return;
+  const messages = currentRoomData.messages || [];
+  const pending = messages.filter(m => m.type === 'join_request' && !m.processed).length;
+  const badge = $('sidebarBadge');
+  if (badge) {
+    badge.style.display = pending > 0 ? 'flex' : 'none';
+    badge.textContent = pending;
+  }
+}
+
+// ============================================================
+// ⏰ Countdown Timer
+// ============================================================
 function startCountdownTimer() {
   if (countdownInterval) clearInterval(countdownInterval);
 
   countdownInterval = setInterval(() => {
-    if (!currentChatContest || !currentChatContest.startAt) return;
+    if (!currentChatContest) return;
 
     const now = new Date();
-    const startAt = new Date(currentChatContest.startAt);
-    const diff = startAt - now;
+    const startAt = currentChatContest.startAt ? new Date(currentChatContest.startAt) : null;
+    const endAt = currentChatContest.endAt ? new Date(currentChatContest.endAt) : null;
 
-    if (diff > 0) {
-      $('chatCountdown').textContent = `⏰ تبدأ بعد: ${formatCountdown(diff)}`;
+    let text = '';
+    if (startAt && startAt > now) {
+      text = `⏰ تبدأ بعد: ${formatCountdown(startAt - now)}`;
+    } else if (endAt && endAt > now) {
+      text = `⏳ تنتهي بعد: ${formatCountdown(endAt - now)}`;
     } else {
-      $('chatCountdown').textContent = '🔴 جارية الآن';
+      text = '🔴 جارية الآن';
     }
+
+    $('chatCountdown').textContent = text;
+  }, 1000);
+}
+
+function startTimerTick() {
+  if (timerTickInterval) clearInterval(timerTickInterval);
+
+  timerTickInterval = setInterval(() => {
+    document.querySelectorAll('[data-q-timer]').forEach(el => {
+      const end = new Date(el.dataset.end).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff > 0) {
+        el.innerHTML = `<i class="fas fa-clock"></i> ${Math.floor(diff / 1000)}ث`;
+        el.classList.remove('expired');
+      } else {
+        el.innerHTML = '<i class="fas fa-times-circle"></i> انتهى';
+        el.classList.add('expired');
+      }
+    });
   }, 1000);
 }
 
@@ -3012,6 +3281,8 @@ function startCountdownTimer() {
 // ============================================================
 function renderMessages(messages) {
   const container = $('chatMessages');
+  const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
   container.innerHTML = '';
 
   if (messages.length === 0) {
@@ -3030,9 +3301,11 @@ function renderMessages(messages) {
     container.appendChild(createMessageElement(msg));
   });
 
-  setTimeout(() => {
-    container.scrollTop = container.scrollHeight;
-  }, 100);
+  if (wasAtBottom) {
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 100);
+  }
 }
 
 function createMessageElement(msg) {
@@ -3057,7 +3330,6 @@ function createMessageElement(msg) {
     return createJoinRequestElement(msg);
   }
 
-  // رسالة عادية
   const isSelf = msg.senderId === userId;
 
   if (isSelf) {
@@ -3107,9 +3379,6 @@ function createMessageElement(msg) {
   return el;
 }
 
-// ============================================================
-// 🙋 Join Request Element
-// ============================================================
 function createJoinRequestElement(msg) {
   const el = document.createElement('div');
   el.className = 'msg join-request';
@@ -3142,7 +3411,7 @@ function createJoinRequestElement(msg) {
     <div class="msg-content">
       <div class="join-request-title">
         <i class="fas fa-hand-paper" style="color: var(--warning);"></i>
-        <strong>${escapeHtml(msg.senderName || 'مستخدم')}</strong> يريد الانضمام للمسابقة
+        <strong>${escapeHtml(msg.senderName || 'مستخدم')}${isSelf ? ' (أنت)' : ''}</strong> يريد الانضمام
       </div>
       <div style="font-size: 12px; color: var(--text-sub); font-weight: 600;">
         <i class="far fa-clock"></i> ${formatTimeOnly(msg.createdAt)}
@@ -3154,9 +3423,6 @@ function createJoinRequestElement(msg) {
   return el;
 }
 
-// ============================================================
-// 📝 Question Message Element
-// ============================================================
 function createQuestionMessageElement(msg) {
   const el = document.createElement('div');
   el.className = 'msg question';
@@ -3169,19 +3435,44 @@ function createQuestionMessageElement(msg) {
   const myAnswer = currentRoomData?.answers?.[msg.questionId]?.[userId];
   const hasAnswered = !!myAnswer;
 
+  const isTargeted = msg.targetStudent && msg.targetStudent.id === userId;
+  const isOtherTarget = msg.targetStudent && msg.targetStudent.id !== userId;
+
+  let timerHTML = '';
+  let timerExpired = false;
+  if (msg.timer && msg.timerEndAt) {
+    const now = Date.now();
+    const end = new Date(msg.timerEndAt).getTime();
+    const diff = end - now;
+
+    if (diff > 0) {
+      timerHTML = `<span class="timer-badge" data-q-timer="${msg.questionId}" data-end="${msg.timerEndAt}"><i class="fas fa-clock"></i> ${Math.floor(diff / 1000)}ث</span>`;
+    } else {
+      timerHTML = `<span class="timer-badge expired"><i class="fas fa-times-circle"></i> انتهى</span>`;
+      timerExpired = true;
+    }
+  }
+
+  let targetHTML = '';
+  if (msg.targetStudent) {
+    targetHTML = `<span class="target-badge"><i class="fas fa-user"></i> ${escapeHtml(msg.targetStudent.name || '')}${isTargeted ? ' (أنت)' : ''}</span>`;
+  }
+
+  const canAnswer = myRole === 'contestant' && !hasAnswered && (!msg.targetStudent || isTargeted) && !timerExpired;
+
   let contentHTML = `
     <span class="question-number-badge">
       <i class="fas fa-hashtag"></i> سؤال ${qIndex}
     </span>
     <span class="question-type-badge-chat">${typeLabel}</span>
     <span class="question-type-badge-chat"><i class="fas fa-star"></i> ${q.score || 1}</span>
+    ${timerHTML}
+    ${targetHTML}
 
     <div class="question-title-chat">${escapeHtml(q.title || '')}</div>
   `;
 
   if (isMcq) {
-    const canAnswer = myRole === 'contestant' && !hasAnswered;
-
     let optionsHTML = '<div class="question-options-chat">';
 
     (q.options || []).forEach((opt, i) => {
@@ -3194,6 +3485,7 @@ function createQuestionMessageElement(msg) {
       if (isSelected) classes += ' selected';
       if (revealCorrect) classes += ' correct-reveal';
       if (!canAnswer) classes += ' disabled';
+      if (isTargeted && canAnswer) classes += ' target-highlight';
 
       optionsHTML += `
         <div class="${classes}" data-option-idx="${i}" data-qid="${msg.questionId}">
@@ -3209,56 +3501,43 @@ function createQuestionMessageElement(msg) {
     contentHTML += optionsHTML;
 
     if (hasAnswered) {
-      contentHTML += `
-        <div class="question-answered-badge">
-          <i class="fas fa-check-circle"></i>
-          لقد أجبت على هذا السؤال
-        </div>
-      `;
+      contentHTML += `<div class="question-answered-badge"><i class="fas fa-check-circle"></i> أجبت</div>`;
+    } else if (isOtherTarget) {
+      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-user"></i> موجّه لـ ${escapeHtml(msg.targetStudent.name || '')}</div>`;
+    } else if (timerExpired) {
+      contentHTML += `<div class="question-waiting-badge" style="background: rgba(192, 57, 43, 0.1); border-color: var(--error); color: var(--error);"><i class="fas fa-times-circle"></i> انتهى الوقت</div>`;
+    } else if (myRole === 'viewer' || myRole === 'kicked') {
+      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-eye"></i> أنت مشاهد</div>`;
     }
   } else {
-    const canAnswer = myRole === 'contestant' && !hasAnswered;
-
     contentHTML += `
       <div class="question-essay-answer">
-        <textarea 
-          class="question-essay-input" 
-          data-essay-input 
-          data-qid="${msg.questionId}"
-          placeholder="${hasAnswered ? 'إجابتك:' : 'اكتب إجابتك هنا...'}"
-          ${canAnswer ? '' : 'disabled'}
-        >${hasAnswered ? escapeHtml(myAnswer?.text || '') : ''}</textarea>
-        ${!hasAnswered && canAnswer ? `
-          <button class="question-submit-btn" data-essay-submit data-qid="${msg.questionId}">
-            <i class="fas fa-paper-plane"></i>
-            <span>إرسال الإجابة</span>
-          </button>
-        ` : ''}
+        <textarea class="question-essay-input" data-essay-input data-qid="${msg.questionId}" placeholder="${hasAnswered ? 'إجابتك:' : (canAnswer ? 'اكتب إجابتك...' : 'لا يمكنك الإجابة')}" ${canAnswer ? '' : 'disabled'}>${hasAnswered ? escapeHtml(myAnswer?.text || '') : ''}</textarea>
+        ${!hasAnswered && canAnswer ? `<button class="question-submit-btn" data-essay-submit data-qid="${msg.questionId}"><i class="fas fa-paper-plane"></i> إرسال</button>` : ''}
       </div>
     `;
 
     if (hasAnswered) {
-      contentHTML += `
-        <div class="question-answered-badge">
-          <i class="fas fa-check-circle"></i>
-          لقد أجبت على هذا السؤال
-        </div>
-      `;
+      contentHTML += `<div class="question-answered-badge"><i class="fas fa-check-circle"></i> أجبت</div>`;
+    } else if (isOtherTarget) {
+      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-user"></i> موجّه لـ ${escapeHtml(msg.targetStudent.name || '')}</div>`;
+    } else if (timerExpired) {
+      contentHTML += `<div class="question-waiting-badge" style="background: rgba(192, 57, 43, 0.1); border-color: var(--error); color: var(--error);"><i class="fas fa-times-circle"></i> انتهى الوقت</div>`;
     }
   }
 
-  contentHTML += `
-    <div class="msg-meta" style="margin-top: 12px; justify-content: flex-start;">
-      <i class="far fa-clock"></i> ${formatTimeOnly(msg.createdAt)}
-    </div>
-  `;
+  contentHTML += `<div class="msg-meta" style="margin-top: 12px; justify-content: flex-start;"><i class="far fa-clock"></i> ${formatTimeOnly(msg.createdAt)}</div>`;
 
   el.innerHTML = `<div class="msg-content">${contentHTML}</div>`;
 
   if (isMcq) {
     el.querySelectorAll('.question-option-chat').forEach(optEl => {
       optEl.addEventListener('click', () => {
-        if (optEl.classList.contains('disabled')) return;
+        if (optEl.classList.contains('disabled')) {
+          if (timerExpired) showInChatNotify('⏰ انتهى وقت السؤال', 'error');
+          else if (isOtherTarget) showInChatNotify('🎯 السؤال مش لك', 'warning');
+          return;
+        }
         submitMcqAnswer(msg.questionId, parseInt(optEl.dataset.optionIdx));
       });
     });
@@ -3276,11 +3555,11 @@ function createQuestionMessageElement(msg) {
 }
 
 // ============================================================
-// ✅ Submit Answer
+// ✅ Submit Answer — arrayUnion
 // ============================================================
 async function submitMcqAnswer(questionId, optionIndex) {
   if (myRole !== 'contestant') {
-    showToast('فقط المتسابقون يمكنهم الإجابة', 'warning');
+    showInChatNotify('فقط المتسابقون يمكنهم الإجابة', 'warning');
     return;
   }
 
@@ -3292,39 +3571,52 @@ async function submitMcqAnswer(questionId, optionIndex) {
     const data = snap.data();
     const answers = data.answers || {};
 
-    if (!answers[questionId]) answers[questionId] = {};
-    if (answers[questionId][userId]) {
-      showToast('لقد أجبت على هذا السؤال بالفعل', 'warning');
+    if (answers[questionId]?.[userId]) {
+      showInChatNotify('لقد أجبت بالفعل', 'warning');
       return;
     }
 
-    answers[questionId][userId] = {
+    const messages = data.messages || [];
+    const qMsg = messages.find(m => m.type === 'question' && m.questionId === questionId);
+    if (qMsg && qMsg.timerEndAt && new Date(qMsg.timerEndAt) <= new Date()) {
+      showInChatNotify('⏰ انتهى وقت السؤال', 'error');
+      return;
+    }
+
+    if (qMsg && qMsg.targetStudent && qMsg.targetStudent.id !== userId) {
+      showInChatNotify('🎯 هذا السؤال مش لك', 'warning');
+      return;
+    }
+
+    const updatedAnswers = { ...answers };
+    if (!updatedAnswers[questionId]) updatedAnswers[questionId] = {};
+    updatedAnswers[questionId][userId] = {
       selectedIndices: [optionIndex],
       answeredAt: new Date().toISOString(),
       type: 'mcq'
     };
 
-    await setDoc(roomRef, {
-      answers,
+    await updateDoc(roomRef, {
+      answers: updatedAnswers,
       updatedAt: serverTimestamp()
-    }, { merge: true });
+    });
 
-    showToast('✅ تم تسجيل إجابتك', 'success');
+    showInChatNotify('✅ تم تسجيل إجابتك', 'success');
   } catch (e) {
     console.error(e);
-    showToast('حدث خطأ', 'error');
+    showInChatNotify('حدث خطأ', 'error');
   }
 }
 
 async function submitEssayAnswer(questionId, text) {
   if (myRole !== 'contestant') {
-    showToast('فقط المتسابقون يمكنهم الإجابة', 'warning');
+    showInChatNotify('فقط المتسابقون يمكنهم الإجابة', 'warning');
     return;
   }
 
   const answerText = cleanInput(text);
   if (!answerText) {
-    showToast('اكتب إجابتك أولاً', 'warning');
+    showInChatNotify('اكتب إجابتك أولاً', 'warning');
     return;
   }
 
@@ -3336,27 +3628,40 @@ async function submitEssayAnswer(questionId, text) {
     const data = snap.data();
     const answers = data.answers || {};
 
-    if (!answers[questionId]) answers[questionId] = {};
-    if (answers[questionId][userId]) {
-      showToast('لقد أجبت على هذا السؤال بالفعل', 'warning');
+    if (answers[questionId]?.[userId]) {
+      showInChatNotify('لقد أجبت بالفعل', 'warning');
       return;
     }
 
-    answers[questionId][userId] = {
+    const messages = data.messages || [];
+    const qMsg = messages.find(m => m.type === 'question' && m.questionId === questionId);
+    if (qMsg && qMsg.timerEndAt && new Date(qMsg.timerEndAt) <= new Date()) {
+      showInChatNotify('⏰ انتهى وقت السؤال', 'error');
+      return;
+    }
+
+    if (qMsg && qMsg.targetStudent && qMsg.targetStudent.id !== userId) {
+      showInChatNotify('🎯 هذا السؤال مش لك', 'warning');
+      return;
+    }
+
+    const updatedAnswers = { ...answers };
+    if (!updatedAnswers[questionId]) updatedAnswers[questionId] = {};
+    updatedAnswers[questionId][userId] = {
       text: answerText,
       answeredAt: new Date().toISOString(),
       type: 'essay'
     };
 
-    await setDoc(roomRef, {
-      answers,
+    await updateDoc(roomRef, {
+      answers: updatedAnswers,
       updatedAt: serverTimestamp()
-    }, { merge: true });
+    });
 
-    showToast('✅ تم تسجيل إجابتك', 'success');
+    showInChatNotify('✅ تم تسجيل إجابتك', 'success');
   } catch (e) {
     console.error(e);
-    showToast('حدث خطأ', 'error');
+    showInChatNotify('حدث خطأ', 'error');
   }
 }
 
@@ -3366,7 +3671,6 @@ async function submitEssayAnswer(questionId, text) {
 function renderContestants(contestants) {
   const container = $('contestantsList');
   const countEl = $('contestantsCount');
-
   if (!container) return;
 
   const list = contestants || [];
@@ -3376,7 +3680,7 @@ function renderContestants(contestants) {
     container.innerHTML = `
       <div style="padding: 20px 12px; text-align: center; font-size: 12.5px; color: var(--text-sub); font-weight: 600;">
         <i class="fas fa-hourglass-half" style="font-size: 24px; display: block; margin-bottom: 8px; opacity: 0.5;"></i>
-        بانتظار دخول المتسابقين...
+        بانتظار المتسابقين...
       </div>
     `;
     renderMyScore();
@@ -3402,20 +3706,13 @@ function renderContestants(contestants) {
       ? `<img src="${escapeHtml(c.avatarUrl)}" alt="" onerror="this.parentNode.innerHTML='<span>${(c.name || '؟').charAt(0).toUpperCase()}</span>'">`
       : `<span>${(c.name || '؟').charAt(0).toUpperCase()}</span>`;
 
-    // حساب النقاط
     let score = 0;
-    let correctCount = 0;
     Object.keys(answers).forEach(qId => {
       const a = answers[qId]?.[c.id];
       const q = questions.find(q => q.id === qId);
-      if (a && q) {
-        if (q.type === 'mcq' && a.selectedIndices) {
-          const correctIdx = q.options.findIndex(o => o.correct);
-          if (a.selectedIndices.includes(correctIdx)) {
-            score += (q.score || 1);
-            correctCount++;
-          }
-        }
+      if (a && q && q.type === 'mcq' && a.selectedIndices) {
+        const correctIdx = q.options.findIndex(o => o.correct);
+        if (a.selectedIndices.includes(correctIdx)) score += (q.score || 1);
       }
     });
 
@@ -3448,9 +3745,6 @@ function renderContestants(contestants) {
   renderMyScore();
 }
 
-// ============================================================
-// 📊 My Score + Opponents Score
-// ============================================================
 function renderMyScore() {
   const box = $('myScoreBox');
   if (!box) return;
@@ -3464,7 +3758,6 @@ function renderMyScore() {
   const questions = currentChatContest?.questions || [];
   const contestants = currentRoomData?.contestants || [];
 
-  // نقاطي
   let myScore = 0;
   let myCorrect = 0;
   let myAnswered = 0;
@@ -3482,14 +3775,12 @@ function renderMyScore() {
     }
   });
 
-  // نقاط الخصوم
   const opponents = contestants.filter(c => c.id !== userId);
   let opponentsHTML = '';
 
   if (opponents.length > 0) {
     opponentsHTML = opponents.map(o => {
       let oScore = 0;
-      let oCorrect = 0;
       Object.keys(answers).forEach(qId => {
         const a = answers[qId]?.[o.id];
         const q = questions.find(q => q.id === qId);
@@ -3497,7 +3788,6 @@ function renderMyScore() {
           const correctIdx = q.options.findIndex(opt => opt.correct);
           if (a.selectedIndices.includes(correctIdx)) {
             oScore += (q.score || 1);
-            oCorrect++;
           }
         }
       });
@@ -3513,11 +3803,7 @@ function renderMyScore() {
       `;
     }).join('');
   } else {
-    opponentsHTML = `
-      <div style="text-align: center; padding: 8px; font-size: 12px; color: var(--text-sub); font-weight: 600;">
-        لا يوجد خصوم بعد
-      </div>
-    `;
+    opponentsHTML = `<div style="text-align: center; padding: 8px; font-size: 12px; color: var(--text-sub); font-weight: 600;">لا يوجد خصوم بعد</div>`;
   }
 
   box.innerHTML = `
@@ -3526,21 +3812,15 @@ function renderMyScore() {
         <i class="fas fa-chart-line"></i> نقاطي
       </div>
       <div class="my-score-row">
-        <div class="my-score-label">
-          <i class="fas fa-star" style="color: var(--accent);"></i> مجموع النقاط
-        </div>
+        <div class="my-score-label"><i class="fas fa-star" style="color: var(--accent);"></i> مجموع النقاط</div>
         <div class="my-score-value accent">${myScore}</div>
       </div>
       <div class="my-score-row">
-        <div class="my-score-label">
-          <i class="fas fa-check-circle" style="color: var(--success);"></i> إجابات صحيحة
-        </div>
+        <div class="my-score-label"><i class="fas fa-check-circle" style="color: var(--success);"></i> إجابات صحيحة</div>
         <div class="my-score-value success">${myCorrect} / ${questions.length}</div>
       </div>
       <div class="my-score-row">
-        <div class="my-score-label">
-          <i class="fas fa-pen" style="color: var(--info);"></i> أسئلة مُجابة
-        </div>
+        <div class="my-score-label"><i class="fas fa-pen" style="color: var(--info);"></i> أسئلة مُجابة</div>
         <div class="my-score-value info">${myAnswered} / ${questions.length}</div>
       </div>
     </div>
@@ -3554,7 +3834,7 @@ function renderMyScore() {
 }
 
 // ============================================================
-// 🏆 قائمة الصدارة (Real-time للجميع)
+// 🏆 Leaderboard
 // ============================================================
 function renderLeaderboard() {
   const container = $('leaderboardList');
@@ -3604,16 +3884,9 @@ function renderLeaderboard() {
       ? Math.round((lastAnswerTime - firstAnswerTime) / 1000)
       : 0;
 
-    return {
-      ...c,
-      score,
-      correctCount,
-      answeredCount,
-      duration
-    };
+    return { ...c, score, correctCount, answeredCount, duration };
   });
 
-  // ترتيب: النقاط ثم السرعة
   stats.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
@@ -3662,7 +3935,7 @@ function renderLeaderboard() {
 }
 
 // ============================================================
-// 🏆 Render Winner (يظهر فوراً للجميع)
+// 🏆 Winner
 // ============================================================
 function renderWinner(winner) {
   const box = $('winnerBox');
@@ -3697,73 +3970,27 @@ function renderWinner(winner) {
   `;
 }
 
-// ============================================================
-// 🚪 Leave Contest (انسحاب)
-// ============================================================
-async function leaveContest() {
-  if (myRole !== 'contestant') {
-    showToast('أنت لست متسابقاً', 'info');
+function renderWinnerBanner(winner) {
+  const wrap = $('winnerBannerWrap');
+  if (!wrap) return;
+
+  if (!winner) {
+    wrap.innerHTML = '';
     return;
   }
 
-  if (!confirm('هل تريد الانسحاب من المسابقة؟ سيتم تحويلك إلى مشاهد.')) return;
-
-  try {
-    const contestRef = doc(db, 'contests', 'all');
-    const contestSnap = await getDoc(contestRef);
-    if (!contestSnap.exists()) return;
-
-    const items = contestSnap.data().items || [];
-    const idx = items.findIndex(c => c.id === currentChatContestId);
-    if (idx === -1) return;
-
-    const c = items[idx];
-    const contestantIds = (c.contestantIds || []).filter(id => id !== userId);
-    const contestants = (c.contestants || []).filter(x => x.id !== userId);
-    const kickedUsers = c.kickedUsers || [];
-    if (!kickedUsers.includes(userId)) kickedUsers.push(userId);
-
-    items[idx] = {
-      ...c,
-      contestantIds,
-      contestants,
-      kickedUsers,
-      contestantsCount: contestantIds.length,
-      updatedAt: new Date().toISOString()
-    };
-
-    await setDoc(contestRef, { items, updatedAt: serverTimestamp() });
-
-    const roomRef = doc(db, 'contest_rooms', String(currentChatContestId));
-    const roomSnap = await getDoc(roomRef);
-    let messages = roomSnap.exists() ? (roomSnap.data().messages || []) : [];
-
-    messages.push({
-      id: 'sys_' + Date.now(),
-      sender: 'system',
-      type: 'system',
-      text: `👋 انسحب ${userData?.fullName || userName} من المسابقة`,
-      createdAt: new Date().toISOString()
-    });
-
-    await setDoc(roomRef, {
-      contestants,
-      kickedUsers,
-      messages,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    myRole = 'viewer';
-    updateRoleBadge();
-    showToast('✅ تم الانسحاب — أنت الآن مشاهد', 'success');
-  } catch (e) {
-    console.error(e);
-    showToast('حدث خطأ', 'error');
-  }
+  const isMe = winner.id === userId;
+  wrap.innerHTML = `
+    <div class="winner-banner">
+      <i class="fas fa-crown"></i>
+      <span>الفائز: ${escapeHtml(winner.name)}${isMe ? ' (أنت! 🎉)' : ''}</span>
+      <i class="fas fa-crown"></i>
+    </div>
+  `;
 }
 
 // ============================================================
-// 📤 Send Message
+// 📤 Send Message — arrayUnion (⭐ الإصلاح الأساسي)
 // ============================================================
 $('chatSendBtn').addEventListener('click', sendChatMessage);
 $('chatInput').addEventListener('keydown', (e) => {
@@ -3779,22 +4006,22 @@ $('chatInput').addEventListener('input', function() {
 });
 
 async function sendChatMessage() {
-  if (myRole !== 'contestant' && !currentRoomData?.allowViewersChat) {
-    return showToast('لا يمكنك الكتابة — بانتظار السماح', 'warning');
+  if (myRole !== 'contestant' && currentRoomData?.allowViewersChat !== true) {
+    return showInChatNotify('لا يمكنك الكتابة', 'warning');
   }
 
   const input = $('chatInput');
   const text = cleanInput(input.value);
   if (!text) return;
+  if (!currentChatContestId) return;
+
+  // امسح الحقل فوراً
+  input.value = '';
+  input.style.height = 'auto';
 
   try {
     const roomRef = doc(db, 'contest_rooms', String(currentChatContestId));
-    const snap = await getDoc(roomRef);
-
-    let messages = [];
-    if (snap.exists()) messages = snap.data().messages || [];
-
-    messages.push({
+    const newMsg = {
       id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       sender: 'user',
       senderId: userId,
@@ -3804,20 +4031,28 @@ async function sendChatMessage() {
       type: 'chat',
       role: myRole,
       createdAt: new Date().toISOString()
+    };
+
+    // ⭐ arrayUnion — عملية ذرية، لا race conditions
+    await updateDoc(roomRef, {
+      messages: arrayUnion(newMsg),
+      updatedAt: serverTimestamp()
     });
 
-    await setDoc(roomRef, {
-      messages,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    input.value = '';
-    input.style.height = 'auto';
   } catch (e) {
     console.error('send error:', e);
-    showToast('تعذّر الإرسال', 'error');
+    input.value = text;
+    showInChatNotify('تعذّر الإرسال', 'error');
   }
 }
+
+// ============================================================
+// 🔗 Join From Chat
+// ============================================================
+$('chatJoinBtn').addEventListener('click', async () => {
+  if (!currentChatContest) return;
+  await requestJoin(currentChatContest);
+});
 
 // ============================================================
 // ❌ Close Chat
@@ -3828,9 +4063,13 @@ function closeChatRoom() {
   currentChatContestId = null;
   currentChatContest = null;
   currentRoomData = null;
+  lastSeenWinnerId = null;
+  lastSeenKicked = false;
+  lastMessagesHash = '';
 
   if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
 }
 
 $('chatBackBtn').addEventListener('click', closeChatRoom);
@@ -3897,7 +4136,7 @@ drawerClose?.addEventListener('click', closeDrawer);
 drawerOverlay?.addEventListener('click', closeDrawer);
 
 // ============================================================
-// ⌨️ Escape
+// Escape
 // ============================================================
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
