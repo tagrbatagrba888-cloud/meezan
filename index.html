@@ -4,38 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
-<!-- 🔐 جلسة دائمة: تبقى مسجل دخول 10 أيام حتى بعد قفل المتصفح (تنتهي بتسجيل الخروج) -->
-<script>
-(function () {
-  try {
-    var ss = window.sessionStorage, ls = window.localStorage;
-    var P = 'meezan_', K = 'meezan_persist_v1', TTL = 10 * 24 * 60 * 60 * 1000;
-    var rec = null;
-    try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
-    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true')) { ls.removeItem(K); rec = null; }
-    if (rec && ss.getItem('meezan_logged_in') !== 'true') { for (var k in rec.d) ss.setItem(k, rec.d[k]); }
-
-    function save(renew) {
-      try {
-        var d = {};
-        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
-        if (d.meezan_logged_in !== 'true') { ls.removeItem(K); return; }
-        var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
-        var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
-        ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
-      } catch (e) {}
-    }
-    var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
-    proto.setItem = function (k, v) { _s.call(this, k, v); if (this === ss && String(k).indexOf(P) === 0) save(k === 'meezan_logged_in'); };
-    proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
-    proto.clear = function () { _c.call(this); if (this === ss) save(false); };
-    save(false);
-
-    // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
-    if (/login(\.html)?$/i.test(location.pathname) && ss.getItem('meezan_logged_in') === 'true') { location.replace('index.html'); }
-  } catch (e) {}
-})();
-</script>
 
 <!-- PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1617,16 +1585,6 @@
     .action-btn-icon { width: 44px; height: 44px; font-size: 18px; }
     .action-btn-label { font-size: 12.5px; }
   }
-
-  /* ===== تفعيل إشعارات الجهاز ===== */
-  .push-card { position: fixed; bottom: 16px; left: 12px; right: 12px; max-width: 460px; margin: 0 auto; z-index: 9990; display: none; align-items: center; gap: 10px; background: var(--bg-card); border: 1.5px solid var(--accent); border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 30px var(--shadow); font-size: 13px; font-weight: 700; color: var(--text-main); }
-  .push-card.show { display: flex; }
-  .push-card > i { color: var(--accent); font-size: 20px; flex-shrink: 0; }
-  .push-card > span { flex: 1; line-height: 1.55; }
-  .push-card button { font-family: inherit; font-weight: 800; font-size: 12.5px; border: none; border-radius: 10px; padding: 9px 13px; cursor: pointer; flex-shrink: 0; }
-  .push-card .push-yes { background: var(--primary); color: #fff; }
-  [data-theme="dark"] .push-card .push-yes { color: var(--bg-page); }
-  .push-card .push-no { background: transparent; color: var(--text-sub); padding: 9px 6px; }
 </style>
 </head>
 <body>
@@ -1813,13 +1771,6 @@
     </div>
   </div>
 </aside>
-
-<div class="push-card" id="pushCard">
-  <i class="fas fa-bell"></i>
-  <span>فعّل الإشعارات لتصلك إشعارات المنصة على هاتفك</span>
-  <button type="button" class="push-yes" id="pushYes">تفعيل</button>
-  <button type="button" class="push-no" id="pushNo">لاحقاً</button>
-</div>
 
 <div class="toast-notification" id="toastNotif">
   <i class="fas fa-bell" id="toastNotifIcon"></i>
@@ -2662,45 +2613,6 @@ function startUserMonitoring() {
 }
 
 // ============================================================
-// 🔔 إشعارات الجهاز (إشعار نظام عند وصول إشعار جديد)
-// ============================================================
-let notifSnapDone = false;
-const pushSupported = () => ('Notification' in window);
-
-function updatePushCard() {
-  const c = $('pushCard'); if (!c) return;
-  let dismissed = 0; try { dismissed = parseInt(localStorage.getItem('meezan_push_dismissed') || '0', 10); } catch (e) {}
-  const recentlyDismissed = dismissed && (Date.now() - dismissed < 3 * 24 * 60 * 60 * 1000);
-  c.classList.toggle('show', pushSupported() && Notification.permission === 'default' && !recentlyDismissed);
-}
-
-async function enablePush() {
-  if (!pushSupported()) { showToast('جهازك لا يدعم الإشعارات (على الآيفون أضف الموقع للشاشة الرئيسية أولاً)', 'warning'); return; }
-  let perm = Notification.permission;
-  if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
-  updatePushCard();
-  if (perm === 'granted') showToast('تم تفعيل الإشعارات 🔔', 'success');
-  else if (perm === 'denied') showToast('الإشعارات محظورة من إعدادات المتصفح', 'warning');
-}
-
-async function showSystemNotification(title, body) {
-  if (!pushSupported() || Notification.permission !== 'granted') return;
-  const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', tag: 'meezan-notif', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: 'asharat.html' } };
-  try {
-    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
-    if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
-  } catch (e) {}
-  try {
-    const n = new Notification(title, opts);
-    n.onclick = () => { window.focus(); window.location.href = 'asharat.html'; n.close(); };
-  } catch (e) {}
-}
-
-$('pushYes').addEventListener('click', () => enablePush());
-$('pushNo').addEventListener('click', () => { try { localStorage.setItem('meezan_push_dismissed', String(Date.now())); } catch (e) {} updatePushCard(); });
-setTimeout(updatePushCard, 2500);
-
-// ============================================================
 // 🔔 الإشعارات — عنوان فقط + قابل للضغط
 // ============================================================
 let lastShownNotifIds = new Set();
@@ -2714,12 +2626,10 @@ function startNotificationsListener() {
     if (!snap.exists()) {
       $('notifBadge').classList.remove('show');
       $('drawerNotifBadge').classList.remove('show');
-      notifSnapDone = true;
       return;
     }
 
     const data = snap.data();
-    const isFirstSnap = !notifSnapDone;
     const notifIds = data.notifIds || [];
     const readIds = data.readIds || [];
     const deletedIds = data.deletedIds || [];
@@ -2750,12 +2660,10 @@ function startNotificationsListener() {
 
         const nData = nSnap.data();
         showToastNotification(nData.title || 'إشعار جديد', 'info');
-        if (!isFirstSnap && document.hidden) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات');
       } catch (e) {
         console.log('notif detail error:', e.message);
       }
     }
-    notifSnapDone = true;
 
   }, (err) => {
     console.log('notifs listener error:', err.message);
