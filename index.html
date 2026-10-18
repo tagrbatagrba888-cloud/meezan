@@ -1882,20 +1882,70 @@ const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
-// 🔒 الحماية — طرد لو ما مسجل
+// 🔒 الحماية — 10 أيام من localStorage
 // ============================================================
-if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+const SESSION_TTL_MS = 10 * 24 * 60 * 60 * 1000; // 10 أيام
+
+function clearSession() {
+  [
+    'meezan_logged_in','meezan_username','meezan_role','meezan_user_id',
+    'meezan_user_data','meezan_session_started','meezan_session_expires'
+  ].forEach(k => {
+    try { localStorage.removeItem(k); } catch(e) {}
+    try { sessionStorage.removeItem(k); } catch(e) {}
+  });
+}
+
+function isSessionValid() {
+  let loggedIn = localStorage.getItem('meezan_logged_in');
+  let expiresAt = parseInt(localStorage.getItem('meezan_session_expires') || '0', 10);
+
+  // احتياطي: نقل من sessionStorage لـ localStorage
+  if (loggedIn !== 'true') {
+    const ssLogged = sessionStorage.getItem('meezan_logged_in');
+    if (ssLogged === 'true') {
+      const newExp = Date.now() + SESSION_TTL_MS;
+      localStorage.setItem('meezan_logged_in', 'true');
+      localStorage.setItem('meezan_username', sessionStorage.getItem('meezan_username') || '');
+      localStorage.setItem('meezan_role', sessionStorage.getItem('meezan_role') || 'student');
+      localStorage.setItem('meezan_user_id', sessionStorage.getItem('meezan_user_id') || '');
+      localStorage.setItem('meezan_session_started', String(Date.now()));
+      localStorage.setItem('meezan_session_expires', String(newExp));
+      const ud = sessionStorage.getItem('meezan_user_data');
+      if (ud) localStorage.setItem('meezan_user_data', ud);
+      loggedIn = 'true';
+      expiresAt = newExp;
+    }
+  }
+
+  if (loggedIn !== 'true') return false;
+  if (!expiresAt || Date.now() > expiresAt) {
+    clearSession();
+    return false;
+  }
+  return true;
+}
+
+if (!isSessionValid()) {
   window.location.replace('login.html');
 }
 
 history.pushState(null, '', location.href);
 window.addEventListener('popstate', () => {
-  if (sessionStorage.getItem('meezan_logged_in') === 'true') {
+  if (isSessionValid()) {
     history.pushState(null, '', location.href);
   } else {
     window.location.replace('login.html');
   }
 });
+
+// 🔄 تمديد الجلسة تلقائياً (sliding expiration) عند كل فتح
+(function extendSession() {
+  const exp = parseInt(localStorage.getItem('meezan_session_expires') || '0', 10);
+  if (exp && Date.now() < exp) {
+    localStorage.setItem('meezan_session_expires', String(Date.now() + SESSION_TTL_MS));
+  }
+})();
 
 // ============================================================
 // 🧹 التنظيف
@@ -2112,7 +2162,7 @@ function updateDrawerTheme(theme) {
 }
 
 // ============================================================
-// 📦 الكاش المحلي (localStorage) — لعرض فوري للاسم والأزرار
+// 📦 الكاش المحلي
 // ============================================================
 const CACHE_KEYS = {
   settings: 'meezan_home_settings_cache',
@@ -2210,7 +2260,7 @@ function applyColors(data) {
 }
 
 // ============================================================
-// 👤 تطبيق بيانات المستخدم (فوري من الكاش أو من Firestore)
+// 👤 تطبيق بيانات المستخدم
 // ============================================================
 function applyUser(user, role) {
   if (!user) return;
@@ -2461,7 +2511,7 @@ function createButtonElement(btn) {
 }
 
 // ============================================================
-// 🎨 تطبيق الأزرار (من الكاش أو Firestore)
+// 🎨 تطبيق الأزرار
 // ============================================================
 function applyButtons(items) {
   allCurrentButtons = (items || [])
@@ -2567,11 +2617,7 @@ function getRemainingTime(untilIso) {
 }
 
 function forceLogout() {
-  sessionStorage.removeItem('meezan_logged_in');
-  sessionStorage.removeItem('meezan_username');
-  sessionStorage.removeItem('meezan_role');
-  sessionStorage.removeItem('meezan_user_id');
-  sessionStorage.removeItem('meezan_user_data');
+  clearSession();
   window.location.replace('login.html');
 }
 
@@ -2605,7 +2651,6 @@ function startUserMonitoring() {
       }
     }
 
-    // ✅ تحديث الكاش المحلي بأحدث بيانات المستخدم
     saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
     applyUser(user, role);
 
@@ -2613,7 +2658,7 @@ function startUserMonitoring() {
 }
 
 // ============================================================
-// 🔔 الإشعارات — عنوان فقط + قابل للضغط
+// 🔔 الإشعارات
 // ============================================================
 let lastShownNotifIds = new Set();
 
@@ -2649,7 +2694,6 @@ function startNotificationsListener() {
       $('drawerNotifBadge').classList.remove('show');
     }
 
-    // ✅ Toast للعنوان فقط — مرة واحدة لكل إشعار
     for (const nid of unreadNotifIds) {
       if (lastShownNotifIds.has(nid)) continue;
       lastShownNotifIds.add(nid);
@@ -2673,7 +2717,7 @@ function startNotificationsListener() {
 }
 
 // ============================================================
-// 📢 Toast علوي — العنوان فقط + ينقل لصفحة الإشعارات
+// 📢 Toast علوي
 // ============================================================
 let toastNotifTimeout;
 function showToastNotification(title, type = 'info') {
@@ -2696,7 +2740,6 @@ function showToastNotification(title, type = 'info') {
   }, 2800);
 }
 
-// ✅ الضغط على الـ Toast ينقل لصفحة الإشعارات
 $('toastNotif').addEventListener('click', () => {
   $('toastNotif').classList.remove('show');
   window.location.href = 'asharat.html';
@@ -2756,7 +2799,7 @@ drawerLogoutBtn?.addEventListener('click', () => {
 });
 
 // ============================================================
-// ⚡ التطبيق الفوري من الكاش (يشتغل قبل أي اتصال)
+// ⚡ التطبيق الفوري من الكاش
 // ============================================================
 function applyFromCache() {
   // 1. الإعدادات
@@ -2766,18 +2809,17 @@ function applyFromCache() {
     applySettings(cachedSettings);
   }
 
-  // 2. بيانات المستخدم (الاسم + الصورة + الفرقة)
+  // 2. بيانات المستخدم
   const cachedUser = loadCache(CACHE_KEYS.user);
   if (cachedUser && cachedUser.user) {
     applyUser(cachedUser.user, cachedUser.role || 'student');
   } else {
-    // احتياطي: من sessionStorage
-    const sessionData = sessionStorage.getItem('meezan_user_data');
+    const sessionData = localStorage.getItem('meezan_user_data');
     if (sessionData) {
       try {
         const u = JSON.parse(sessionData);
-        const role = sessionStorage.getItem('meezan_role') || 'student';
-        const userId = sessionStorage.getItem('meezan_user_id') || '';
+        const role = localStorage.getItem('meezan_role') || 'student';
+        const userId = localStorage.getItem('meezan_user_id') || '';
         applyUser({ ...u, id: userId }, role);
       } catch (e) {}
     }
@@ -2787,13 +2829,12 @@ function applyFromCache() {
   const cachedButtons = loadCache(CACHE_KEYS.buttons);
   if (cachedButtons && cachedButtons.data) {
     const role = cachedButtons.role || 'student';
-    if (role === (sessionStorage.getItem('meezan_role') || 'student')) {
+    if (role === (localStorage.getItem('meezan_role') || 'student')) {
       applyButtons(cachedButtons.data);
     }
   }
 }
 
-// ⚡ شغّل الكاش فوراً
 applyFromCache();
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
@@ -2814,7 +2855,7 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
 // ============================================================
-// 📡 Real-time: الأزرار (مع حفظ في الكاش)
+// 📡 Real-time: الأزرار
 // ============================================================
 function startButtonsListener(role) {
   const refName = role === 'teacher' ? 'user_buttons_teacher' : 'user_buttons_student';
@@ -2826,21 +2867,20 @@ function startButtonsListener(role) {
       items = snap.data().items || [];
     }
     applyButtons(items);
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.buttons, { data: items, role });
   }, (err) => {
     console.log('buttons error:', err.message);
-    // اترك الكاش القديم ظاهر
   });
 }
 
 // ============================================================
-// 👤 تحميل بيانات المستخدم من Firestore (مع حفظ في الكاش)
+// 👤 تحميل بيانات المستخدم من Firestore
 // ============================================================
 async function loadUserDataFromFirestore() {
-  const userId = sessionStorage.getItem('meezan_user_id');
-  const username = cleanInput(sessionStorage.getItem('meezan_username') || '');
-  const role = sessionStorage.getItem('meezan_role') || 'student';
+  // ✅ من localStorage الآن
+  const userId = localStorage.getItem('meezan_user_id');
+  const username = cleanInput(localStorage.getItem('meezan_username') || '');
+  const role = localStorage.getItem('meezan_role') || 'student';
 
   currentRole = role;
   currentUserId = userId;
@@ -2866,7 +2906,6 @@ async function loadUserDataFromFirestore() {
     currentUser = user;
     currentUserId = user.id;
 
-    // ✅ احفظ في الكاش
     saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
 
     renderUserInfo(user);
@@ -2882,12 +2921,8 @@ async function loadUserDataFromFirestore() {
 // 🚀 Init
 // ============================================================
 async function init() {
-  const role = sessionStorage.getItem('meezan_role') || 'student';
-
-  // شغّل مراقبة الأزرار فوراً (تحدّث الكاش)
+  const role = localStorage.getItem('meezan_role') || 'student';
   startButtonsListener(role);
-
-  // حمّل بيانات المستخدم (بالتوازي)
   await loadUserDataFromFirestore();
 }
 
