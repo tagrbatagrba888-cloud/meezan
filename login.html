@@ -4,6 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
+<!-- 🔐 جلسة دائمة: تبقى مسجل دخول 10 أيام حتى بعد قفل المتصفح (تنتهي بتسجيل الخروج) -->
+<script>
+(function () {
+  try {
+    var ss = window.sessionStorage, ls = window.localStorage;
+    var P = 'meezan_', K = 'meezan_persist_v1', TTL = 10 * 24 * 60 * 60 * 1000;
+    var rec = null;
+    try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true')) { ls.removeItem(K); rec = null; }
+    if (rec && ss.getItem('meezan_logged_in') !== 'true') { for (var k in rec.d) ss.setItem(k, rec.d[k]); }
+
+    function save(renew) {
+      try {
+        var d = {};
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
+        if (d.meezan_logged_in !== 'true') { ls.removeItem(K); return; }
+        var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+        var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
+        ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
+      } catch (e) {}
+    }
+    var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
+    proto.setItem = function (k, v) { _s.call(this, k, v); if (this === ss && String(k).indexOf(P) === 0) save(k === 'meezan_logged_in'); };
+    proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
+    proto.clear = function () { _c.call(this); if (this === ss) save(false); };
+    save(false);
+
+    // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
+    if (/login(\.html)?$/i.test(location.pathname) && ss.getItem('meezan_logged_in') === 'true') { location.replace('index.html'); }
+  } catch (e) {}
+})();
+</script>
 
 <!-- PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1300,13 +1332,7 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
-// 🔑 إعدادات الجلسة — 10 أيام
-// ============================================================
-const SESSION_DAYS = 10;
-const SESSION_TTL_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
-
-// ============================================================
-// ⚡ withTimeout
+// ⚡ withTimeout — حتى لا تعلّق الواجهة أبداً
 // ============================================================
 function withTimeout(promise, ms = 8000, msg = 'انتهت المهلة، تحقق من الإنترنت') {
   return Promise.race([
@@ -1512,14 +1538,14 @@ function saveCache(key, data) {
 }
 
 // ============================================================
-// ⚡ كاش في الذاكرة
+// ⚡ كاش في الذاكرة للمستخدمين (لتسريع القراءات المتكررة)
 // ============================================================
 const usersMemoryCache = {
   users: { items: [], fetchedAt: 0 },
   teachers: { items: [], fetchedAt: 0 }
 };
 
-const MEMORY_TTL = 60 * 1000;
+const MEMORY_TTL = 60 * 1000; // 60 ثانية
 
 function getUsersFromMemory(collectionName) {
   const c = usersMemoryCache[collectionName];
@@ -1535,6 +1561,16 @@ function setUsersToMemory(collectionName, items) {
   c.fetchedAt = Date.now();
 }
 
+function invalidateUsersMemory(collectionName) {
+  const c = usersMemoryCache[collectionName];
+  if (!c) return;
+  c.items = [];
+  c.fetchedAt = 0;
+}
+
+// ============================================================
+// ⚡ قراءة سريعة للمستخدمين (مع كاش + getDoc)
+// ============================================================
 async function fetchUsersFast(collectionName, useCache = true) {
   if (useCache) {
     const mem = getUsersFromMemory(collectionName);
@@ -1852,7 +1888,7 @@ document.querySelectorAll('[data-reg-role]').forEach(btn => {
 });
 
 // ============================================================
-// 🎓 تحديث القائمة
+// 🎓 تحديث قائمة الفرق/المواد
 // ============================================================
 function updateGradeSelect() {
   const select = $('regGrade');
@@ -1926,7 +1962,7 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: ['data-theme'] });
 
 // ============================================================
-// 📡 Categories
+// 📡 Real-time categories (للتسجيل فقط، لا يعطّل الدخول)
 // ============================================================
 onSnapshot(doc(db, 'users', 'categories'), (snap) => {
   if (snap.exists()) {
@@ -1945,7 +1981,7 @@ onSnapshot(doc(db, 'teachers', 'categories'), (snap) => {
 }, (e) => console.log('teacher cat error'));
 
 // ============================================================
-// 📅 استخراج تاريخ الميلاد
+// 📅 استخراج تاريخ الميلاد من الرقم القومي
 // ============================================================
 $('regNationalId').addEventListener('input', (e) => {
   let val = cleanInput(e.target.value).replace(/\D/g, '');
@@ -1986,7 +2022,7 @@ $('gNationalId').addEventListener('input', (e) => {
 });
 
 // ============================================================
-// 🚀 تسجيل الدخول
+// 🚀 تسجيل الدخول — سريع جداً
 // ============================================================
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2021,7 +2057,10 @@ $('loginForm').addEventListener('submit', async (e) => {
 
   try {
     const collectionName = currentLoginRole === 'teacher' ? 'teachers' : 'users';
+
+    // ⚡ قراءة سريعة (getDoc + memory cache)
     const items = await fetchUsersFast(collectionName, true);
+
     const user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
 
     if (!user) throw new Error('اسم المستخدم غير صحيح');
@@ -2041,8 +2080,10 @@ $('loginForm').addEventListener('submit', async (e) => {
       }
     }
 
+    // ✅ حفظ الجلسة أولاً (المستخدم جاهز للانتقال)
     saveSession(user, currentLoginRole, username);
 
+    // 🚀 التوجيه فوراً — بدون انتظار markUserOnline
     const elapsed = Math.round(performance.now() - t0);
     console.log(`⚡ Login took ${elapsed}ms`);
 
@@ -2051,6 +2092,7 @@ $('loginForm').addEventListener('submit', async (e) => {
 
     showSuccess(`مرحباً ${user.fullName || username}! جاري التوجيه...`);
 
+    // ⚡ markUserOnline في الخلفية (لا يعطّل التوجيه)
     markUserOnline(collectionName, user.id);
 
     setTimeout(() => window.location.replace('index.html'), 400);
@@ -2066,7 +2108,7 @@ $('loginForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-// 📝 إنشاء حساب
+// 📝 إنشاء حساب — سريع جداً
 // ============================================================
 $('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2125,6 +2167,8 @@ $('registerForm').addEventListener('submit', async (e) => {
 
   try {
     const collectionName = currentRegRole === 'teacher' ? 'teachers' : 'users';
+
+    // ⚡ قراءة سريعة
     let items = await fetchUsersFast(collectionName, true);
 
     if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
@@ -2161,9 +2205,11 @@ $('registerForm').addEventListener('submit', async (e) => {
       updatedAt: now
     };
 
+    // ✅ تحديث الذاكرة فوراً (حتى لا نقرأ من السيرفر مرة أخرى)
     items.push(newUser);
     setUsersToMemory(collectionName, items);
 
+    // ⚡ كتابة أنحف عبر arrayUnion إذا المستند موجود
     const allRef = doc(db, collectionName, 'all');
     const snapCheck = await withTimeout(getDoc(allRef), 8000);
 
@@ -2179,6 +2225,7 @@ $('registerForm').addEventListener('submit', async (e) => {
       }), 10000, 'تأخّر الاتصال أثناء حفظ الحساب');
     }
 
+    // ✅ حفظ الجلسة
     saveSession(newUser, currentRegRole, username);
 
     const elapsed = Math.round(performance.now() - t0);
@@ -2197,7 +2244,7 @@ $('registerForm').addEventListener('submit', async (e) => {
 });
 
 // ============================================================
-// 🔵 Google Sign-In
+// 🔵 Google Sign-In — تسجيل دخول
 // ============================================================
 $('googleLoginBtn').addEventListener('click', () => {
   if (currentLoginRole === 'student' && !studentLoginEnabled) {
@@ -2243,6 +2290,7 @@ async function handleGoogleAuth(mode) {
     const role = mode === 'register' ? currentRegRole : currentLoginRole;
     const collectionName = role === 'teacher' ? 'teachers' : 'users';
 
+    // ⚡ قراءة سريعة
     let items = await fetchUsersFast(collectionName, true);
     const existing = items.find(u => (u.email || '').toLowerCase() === googleData.email.toLowerCase());
 
@@ -2280,6 +2328,7 @@ async function handleGoogleAuth(mode) {
         }
       }
 
+      // تحديث الصورة لو ما عندهاش (في الخلفية، بدون انتظار)
       if (!existing.avatarUrl && googleData.photoURL) {
         const idx = items.findIndex(u => u.id === existing.id);
         if (idx !== -1) {
@@ -2363,7 +2412,7 @@ async function handleGoogleAuth(mode) {
 }
 
 // ============================================================
-// 💾 حفظ بيانات Google
+// 💾 حفظ بيانات Google — سريع
 // ============================================================
 $('googleDataSave').addEventListener('click', async () => {
   if (!googlePendingData) return;
@@ -2434,6 +2483,7 @@ $('googleDataSave').addEventListener('click', async () => {
     const role = googlePendingRole;
     const collectionName = role === 'teacher' ? 'teachers' : 'users';
 
+    // ⚡ قراءة سريعة
     let items = await fetchUsersFast(collectionName, true);
 
     if (items.find(u => (u.username || '').toLowerCase() === username.toLowerCase())) {
@@ -2537,27 +2587,10 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// 💾 حفظ الجلسة — 10 أيام في localStorage
+// 💾 حفظ الجلسة (كانت موجودة تحت، نقلناها للأعلى)
 // ============================================================
 function saveSession(user, role, username) {
   try {
-    const now = Date.now();
-    const expiresAt = now + SESSION_TTL_MS;
-
-    localStorage.setItem('meezan_logged_in', 'true');
-    localStorage.setItem('meezan_username', username);
-    localStorage.setItem('meezan_role', role);
-    localStorage.setItem('meezan_user_id', user.id);
-    localStorage.setItem('meezan_session_started', String(now));
-    localStorage.setItem('meezan_session_expires', String(expiresAt));
-    localStorage.setItem('meezan_user_data', JSON.stringify({
-      fullName: user.fullName,
-      username: user.username,
-      avatarUrl: user.avatarUrl || '',
-      role: role
-    }));
-
-    // نسخة احتياطية في sessionStorage للتوافق
     sessionStorage.setItem('meezan_logged_in', 'true');
     sessionStorage.setItem('meezan_username', username);
     sessionStorage.setItem('meezan_role', role);
@@ -2574,7 +2607,7 @@ function saveSession(user, role, username) {
 }
 
 // ============================================================
-// 🟢 تحديث حالة الاتصال
+// 🟢 تحديث حالة الاتصال — سريع (بدون await في المسار الحرج)
 // ============================================================
 async function markUserOnline(collectionName, userId) {
   try {
@@ -2628,8 +2661,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Init
 updateGradeSelect();
 
+// ⚡ اجلب المستخدمين في الخلفية ليكون الكاش جاهزاً قبل أول تسجيل دخول
 setTimeout(() => {
   fetchUsersFast('users', false).catch(() => {});
   fetchUsersFast('teachers', false).catch(() => {});
