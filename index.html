@@ -2685,14 +2685,14 @@ async function enablePush() {
 
 async function showSystemNotification(title, body) {
   if (!pushSupported() || Notification.permission !== 'granted') return;
-  const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', tag: 'meezan-notif', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: 'asharat.html' } };
+  const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', tag: 'meezan-notif', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: 'index.html' } };
   try {
     const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
     if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
   } catch (e) {}
   try {
     const n = new Notification(title, opts);
-    n.onclick = () => { window.focus(); window.location.href = 'asharat.html'; n.close(); };
+    n.onclick = () => { window.focus(); window.location.href = 'index.html'; n.close(); };
   } catch (e) {}
 }
 
