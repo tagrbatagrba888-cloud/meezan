@@ -21,12 +21,8 @@ self.addEventListener('push', (event) => {
     data: { url: d.url || 'index.html' }
   };
 
-  event.waitUntil((async () => {
-    // لو الموقع مفتوح ومرئي، الصفحة تعرض الإشعار بنفسها (تجنب التكرار)
-    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    if (wins.some((c) => c.visibilityState === 'visible')) return;
-    await self.registration.showNotification(title, options);
-  })());
+  // يعرض الإشعار دائماً (في أي صفحة أو والموقع مغلق). نفس الـ tag مع إشعار الصفحة يمنع التكرار.
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
