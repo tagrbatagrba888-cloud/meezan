@@ -1913,8 +1913,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, deleteDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -2615,7 +2616,9 @@ function getRemainingTime(untilIso) {
   return parts.length > 0 ? parts.join(' و ') : 'ثواني';
 }
 
-function forceLogout() {
+async function forceLogout() {
+  try { await Promise.race([unregisterPushToken(), new Promise(r => setTimeout(r, 1200))]); } catch (e) {}
+  try { localStorage.removeItem(CACHE_KEYS.user); localStorage.removeItem(CACHE_KEYS.buttons); } catch (e) {}
   sessionStorage.removeItem('meezan_logged_in');
   sessionStorage.removeItem('meezan_username');
   sessionStorage.removeItem('meezan_role');
@@ -2629,8 +2632,10 @@ $('blockLogoutBtn').addEventListener('click', forceLogout);
 // ============================================================
 // 📡 مراقبة حالة المستخدم Real-time
 // ============================================================
+let userMonitoringStarted = false;
 function startUserMonitoring() {
-  if (!currentUserId) return;
+  if (!currentUserId || userMonitoringStarted) return;
+  userMonitoringStarted = true;
   const role = currentRole;
   const userId = currentUserId;
   const collectionName = role === 'teacher' ? 'teachers' : 'users';
@@ -2679,8 +2684,50 @@ async function enablePush() {
   let perm = Notification.permission;
   if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
   updatePushCard();
-  if (perm === 'granted') { showToast('تم تفعيل الإشعارات 🔔', 'success'); showSystemNotification('ميزان 🔔', 'تم تفعيل الإشعارات بنجاح'); }
+  if (perm === 'granted') { registerPushToken(); showToast('تم تفعيل الإشعارات 🔔', 'success'); showSystemNotification('ميزان 🔔', 'تم تفعيل الإشعارات بنجاح'); }
   else if (perm === 'denied') showToast('الإشعارات محظورة من إعدادات المتصفح', 'warning');
+}
+
+// ============================================================
+// 📲 Web Push — يصل الإشعار حتى لو الموقع مغلق تماماً
+// ============================================================
+// ضع هنا مفتاح VAPID: Firebase Console ← Project settings ← Cloud Messaging ← Web Push certificates
+const VAPID_KEY = 'PUT_YOUR_VAPID_KEY_HERE';
+
+let swRegPromise = null;
+function getSwReg() {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+  if (!swRegPromise) {
+    swRegPromise = navigator.serviceWorker.register('sw1.js')
+      .then(() => navigator.serviceWorker.ready)
+      .catch(() => null);
+  }
+  return swRegPromise;
+}
+
+async function registerPushToken() {
+  try {
+    if (!pushSupported() || Notification.permission !== 'granted') return;
+    if (!currentUserId || VAPID_KEY.startsWith('PUT_')) return;
+    if (!(await messagingSupported())) return;
+    const reg = await getSwReg(); if (!reg) return;
+    const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) return;
+    localStorage.setItem('meezan_fcm_token', token);
+    const sig = token + '|' + currentUserId;
+    if (localStorage.getItem('meezan_push_sig') === sig) return;
+    // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
+    await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp() });
+    localStorage.setItem('meezan_push_sig', sig);
+  } catch (e) { console.log('push token error:', e.message); }
+}
+
+async function unregisterPushToken() {
+  try {
+    const t = localStorage.getItem('meezan_fcm_token');
+    if (t) await deleteDoc(doc(db, 'push_tokens', t));
+  } catch (e) {}
+  try { localStorage.removeItem('meezan_push_sig'); } catch (e) {}
 }
 
 async function showSystemNotification(title, body) {
@@ -2705,8 +2752,10 @@ setTimeout(updatePushCard, 1000);
 // ============================================================
 let lastShownNotifIds = new Set();
 
+let notifListenerStarted = false;
 function startNotificationsListener() {
-  if (!currentUserId) return;
+  if (!currentUserId || notifListenerStarted) return;
+  notifListenerStarted = true;
 
   const userNotifsRef = doc(db, 'user_notifications', currentUserId);
 
@@ -2860,9 +2909,15 @@ function applyFromCache() {
 
   // 2. بيانات المستخدم (الاسم + الصورة + الفرقة)
   const cachedUser = loadCache(CACHE_KEYS.user);
-  if (cachedUser && cachedUser.user) {
+  const sessId = sessionStorage.getItem('meezan_user_id') || '';
+  const sessName = (sessionStorage.getItem('meezan_username') || '').toLowerCase();
+  const cu = cachedUser && cachedUser.user;
+  // ✅ الكاش يُستخدم فقط إذا كان لنفس الحساب المسجّل الآن (حل مشكلة تبديل الحسابات)
+  const sameAccount = !!cu && (sessId ? cu.id === sessId : (!!sessName && (cu.username || '').toLowerCase() === sessName));
+  if (sameAccount) {
     applyUser(cachedUser.user, cachedUser.role || 'student');
   } else {
+    if (cachedUser) { try { localStorage.removeItem(CACHE_KEYS.user); } catch (e) {} }
     // احتياطي: من sessionStorage
     const sessionData = sessionStorage.getItem('meezan_user_data');
     if (sessionData) {
@@ -2979,6 +3034,16 @@ async function init() {
   // شغّل مراقبة الأزرار فوراً (تحدّث الكاش)
   startButtonsListener(role);
 
+  // ⚡ تعرّف فوري على الحساب من الجلسة (بدون انتظار تحميل قائمة المستخدمين)
+  const sid = sessionStorage.getItem('meezan_user_id');
+  if (sid) {
+    currentUserId = sid;
+    currentRole = role;
+    startUserMonitoring();
+    startNotificationsListener();
+  }
+  getSwReg().then(() => registerPushToken());
+
   // حمّل بيانات المستخدم (بالتوازي)
   await loadUserDataFromFirestore();
 }
@@ -2990,7 +3055,7 @@ init();
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    getSwReg();
   });
 }
 </script>
