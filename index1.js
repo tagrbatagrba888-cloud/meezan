@@ -7,12 +7,18 @@ const { getMessaging } = require('firebase-admin/messaging');
 if (!getApps().length) initializeApp(); // آمن حتى لو index.js استدعاها قبل ذلك
 const db = getFirestore();
 
+// ⚠️ يجب أن تطابق منطقة قاعدة Firestore (Firebase Console ← Firestore ← Data، بجانب اسم قاعدة البيانات).
+// أمثلة: nam5 → 'us-central1' | eur3 → 'europe-west1' | me-central2 → 'me-central2'
+const REGION = 'us-central1';
+
 async function pushNew(userId, beforeIds, afterIds, deleted, read) {
   const fresh = afterIds.filter((id) => !beforeIds.includes(id) && !deleted.includes(id) && !read.includes(id));
+  console.log('pushNew', { userId, fresh });
   if (!fresh.length) return;
 
   const tokSnap = await db.collection('push_tokens').where('userId', '==', userId).get();
   const tokens = tokSnap.docs.map((d) => d.id);
+  console.log('tokens found:', tokens.length);
   if (!tokens.length) return;
 
   for (const nid of fresh) {
@@ -25,6 +31,7 @@ async function pushNew(userId, beforeIds, afterIds, deleted, read) {
       webpush: { headers: { Urgency: 'high', TTL: '86400' } },
       android: { priority: 'high' }
     });
+    console.log('sent', { success: res.successCount, failure: res.failureCount });
     // حذف التوكنات الميتة
     const dead = [];
     res.responses.forEach((r, i) => {
@@ -35,13 +42,13 @@ async function pushNew(userId, beforeIds, afterIds, deleted, read) {
   }
 }
 
-exports.onUserNotifUpdated = onDocumentUpdated('user_notifications/{userId}', (event) => {
+exports.onUserNotifUpdated = onDocumentUpdated({ document: 'user_notifications/{userId}', region: REGION }, (event) => {
   const b = event.data.before.data() || {};
   const a = event.data.after.data() || {};
   return pushNew(event.params.userId, b.notifIds || [], a.notifIds || [], a.deletedIds || [], a.readIds || []);
 });
 
-exports.onUserNotifCreated = onDocumentCreated('user_notifications/{userId}', (event) => {
+exports.onUserNotifCreated = onDocumentCreated({ document: 'user_notifications/{userId}', region: REGION }, (event) => {
   const a = event.data.data() || {};
   return pushNew(event.params.userId, [], a.notifIds || [], a.deletedIds || [], a.readIds || []);
 });

@@ -3046,6 +3046,7 @@ async function init() {
 
   // حمّل بيانات المستخدم (بالتوازي)
   await loadUserDataFromFirestore();
+  registerPushToken();
 }
 
 init();
