@@ -1063,6 +1063,27 @@
 
   .bot-offline-banner.show { display: flex; }
   .bot-offline-banner i { font-size: 16px; }
+
+  /* ===== إصلاح حجم صورة البوت ===== */
+  .support-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; max-width: 100%; max-height: 100%; }
+  .msg-avatar img { max-width: 100%; max-height: 100%; }
+
+  /* ===== إشعارات + اقتراحات سريعة ===== */
+  .push-banner { display: none; align-items: center; gap: 10px; background: var(--bg-card); border: 1.5px solid var(--accent); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; font-size: 12.5px; font-weight: 700; color: var(--text-main); box-shadow: 0 4px 14px var(--shadow); animation: msgIn 0.3s ease; }
+  .push-banner.show { display: flex; }
+  .push-banner > i { color: var(--accent); font-size: 18px; flex-shrink: 0; }
+  .push-banner > span { flex: 1; line-height: 1.5; }
+  .push-banner button { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 12px; border: none; border-radius: 10px; padding: 8px 12px; cursor: pointer; flex-shrink: 0; }
+  .push-yes { background: var(--primary); color: #fff; }
+  [data-theme="dark"] .push-yes { color: var(--bg-page); }
+  .push-no { background: transparent; color: var(--text-sub); }
+  .quick-chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 2px 2px; scrollbar-width: none; }
+  .quick-chips::-webkit-scrollbar { display: none; }
+  .quick-chips button { flex-shrink: 0; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-main); cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+  .quick-chips button:hover { border-color: var(--accent); }
+  .quick-chips button:active { transform: scale(0.96); }
+  .msg-text a { color: var(--info); text-decoration: underline; word-break: break-all; font-weight: 700; }
+  .msg.user .msg-text a { color: inherit; }
 </style>
 </head>
 <body>
@@ -1140,6 +1161,13 @@
 
   <div class="chat-container">
 
+    <div class="push-banner" id="pushBanner">
+      <i class="fas fa-bell"></i>
+      <span>فعّل الإشعارات عشان توصلك ردود الدعم على جهازك حتى لو قافل الموقع</span>
+      <button type="button" class="push-yes" id="pushYes">تفعيل</button>
+      <button type="button" class="push-no" id="pushNo">لاحقاً</button>
+    </div>
+
     <div class="waiting-banner" id="waitingBanner">
       <i class="fas fa-clock"></i>
       <span>تم تحويل محادثتك للدعم البشري — سيتم الرد عليك في أقرب وقت</span>
@@ -1159,6 +1187,8 @@
         <div class="typing-dot"></div>
       </div>
     </div>
+
+    <div class="quick-chips" id="quickChips" style="display:none;"></div>
 
     <div class="chat-input-area">
       <button class="attach-btn" id="attachBtn" title="إرفاق">
@@ -1217,7 +1247,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, onSnapshot, setDoc, getDoc, runTransaction, arrayUnion, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1231,7 +1261,9 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let db;
+try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), experimentalAutoDetectLongPolling: true }); }
+catch (e) { db = getFirestore(app); }
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
@@ -1378,6 +1410,8 @@ const DEFAULT_BOT_SETTINGS = {
   autoGreet: true,
   typingSignal: true,
   botName: 'ميزان الذكي',
+  botAvatarUrl: '',
+  knowledge: '',
   apiEnabled: false,
   apiUrl: '',
   apiKey: '',
@@ -1395,6 +1429,74 @@ const DEFAULT_BOT_SETTINGS = {
 };
 
 let botSettings = { ...DEFAULT_BOT_SETTINGS };
+
+// ===== لحظية + ذكاء البوت =====
+let platformLiveStarted = false, siteLogo = document.querySelector('link[rel=icon]')?.href || '';
+const msgCache = new Map(); let firstRenderDone = false, incomingInit = false, lastIncomingId = null, closedEl = null, botTyping = false;
+let audioCtx = null, unreadTitle = 0; const baseTitle = document.title;
+function norm(s) { return String(s || '').toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/\s+/g, ' ').trim(); }
+function beep() { try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); [880, 1175].forEach((f, i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = f; o.connect(g); g.connect(audioCtx.destination); const t = audioCtx.currentTime + i * 0.14; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25); o.start(t); o.stop(t + 0.3); }); } catch (e) {} }
+document.addEventListener('click', () => { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { unreadTitle = 0; document.title = baseTitle; } });
+function checkIncoming(messages) {
+  const l = [...messages].reverse().find(m => m.sender !== 'user' && !m.isSystem); if (!l) { incomingInit = true; return; }
+  if (incomingInit && l.id !== lastIncomingId) { if (l.sender === 'support' || document.hidden) beep(); if (document.hidden) { unreadTitle++; document.title = `(${unreadTitle}) رسالة جديدة | MEEZAN`; notifyIncoming(l); } }
+  lastIncomingId = l.id; incomingInit = true;
+}
+function logoFrom(d) { return d.logoUrl || d.logo || d.siteLogo || d.logoURL || d.siteLogoUrl || d.logoImage || d.iconUrl || ''; }
+function botAvatarHtml() { const u = botSettings.botAvatarUrl || siteLogo; return u ? `<img src="${escapeHtml(u)}" alt="" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-robot\\'></i>'">` : '<i class="fas fa-robot"></i>'; }
+function applyHeaderAvatar() {
+  const a = $('supportAvatar'); if (!a) return;
+  a.innerHTML = (isTransferredToSupport || claimedBy) ? '<i class="fas fa-headset" id="supportAvatarIcon"></i>' : botAvatarHtml();
+}
+const NEG_KW = ['متحولنيش', 'ما تحولنيش', 'لا تحولني', 'مش عايز دعم', 'مش عاوز دعم', 'مش عايز اتحول', 'مش عايز تحويل', 'مش عاوز تحويل', 'مش محتاج دعم', 'بلاش دعم', 'بلاش تحويل', 'لا اريد دعم', 'لا اريد التحويل', 'مش عايز اكلم'];
+const CANCEL_KW = ['الغاء التحويل', 'الغي التحويل', 'الغ التحويل', 'الغاء تحويل', 'وقف التحويل', 'ارجعني للبوت', 'رجعني للبوت', 'كفايه دعم', 'عايز البوت', 'عاوز البوت', 'اريد البوت'];
+const TRANSFER_KW = ['حولني', 'تحويل للدعم', 'عايز دعم', 'عاوز دعم', 'اريد دعم', 'دعم بشري', 'اتكلم مع حد', 'احكي مع حد', 'كلم حد', 'موظف', 'مسؤول', 'مشرف', 'خدمه العملاء', 'عندي مشكله', 'مش شغال', 'شكوي'];
+function detectCommand(t) {
+  const n = norm(t); const any = l => l.some(k => n.includes(norm(k)));
+  if (any(NEG_KW) || any(CANCEL_KW)) return 'cancel';
+  if ((isTransferredToSupport || claimedBy) && /^(الغاء|الغي|الغ|كفايه|خلاص)(\s|$)/.test(n)) return 'cancel';
+  if (any(TRANSFER_KW)) return 'transfer';
+  return null;
+}
+function answerFromKnowledge(q) {
+  const tok = x => norm(x).replace(/[^\u0600-\u06FFa-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+  const qt = new Set(tok(q)); let best = null, bs = 0;
+  (botSettings.knowledge || '').split('\n').forEach(l => {
+    const i = l.indexOf('|'); if (i < 0) return;
+    const kt = tok(l.slice(0, i)); if (!kt.length) return;
+    const sc = kt.filter(w => qt.has(w)).length / kt.length;
+    if (sc > bs) { bs = sc; best = l.slice(i + 1).trim(); }
+  });
+  return bs >= 0.5 ? best : null;
+}
+async function loadRules() {
+  const out = {};
+  await Promise.all(['rules', 'terms', 'law', 'policy', 'faq'].map(id => getDoc(doc(db, 'settings', id)).then(sn => {
+    if (sn.exists()) { const t = Object.values(sn.data()).filter(v => typeof v === 'string').join('\n'); if (t) out[id] = t.slice(0, 1500); }
+  }).catch(() => {})));
+  return out;
+}
+function startPlatformLive() {
+  if (platformLiveStarted) return; platformLiveStarted = true;
+  [['users', 'users', 'all'], ['teachers', 'teachers', 'all'], ['exams', 'exams', 'all'], ['homeworks', 'homeworks', 'all'], ['examSubs', 'exam_subs', 'all'], ['hwSubs', 'homework_subs', 'all'], ['courses', 'courses', 'all'], ['codes', 'payment_codes', 'all'], ['library', 'settings', 'library'], ['contests', 'contests', 'all']].forEach(([k, c, d]) =>
+    onSnapshot(doc(db, c, d), sn => { if (platformDataCache) { platformDataCache[k] = sn.exists() ? (sn.data().items || []) : []; platformDataTime = Date.now(); } }, () => {}));
+}
+function msgSig(m) { return [m.text, m.edited, m.mediaUrl, m.actionsUsed, isBotAvailable(), siteLogo, botSettings.botAvatarUrl, botSettings.botName, currentUser?.avatarUrl].join('|'); }
+function renderIncremental(messages) {
+  const c = $('chatMessages'); const near = c.scrollHeight - c.scrollTop - c.clientHeight < 140;
+  const keys = new Set(messages.map(m => m.id));
+  for (const [k, o] of msgCache) if (!keys.has(k)) { o.el.remove(); msgCache.delete(k); }
+  let prev = null, added = false;
+  messages.forEach(m => {
+    let o = msgCache.get(m.id); const sig = msgSig(m);
+    if (!o || o.sig !== sig) { const tmp = document.createElement('div'); renderMessage(m, tmp); const el = tmp.firstElementChild; if (!el) return; if (o) o.el.replaceWith(el); else added = true; o = { el, sig }; msgCache.set(m.id, o); }
+    const want = prev ? prev.nextSibling : c.firstChild; if (o.el !== want) c.insertBefore(o.el, want); prev = o.el;
+  });
+  if (closedEl) { closedEl.remove(); closedEl = null; }
+  if (isClosed) { closedEl = document.createElement('div'); closedEl.className = 'msg system'; closedEl.innerHTML = '<div class="msg-content"><i class="fas fa-lock"></i> هذه المحادثة مغلقة</div>'; c.appendChild(closedEl); }
+  if (!firstRenderDone || (added && (near || messages[messages.length - 1].sender !== 'user'))) { firstRenderDone = true; requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; }); }
+}
 
 // ============================================================
 // 💬 Toast
@@ -1421,12 +1523,12 @@ function showToast(text, type = 'success') {
 // ============================================================
 async function loadPlatformData() {
   const now = Date.now();
-  if (platformDataCache && (now - platformDataTime) < PLATFORM_CACHE_TTL) {
+  if (platformDataCache && platformLiveStarted) {
     return platformDataCache;
   }
 
   try {
-    const [usersSnap, teachersSnap, examsSnap, homeworksSnap, examSubsSnap, hwSubsSnap, coursesSnap, codesSnap, settingsSnap, librarySnap] = await Promise.all([
+    const [usersSnap, teachersSnap, examsSnap, homeworksSnap, examSubsSnap, hwSubsSnap, coursesSnap, codesSnap, settingsSnap, librarySnap, contestsSnap] = await Promise.all([
       getDoc(doc(db, 'users', 'all')),
       getDoc(doc(db, 'teachers', 'all')),
       getDoc(doc(db, 'exams', 'all')),
@@ -1436,7 +1538,8 @@ async function loadPlatformData() {
       getDoc(doc(db, 'courses', 'all')),
       getDoc(doc(db, 'payment_codes', 'all')),
       getDoc(doc(db, 'settings', 'login')),
-      getDoc(doc(db, 'settings', 'library'))
+      getDoc(doc(db, 'settings', 'library')),
+      getDoc(doc(db, 'contests', 'all')).catch(() => null)
     ]);
 
     platformDataCache = {
@@ -1449,10 +1552,13 @@ async function loadPlatformData() {
       courses: coursesSnap.exists() ? (coursesSnap.data().items || []) : [],
       codes: codesSnap.exists() ? (codesSnap.data().items || []) : [],
       settings: settingsSnap.exists() ? settingsSnap.data() : {},
-      library: librarySnap.exists() ? (librarySnap.data().items || []) : []
+      library: librarySnap.exists() ? (librarySnap.data().items || []) : [],
+      contests: (contestsSnap && contestsSnap.exists()) ? (contestsSnap.data().items || []) : []
     };
 
+    platformDataCache.rules = await loadRules();
     platformDataTime = now;
+    startPlatformLive();
     return platformDataCache;
 
   } catch (e) {
@@ -1481,6 +1587,8 @@ async function fetchUserData(userId, role) {
     let totalExams = 0, completedExams = 0;
     let totalHomeworks = 0, completedHomeworks = 0;
     let certificatesCount = 0, enrolledCourses = 0;
+    let pendingExams = null, pendingHomeworks = null;
+    const ttl = x => x.title || x.name || x.titleAr || x.examTitle || x.homeworkTitle || 'بدون اسم';
 
     if (role === 'student') {
       const exams = platform.exams || [];
@@ -1493,6 +1601,8 @@ async function fetchUserData(userId, role) {
 
       const studentExamSubs = examSubs.filter(s => s.userId === userId && s.submitted);
       completedExams = studentExamSubs.length;
+      const eKey = s => s.examId || s.exam_id || s.itemId;
+      if (studentExamSubs.every(eKey)) pendingExams = studentExams.filter(e => !studentExamSubs.some(s => eKey(s) === e.id)).map(ttl);
       studentExamSubs.forEach(s => {
         if (s.corrected) {
           const pct = s.totalScore > 0 ? (s.score / s.totalScore) * 100 : 0;
@@ -1505,6 +1615,8 @@ async function fetchUserData(userId, role) {
 
       const studentHwSubs = hwSubs.filter(s => s.userId === userId && s.submitted);
       completedHomeworks = studentHwSubs.length;
+      const hKey = s => s.homeworkId || s.hwId || s.homework_id || s.itemId;
+      if (studentHwSubs.every(hKey)) pendingHomeworks = studentHws.filter(h => !studentHwSubs.some(s => hKey(s) === h.id)).map(ttl);
       studentHwSubs.forEach(s => {
         if (s.corrected) {
           const pct = s.totalScore > 0 ? (s.score / s.totalScore) * 100 : 0;
@@ -1521,7 +1633,7 @@ async function fetchUserData(userId, role) {
     }
 
     return {
-      ...userData,
+      ...userData, pendingExams, pendingHomeworks,
       totalExams, completedExams,
       totalHomeworks, completedHomeworks,
       certificatesCount, enrolledCourses
@@ -1703,6 +1815,8 @@ $('guestForm').addEventListener('submit', async (e) => {
 function openChat() {
   $('guestScreen').classList.add('hidden');
   $('mainContainer').classList.add('visible');
+  initPush();
+  renderChips();
 }
 
 // ============================================================
@@ -1734,6 +1848,8 @@ function updateHeaderFromSettings() {
   $('supportName').textContent = botSettings.botName || 'ميزان الذكي';
   const iconEl = $('supportAvatarIcon');
   if (iconEl) iconEl.className = 'fas fa-robot';
+  applyHeaderAvatar();
+  if (localMessages.length) renderIncremental(localMessages);
 }
 
 function updateBannersVisibility() {
@@ -1746,6 +1862,7 @@ function updateBannersVisibility() {
   } else {
     botOfflineBanner.classList.remove('show');
   }
+  renderChips();
 }
 
 function isBotAvailable() {
@@ -1781,37 +1898,14 @@ function loadMessages() {
     updateTransferButton();
     updateBannersVisibility();
 
-    // hash سريع للرسائل
-    const hash = messages.length + '|' + messages.map(m => m.id + (m.actionsUsed ? '1' : '0')).join(',');
-    if (hash === lastRenderedHash && messages.length > 0) {
-      return;
-    }
-    lastRenderedHash = hash;
+    messages.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    if (messages.length === 0) { initChat(); return; }
 
-    messages.sort((a, b) => {
-      const ta = new Date(a.createdAt || 0).getTime();
-      const tb = new Date(b.createdAt || 0).getTime();
-      return ta - tb;
-    });
+    const adminTyping = data.adminTypingAt && (Date.now() - new Date(data.adminTypingAt).getTime() < 4000);
+    if (!botTyping) $('typingIndicator').classList.toggle('hidden', !adminTyping);
 
-    if (messages.length === 0) {
-      initChat();
-      return;
-    }
-
-    // render
-    const messagesEl = $('chatMessages');
-    messagesEl.innerHTML = '';
-    messages.forEach(msg => renderMessage(msg));
-
-    if (isClosed) {
-      const closedMsg = document.createElement('div');
-      closedMsg.className = 'msg system';
-      closedMsg.innerHTML = `<div class="msg-content"><i class="fas fa-lock"></i> هذه المحادثة مغلقة</div>`;
-      messagesEl.appendChild(closedMsg);
-    }
-
-    scrollToBottom();
+    checkIncoming(messages);
+    renderIncremental(messages);
     localMessages = messages;
 
   }, (err) => {
@@ -1855,6 +1949,7 @@ function updateHeaderState() {
     }
     if (avatarIcon) avatarIcon.className = 'fas fa-robot';
   }
+  applyHeaderAvatar();
 }
 
 async function initChat() {
@@ -1894,8 +1989,8 @@ async function initChat() {
   }
 }
 
-function renderMessage(msg) {
-  const messagesEl = $('chatMessages');
+function renderMessage(msg, target) {
+  const messagesEl = target || $('chatMessages');
   const type = msg.sender || 'user';
 
   if (msg.isSystem) {
@@ -1927,7 +2022,7 @@ function renderMessage(msg) {
       avatarDiv.textContent = firstChar;
     }
   } else if (type === 'bot') {
-    avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
+    avatarDiv.innerHTML = botAvatarHtml();
   } else {
     avatarDiv.innerHTML = '<i class="fas fa-headset"></i>';
   }
@@ -1943,7 +2038,7 @@ function renderMessage(msg) {
     html += `<div class="msg-sender-name" style="color:var(--accent);"><i class="fas fa-headset"></i> ${escapeHtml(senderName || 'الدعم')}</div>`;
   }
 
-  if (text) html += `<div class="msg-text">${escapeHtml(text)}</div>`;
+  if (text) html += `<div class="msg-text">${formatText(text)}</div>`;
 
   if (mediaUrl) {
     if (mediaType === 'video') {
@@ -1955,7 +2050,7 @@ function renderMessage(msg) {
     }
   }
 
-  html += `<div class="msg-meta"><i class="far fa-clock"></i> ${formatTimeAgo(time)}</div>`;
+  html += `<div class="msg-meta"><i class="far fa-clock"></i> ${formatTimeAgo(time)}${msg.edited ? ' <span style="font-size:10px;opacity:.7">(معدّلة)</span>' : ''}</div>`;
 
   contentDiv.innerHTML = html;
 
@@ -2008,44 +2103,31 @@ function scrollToBottom() {
 // ============================================================
 async function saveMessage(message) {
   const ref = doc(db, 'support_chats', sessionId);
+  const m = {
+    id: message.id || ('msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+    sender: message.sender || 'user', text: message.text || '', mediaUrl: message.mediaUrl || '', mediaType: message.mediaType || '',
+    actions: message.actions || [], senderName: message.senderName || '', userName: currentUserName, userRole: currentRole,
+    createdAt: new Date().toISOString()
+  };
+  const base = {
+    sessionId, userId: currentUserId, userName: currentUserName, userRole: currentRole,
+    userAvatar: currentUser?.avatarUrl || '', userCode: currentUser?.code || '',
+    userPhone: currentUser?.phone || sessionStorage.getItem('meezan_guest_phone') || '',
+    isUserOnline: true, lastMessageText: m.text || (m.mediaType === 'video' ? '🎥 فيديو' : '📷 صورة'), updatedAt: serverTimestamp()
+  };
+  if (m.sender === 'user') base.isReadByAdmin = false;
   try {
-    const snap = await getDoc(ref);
-    const existing = snap.exists() ? (snap.data().messages || []) : [];
-
-    const newMessage = {
-      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      sender: message.sender || 'user',
-      text: message.text || '',
-      mediaUrl: message.mediaUrl || '',
-      mediaType: message.mediaType || '',
-      actions: message.actions || [],
-      senderName: message.senderName || '',
-      userName: currentUserName,
-      userRole: currentRole,
-      createdAt: new Date().toISOString()
-    };
-
-    existing.push(newMessage);
-
-    await setDoc(ref, {
-      sessionId: sessionId,
-      userId: currentUserId,
-      userName: currentUserName,
-      userRole: currentRole,
-      userAvatar: currentUser?.avatarUrl || '',
-      userCode: currentUser?.code || '',
-      userPhone: currentUser?.phone || sessionStorage.getItem('meezan_guest_phone') || '',
-      isUserOnline: true,
-      messages: existing,
-      lastMessageText: message.text || (message.mediaType === 'video' ? '🎥 فيديو' : '📷 صورة'),
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    return newMessage;
-  } catch (e) {
-    console.error('save message error:', e);
-    throw e;
-  }
+    if (m.sender === 'bot' && message.id) {
+      await runTransaction(db, async (tx) => {
+        const sn = await tx.get(ref); const arr = sn.exists() ? (sn.data().messages || []) : [];
+        if (arr.some(x => x.id === m.id)) return;
+        tx.set(ref, { ...base, messages: [...arr, m] }, { merge: true });
+      });
+    } else {
+      await setDoc(ref, { ...base, messages: arrayUnion(m) }, { merge: true });
+    }
+    return m;
+  } catch (e) { console.error('save message error:', e); throw e; }
 }
 
 // ============================================================
@@ -2070,10 +2152,9 @@ async function sendMessage(text = '', mediaUrl = '', mediaType = '') {
 
     updateLastSeen();
 
-    // إذا البوت متاح والرسالة نصية → رد البوت
-    if (isBotAvailable() && msgText && !mediaUrl) {
-      lastProcessedUserMsgId = savedMsg.id;
-      respondWithBot(msgText, savedMsg.id);
+    if (msgText && !mediaUrl) {
+      if ((isTransferredToSupport || claimedBy) && detectCommand(msgText) === 'cancel') cancelTransfer();
+      else if (isBotAvailable()) { lastProcessedUserMsgId = savedMsg.id; respondWithBot(msgText, savedMsg.id); }
     }
   } catch (e) {
     console.error(e);
@@ -2114,80 +2195,35 @@ function sendUserTypingSignal() {
 // ============================================================
 async function respondWithBot(userText, userMsgId) {
   if (!isBotAvailable()) return;
-  if (botReplyInProgress) return;
-  
-  // منع الرد المكرر على نفس الرسالة
-  if (userMsgId && processedMsgIds.has(userMsgId)) return;
-  if (userMsgId) processedMsgIds.add(userMsgId);
-  
-  botReplyInProgress = true;
-  
+  if (userMsgId) { if (processedMsgIds.has(userMsgId)) return; processedMsgIds.add(userMsgId); }
   const name = currentUser?.fullName || currentUserName || 'صديقي';
-
-  let userData = null;
-  if (botSettings.accessDb && currentUserId) {
-    userData = await fetchUserData(currentUserId, currentRole);
+  const cmd = detectCommand(userText);
+  if (cmd === 'transfer') { await triggerTransferToSupport(); return; }
+  if (cmd === 'cancel') {
+    try { await saveMessage({ id: userMsgId ? 'botr_' + userMsgId : undefined, sender: 'bot', text: '👍 تمام، مش هحولك لحد. أنا معاك وأقدر أساعدك في أي حاجة.', actions: getMainMenu() }); } catch (e) {}
+    return;
   }
-
+  if (botSettings.typingSignal !== false) { botTyping = true; $('typingIndicator').classList.remove('hidden'); scrollToBottom(); }
   let reply = null;
-
-  if (botSettings.apiEnabled && botSettings.apiUrl) {
-    if (botSettings.typingSignal !== false) {
-      $('typingIndicator').classList.remove('hidden');
-      scrollToBottom();
-    }
-
-    const apiResult = await callExternalAPI(userText, userData);
-
-    $('typingIndicator').classList.add('hidden');
-
-    if (apiResult.ok) {
-      reply = { text: apiResult.text, actions: [] };
-    } else {
-      console.warn('API failed:', apiResult.reason);
-      // fallback للمحلي
-      reply = buildLocalBotReply(userText, name, userData);
-    }
-  } else {
-    if (botSettings.typingSignal !== false) {
-      $('typingIndicator').classList.remove('hidden');
-      scrollToBottom();
-    }
-    await new Promise(r => setTimeout(r, 600));
-    reply = buildLocalBotReply(userText, name, userData);
-  }
-
-  $('typingIndicator').classList.add('hidden');
-
-  if (!reply) {
-    botReplyInProgress = false;
-    return;
-  }
-
-  if (reply.transferToSupport) {
-    await triggerTransferToSupport();
-    botReplyInProgress = false;
-    return;
-  }
-
-  if (reply.cancelTransfer) {
-    await cancelTransfer();
-    botReplyInProgress = false;
-    return;
-  }
-
   try {
-    await saveMessage({
-      sender: 'bot',
-      text: reply.text,
-      actions: reply.actions || []
-    });
-    scrollToBottom();
-  } catch (e) {
-    console.error('bot save error:', e);
-  }
-
-  botReplyInProgress = false;
+    try { await loadPlatformData(); } catch (e) {}
+    const userData = (botSettings.accessDb && currentUserId) ? await fetchUserData(currentUserId, currentRole) : null;
+    if (botSettings.apiEnabled && botSettings.apiUrl) {
+      const exact = buildLocalBotReply(userText, name, userData, true);
+      if (exact) reply = exact;
+      else {
+        const r = await callExternalAPI(userText, userData);
+        if (r.ok) reply = { text: r.text, actions: [] }; else console.warn('API failed:', r.reason);
+      }
+    }
+    if (!reply) reply = buildLocalBotReply(userText, name, userData);
+  } catch (e) { console.warn('bot error', e); }
+  botTyping = false; $('typingIndicator').classList.add('hidden');
+  if (!reply) return;
+  if (reply.transferToSupport) { await triggerTransferToSupport(); return; }
+  if (reply.cancelTransfer) { await cancelTransfer(); return; }
+  try { await saveMessage({ id: userMsgId ? 'botr_' + userMsgId : undefined, sender: 'bot', text: reply.text, actions: reply.actions || [] }); }
+  catch (e) { console.error('bot save error:', e); }
 }
 
 const processedMsgIds = new Set();
@@ -2217,7 +2253,7 @@ ${siteContext}
 - لا تقل "لا أعرف" أبداً
 - استخدم البيانات الحقيقية فوق
 - لا تكشف معلومات حساسة (كلمة سر، إيميل كامل، رقم قومي، أكواد دفع)
-- إذا لم تجد معلومة، اقترح التحويل للدعم البشري`;
+- إذا لم تجد معلومة، اقترح التحويل للدعم البشري\n- أنت المتحدث الرسمي باسم منصة ميزان؛ أجب عن أي سؤال عن المنصة (الرابط، التسجيل، الدخول، القوانين، الواجبات، الامتحانات، الكورسات والأسعار، المكتبة، المعلمين، الإشعارات) بالتفصيل من (معرفة المنصة) و(بيانات المنصة الحية) أعلاه. وإذا سُئلت عن اسم المستخدم أو بياناته فأجب فوراً من (بيانات المستخدم الحالي). لا تقل أبداً إنك لا تعرف اسمه إذا كان مكتوباً في بياناته. اجعل الإجابة دقيقة ومنظمة وودودة`;
 
   // آخر 10 رسائل
   const history = (localMessages || []).slice(-10).map(m => ({
@@ -2283,25 +2319,206 @@ ${siteContext}
   }
 }
 
+// ============================================================
+// 🌟 معرفة المنصة الكاملة (ثابتة + لحظية من قاعدة البيانات)
+// ============================================================
+const SITE_KNOWLEDGE = `== معرفة كاملة عن منصة ميزان (MEEZAN) ==
+== التعريف ==
+- ميزان (MEEZAN) منصة تعليمية إلكترونية متكاملة للطلاب والمعلمين.
+- فيها: امتحانات، واجبات، كورسات، مكتبة (كتب PDF وتلخيصات)، مسابقات جماعية مباشرة، شهادات، إشعارات، ودعم فني.
+== أنواع المستخدمين ==
+- طالب: يحل الامتحانات والواجبات المنشورة لفرقته فقط، ويتابع نسبة تفوقه، ويحصل على شهادات، ويفعّل الكورسات بأكواد الدفع.
+- معلم: له حساب بمادته ويتابع بياناته على المنصة.
+- ضيف: يتواصل مع الدعم بالاسم ورقم الهاتف، ولو رقمه مسجل في المنصة يتعرف عليه النظام تلقائياً ويعرض بياناته.
+== صفحات المنصة ==
+- index.html: الصفحة الرئيسية (منها الوصول للامتحانات والواجبات والكورسات والمكتبة والمسابقات والشهادات)
+- login.html: تسجيل الدخول وإنشاء حساب جديد (يوجد دخول بجوجل)
+- sora.html: الملف الشخصي (بيانات الحساب وتغيير كلمة السر)
+- ashara.html: الإشعارات
+- user-support.html: الدعم الفني (صفحة المحادثة الحالية)
+== الامتحانات والواجبات ==
+- يظهر للطالب المنشور لفرقته فقط. بعد التسليم والتصحيح تظهر النتيجة.
+- من يحقق 80% فأكثر يحصل على شهادة تلقائياً.
+== نسبة التفوق ==
+- هي متوسط نسبة إنجاز الامتحانات (المكتمل من الإجمالي) ونسبة إنجاز الواجبات.
+== الكورسات وأكواد الدفع ==
+- تفعيل الكورسات يتم بأكواد دفع. للحصول على كود يتواصل الطالب مع الدعم البشري.
+- لا يُعرض أي كود دفع داخل المحادثة لأسباب أمنية.
+== كلمة السر ==
+- تغييرها من الملف الشخصي (sora.html). لو نسيها المستخدم يتواصل مع الدعم البشري. لا يمكن عرضها أبداً.
+== الدعم الفني ==
+- ميزان الذكي (البوت) يرد فوراً. لتحويل المحادثة لموظف: "حولني للدعم" أو زر "تحويل للدعم". للرجوع للبوت: "الغي التحويل".
+- يمكن إرسال صورة أو فيديو برابط من زر المشبك.
+- إشعارات الجهاز تصل برد الدعم حتى لو الموقع مغلق (بعد تفعيلها بالموافقة من المتصفح).
+== الحساب ==
+- لو الحساب معطل تظهر مدة التعطيل وسببه. لو الحساب محذوف يتم تحويل المستخدم لصفحة الدخول.
+== الخصوصية ==
+- البوت لا يعرض كلمة السر ولا الرقم القومي ولا أكواد الدفع ولا الإيميل الكامل.`;
+
+const STOP_W = new Set(['كورس', 'كورسات', 'امتحان', 'امتحانات', 'واجب', 'واجبات', 'ازاي', 'ايه', 'عن', 'هل', 'فين', 'سعر', 'تفاصيل', 'عايز', 'عاوز', 'اريد', 'معلومات', 'سمحت', 'ممكن', 'ده', 'دي', 'دا', 'الي', 'علي', 'الى', 'مع', 'انا', 'عندي', 'بتاع', 'بتاعه', 'بتاعت', 'منصه', 'موقع', 'اسم', 'مادة', 'ماده']);
+function tokens(s) {
+  return norm(s).replace(/[^\u0600-\u06FFa-z0-9\s]/g, ' ').split(/\s+/).map(w => w.replace(/^ال/, '')).filter(w => w.length > 2 && !STOP_W.has(w));
+}
+function val(o, keys) {
+  for (const k of keys) {
+    let v = o && o[k]; if (v == null || v === '') continue;
+    if (Array.isArray(v)) v = v.map(x => (x && typeof x === 'object') ? (x.fullName || x.name || x.title || '') : x).filter(Boolean).join('، ');
+    else if (typeof v === 'object') v = v.fullName || v.name || v.title || '';
+    v = String(v).trim(); if (v) return v;
+  }
+  return '';
+}
+const T_KEYS = ['title', 'name', 'titleAr', 'examTitle', 'homeworkTitle', 'courseName', 'courseTitle', 'fullName'];
+const GRADE_K = ['grade', 'level', 'year', 'class'];
+const pubOnly = a => (a || []).filter(x => !x.status || x.status === 'published' || x.status === 'active');
+function platformItems() {
+  const p = platformDataCache || {};
+  return { courses: pubOnly(p.courses), exams: pubOnly(p.exams), homeworks: pubOnly(p.homeworks), library: p.library || [], contests: pubOnly(p.contests), teachers: p.teachers || [] };
+}
+function priceTxt(o) {
+  const p = val(o, ['price', 'cost', 'fee', 'amount']); if (!p) return '';
+  return /^\d+(\.\d+)?$/.test(p) ? `${p} جنيه` : p;
+}
+function dateTxt(v) {
+  if (!v) return ''; if (/^\d{4}-\d{2}-\d{2}/.test(String(v))) return formatDateTime(v); return String(v);
+}
+function describeItem(kind, o) {
+  const t = val(o, T_KEYS) || 'بدون اسم';
+  const icon = { course: '🎓', exam: '📝', homework: '📚', library: '📖', contest: '🎯', teacher: '👨‍🏫' }[kind] || '•';
+  const L = []; const add = (l, v) => { if (v) L.push(`• ${l}: ${v}`); };
+  const teachers = (platformDataCache && platformDataCache.teachers) || [];
+  if (kind === 'course') {
+    add('المدرس', val(o, ['teacherName', 'teacher', 'instructor', 'instructorName']) || (o.teacherId ? (teachers.find(x => x.id === o.teacherId) || {}).fullName : ''));
+    add('الفرقة', val(o, GRADE_K)); add('السعر', priceTxt(o)); add('عن الكورس', val(o, ['description', 'desc', 'about', 'details']).slice(0, 220));
+  } else if (kind === 'exam' || kind === 'homework') {
+    add('الفرقة', val(o, GRADE_K)); const d = val(o, ['duration', 'durationMinutes', 'minutes', 'time']); add('المدة', /^\d+$/.test(d) ? `${d} دقيقة` : d);
+    add('الموعد', dateTxt(val(o, ['deadline', 'dueDate', 'endDate', 'endsAt', 'date']))); add('تفاصيل', val(o, ['description', 'desc']).slice(0, 160));
+  } else if (kind === 'library') {
+    add('النوع', val(o, ['type', 'category', 'kind', 'fileType'])); add('الفرقة', val(o, GRADE_K)); add('الوصف', val(o, ['description', 'desc']).slice(0, 160));
+  } else if (kind === 'contest') {
+    add('الفرقة', val(o, GRADE_K)); add('الموعد', dateTxt(val(o, ['startAt', 'startDate', 'date', 'time']))); add('تفاصيل', val(o, ['description', 'desc']).slice(0, 160));
+  } else if (kind === 'teacher') {
+    add('المادة', val(o, ['subject', 'grade', 'specialty', 'material']));
+  }
+  return `${icon} ${t}${L.length ? '\n' + L.join('\n') : ''}`;
+}
+function listKind(kind, arr, max = 12, rich = false) {
+  if (!arr.length) return '';
+  const lines = arr.slice(0, max).map(o => {
+    const t = val(o, T_KEYS) || 'بدون اسم'; const x = [];
+    if (kind === 'course') { const pr = priceTxt(o); if (pr) x.push(pr); const g = val(o, GRADE_K); if (g) x.push(g); if (rich) { const tn = val(o, ['teacherName', 'teacher', 'instructor']); if (tn) x.push('المدرس: ' + tn); } }
+    else if (kind === 'library') { const ty = val(o, ['type', 'category', 'kind']); if (ty) x.push(ty); const g = val(o, GRADE_K); if (g) x.push(g); }
+    else if (kind === 'teacher') { const s = val(o, ['subject', 'grade', 'specialty', 'material']); if (s) x.push(s); }
+    else { const g = val(o, GRADE_K); if (g) x.push(g); if (rich) { const d = val(o, ['duration', 'durationMinutes', 'minutes']); if (d) x.push('المدة: ' + d); } }
+    return `• ${t}${x.length ? ' — ' + x.join(' — ') : ''}`;
+  });
+  if (arr.length > max) lines.push(`… و${arr.length - max} أخرى`);
+  return lines.join('\n');
+}
+function findEntity(userText) {
+  const q = new Set(tokens(userText)); if (!q.size) return null;
+  const it = platformItems(); let best = null, bs = 0, bh = 0;
+  [['course', it.courses], ['exam', it.exams], ['homework', it.homeworks], ['library', it.library], ['contest', it.contests], ['teacher', it.teachers]].forEach(([kind, arr]) => arr.forEach(o => {
+    const tt = tokens(val(o, T_KEYS)); if (!tt.length) return;
+    const hit = tt.filter(w => q.has(w)).length; const sc = hit / tt.length;
+    if (hit >= 1 && sc >= 0.6 && (sc > bs || (sc === bs && hit > bh))) { bs = sc; bh = hit; best = { kind, o }; }
+  }));
+  return best;
+}
+function pushStateText() {
+  if (!('Notification' in window)) return 'جهازك أو متصفحك الحالي لا يدعم إشعارات المواقع (على الآيفون لازم تضيف الموقع للشاشة الرئيسية).';
+  if (Notification.permission === 'granted') return 'مفعّلة على جهازك ✅';
+  if (Notification.permission === 'denied') return 'محظورة من إعدادات المتصفح ⛔';
+  return 'غير مفعّلة بعد';
+}
+const SITE_FAQ = [
+  { k: ['ايه المنصه', 'ايه الموقع', 'المنصه دي', 'الموقع ده', 'الموقع دا', 'عن المنصه', 'عن الموقع', 'عن ميزان', 'تعريف المنصه', 'ميزان ايه', 'ايه هي ميزان', 'ايه هو ميزان', 'اشرح المنصه', 'معلومات عن المنصه', 'معلومات عن الموقع', 'تعرفني بالمنصه', 'بتعمل ايه المنصه', 'ايه فايده المنصه'],
+    a: () => { const L = platformItems(); return `🏛️ منصة ميزان (MEEZAN) منصة تعليمية إلكترونية متكاملة للطلاب والمعلمين.\n\nفيها:\n📝 امتحانات\n📚 واجبات\n🎓 كورسات${L.courses.length ? ` (${L.courses.length} متاح حالياً)` : ''}\n📖 مكتبة كتب وتلخيصات${L.library.length ? ` (${L.library.length} عنصر)` : ''}\n🎯 مسابقات جماعية مباشرة\n🏆 شهادات تلقائية عند تحقيق 80% فأكثر\n🔔 إشعارات\n💬 دعم فني (أنا + فريق بشري)\n\nاسألني عن أي قسم وأشرحه لك بالتفصيل.`; } },
+  { k: ['تقدر تعمل ايه', 'انت بتعمل ايه', 'بتساعد في ايه', 'تساعدني في ايه', 'مهامك', 'وظيفتك', 'ايه اللي تقدر تساعدني فيه', 'اقدر اسالك عن ايه', 'اسالك عن ايه'],
+    a: () => `🤖 أنا ميزان الذكي، وأقدر أساعدك في:\n• معلوماتك ونسبة تفوقك\n• الامتحانات والواجبات المتبقية عليك\n• الشهادات والكورسات (الأسعار والتفاصيل)\n• المكتبة والمسابقات والمعلمين\n• شرح الدخول وتغيير كلمة السر وتفعيل الإشعارات\n• تحويلك لموظف الدعم لو احتجت\n\nاسألني بأي طريقة وأنا أفهمك 😊` },
+  { k: ['صفحات المنصه', 'صفحات الموقع', 'الصفحات', 'اقسام المنصه', 'اقسام الموقع', 'فين الاقي', 'اروح فين', 'ازاي اوصل ل', 'قائمه المنصه'],
+    a: c => `🧭 صفحات المنصة:\n• الرئيسية: ${c.base}index.html\n• تسجيل الدخول: ${c.base}login.html\n• الملف الشخصي: ${c.base}sora.html\n• الإشعارات: ${c.base}ashara.html\n• الدعم الفني: هنا 💬` },
+  { k: ['ازاي احل امتحان', 'ازاي ادخل امتحان', 'طريقه الامتحان', 'نظام الامتحانات', 'الامتحان بيتصحح', 'امتي تظهر النتيجه', 'فين الامتحانات', 'فين الواجبات', 'ازاي احل الواجب', 'نظام الواجبات', 'تسليم الواجب', 'تسليم الامتحان', 'الامتحان مش ظاهر', 'امتحان مش ظاهر', 'واجب مش ظاهر', 'الواجب مش ظاهر', 'مش لاقي الامتحان', 'مش لاقي الواجب', 'مش بيظهر'],
+    a: c => { const g = (c.userData || currentUser || {}).grade; return `📝 الامتحانات والواجبات:\n• بتظهر لك المنشورة لفرقتك${g ? ` (${g})` : ''} بس.\n• افتحها من قسم الامتحانات أو الواجبات في المنصة وسلّم إجاباتك.\n• بعد التصحيح بتشوف نتيجتك، ولو جبت 80% فأكتر بتاخد شهادة تلقائياً 🏆\n\nلو امتحان أو واجب مش ظاهر لك: اتأكد إن فرقتك مضبوطة في ملفك الشخصي، ولو المشكلة مستمرة اكتب "حولني للدعم".`; } },
+  { k: ['ازاي احصل علي شهاده', 'ازاي اطلع شهاده', 'شروط الشهاده', 'الشهاده بتيجي امتي', 'فين الشهادات', 'ازاي اشوف شهادتي', 'تحميل الشهاده', 'نزل الشهاده', 'ازاي اخد شهاده'],
+    a: c => `🏆 الشهادات بتتولد تلقائياً لما تحقق 80% أو أكتر في الامتحان أو الواجب بعد التصحيح.${c.userData ? `\n• شهاداتك المستحقة دلوقتي: ${c.userData.certificatesCount || 0}` : ''}` },
+  { k: ['كود الدفع', 'اكواد الدفع', 'كود دفع', 'اكواد دفع', 'ازاي ادفع', 'طريقه الدفع', 'ازاي اشترك', 'ازاي افعل الكورس', 'تفعيل الكورس', 'كود التفعيل', 'ازاي اسجل في كورس', 'ازاي اشتري كورس', 'اشتري كورس', 'اشتراك في كورس', 'اشترك في كورس', 'فعل الكورس'],
+    a: () => `💳 الاشتراك في الكورسات بيتم بكود دفع بتفعّل بيه الكورس.\n• للحصول على كود: كلّم الدعم البشري (اكتب "حولني للدعم").\n• لعرض الكورسات المتاحة وأسعارها اكتب "الكورسات".\n⚠️ مش بنعرض أكواد الدفع هنا لأسباب أمنية.` },
+  { k: ['ازاي اكلم الدعم', 'ازاي اتواصل', 'رقم الدعم', 'رقم التواصل', 'تواصل معاكم', 'اتواصل معاكم', 'ساعات الدعم', 'مواعيد الدعم', 'الدعم شغال امتي', 'هيرد امتي', 'بيرد امتي', 'الدعم البشري بيرد'],
+    a: () => `💬 الدعم الفني:\n• أنا متاح فوراً في أي وقت.\n• لو عايز موظف: اضغط زر "تحويل للدعم" فوق أو اكتب "حولني للدعم".\n• للرجوع ليا اكتب "الغي التحويل".\n• تقدر تبعت صورة أو فيديو برابط من زر المشبك 📎\n• موظف الدعم بيرد عليك في أقرب وقت، وتوصلك إشعارات لو فعّلتها 🔔` },
+  { k: ['ازاي افعل الاشعارات', 'تفعيل الاشعارات', 'الاشعارات مش بتوصل', 'مش بيجيلي اشعار', 'مش بتوصلني اشعارات', 'اشعارات الجهاز', 'اشعار علي الموبايل', 'الاشعارات بتشتغل', 'فعل الاشعارات', 'فعلي الاشعارات'],
+    a: c => `🔔 إشعارات الجهاز: ${pushStateText()}\n• لما تفعّلها هتوصلك رسائل الدعم على جهازك حتى لو قافل الموقع.\n• لو محظورة: افتح إعدادات الموقع في المتصفح واسمح بالإشعارات ثم حدّث الصفحة.\n• إشعارات المنصة نفسها (امتحانات جديدة وغيرها) في: ${c.base}ashara.html`,
+    act: [{ id: 'enable_push', label: '🔔 فعّل الإشعارات', icon: 'fa-bell', type: 'primary' }] },
+  { k: ['حسابي معطل', 'الحساب معطل', 'حسابي اتقفل', 'حسابي موقوف', 'اتعطل حسابي', 'حسابي اتحذف', 'ليه حسابي'],
+    a: () => `🚫 لو حسابك معطّل بتظهر لك مدة التعطيل وسببه. ولو الحساب محذوف بيتحول لصفحة الدخول.\nلمراجعة السبب أو طلب إعادة التفعيل اكتب "حولني للدعم".` },
+  { k: ['بياناتي امنه', 'الخصوصيه', 'حمايه البيانات', 'هل بياناتي', 'تشوف كلمه السر', 'تعرف كلمه السر'],
+    a: () => `🔐 بياناتك محمية. أنا مش بعرض كلمة السر ولا الرقم القومي ولا أكواد الدفع ولا الإيميل الكامل أبداً، وبستخدم بيانات حسابك بس عشان أساعدك.` },
+  { k: ['الموقع بطيء', 'الموقع مش بيفتح', 'الموقع واقف', 'مش بيفتح', 'بيهنج', 'الموقع بيهنج', 'الصفحه مش بتفتح', 'الصفحه واقفه', 'مش بيحمل'],
+    a: () => `🛠️ جرّب الخطوات دي:\n1) حدّث الصفحة.\n2) اتأكد من النت عندك.\n3) افتح الموقع في متصفح تاني أو امسح بيانات التصفح.\nلو المشكلة مستمرة اكتب "حولني للدعم" وقولهم إيه اللي بيحصل بالظبط.` },
+  { k: ['اغير الفرقه', 'تغيير الفرقه', 'غير فرقتي', 'تغيير الاسم', 'غير اسمي', 'تغيير رقم', 'غير رقمي', 'تعديل بياناتي', 'اعدل بياناتي', 'حذف حسابي', 'امسح حسابي', 'تغيير الايميل'],
+    a: () => `✏️ بعض بياناتك تقدر تعدلها من ملفك الشخصي (sora.html)، لكن التغييرات الأساسية زي الفرقة أو حذف الحساب بتتم عن طريق الدعم البشري. اكتب "حولني للدعم" وقولهم المطلوب.` },
+  { k: ['اسم المنصه', 'اسم الموقع', 'المنصه اسمها ايه', 'الموقع اسمه ايه'],
+    a: () => `🏛️ اسم المنصة: ميزان (MEEZAN) — منصة تعليمية إلكترونية متكاملة.` },
+  { k: ['كام طالب', 'عدد الطلاب', 'كام معلم', 'عدد المعلمين', 'احصائيات المنصه', 'احصائيات الموقع', 'كام كورس', 'عدد الكورسات'],
+    a: () => { const p = platformDataCache || {}; const L = platformItems(); return `📈 المنصة حالياً:\n• الطلاب: ${(p.users || []).length}\n• المعلمين: ${(p.teachers || []).length}\n• الكورسات المتاحة: ${L.courses.length}\n• الامتحانات المنشورة: ${L.exams.length}\n• الواجبات المنشورة: ${L.homeworks.length}\n• عناصر المكتبة: ${L.library.length}`; } }
+];
+function matchFaq(lower, soft) {
+  let best = null, bs = 0; const qt = soft ? new Set(tokens(lower)) : null;
+  SITE_FAQ.forEach(e => {
+    let sc = 0;
+    e.k.forEach(p => {
+      const n = norm(p); if (!n) return;
+      if (lower.includes(n)) { const w = n.split(' ').length; sc += w >= 2 ? 3 : (n.length >= 5 ? 2 : 1); }
+      else if (soft) { const kt = tokens(n); if (kt.length >= 2 && kt.filter(w => qt.has(w)).length / kt.length >= 0.67) sc += 2; }
+    });
+    if (sc > bs) { bs = sc; best = e; }
+  });
+  return bs >= (soft ? 1 : 2) ? best : null;
+}
+function smartLocalAnswer(userText, lower, has, ctx) {
+  const { back } = ctx; const mk = (text, actions) => ({ text, actions: actions || back });
+  const faq = matchFaq(lower, !!ctx.soft);
+  if (faq) return mk((ctx.soft ? '💡 دي أقرب إجابة لسؤالك:\n\n' : '') + faq.a(ctx), faq.act ? [...faq.act, ...back] : back);
+  if (ctx.soft) return null;
+  const ent = findEntity(userText);
+  if (ent) return mk(describeItem(ent.kind, ent.o), back);
+  const L = platformItems();
+  if (has('كورس', 'كورسات', 'course', 'دوره', 'دورات')) {
+    const mine = ctx.userData ? `\n\n🎒 كورساتك المسجل بها: ${ctx.userData.enrolledCourses || 0}` : '';
+    if (!L.courses.length) return mk(`🎓 مفيش كورسات منشورة حالياً، تابع الصفحة الرئيسية وهتلاقي الجديد أول بأول.${mine}`);
+    return mk(`🎓 الكورسات المتاحة (${L.courses.length}):\n${listKind('course', L.courses, 12)}\n\n💡 اكتب اسم أي كورس لتفاصيله، أو "ازاي اشترك" لطريقة التفعيل.${mine}`);
+  }
+  if (has('مكتبه', 'كتاب', 'كتب', 'تلخيص', 'ملخص', 'library', 'pdf')) {
+    if (!L.library.length) return mk('📖 المكتبة فيها كتب PDF وتلخيصات للمواد، ومفيش عناصر معروضة حالياً. افتحها من القائمة الرئيسية للمنصة.');
+    return mk(`📖 المكتبة (${L.library.length} عنصر):\n${listKind('library', L.library, 12)}\n\n💡 اكتب اسم أي كتاب لتفاصيله.`);
+  }
+  if (has('مسابقه', 'مسابقات', 'contest')) {
+    if (!L.contests.length) return mk('🎯 المسابقات الجماعية المباشرة بتتعلن في الصفحة الرئيسية. ادخل أي مسابقة نشطة وتنافس مع زمايلك!');
+    return mk(`🎯 المسابقات (${L.contests.length}):\n${listKind('contest', L.contests, 10)}`);
+  }
+  if (has('معلم', 'معلمين', 'مدرس', 'مدرسين', 'اساتذه', 'دكاتره')) {
+    if (!L.teachers.length) return null;
+    return mk(`👨‍🏫 المعلمين على المنصة (${L.teachers.length}):\n${listKind('teacher', L.teachers, 15)}`);
+  }
+  return null;
+}
+
 function buildUserContext(userData) {
-  if (!userData) return '== بيانات المستخدم ==\nغير متاح\n== نهاية البيانات ==';
-
-  const name = userData.fullName || currentUserName || 'مستخدم';
+  const u = userData || currentUser || {};
+  const name = u.fullName || currentUserName || 'مستخدم';
   const role = currentRole === 'teacher' ? 'معلم' : (currentRole === 'student' ? 'طالب' : 'ضيف');
-  const code = userData.code || currentUser?.code || '—';
-  const grade = userData.grade || '—';
-  const ce = userData.completedExams || 0;
-  const te = userData.totalExams || 0;
-  const ch = userData.completedHomeworks || 0;
-  const th = userData.totalHomeworks || 0;
-  const certs = userData.certificatesCount || 0;
-  const courses = userData.enrolledCourses || 0;
-
+  const code = u.code || currentUser?.code || '—';
+  const grade = u.grade || currentUser?.grade || '—';
+  const now = new Date().toLocaleString('ar-EG');
+  if (!userData) {
+    return `== بيانات المستخدم الحالي (هو الشخص الذي تحادثه الآن) ==\nالاسم: ${name}\nالدور: ${role}\nالكود: ${code}\nالفرقة/المادة: ${grade}\n(إحصائيات الامتحانات والواجبات غير متاحة لهذا المستخدم)\nالتاريخ والوقت الآن: ${now}\n== نهاية البيانات ==`;
+  }
+  const ce = userData.completedExams || 0, te = userData.totalExams || 0;
+  const ch = userData.completedHomeworks || 0, th = userData.totalHomeworks || 0;
   const examPct = te > 0 ? Math.round((ce / te) * 100) : 0;
   const hwPct = th > 0 ? Math.round((ch / th) * 100) : 0;
   const totalPct = Math.round((examPct + hwPct) / 2);
-
-  return `== بيانات المستخدم الحقيقية ==
+  return `== بيانات المستخدم الحالي الحقيقية (هو الشخص الذي تحادثه الآن) ==
 الاسم: ${name}
 الدور: ${role}
 الكود: ${code}
@@ -2309,30 +2526,41 @@ function buildUserContext(userData) {
 الامتحانات: ${ce} مكتمل من ${te} (${examPct}%)
 الواجبات: ${ch} مكتمل من ${th} (${hwPct}%)
 النسبة العامة: ${totalPct}%
-الشهادات المستحقة: ${certs}
-الكورسات المسجل بها: ${courses}
+الامتحانات المتبقية: ${userData.pendingExams ? (userData.pendingExams.join('، ') || 'لا شيء') : 'غير محدد'}
+الواجبات المتبقية: ${userData.pendingHomeworks ? (userData.pendingHomeworks.join('، ') || 'لا شيء') : 'غير محدد'}
+الشهادات المستحقة: ${userData.certificatesCount || 0}
+الكورسات المسجل بها: ${userData.enrolledCourses || 0}
+التاريخ والوقت الآن: ${now}
 == نهاية البيانات ==`;
 }
 
 async function buildSiteContext() {
   const platform = await loadPlatformData();
   const settings = platform.settings || {};
+  const L = platformItems();
+  const b = location.origin + location.pathname.replace(/[^/]*$/, '');
+  const sec = (t, kind, arr, max) => arr.length ? `\n== ${t} (${arr.length}) ==\n${listKind(kind, arr, max, true)}` : '';
+  const out = `${SITE_KNOWLEDGE}
 
-  return `اسم المنصة: ${settings.siteNameAr || 'ميزان'}
-عدد الطلاب: ${(platform.users || []).length}
-عدد المعلمين: ${(platform.teachers || []).length}
-عدد الامتحانات المنشورة: ${(platform.exams || []).filter(e => e.status === 'published').length}
-عدد الواجبات المنشورة: ${(platform.homeworks || []).filter(h => h.status === 'published').length}
-عدد الكورسات: ${(platform.courses || []).filter(c => c.status === 'published').length}
-عدد عناصر المكتبة: ${(platform.library || []).length}`;
+== بيانات المنصة الحية ==
+اسم المنصة: ${settings.siteNameAr || 'ميزان'}
+عدد الطلاب: ${(platform.users || []).length} | عدد المعلمين: ${(platform.teachers || []).length}
+رابط المنصة: ${b}index.html
+رابط تسجيل الدخول: ${b}login.html
+رابط الملف الشخصي: ${b}sora.html
+رابط الإشعارات: ${b}ashara.html${sec('الكورسات المتاحة', 'course', L.courses, 25)}${sec('الامتحانات المنشورة', 'exam', L.exams, 25)}${sec('الواجبات المنشورة', 'homework', L.homeworks, 25)}${sec('المكتبة', 'library', L.library, 25)}${sec('المسابقات', 'contest', L.contests, 10)}${sec('المعلمون', 'teacher', L.teachers, 30)}
+${platform.rules && Object.keys(platform.rules).length ? '\n== القوانين والسياسات ==\n' + Object.values(platform.rules).join(' | ') : ''}
+${botSettings.knowledge ? '\n== قاعدة المعرفة المخصصة (سؤال | جواب) ==\n' + botSettings.knowledge.slice(0, 4000) : ''}`;
+  return out.slice(0, 12000);
 }
+
 
 // ============================================================
 // 🧠 البوت المحلي - نسخة قوية جداً
 // ============================================================
-function buildLocalBotReply(userText, name, userData) {
-  const lower = (userText || '').toLowerCase().trim();
-  const has = (...kws) => kws.some(k => lower.includes(k));
+function buildLocalBotReply(userText, name, userData, strict) {
+  const lower = norm(userText);
+  const has = (...kws) => kws.some(k => lower.includes(norm(k)));
 
   // ⭐ 1. إلغاء التحويل (أولوية عالية)
   if (has('الغاء التحويل', 'إلغاء التحويل', 'الغي التحويل', 'ألغي التحويل', 'ارجعني للبوت', 'رجعني للبوت', 'الغ التحويل', 'وقف التحويل', 'إلغ تحويل', 'الغ تحويل')) {
@@ -2359,6 +2587,24 @@ function buildLocalBotReply(userText, name, userData) {
     };
   }
 
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  const back = [{ id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }];
+  const isT = currentRole === 'teacher';
+  if (has('اسمي', 'انا مين', 'مين انا', 'تعرف اسمي', 'عارف اسمي', 'اسمى ايه') && (!strict || lower.split(' ').length <= 7)) {
+    const u = userData || currentUser;
+    const nm = u?.fullName || currentUserName || name;
+    const roleTxt = currentRole === 'teacher' ? 'معلم' : (currentRole === 'student' ? 'طالب' : 'ضيف');
+    return { text: `أكيد أعرفك 😊\nاسمك: ${nm}\nنوع الحساب: ${roleTxt}${u?.code ? `\nكودك: ${u.code}` : ''}${u?.grade ? `\n${isT ? 'مادتك' : 'فرقتك'}: ${u.grade}` : ''}`, actions: back };
+  }
+  const kb = answerFromKnowledge(userText); if (kb) return { text: kb, actions: getMainMenu() };
+  if (has('رابط', 'لينك', 'link', 'url', 'عنوان الموقع')) return { text: `🔗 رابط منصة ميزان:\n${base}index.html\nصفحة الدخول: ${base}login.html`, actions: back };
+  if (has('سجل دخول', 'تسجيل الدخول', 'تسجيل دخول', 'login', 'sign in', 'اسجل', 'انشاء حساب', 'register', 'sign up')) {
+    return { text: isLoggedIn ? `أنت مسجل دخولك بالفعل يا ${name} ✅` : `🔐 طريقة الدخول:\n1) افتح صفحة الدخول: ${base}login.html\n2) أدخل بياناتك أو اختر الدخول بجوجل.\n3) لو ليس لديك حساب اختر إنشاء حساب جديد.\nلو واجهتك مشكلة اكتب "حولني للدعم".`, actions: back };
+  }
+  if (has('قانون', 'قوانين', 'شروط', 'سياسة', 'لائحة', 'القواعد')) {
+    const r = platformDataCache?.rules; const t = r && Object.values(r)[0];
+    return { text: t ? `📜 قوانين المنصة:\n${t.slice(0, 700)}` : '📜 لمعرفة قوانين المنصة راجع صفحة الشروط أو اكتب "حولني للدعم".', actions: back };
+  }
   // 4. ترحيب
   if (has('مرحبا', 'اهلا', 'أهلا', 'السلام', 'هاي', 'hi', 'hello', 'صباح', 'مساء', 'ازيك', 'إزيك', 'هلا', 'السلام عليكم')) {
     const welcome = (botSettings.welcomeMsg || 'أهلاً بك 👋').replace(/\{name\}/g, name);
@@ -2393,7 +2639,7 @@ function buildLocalBotReply(userText, name, userData) {
   }
 
   // 7. نسبة التفوق
-  if (has('نسبه', 'نسبة', 'تفوق', 'معدل', 'درجات', 'نتيجه', 'نتيجة', 'مستوى')) {
+  if (has('نسبه', 'نسبة', 'تفوق', 'معدل', 'درجات', 'نتيجه', 'نتيجة', 'مستوى') && (!strict || lower.split(' ').length <= 6)) {
     if (!userData && !currentUser) {
       return {
         text: 'للأسف ماعندي بيانات كافية. سجّل دخولك أولاً.',
@@ -2434,51 +2680,29 @@ function buildLocalBotReply(userText, name, userData) {
     };
   }
 
-  // 8. الامتحانات
-  if (has('امتحان', 'اختبار', 'exam')) {
-    const u = userData || currentUser;
-    if (!u) {
-      return {
-        text: 'سجّل الدخول أولاً لأتمكن من عرض امتحاناتك.',
-        actions: [{ id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }]
-      };
-    }
-    const ce = u.completedExams || 0;
-    const te = u.totalExams || 0;
-    return {
-      text: `📝 امتحاناتك يا ${name}:\n\n` +
-            `• المكتملة: ${ce}\n` +
-            `• الإجمالية: ${te}\n` +
-            `• المتبقية: ${Math.max(0, te - ce)}\n\n` +
-            (ce < te ? '💡 لديك امتحانات لم تكملها بعد.' : (te > 0 ? '✅ أكملت كل الامتحانات!' : '')),
-      actions: [
-        { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
-        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-      ]
-    };
-  }
+  const sctx = { name, userData, base, back, isT };
+  const smart = smartLocalAnswer(userText, lower, has, sctx);
+  if (smart) return smart;
 
-  // 9. الواجبات
-  if (has('واجب', 'واجبات', 'homework')) {
+  // 8-9. الامتحانات والواجبات (حقيقي ولحظي)
+  const wEx = has('امتحان', 'اختبار', 'exam'), wHw = has('واجب', 'homework'), wNew = has('جديد');
+  if ((wEx || wHw || wNew) && (!strict || lower.split(' ').length <= 5)) {
     const u = userData || currentUser;
-    if (!u) {
-      return {
-        text: 'سجّل الدخول أولاً لأتمكن من عرض واجباتك.',
-        actions: [{ id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }]
-      };
-    }
-    const ch = u.completedHomeworks || 0;
-    const th = u.totalHomeworks || 0;
-    return {
-      text: `📚 واجباتك يا ${name}:\n\n` +
-            `• المكتملة: ${ch}\n` +
-            `• الإجمالية: ${th}\n` +
-            `• المتبقية: ${Math.max(0, th - ch)}`,
-      actions: [
-        { id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' },
-        { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }
-      ]
+    if (!u) return { text: 'سجّل الدخول أولاً لأتمكن من عرض بياناتك.', actions: [{ id: 'open_login', label: '🔐 تسجيل الدخول', icon: 'fa-sign-in-alt' }] };
+    const who = isT ? 'مادتك' : 'فرقتك';
+    const part = (sing, plurI, plurD, icon, done, total, pend) => {
+      const left = Math.max(0, total - done);
+      if (!total) return `${icon} مفيش ${plurI} منشورة لـ${who} حالياً.`;
+      if (!left) return `✅ انت مخلص كل ${plurD} (${done}/${total}) 🎉`;
+      const names = pend && pend.length ? pend.slice(0, 8).map(n => `• ${n}`).join('\n') : '';
+      if (left === 1 && names) return `${icon} أيوا، فيه ${sing} جديد اسمه «${pend[0]}»`;
+      return `${icon} أيوا، فيه ${left} ${left === 1 ? sing : plurI} لسه ما خلصتهاش من ${total}${names ? ':\n' + names : ''}`;
     };
+    const both = (wEx && wHw) || (!wEx && !wHw);
+    const parts = [];
+    if (wEx || both) parts.push(part('امتحان', 'امتحانات', 'الامتحانات', '📝', u.completedExams || 0, u.totalExams || 0, u.pendingExams));
+    if (wHw || both) parts.push(part('واجب', 'واجبات', 'الواجبات', '📚', u.completedHomeworks || 0, u.totalHomeworks || 0, u.pendingHomeworks));
+    return { text: parts.join('\n\n'), actions: [{ id: 'open_sora', label: '👤 ملفي الشخصي', icon: 'fa-user-circle' }, { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }] };
   }
 
   // 10. الشهادات
@@ -2489,6 +2713,8 @@ function buildLocalBotReply(userText, name, userData) {
       actions: [{ id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }]
     };
   }
+
+  if (strict) return null;
 
   // 11. الكورسات
   if (has('كورس', 'كورسات', 'course', 'دورة', 'دورات')) {
@@ -2575,12 +2801,16 @@ function buildLocalBotReply(userText, name, userData) {
     };
   }
 
+  const soft = smartLocalAnswer(userText, lower, has, { ...sctx, soft: true });
+  if (soft) return soft;
+
   // 20. رد افتراضي - ذكي
   return {
     text: `معلش يا ${name}، مش فاهم قصدك بالظبط 🤔\n\nجرّب تسأل عن:\n` +
           `• معلوماتي\n` +
           `• نسبة تفوقي\n` +
           `• الامتحانات والواجبات\n` +
+          `• عن المنصة / الكورسات / المكتبة\n` +
           `• الشهادات والكورسات\n` +
           `• كلمة السر\n\n` +
           `أو اكتب "حولني للدعم" للتحدث مع موظف.`,
@@ -2646,6 +2876,7 @@ async function handleActionClick(action, originalMsgId) {
       sendUserAction('فتح الرئيسية');
       setTimeout(() => window.location.href = 'index.html', 800);
       break;
+    case 'enable_push': enablePush(); break;
     case 'open_notif':
       sendUserAction('فتح الإشعارات');
       setTimeout(() => window.location.href = 'ashara.html', 800);
@@ -2675,16 +2906,12 @@ async function sendUserAction(text) {
 async function markActionsUsed(msgId) {
   try {
     const ref = doc(db, 'support_chats', sessionId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const data = snap.data();
-    const messages = data.messages || [];
-    const idx = messages.findIndex(m => m.id === msgId);
-    if (idx !== -1 && !messages[idx].actionsUsed) {
-      messages[idx].actionsUsed = true;
-      await setDoc(ref, { messages, updatedAt: serverTimestamp() }, { merge: true });
-    }
+    await runTransaction(db, async (tx) => {
+      const sn = await tx.get(ref); if (!sn.exists()) return;
+      const arr = sn.data().messages || []; const i = arr.findIndex(m => m.id === msgId);
+      if (i === -1 || arr[i].actionsUsed) return;
+      arr[i] = { ...arr[i], actionsUsed: true }; tx.update(ref, { messages: arr });
+    });
   } catch (e) {}
 }
 
@@ -2726,9 +2953,11 @@ async function triggerTransferToSupport() {
 }
 
 async function cancelTransfer() {
-  if (!isTransferredToSupport) return;
+  if (!isTransferredToSupport && !claimedBy) return;
 
   isTransferredToSupport = false;
+  claimedBy = null;
+  claimedByName = null;
   updateTransferButton();
   updateBannersVisibility();
   updateHeaderState();
@@ -2773,6 +3002,7 @@ $('sendBtn').addEventListener('click', () => {
   const text = input.value;
   if (!text.trim()) return;
 
+  try { if (pushSupported() && Notification.permission === 'default' && !sessionStorage.getItem('meezan_push_asked')) { sessionStorage.setItem('meezan_push_asked', '1'); enablePush(); } } catch (e) {}
   sendMessage(text);
   input.value = '';
   input.style.height = 'auto';
@@ -2925,10 +3155,113 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// 🔔 الإشعارات: محلية + Push حتى لو الموقع مقفول
+// ============================================================
+// ⚠️ ضع هنا مفتاح VAPID من: Firebase Console → Project settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = 'PUT_YOUR_VAPID_KEY_HERE';
+const SW_PATH = 'firebase-messaging-sw.js';
+let swReg = null;
+
+const pushSupported = () => ('Notification' in window) && ('serviceWorker' in navigator);
+
+async function getSW() {
+  if (swReg) return swReg;
+  if (!('serviceWorker' in navigator)) return null;
+  try { swReg = await navigator.serviceWorker.register(SW_PATH); await navigator.serviceWorker.ready; }
+  catch (e) { console.warn('sw register:', e); swReg = null; }
+  return swReg;
+}
+
+async function registerPush() {
+  if (!pushSupported() || Notification.permission !== 'granted' || !sessionId) return false;
+  if (!VAPID_KEY || VAPID_KEY.startsWith('PUT_')) return false;
+  const reg = await getSW(); if (!reg) return false;
+  try {
+    const { getMessaging, getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) return false;
+    await setDoc(doc(db, 'support_chats', sessionId), { fcmTokens: arrayUnion(token), pushUpdatedAt: new Date().toISOString() }, { merge: true });
+    return true;
+  } catch (e) { console.warn('push token:', e); return false; }
+}
+
+function updatePushBanner() {
+  const b = $('pushBanner'); if (!b) return;
+  let dismissed = false; try { dismissed = !!localStorage.getItem('meezan_push_dismissed'); } catch (e) {}
+  b.classList.toggle('show', pushSupported() && Notification.permission === 'default' && !dismissed && !!sessionId);
+}
+
+async function enablePush() {
+  if (!pushSupported()) { showToast('جهازك لا يدعم إشعارات المواقع', 'warning'); return; }
+  let perm = Notification.permission;
+  if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
+  updatePushBanner();
+  if (perm === 'granted') { await getSW(); await registerPush(); showToast('تم تفعيل الإشعارات 🔔', 'success'); }
+  else if (perm === 'denied') showToast('الإشعارات محظورة من إعدادات المتصفح', 'warning');
+}
+
+function initPush() {
+  updatePushBanner();
+  if (!pushSupported()) return;
+  getSW().then(() => { if (Notification.permission === 'granted') registerPush(); });
+}
+
+async function showSystemNotification(title, body) {
+  if (!pushSupported() || Notification.permission !== 'granted') return;
+  const opts = { body, icon: siteLogo || undefined, badge: siteLogo || undefined, tag: 'meezan-support-chat', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: location.href } };
+  try { const reg = await getSW(); if (reg) { await reg.showNotification(title, opts); return; } } catch (e) {}
+  try { new Notification(title, opts); } catch (e) {}
+}
+
+function notifyIncoming(m) {
+  const title = (m.sender === 'support' || m.sender === 'admin') ? (m.senderName || 'الدعم الفني') : (botSettings.botName || 'ميزان الذكي');
+  const body = (m.text || (m.mediaUrl ? '📎 أرسل لك مرفقاً' : 'رسالة جديدة')).slice(0, 140);
+  showSystemNotification(title, body);
+}
+
+$('pushYes').addEventListener('click', () => enablePush());
+$('pushNo').addEventListener('click', () => { try { localStorage.setItem('meezan_push_dismissed', '1'); } catch (e) {} updatePushBanner(); });
+
+// ============================================================
+// 💬 اقتراحات سريعة + تنسيق النصوص
+// ============================================================
+let chipsSig = '';
+function renderChips() {
+  const box = $('quickChips'); if (!box) return;
+  const show = !!sessionId && isBotAvailable();
+  box.style.display = show ? 'flex' : 'none';
+  if (!show) return;
+  const sig = currentRole; if (sig === chipsSig) return; chipsSig = sig;
+  const sets = {
+    student: [['📊 نسبة تفوقي', 'نسبة تفوقي'], ['📝 الامتحانات', 'الامتحانات'], ['📚 الواجبات', 'الواجبات'], ['🎓 الكورسات', 'الكورسات'], ['🏆 شهاداتي', 'شهاداتي'], ['📖 المكتبة', 'المكتبة'], ['ℹ️ عن المنصة', 'عن المنصة'], ['🔔 الإشعارات', 'تفعيل الإشعارات']],
+    teacher: [['📊 معلوماتي', 'معلوماتي'], ['ℹ️ عن المنصة', 'عن المنصة'], ['🎓 الكورسات', 'الكورسات'], ['📖 المكتبة', 'المكتبة'], ['🔑 كلمة السر', 'كلمة السر'], ['🔔 الإشعارات', 'تفعيل الإشعارات']],
+    guest: [['ℹ️ عن المنصة', 'عن المنصة'], ['🎓 الكورسات', 'الكورسات'], ['📖 المكتبة', 'المكتبة'], ['🔐 تسجيل الدخول', 'تسجيل الدخول'], ['💬 كلام مع موظف', 'حولني للدعم']]
+  };
+  box.innerHTML = (sets[currentRole] || sets.guest).map(([l, q]) => `<button type="button" data-q="${escapeHtml(q)}">${escapeHtml(l)}</button>`).join('');
+}
+$('quickChips').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-q]'); if (!b) return;
+  sendUserAction(b.dataset.q);
+});
+
+function formatText(t) {
+  let s = escapeHtml(t);
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(https?:\/\/[^\s<"']+[^\s<"'.,;:!؟،)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+
+// ============================================================
 // 🚀 Init
 // ============================================================
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
+onSnapshot(doc(db, 'settings', 'login'), (sn) => {
+  const d = sn.data() || {}; const u = logoFrom(d);
+  if (u) { siteLogo = u; const ic = document.querySelector('link[rel=icon]'); if (ic) ic.href = u; }
+  if (platformDataCache) platformDataCache.settings = d;
+  applyHeaderAvatar(); if (localMessages.length) renderIncremental(localMessages);
+}, () => {});
 startBotSettingsListener();
 checkLoginStatus();
 
