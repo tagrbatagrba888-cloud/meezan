@@ -2679,7 +2679,7 @@ async function enablePush() {
   let perm = Notification.permission;
   if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
   updatePushCard();
-  if (perm === 'granted') showToast('تم تفعيل الإشعارات 🔔', 'success');
+  if (perm === 'granted') { showToast('تم تفعيل الإشعارات 🔔', 'success'); showSystemNotification('ميزان 🔔', 'تم تفعيل الإشعارات بنجاح'); }
   else if (perm === 'denied') showToast('الإشعارات محظورة من إعدادات المتصفح', 'warning');
 }
 
@@ -2698,7 +2698,7 @@ async function showSystemNotification(title, body) {
 
 $('pushYes').addEventListener('click', () => enablePush());
 $('pushNo').addEventListener('click', () => { try { localStorage.setItem('meezan_push_dismissed', String(Date.now())); } catch (e) {} updatePushCard(); });
-setTimeout(updatePushCard, 2500);
+setTimeout(updatePushCard, 1000);
 
 // ============================================================
 // 🔔 الإشعارات — عنوان فقط + قابل للضغط
@@ -2750,7 +2750,7 @@ function startNotificationsListener() {
 
         const nData = nSnap.data();
         showToastNotification(nData.title || 'إشعار جديد', 'info');
-        if (!isFirstSnap && document.hidden) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات');
+        if (!isFirstSnap) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات');
       } catch (e) {
         console.log('notif detail error:', e.message);
       }
