@@ -2706,20 +2706,25 @@ function getSwReg() {
 }
 
 async function registerPushToken() {
+  // 🔍 وضع التشخيص: يعرض سبب أي توقف على الشاشة (احذفه بعد حل المشكلة)
+  const dbg = (m) => { try { showToast('🔍 ' + m, 'warning'); } catch (e) {} console.log('push debug:', m); };
   try {
-    if (!pushSupported() || Notification.permission !== 'granted') return;
-    if (!currentUserId || VAPID_KEY.startsWith('PUT_')) return;
-    if (!(await messagingSupported())) return;
-    const reg = await getSwReg(); if (!reg) return;
+    if (!pushSupported()) return dbg('المتصفح لا يدعم الإشعارات');
+    if (Notification.permission !== 'granted') return dbg('إذن الإشعارات: ' + Notification.permission);
+    if (!currentUserId) return dbg('المستخدم غير معروف (currentUserId فارغ)');
+    if (VAPID_KEY.startsWith('PUT_')) return dbg('مفتاح VAPID لم يُضبط');
+    if (!(await messagingSupported())) return dbg('Firebase Messaging غير مدعوم في هذا المتصفح');
+    const reg = await getSwReg(); if (!reg) return dbg('فشل تسجيل sw1.js');
     const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-    if (!token) return;
+    if (!token) return dbg('لم يتم الحصول على token');
     localStorage.setItem('meezan_fcm_token', token);
     const sig = token + '|' + currentUserId;
-    if (localStorage.getItem('meezan_push_sig') === sig) return;
+    if (localStorage.getItem('meezan_push_sig') === sig) { return dbg('الجهاز مسجّل مسبقاً ✅'); }
     // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
     await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp() });
     localStorage.setItem('meezan_push_sig', sig);
-  } catch (e) { console.log('push token error:', e.message); }
+    dbg('تم تسجيل الجهاز بنجاح ✅');
+  } catch (e) { dbg('خطأ: ' + (e.code || '') + ' ' + e.message); }
 }
 
 async function unregisterPushToken() {
