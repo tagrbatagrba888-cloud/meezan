@@ -2005,6 +2005,19 @@
   .cf{position:fixed;top:-12px;width:9px;height:14px;z-index:100000;pointer-events:none;animation:cff linear forwards}
   @keyframes cff{to{transform:translateY(105vh) rotate(720deg)}}
 </style>
+<style>
+.q-first{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(201,169,97,.12);border:1px dashed var(--accent);font:600 12px Cairo,sans-serif;color:var(--text-main);line-height:1.9}
+.q-first.wait{opacity:.6;background:transparent}
+.q-first .late{color:var(--error);font-weight:800}
+.c-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:3px;font:700 10.5px Cairo,sans-serif;color:var(--text-sub)}
+.c-stats i{color:var(--accent);margin-left:3px}
+.c-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.c-chip{font:700 10px Cairo,sans-serif;padding:2px 6px;border-radius:7px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-sub);direction:ltr}
+.c-chip.ok{border-color:var(--success);color:var(--success)}
+.c-chip.bad{border-color:var(--error);color:var(--error)}
+.c-chip.fast{background:var(--success);color:#fff;border-color:var(--success)}
+.fair-note{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:var(--bg-input);border:1px solid var(--border);font:600 11px Cairo,sans-serif;color:var(--text-sub);line-height:1.8}
+</style>
 </head>
 <body>
 
@@ -3019,6 +3032,12 @@ setInterval(() => {
   });
 }, 1000);
 
+let lastCardSig = '';
+setInterval(() => {
+  const sig = allContests.map(c => c.id + ':' + getContestStatus(c)).join('|');
+  if (sig !== lastCardSig) { lastCardSig = sig; applyFilters(); updateStats(); }
+}, 1000);
+
 // ============================================================
 // 📝 Request Join
 // ============================================================
@@ -3197,7 +3216,7 @@ function updateChatInputState() {
 // 📡 Chat Listener - REAL-TIME
 // ============================================================
 const getContestants = () => currentChatContest?.contestants ?? currentRoomData?.contestants ?? [];
-const isCorrectAns = (q, a) => q?.type === 'mcq' && !!a?.selectedIndices?.includes((q.options || []).findIndex(o => o.correct));
+const isCorrectAns = (q, a) => q?.type === 'mcq' && evalAns(q, a || {}) === true;
 const canAns = (d, m) => myRole === 'contestant' && !d.answers?.[m.questionId]?.[userId] && (!m.targetStudent || m.targetStudent.id === userId);
 
 function startChatListener() {
@@ -3271,6 +3290,7 @@ function applyRoom(d, silent) {
   renderContestants(getContestants());
   renderWinner(w);
   renderLeaderboard();
+  paintFirst();
   updateChatInputState();
   updateSidebarBadge();
 }
@@ -3608,6 +3628,8 @@ function createQuestionMessageElement(msg) {
     }
   }
 
+  contentHTML += `<div class="q-first wait" data-first-for="${msg.questionId}"></div>`;
+
   if (msg.revealed) {
     if (!isMcq && q.correctEssayAnswer) contentHTML += `<div class="reveal-box"><i class="fas fa-check-circle"></i> <strong>الإجابة النموذجية:</strong> ${escapeHtml(q.correctEssayAnswer)}</div>`;
     if (q.explanation) contentHTML += `<div class="reveal-box info"><i class="fas fa-info-circle"></i> ${escapeHtml(q.explanation)}</div>`;
@@ -3659,7 +3681,7 @@ async function submitAnswer(questionId, payload) {
       if (!q || q.deleted) return 'err';
       if (q.closed || q.timerPaused || (q.timerEndAt && new Date(q.timerEndAt) <= new Date())) return 'time';
       if (q.targetStudent && q.targetStudent.id !== userId) return 'target';
-      tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date().toISOString() }, 'updatedAt', serverTimestamp());
+      tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date().toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
       return 'ok';
     });
     const t = { ok: ['✅ تم تسجيل إجابتك', 'success'], done: ['لقد أجبت بالفعل', 'warning'], time: ['⏰ انتهى وقت السؤال', 'error'], target: ['🎯 هذا السؤال ليس لك', 'warning'], blocked: ['⏸️ المسابقة متوقفة الآن', 'warning'], err: ['السؤال غير متاح', 'error'] }[r];
@@ -3679,169 +3701,156 @@ function submitEssayAnswer(qid, text) {
 // ============================================================
 // 👥 Render Contestants
 // ============================================================
-function renderContestants(contestants) {
-  const container = $('contestantsList');
-  const countEl = $('contestantsCount');
-  if (!container) return;
+// ============================================================
+// ⚖️ نظام نزيه موحّد (نفس الدوال في صفحة الأدمن)
+// ============================================================
+// • الوقت المعتمد = توقيت الخادم وليس ساعة الجهاز
+// • الإجابة بعد انتهاء الوقت لا تُحتسب
+// • الترتيب: الأكثر إجابات صحيحة ثم الأقل مجموع وقت
+const LATE_GRACE_MS = 2000;
+function tsMs(t) {
+  if (!t) return 0;
+  if (typeof t.toMillis === 'function') return t.toMillis();
+  if (typeof t.seconds === 'number') return t.seconds * 1000 + Math.floor((t.nanoseconds || 0) / 1e6);
+  const v = new Date(t).getTime(); return isNaN(v) ? 0 : v;
+}
+const ansMs = a => tsMs(a.serverAt) || tsMs(a.answeredAt) || tsMs(a.at);
+const normTxt = s => String(s ?? '').trim().toLowerCase().replace(/[\u064B-\u065F\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, ' ');
+function evalAns(q, a) {
+  if (typeof a.correct === 'boolean') return a.correct;
+  if (q.type === 'mcq') {
+    const opts = q.options || [], sel = a.selectedIndices;
+    if (!Array.isArray(sel)) return null;
+    const right = opts.map((o, i) => o.correct ? i : -1).filter(i => i >= 0);
+    return sel.length === right.length && right.every(i => sel.includes(i));
+  }
+  const model = normTxt(q.correctEssayAnswer), txt = normTxt(a.text);
+  if (!model || !txt) return null;
+  return txt === model;
+}
+const fmtMs = ms => ms < 60000 ? (ms / 1000).toFixed(1) + 'ث' : Math.floor(ms / 60000) + ':' + String(Math.floor(ms % 60000 / 1000)).padStart(2, '0') + 'د';
 
+function computeStats() {
+  const d = currentRoomData || {}, ans = d.answers || {};
+  const qmsgs = (d.messages || []).filter(m => m.type === 'question' && !m.deleted);
+  const per = {};
+  getContestants().forEach(c => { per[c.id] = { c, correct: 0, points: 0, answered: 0, first: 0, totalMs: 0, times: {} }; });
+  const nameOf = uid => per[uid]?.c?.name || '—';
+  const qs = qmsgs.map((m, i) => {
+    const start = new Date(m.createdAt).getTime(), q = m.question || {};
+    const rows = Object.entries(ans[m.questionId] || {})
+      .map(([uid, a]) => ({ uid, a, t: ansMs(a) })).filter(r => r.t > 0).sort((x, y) => x.t - y.t);
+    const endMs = m.timer && m.timerEndAt && !m.timerPaused ? new Date(m.timerEndAt).getTime() : 0;
+    let fastest = null;
+    rows.forEach((r, ri) => {
+      const ms = Math.max(0, r.t - start), late = endMs > 0 && r.t > endMs + LATE_GRACE_MS;
+      const ok = late ? false : evalAns(q, r.a), p = per[r.uid];
+      if (!p) return;
+      p.answered++; p.times[m.questionId] = { ms, ok, late };
+      if (ri === 0 && !late) p.first++;
+      if (ok) { p.correct++; p.points += (q.score || 1); p.totalMs += ms; if (!fastest || ms < fastest.ms) fastest = { uid: r.uid, ms }; }
+    });
+    const f = rows[0];
+    return { m, idx: m.questionIndex || i + 1, count: rows.length, fastest,
+      first: f ? { uid: f.uid, ms: Math.max(0, f.t - start), name: nameOf(f.uid) } : null };
+  });
+  const list = Object.values(per).sort((x, y) =>
+    y.correct - x.correct || (x.totalMs - y.totalMs) || y.first - x.first || y.answered - x.answered);
+  return { per, qs, list };
+}
+
+// أول من جاوب + الأسرع + تنبيه لو إجابتي وصلت متأخرة
+function paintFirst() {
+  const st = computeStats();
+  st.qs.forEach(({ m, count, first, fastest }) => {
+    const el = document.querySelector(`[data-first-for="${m.questionId}"]`);
+    if (!el) return;
+    const mine = st.per[userId]?.times[m.questionId];
+    const lateNote = mine?.late ? `<br><span class="late">⏰ إجابتك وصلت بعد انتهاء الوقت ولم تُحتسب</span>` : '';
+    if (!first) { el.className = 'q-first wait'; el.innerHTML = '<i class="fas fa-hourglass-half"></i> بانتظار أول إجابة...' + lateNote; return; }
+    el.className = 'q-first';
+    el.innerHTML = `⚡ أول من جاوب: <b>${escapeHtml(first.name)}</b> · ${fmtMs(first.ms)}`
+      + (fastest ? `<br>🏆 الأسرع إجابة صحيحة: <b>${escapeHtml(st.per[fastest.uid]?.c?.name || '—')}</b> · ${fmtMs(fastest.ms)}` : '')
+      + `<br>👥 أجاب ${count} / ${getContestants().length}` + lateNote;
+  });
+}
+const avatarOf = c => {
+  const ch = (c.name || '؟').charAt(0).toUpperCase();
+  return c.avatarUrl ? `<img src="${escapeHtml(c.avatarUrl)}" alt="" onerror="this.parentNode.innerHTML='<span>${ch}</span>'">` : `<span>${ch}</span>`;
+};
+
+// ============================================================
+// 👥 Render Contestants
+// ============================================================
+function renderContestants(contestants) {
+  const container = $('contestantsList'), countEl = $('contestantsCount');
+  if (!container) return;
   const list = contestants || [];
   countEl.textContent = list.length;
-
   if (list.length === 0) {
-    container.innerHTML = `
-      <div style="padding: 20px 12px; text-align: center; font-size: 12.5px; color: var(--text-sub); font-weight: 600;">
-        <i class="fas fa-hourglass-half" style="font-size: 24px; display: block; margin-bottom: 8px; opacity: 0.5;"></i>
-        بانتظار المتسابقين...
-      </div>
-    `;
+    container.innerHTML = `<div style="padding:20px 12px;text-align:center;font-size:12.5px;color:var(--text-sub);font-weight:600;"><i class="fas fa-hourglass-half" style="font-size:24px;display:block;margin-bottom:8px;opacity:.5;"></i>بانتظار المتسابقين...</div>`;
     renderMyScore();
     return;
   }
-
-  container.innerHTML = '';
-
-  const answers = currentRoomData?.answers || {};
-  const questions = currentChatContest?.questions || [];
-
+  const st = computeStats(), frag = document.createDocumentFragment();
   list.forEach(c => {
+    const p = st.per[c.id] || { correct: 0, answered: 0, first: 0, totalMs: 0, times: {} };
+    const isSelf = c.id === userId, isWinner = currentRoomData?.winner && currentRoomData.winner.id === c.id;
     const item = document.createElement('div');
-    item.className = 'contestant-item';
-    const isSelf = c.id === userId;
-    if (isSelf) item.classList.add('self');
-    if (c.finished) item.classList.add('finished');
-    if (currentRoomData?.winner && currentRoomData.winner.id === c.id) {
-      item.classList.add('winner');
-    }
-
-    const avatar = c.avatarUrl
-      ? `<img src="${escapeHtml(c.avatarUrl)}" alt="" onerror="this.parentNode.innerHTML='<span>${(c.name || '؟').charAt(0).toUpperCase()}</span>'">`
-      : `<span>${(c.name || '؟').charAt(0).toUpperCase()}</span>`;
-
-    let score = 0;
-    Object.keys(answers).forEach(qId => {
-      const a = answers[qId]?.[c.id];
-      const q = questions.find(q => q.id === qId);
-      if (a && q && q.type === 'mcq' && a.selectedIndices) {
-        const correctIdx = q.options.findIndex(o => o.correct);
-        if (a.selectedIndices.includes(correctIdx)) score += (q.score || 1);
-      }
-    });
-
-    let statusHTML = '';
-    if (currentRoomData?.winner && currentRoomData.winner.id === c.id) {
-      statusHTML = `<span class="contestant-status winner"><i class="fas fa-crown"></i> الفائز</span>`;
-    } else if (c.finished) {
-      statusHTML = `<span class="contestant-status finished"><i class="fas fa-check-circle"></i> انتهى</span>`;
-    } else {
-      statusHTML = `<span class="contestant-status active"><i class="fas fa-pen"></i> يجاوب</span>`;
-    }
-
+    item.className = 'contestant-item' + (isSelf ? ' self' : '') + (c.finished ? ' finished' : '') + (isWinner ? ' winner' : '');
+    item.style.alignItems = 'flex-start';
+    const status = isWinner ? `<span class="contestant-status winner"><i class="fas fa-crown"></i> الفائز</span>`
+      : c.finished ? `<span class="contestant-status finished"><i class="fas fa-check-circle"></i> انتهى</span>`
+      : `<span class="contestant-status active"><i class="fas fa-pen"></i> يجاوب</span>`;
+    const chips = st.qs.map(q => {
+      const t = p.times[q.m.questionId];
+      if (!t) return `<span class="c-chip">${q.idx}: —</span>`;
+      const fast = q.fastest && q.fastest.uid === c.id;
+      return `<span class="c-chip ${fast ? 'fast' : t.ok === true ? 'ok' : t.ok === false ? 'bad' : ''}">${q.idx}: ${fmtMs(t.ms)}${fast ? ' ⚡' : ''}${t.late ? ' ⏰متأخر' : ''}</span>`;
+    }).join('');
     item.innerHTML = `
-      <div class="contestant-avatar">${avatar}</div>
+      <div class="contestant-avatar">${avatarOf(c)}</div>
       <div class="contestant-info">
-        <div class="contestant-name">
-          ${escapeHtml(c.name || 'مستخدم')}
-          ${isSelf ? '<span class="self-tag">أنت</span>' : ''}
+        <div class="contestant-name">${escapeHtml(c.name || 'مستخدم')} ${isSelf ? '<span class="self-tag">أنت</span>' : ''}</div>
+        ${status}
+        <div class="c-stats">
+          <span title="عدد مرات الإجابة أولاً"><i class="fas fa-bolt"></i>أول ×${p.first}</span>
+          <span title="الإجابات الصحيحة"><i class="fas fa-check-circle"></i>${p.correct}/${st.qs.length}</span>
+          <span title="مجموع زمن الإجابات الصحيحة"><i class="fas fa-stopwatch"></i>${p.correct ? fmtMs(p.totalMs) : '—'}</span>
         </div>
-        ${statusHTML}
+        ${chips ? `<div class="c-chips">${chips}</div>` : ''}
       </div>
-      <div style="font-size: 14px; font-weight: 900; color: var(--accent); min-width: 42px; text-align: center; padding: 4px 8px; background: var(--bg-card); border-radius: 8px; border: 1.5px solid var(--accent);">
-        ${score}
-      </div>
-    `;
-
-    container.appendChild(item);
+      <div style="font-size:14px;font-weight:900;color:var(--accent);min-width:42px;text-align:center;padding:4px 8px;background:var(--bg-card);border-radius:8px;border:1.5px solid var(--accent);">${p.correct}</div>`;
+    frag.appendChild(item);
   });
-
+  container.innerHTML = '';
+  container.appendChild(frag);
   renderMyScore();
 }
 
 function renderMyScore() {
   const box = $('myScoreBox');
   if (!box) return;
-
-  if (myRole !== 'contestant') {
-    box.innerHTML = '';
-    return;
-  }
-
-  const answers = currentRoomData?.answers || {};
-  const questions = currentChatContest?.questions || [];
-  const contestants = getContestants();
-
-  let myScore = 0;
-  let myCorrect = 0;
-  let myAnswered = 0;
-  questions.forEach(q => {
-    const a = answers[q.id]?.[userId];
-    if (a) {
-      myAnswered++;
-      if (q.type === 'mcq' && a.selectedIndices) {
-        const correctIdx = q.options.findIndex(o => o.correct);
-        if (a.selectedIndices.includes(correctIdx)) {
-          myScore += (q.score || 1);
-          myCorrect++;
-        }
-      }
-    }
-  });
-
-  const opponents = contestants.filter(c => c.id !== userId);
-  let opponentsHTML = '';
-
-  if (opponents.length > 0) {
-    opponentsHTML = opponents.map(o => {
-      let oScore = 0;
-      Object.keys(answers).forEach(qId => {
-        const a = answers[qId]?.[o.id];
-        const q = questions.find(q => q.id === qId);
-        if (a && q && q.type === 'mcq' && a.selectedIndices) {
-          const correctIdx = q.options.findIndex(opt => opt.correct);
-          if (a.selectedIndices.includes(correctIdx)) {
-            oScore += (q.score || 1);
-          }
-        }
-      });
-
-      return `
-        <div class="my-score-row">
-          <div class="my-score-label">
-            <i class="fas fa-user" style="color: var(--info);"></i>
-            ${escapeHtml(o.name || 'خصم')}
-          </div>
-          <div class="my-score-value info">${oScore} نقطة</div>
-        </div>
-      `;
-    }).join('');
-  } else {
-    opponentsHTML = `<div style="text-align: center; padding: 8px; font-size: 12px; color: var(--text-sub); font-weight: 600;">لا يوجد خصوم بعد</div>`;
-  }
-
+  if (myRole !== 'contestant') { box.innerHTML = ''; return; }
+  const st = computeStats(), me = st.per[userId] || { correct: 0, points: 0, answered: 0, first: 0, totalMs: 0 }, total = st.qs.length;
+  const opp = st.list.filter(p => p.c.id !== userId);
+  const oppHTML = opp.length
+    ? opp.map(o => `<div class="my-score-row"><div class="my-score-label"><i class="fas fa-user" style="color:var(--info);"></i> ${escapeHtml(o.c.name || 'خصم')}</div><div class="my-score-value info">${o.correct} صحيح${o.correct ? ' · ' + fmtMs(o.totalMs) : ''}</div></div>`).join('')
+    : `<div style="text-align:center;padding:8px;font-size:12px;color:var(--text-sub);font-weight:600;">لا يوجد خصوم بعد</div>`;
+  const rank = st.list.findIndex(p => p.c.id === userId) + 1;
   box.innerHTML = `
     <div class="my-score-box">
-      <div class="my-score-title">
-        <i class="fas fa-chart-line"></i> نقاطي
-      </div>
-      <div class="my-score-row">
-        <div class="my-score-label"><i class="fas fa-star" style="color: var(--accent);"></i> مجموع النقاط</div>
-        <div class="my-score-value accent">${myScore}</div>
-      </div>
-      <div class="my-score-row">
-        <div class="my-score-label"><i class="fas fa-check-circle" style="color: var(--success);"></i> إجابات صحيحة</div>
-        <div class="my-score-value success">${myCorrect} / ${questions.length}</div>
-      </div>
-      <div class="my-score-row">
-        <div class="my-score-label"><i class="fas fa-pen" style="color: var(--info);"></i> أسئلة مُجابة</div>
-        <div class="my-score-value info">${myAnswered} / ${questions.length}</div>
-      </div>
+      <div class="my-score-title"><i class="fas fa-chart-line"></i> نتيجتي ${rank ? '· المركز ' + rank : ''}</div>
+      <div class="my-score-row"><div class="my-score-label"><i class="fas fa-check-circle" style="color:var(--success);"></i> إجابات صحيحة</div><div class="my-score-value success">${me.correct} / ${total}</div></div>
+      <div class="my-score-row"><div class="my-score-label"><i class="fas fa-star" style="color:var(--accent);"></i> مجموع النقاط</div><div class="my-score-value accent">${me.points}</div></div>
+      <div class="my-score-row"><div class="my-score-label"><i class="fas fa-stopwatch" style="color:var(--info);"></i> مجموع زمني</div><div class="my-score-value info">${me.correct ? fmtMs(me.totalMs) : '—'}</div></div>
+      <div class="my-score-row"><div class="my-score-label"><i class="fas fa-bolt" style="color:var(--warning);"></i> أول من جاوب</div><div class="my-score-value info">×${me.first}</div></div>
+      <div class="my-score-row"><div class="my-score-label"><i class="fas fa-pen" style="color:var(--info);"></i> أسئلة مُجابة</div><div class="my-score-value info">${me.answered} / ${total}</div></div>
     </div>
-    <div class="my-score-box" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(224, 200, 136, 0.05)); border-color: var(--accent);">
-      <div class="my-score-title" style="color: var(--accent);">
-        <i class="fas fa-users"></i> نقاط الخصوم
-      </div>
-      ${opponentsHTML}
-    </div>
-  `;
+    <div class="my-score-box" style="background:linear-gradient(135deg,rgba(201,169,97,.1),rgba(224,200,136,.05));border-color:var(--accent);">
+      <div class="my-score-title" style="color:var(--accent);"><i class="fas fa-users"></i> الخصوم</div>
+      ${oppHTML}
+    </div>`;
 }
 
 // ============================================================
@@ -3850,99 +3859,36 @@ function renderMyScore() {
 function renderLeaderboard() {
   const container = $('leaderboardList');
   if (!container) return;
-
-  const contestants = getContestants();
-  const answers = currentRoomData?.answers || {};
-  const questions = currentChatContest?.questions || [];
-
-  if (contestants.length === 0) {
-    container.innerHTML = `
-      <div style="padding: 15px 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">
-        <i class="fas fa-chart-simple" style="font-size: 22px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
-        لا توجد إجابات بعد
-      </div>
-    `;
+  if (getContestants().length === 0) {
+    container.innerHTML = `<div style="padding:15px 12px;text-align:center;font-size:12px;color:var(--text-sub);font-weight:600;"><i class="fas fa-chart-simple" style="font-size:22px;display:block;margin-bottom:6px;opacity:.5;"></i>لا توجد إجابات بعد</div>`;
     return;
   }
-
-  const stats = contestants.map(c => {
-    let score = 0;
-    let correctCount = 0;
-    let answeredCount = 0;
-    let firstAnswerTime = null;
-    let lastAnswerTime = null;
-
-    Object.keys(answers).forEach(qId => {
-      const a = answers[qId]?.[c.id];
-      const q = questions.find(x => x.id === qId);
-      if (a && a.answeredAt) {
-        answeredCount++;
-        const t = new Date(a.answeredAt).getTime();
-        if (firstAnswerTime === null || t < firstAnswerTime) firstAnswerTime = t;
-        if (lastAnswerTime === null || t > lastAnswerTime) lastAnswerTime = t;
-
-        if (q && q.type === 'mcq' && a.selectedIndices) {
-          const correctIdx = q.options.findIndex(o => o.correct);
-          if (a.selectedIndices.includes(correctIdx)) {
-            score += (q.score || 1);
-            correctCount++;
-          }
-        }
-      }
-    });
-
-    const duration = (firstAnswerTime && lastAnswerTime)
-      ? Math.round((lastAnswerTime - firstAnswerTime) / 1000)
-      : 0;
-
-    return { ...c, score, correctCount, answeredCount, duration };
-  });
-
-  stats.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
-    return a.duration - b.duration;
-  });
-
-  container.innerHTML = '';
-
-  stats.forEach((s, idx) => {
-    const rank = idx + 1;
+  const st = computeStats(), frag = document.createDocumentFragment();
+  const note = document.createElement('div');
+  note.className = 'fair-note';
+  note.innerHTML = '⚖️ الترتيب: الأكثر إجابات صحيحة ثم الأسرع. الوقت بتوقيت الخادم، والإجابة بعد انتهاء الوقت لا تُحتسب.';
+  frag.appendChild(note);
+  st.list.forEach((s, idx) => {
+    const rank = idx + 1, isMe = s.c.id === userId;
     const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-    const isMe = s.id === userId;
-
     const item = document.createElement('div');
-    item.className = 'leaderboard-item';
-    if (rank === 1) item.classList.add('rank-1');
-    else if (rank === 2) item.classList.add('rank-2');
-    else if (rank === 3) item.classList.add('rank-3');
-    if (isMe) item.classList.add('me');
-
-    const avatar = s.avatarUrl
-      ? `<img src="${escapeHtml(s.avatarUrl)}" alt="" onerror="this.parentNode.innerHTML='<span>${(s.name || '؟').charAt(0).toUpperCase()}</span>'">`
-      : `<span>${(s.name || '؟').charAt(0).toUpperCase()}</span>`;
-
-    const durationText = s.duration > 0 ? formatDuration(s.duration) : '—';
-
+    item.className = 'leaderboard-item' + (rank <= 3 ? ' rank-' + rank : '') + (isMe ? ' me' : '');
     item.innerHTML = `
       <div class="leaderboard-rank">${medal}</div>
-      <div class="leaderboard-avatar">${avatar}</div>
+      <div class="leaderboard-avatar">${avatarOf(s.c)}</div>
       <div class="leaderboard-info">
-        <div class="leaderboard-name">
-          ${escapeHtml(s.name || 'مستخدم')}
-          ${isMe ? '<span class="self-tag">أنت</span>' : ''}
-        </div>
+        <div class="leaderboard-name">${escapeHtml(s.c.name || 'مستخدم')} ${isMe ? '<span class="self-tag">أنت</span>' : ''}</div>
         <div class="leaderboard-stats">
-          <span><i class="fas fa-check-circle"></i> ${s.correctCount} صحيح</span>
-          <span><i class="fas fa-pen"></i> ${s.answeredCount} / ${questions.length}</span>
-          <span><i class="fas fa-clock"></i> ${durationText}</span>
+          <span><i class="fas fa-stopwatch"></i> ${s.correct ? fmtMs(s.totalMs) : '—'}</span>
+          <span><i class="fas fa-pen"></i> ${s.answered} / ${st.qs.length}</span>
+          <span><i class="fas fa-bolt"></i> ×${s.first}</span>
         </div>
       </div>
-      <div class="leaderboard-score">${s.score}</div>
-    `;
-
-    container.appendChild(item);
+      <div class="leaderboard-score">${s.correct}</div>`;
+    frag.appendChild(item);
   });
+  container.innerHTML = '';
+  container.appendChild(frag);
 }
 
 // ============================================================
