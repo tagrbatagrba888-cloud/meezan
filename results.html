@@ -1726,6 +1726,9 @@
     .menu-btn { display: none !important; }
     .drawer, .drawer-overlay { display: none !important; }
   }
+
+  .cert-from-admin { color: var(--accent) !important; font-weight: 800; }
+  .cert-card .cert-card-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -1891,7 +1894,7 @@
       <i class="fas fa-award"></i>
       <div class="cert-intro-text">
         <h3>🎓 شهادات التفوق</h3>
-        <p>كل من حصل على نسبة <strong>80% أو أكثر</strong> في أي امتحان أو واجب، تُستخرج له شهادة تقدير تلقائياً. يمكنك تحميلها كصورة أو ملف PDF.</p>
+        <p id="certIntroText">كل من حصل على نسبة <strong>80% أو أكثر</strong> في أي امتحان أو واجب، تُستخرج له شهادة تقدير تلقائياً. يمكنك تحميلها كصورة أو ملف PDF.</p>
       </div>
     </div>
 
@@ -2029,7 +2032,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, getDoc
+  getFirestore, doc, onSnapshot, getDoc, setDoc, collection, query, where,
+  runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2076,7 +2080,8 @@ const CACHE_KEYS = {
   hwSubs:       'meezan_results2_hwsubs',
   examSubs:     'meezan_results2_examsubs',
   hidden:       'meezan_results2_hidden',
-  certSettings: 'meezan_results2_certsettings'
+  certSettings: 'meezan_results2_certsettings',
+  certs:        'meezan_results2_certs'
 };
 
 function loadCache(key) {
@@ -2173,10 +2178,17 @@ let certSettings = {
   signature: '_______________',
   logoUrl: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png',
   siteNameAr: 'ميزان',
-  siteNameEn: 'MEEZAN'
+  siteNameEn: 'MEEZAN',
+  minPercent: 80,       // الحد الأدنى للشهادة التلقائية (يتحكم فيه الأدمن)
+  autoEnabled: true,    // تفعيل الشهادات التلقائية
+  notifyAuto: true      // إشعار عند إنشاء شهادة تلقائية
 };
 
 let currentCertData = null;
+let myCertDocs = [];            // ⚡ الشهادات الخام من Firestore (collection: certificates)
+let certsLoaded = false;
+let certSettingsLoaded = false;
+let certsFirstSnapshot = true;
 
 // ============================================================
 // ✅ الاسم الكامل
@@ -2309,6 +2321,13 @@ function applyFromCache() {
   const cCert = loadCache(CACHE_KEYS.certSettings);
   if (cCert && cCert.data) {
     certSettings = { ...certSettings, ...cCert.data };
+    hasAnything = true;
+  }
+
+  // 8. الشهادات (من الكاش — تظهر فوراً قبل وصول Firestore)
+  const cCerts = loadCache(CACHE_KEYS.certs);
+  if (cCerts && Array.isArray(cCerts.data)) {
+    myCertDocs = cCerts.data.filter(c => String(c.userId) === String(userId));
     hasAnything = true;
   }
 
@@ -3062,59 +3081,218 @@ $('answersModal').addEventListener('click', (e) => {
 // ============================================================
 // 🎓 Certificates
 // ============================================================
+// ------------------------------------------------------------
+// 🔧 Helpers للشهادات
+// ------------------------------------------------------------
+function autoCertId(kind, itemId, uid) {
+  return `auto_${kind === 'homework' ? 'hw' : 'ex'}_${itemId}_${uid}`;
+}
+
+function normalizeCert(c) {
+  const kind = c.kind || c.type || 'custom';
+  const hasScore = c.percent !== null && c.percent !== undefined && c.percent !== '' && !isNaN(Number(c.percent));
+  return {
+    ...c,
+    kind,
+    type: kind,                                   // توافق مع باقي الكود
+    title: (c.title && String(c.title).trim()) || 'شهادة تقدير',
+    itemName: c.itemName || '',
+    category: c.category || '',
+    description: c.description || '',
+    percent: hasScore ? Number(c.percent) : null,
+    score: hasScore ? c.score : null,
+    total: hasScore ? c.total : null,
+    date: c.issuedAt || c.date || c.createdAt || ''
+  };
+}
+
+function certTypeLabel(cert) {
+  if (cert.kind === 'homework') return 'واجب';
+  if (cert.kind === 'exam') return 'امتحان';
+  return cert.category || 'شهادة';
+}
+
+function certFileBase(cert) {
+  const name = (cert.itemName || cert.title || 'شهادة').replace(/[\\/:*?"<>|]/g, '-');
+  return `شهادة_${name}${cert.percent !== null ? '_' + cert.percent + '%' : ''}`;
+}
+
+// ------------------------------------------------------------
+// 🎓 بناء قائمة الشهادات (مصدرها Firestore فقط — الأدمن هو المرجع)
+// ------------------------------------------------------------
 function buildCertificates() {
   if (!userDataLoaded) return;
 
-  const certs = [];
-  const MIN_PERCENT = 80;
+  myCertificates = myCertDocs
+    .filter(c => !c.deleted)
+    .map(normalizeCert)
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-  const visibleHw = getVisibleHomeworks();
-  const visibleEx = getVisibleExams();
-
-  visibleHw.forEach(hw => {
-    const sub = myHWSubs[hw.id];
-    if (!sub || !sub.submitted || !sub.corrected) return;
-
-    const percent = calcPercent(sub.score, sub.totalScore);
-    if (percent < MIN_PERCENT) return;
-
-    certs.push({
-      id: `cert_hw_${hw.id}`,
-      type: 'homework',
-      itemId: hw.id,
-      itemName: hw.name,
-      score: sub.score,
-      total: sub.totalScore,
-      percent,
-      date: sub.correctedAt || sub.submittedAt,
-      code: getStudentCode()
-    });
-  });
-
-  visibleEx.forEach(exam => {
-    const sub = myExamSubs[exam.id];
-    if (!sub || !sub.submitted || !sub.corrected) return;
-
-    const percent = calcPercent(sub.score, sub.totalScore);
-    if (percent < MIN_PERCENT) return;
-
-    certs.push({
-      id: `cert_exam_${exam.id}`,
-      type: 'exam',
-      itemId: exam.id,
-      itemName: exam.name,
-      score: sub.score,
-      total: sub.totalScore,
-      percent,
-      date: sub.correctedAt || sub.submittedAt,
-      code: getStudentCode()
-    });
-  });
-
-  certs.sort((a, b) => b.percent - a.percent);
-
-  myCertificates = certs;
   renderCertificates();
+}
+
+function updateCertIntro() {
+  const el = $('certIntroText');
+  if (!el) return;
+  const minP = Number(certSettings.minPercent) || 80;
+  el.innerHTML = certSettings.autoEnabled === false
+    ? 'تصدر الإدارة شهادات التقدير للمتفوقين، وستظهر هنا فور إصدارها. يمكنك تحميلها كصورة أو ملف PDF.'
+    : `كل من حصل على نسبة <strong>${minP}% أو أكثر</strong> في أي امتحان أو واجب، تُستخرج له شهادة تقدير تلقائياً، كما قد تصدر لك الإدارة شهادات خاصة. يمكنك تحميلها كصورة أو ملف PDF.`;
+}
+
+// ------------------------------------------------------------
+// 📩 إشعار نصي عند إنشاء شهادة
+// ------------------------------------------------------------
+async function notifyCertCreated(studentId, certs) {
+  try {
+    if (!certs.length) return;
+    const notifId = 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    let title, body;
+
+    if (certs.length === 1) {
+      const c = certs[0];
+      title = `🎓 شهادة جديدة: ${c.itemName || c.title}`;
+      body = `مبروك! تم إصدار شهادة "${c.title}" لك` +
+             (c.itemName ? ` في ${c.itemName}` : '') +
+             (c.percent !== null && c.percent !== undefined ? ` بنسبة ${c.percent}%` : '') +
+             `.\n\nيمكنك عرضها وتحميلها من قسم الشهادات في صفحة نتائجي.`;
+    } else {
+      title = `🎓 حصلت على ${certs.length} شهادات جديدة`;
+      const names = certs.slice(0, 5).map(c => `• ${c.itemName || c.title}`).join('\n');
+      body = `مبروك! تم إصدار ${certs.length} شهادات جديدة لك:\n${names}` +
+             (certs.length > 5 ? `\n… و${certs.length - 5} أخرى` : '') +
+             `\n\nيمكنك عرضها وتحميلها من قسم الشهادات في صفحة نتائجي.`;
+    }
+
+    await setDoc(doc(db, 'notifications', notifId), {
+      id: notifId,
+      title, body,
+      type: 'text',
+      senderId: 'system',
+      senderName: certSettings.siteNameAr || 'النظام',
+      createdAt: new Date().toISOString(),
+      target: 'custom',
+      targetLabel: 'شهادة جديدة',
+      recipients: [String(studentId)],
+      recipientsCount: 1
+    });
+
+    const ref = doc(db, 'user_notifications', String(studentId));
+    const snap = await getDoc(ref);
+    let notifIds = snap.exists() ? (snap.data().notifIds || []) : [];
+    const readIds = snap.exists() ? (snap.data().readIds || []) : [];
+    if (!notifIds.includes(notifId)) {
+      notifIds.unshift(notifId);
+      if (notifIds.length > 100) notifIds = notifIds.slice(0, 100);
+    }
+    await setDoc(ref, {
+      userId: String(studentId),
+      notifIds, readIds,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('cert notification failed:', e);
+  }
+}
+
+// ------------------------------------------------------------
+// 🤖 مزامنة الشهادات التلقائية (idempotent — بدون تكرار)
+// ------------------------------------------------------------
+let autoSyncTimer = null;
+let autoSyncRunning = false;
+
+function scheduleAutoCertSync() {
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(syncMyAutoCertificates, 1200);
+}
+
+async function createCertIfMissing(id, data) {
+  const ref = doc(db, 'certificates', id);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (snap.exists()) return false;     // موجودة (أو محذوفة سابقاً) → لا نعيد إنشاءها
+    tx.set(ref, data);
+    return true;
+  });
+}
+
+async function syncMyAutoCertificates() {
+  if (autoSyncRunning) return;
+  if (!userDataLoaded || !certsLoaded || !certSettingsLoaded || !hiddenDataLoaded) return;
+  if (certSettings.autoEnabled === false) return;
+
+  autoSyncRunning = true;
+  try {
+    const minP = Number(certSettings.minPercent) || 80;
+    const existing = new Map(myCertDocs.map(c => [c.id, c]));
+    const created = [];
+
+    const candidates = [];
+    const collectFrom = (kind, items, subs) => {
+      items.forEach(item => {
+        const sub = subs[item.id];
+        if (!sub || !sub.submitted || !sub.corrected) return;
+        const percent = calcPercent(sub.score, sub.totalScore);
+        if (percent < minP) return;
+        candidates.push({ kind, item, sub, percent });
+      });
+    };
+    collectFrom('homework', getVisibleHomeworks(), myHWSubs);
+    collectFrom('exam', getVisibleExams(), myExamSubs);
+
+    for (const c of candidates) {
+      const id = autoCertId(c.kind, c.item.id, userId);
+      const ex = existing.get(id);
+      const issuedAt = c.sub.correctedAt || c.sub.submittedAt || new Date().toISOString();
+
+      if (ex) {
+        // تحديث الدرجة لو تغيّرت ولم يعدّل الأدمن الشهادة يدوياً
+        if (!ex.deleted && !ex.edited &&
+            (ex.score !== c.sub.score || ex.total !== c.sub.totalScore)) {
+          await setDoc(doc(db, 'certificates', id), {
+            score: c.sub.score, total: c.sub.totalScore, percent: c.percent,
+            issuedAt, updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+        continue;
+      }
+
+      const data = {
+        id,
+        userId: String(userId),
+        studentName: getStudentFullName(),
+        studentCode: getStudentCode(),
+        grade: myGrade || '',
+        kind: c.kind,
+        itemId: String(c.item.id),
+        itemName: c.item.name || '',
+        category: '',
+        title: 'شهادة تقدير',
+        description: '',
+        score: c.sub.score,
+        total: c.sub.totalScore,
+        percent: c.percent,
+        issuedAt,
+        source: 'auto',
+        edited: false,
+        deleted: false,
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+        updatedAt: serverTimestamp()
+      };
+
+      const ok = await createCertIfMissing(id, data);
+      if (ok) created.push(data);
+    }
+
+    if (created.length && certSettings.notifyAuto !== false) {
+      await notifyCertCreated(userId, created);
+    }
+  } catch (e) {
+    console.warn('auto cert sync error:', e);
+  } finally {
+    autoSyncRunning = false;
+  }
 }
 
 function renderCertificates() {
@@ -3144,7 +3322,7 @@ function renderCertificates() {
         <i class="fas fa-award"></i>
         <h3>${myCertificates.length === 0 ? 'لا توجد شهادات بعد' : 'لا توجد نتائج'}</h3>
         <p>${myCertificates.length === 0
-          ? 'احصل على 80% أو أكثر في أي امتحان أو واجب لاستخراج شهادة تقدير'
+          ? `احصل على ${Number(certSettings.minPercent) || 80}% أو أكثر في أي امتحان أو واجب لاستخراج شهادة تقدير`
           : 'جرّب البحث بكلمة أخرى'}</p>
       </div>
     `;
@@ -3163,31 +3341,40 @@ function createCertCard(cert) {
   const card = document.createElement('div');
   card.className = 'cert-card';
 
-  const typeLabel = cert.type === 'homework' ? 'واجب' : 'امتحان';
-  const typeIcon = cert.type === 'homework' ? 'fa-file-pen' : 'fa-graduation-cap';
+  const typeLabel = certTypeLabel(cert);
+  const typeIcon = cert.kind === 'homework' ? 'fa-file-pen'
+                 : cert.kind === 'exam' ? 'fa-graduation-cap' : 'fa-award';
+  const hasScore = cert.percent !== null;
+  const mainName = cert.itemName || cert.title;
 
   card.innerHTML = `
     <div class="cert-preview">
       <div class="cert-preview-icon">
         <i class="fas fa-award"></i>
       </div>
-      <div class="cert-preview-title">شهادة تقدير</div>
+      <div class="cert-preview-title">${escapeHtml(cert.title)}</div>
       <div class="cert-preview-sub">CERTIFICATE OF ACHIEVEMENT</div>
     </div>
     <div class="cert-card-body">
       <div class="cert-card-title">
         <i class="fas ${typeIcon}"></i>
-        <span>${escapeHtml(cert.itemName)}</span>
+        <span>${escapeHtml(mainName)}</span>
       </div>
       <div class="cert-card-meta">
-        <span><i class="fas fa-tag"></i> ${typeLabel} #${cert.itemId}</span>
+        <span><i class="fas fa-tag"></i> ${escapeHtml(typeLabel)}${cert.kind !== 'custom' && cert.itemId ? ' #' + escapeHtml(cert.itemId) : ''}</span>
         <span><i class="fas fa-calendar"></i> ${formatDateShort(cert.date)}</span>
+        ${cert.source === 'admin' ? '<span class="cert-from-admin"><i class="fas fa-user-shield"></i> من الإدارة</span>' : ''}
       </div>
+      ${hasScore ? `
       <div class="cert-score-badge">
         <i class="fas fa-star"></i>
         <span>${cert.percent}%</span>
         <span style="opacity:0.7;">(${cert.score}/${cert.total})</span>
-      </div>
+      </div>` : `
+      <div class="cert-score-badge">
+        <i class="fas fa-medal"></i>
+        <span>${escapeHtml(cert.title)}</span>
+      </div>`}
       <div class="cert-actions">
         <button class="btn-action primary" data-action="view">
           <i class="fas fa-eye"></i>
@@ -3217,7 +3404,7 @@ function createCertCard(cert) {
 // ============================================================
 function openCertModal(cert, mode = 'view') {
   currentCertData = cert;
-  $('certModalSubtitle').textContent = `${cert.itemName} — ${cert.percent}%`;
+  $('certModalSubtitle').textContent = `${cert.itemName || cert.title}${cert.percent !== null ? ' — ' + cert.percent + '%' : ''}`;
 
   $('certModal').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -3270,7 +3457,21 @@ window.addEventListener('resize', () => {
   }
 });
 
+function autoFitCertTitle() {
+  const titleEl = document.querySelector('#certificateRender .cert-main-title');
+  if (!titleEl) return;
+  let size = 52;
+  titleEl.style.fontSize = size + 'px';
+  let guard = 0;
+  while (titleEl.scrollWidth > 760 && size > 28 && guard < 40) {
+    size -= 2;
+    titleEl.style.fontSize = size + 'px';
+    guard++;
+  }
+}
+
 function autoFitStudentName() {
+  autoFitCertTitle();
   const nameEl = document.querySelector('#certificateRender .cert-student-name');
   if (!nameEl) return;
 
@@ -3298,8 +3499,21 @@ function renderCertHTML(cert) {
 
   const studentName = getStudentFullName();
   const studentCode = getStudentCode();
-  const typeLabel = cert.type === 'homework' ? 'الواجب' : 'الامتحان';
   const dateFormatted = formatDateFull(cert.date);
+  const hasScore = cert.percent !== null;
+
+  let line2;
+  if (cert.description) {
+    line2 = escapeHtml(cert.description);
+  } else if (cert.kind === 'homework') {
+    line2 = 'قد حصل على هذه الشهادة تقديراً لتفوقه في الواجب';
+  } else if (cert.kind === 'exam') {
+    line2 = 'قد حصل على هذه الشهادة تقديراً لتفوقه في الامتحان';
+  } else if (cert.category) {
+    line2 = `قد حصل على هذه الشهادة تقديراً لتميزه في ${escapeHtml(cert.category)}`;
+  } else {
+    line2 = 'قد حصل على هذه الشهادة تقديراً لجهوده وتميّزه';
+  }
 
   container.innerHTML = `
     <div class="cert-frame-outer"></div>
@@ -3313,7 +3527,7 @@ function renderCertHTML(cert) {
     <div class="cert-content">
       <img src="${certSettings.logoUrl}" alt="logo" class="cert-logo" crossorigin="anonymous">
 
-      <h1 class="cert-main-title">شهادة تقدير</h1>
+      <h1 class="cert-main-title" style="white-space:nowrap;">${escapeHtml(cert.title)}</h1>
       <div class="cert-en-title">CERTIFICATE OF ACHIEVEMENT</div>
 
       <div class="cert-divider">
@@ -3328,13 +3542,13 @@ function renderCertHTML(cert) {
       <div class="cert-name-underline"></div>
       <div class="cert-student-code">كود الطالب: ${escapeHtml(studentCode)}</div>
 
-      <p class="cert-line-2">قد حصل على هذه الشهادة تقديراً لتفوقه في ${typeLabel}</p>
+      <p class="cert-line-2" style="white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;">${line2}</p>
 
-      <div class="cert-item-name">« ${escapeHtml(cert.itemName)} »</div>
+      ${cert.itemName ? `<div class="cert-item-name">« ${escapeHtml(cert.itemName)} »</div>` : ''}
 
-      <div class="cert-score">
+      ${hasScore ? `<div class="cert-score">
         بنسبة <span class="highlight">${cert.percent}%</span> — ${cert.score} من ${cert.total}
-      </div>
+      </div>` : ''}
 
       <div class="cert-date">تاريخ الإنجاز: ${dateFormatted}</div>
     </div>
@@ -3485,7 +3699,7 @@ $('certDownloadImage').addEventListener('click', async () => {
     const dataUrl = canvas.toDataURL('image/png', 1.0);
 
     const link = document.createElement('a');
-    link.download = `شهادة_${currentCertData.itemName}_${currentCertData.percent}%.png`;
+    link.download = `${certFileBase(currentCertData)}.png`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
@@ -3528,7 +3742,7 @@ $('certDownloadPdf').addEventListener('click', async () => {
     });
 
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`شهادة_${currentCertData.itemName}_${currentCertData.percent}%.pdf`);
+    pdf.save(`${certFileBase(currentCertData)}.pdf`);
 
     showToast('✅ تم تحميل الشهادة كـ PDF', 'success');
   } catch (e) {
@@ -3554,19 +3768,19 @@ $('certShareBtn').addEventListener('click', async () => {
   try {
     const canvas = await renderCertToCanvas();
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-    const file = new File([blob], `شهادة_${currentCertData.itemName}.png`, { type: 'image/png' });
+    const file = new File([blob], `${certFileBase(currentCertData)}.png`, { type: 'image/png' });
 
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
-        title: `شهادة تقدير — ${currentCertData.itemName}`,
-        text: `حصلت على ${currentCertData.percent}% في ${currentCertData.itemName}`,
+        title: `${currentCertData.title} — ${currentCertData.itemName || ''}`,
+        text: currentCertData.percent !== null ? `حصلت على ${currentCertData.percent}% في ${currentCertData.itemName}` : `حصلت على ${currentCertData.title}${currentCertData.itemName ? ' — ' + currentCertData.itemName : ''}`,
         files: [file]
       });
       showToast('✅ تمت المشاركة', 'success');
     } else {
       const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.download = `شهادة_${currentCertData.itemName}.png`;
+      link.download = `${certFileBase(currentCertData)}.png`;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
@@ -3745,11 +3959,68 @@ function startCertSettingsListener() {
         signature: data.signature || certSettings.signature,
         logoUrl: data.logoUrl || certSettings.logoUrl,
         siteNameAr: data.siteNameAr || certSettings.siteNameAr,
-        siteNameEn: data.siteNameEn || certSettings.siteNameEn
+        siteNameEn: data.siteNameEn || certSettings.siteNameEn,
+        minPercent: (data.minPercent !== undefined && data.minPercent !== null) ? Number(data.minPercent) : certSettings.minPercent,
+        autoEnabled: data.autoEnabled !== undefined ? !!data.autoEnabled : certSettings.autoEnabled,
+        notifyAuto: data.notifyAuto !== undefined ? !!data.notifyAuto : certSettings.notifyAuto
       };
       saveCache(CACHE_KEYS.certSettings, certSettings);
     }
-  }, (err) => console.log('cert settings error:', err.message));
+    certSettingsLoaded = true;
+    updateCertIntro();
+
+    // تحديث الشهادة المفتوحة لو تغيّر التوقيع/الشعار
+    if (currentCertData && $('certModal').classList.contains('show')) {
+      renderCertHTML(currentCertData);
+      requestAnimationFrame(() => requestAnimationFrame(() => { scaleCertificate(); autoFitStudentName(); }));
+    }
+    scheduleRefresh();
+  }, (err) => { certSettingsLoaded = true; console.log('cert settings error:', err.message); });
+}
+
+// 🎓 الشهادات — لحظي من Firestore (collection: certificates)
+function startCertsListener() {
+  if (!userId) return;
+  const q = query(collection(db, 'certificates'), where('userId', '==', String(userId)));
+
+  onSnapshot(q, (snap) => {
+    // 🔔 تنبيه فوري لو وصلت شهادة جديدة والصفحة مفتوحة
+    if (!certsFirstSnapshot) {
+      snap.docChanges().forEach(ch => {
+        if (ch.type === 'added' && !ch.doc.metadata.hasPendingWrites) {
+          const c = ch.doc.data();
+          if (!c.deleted) showToast('🎓 حصلت على شهادة جديدة: ' + (c.itemName || c.title || ''), 'success');
+        }
+      });
+    }
+    certsFirstSnapshot = false;
+
+    const docs = [];
+    snap.forEach(d => docs.push({ id: d.id, ...d.data(), updatedAt: undefined }));
+    myCertDocs = docs;
+    certsLoaded = true;
+    saveCache(CACHE_KEYS.certs, myCertDocs);
+
+    // 🔄 تحديث الشهادة المفتوحة لحظياً (تعديل/حذف من الأدمن)
+    if (currentCertData && $('certModal').classList.contains('show')) {
+      const fresh = myCertDocs.find(c => c.id === currentCertData.id && !c.deleted);
+      if (!fresh) {
+        closeCertModal();
+        showToast('تم حذف هذه الشهادة من قِبل الإدارة', 'warning');
+      } else {
+        currentCertData = normalizeCert(fresh);
+        $('certModalSubtitle').textContent = `${currentCertData.itemName || currentCertData.title}${currentCertData.percent !== null ? ' — ' + currentCertData.percent + '%' : ''}`;
+        renderCertHTML(currentCertData);
+        requestAnimationFrame(() => requestAnimationFrame(() => { scaleCertificate(); autoFitStudentName(); }));
+      }
+    }
+
+    scheduleRefresh();
+  }, (err) => {
+    certsLoaded = true;
+    console.log('certs error:', err.message);
+    scheduleRefresh();
+  });
 }
 
 // ============================================================
@@ -3784,6 +4055,7 @@ function refreshAll() {
   applyExamFilters();
   buildCertificates();
   updateStats();
+  scheduleAutoCertSync();
 }
 
 // ============================================================
@@ -3857,6 +4129,7 @@ startExamsListener();
 startHWSubsListener();
 startExamSubsListener();
 startCertSettingsListener();
+startCertsListener();
 
 window.addEventListener('pageshow', (e) => {
   if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
