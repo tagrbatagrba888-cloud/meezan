@@ -1932,6 +1932,39 @@ const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
+// 🖼️ صور الحسابات المخزّنة في عدة مستندات Firestore (fsav:...)
+// ============================================================
+const __avCache = new Map();
+function __avLoad(ptr) {
+  if (__avCache.has(ptr)) return __avCache.get(ptr);
+  const [, col, uid, ver, n] = ptr.split(':');
+  const p = Promise.all(Array.from({ length: parseInt(n, 10) || 1 }, (_, i) =>
+    getDoc(doc(db, col, `avatar_${uid}_${ver}_${i}`)).then(s => (s.exists() ? s.data().data : ''))
+  )).then(parts => parts.join('')).catch(() => '');
+  __avCache.set(ptr, p);
+  return p;
+}
+function __avFix(img) {
+  const src = img.getAttribute('src') || '';
+  if (!src.startsWith('fsav:') || img.__avBusy === src) return;
+  img.__avBusy = src;
+  img.removeAttribute('onerror');
+  img.removeAttribute('src');
+  __avLoad(src).then(d => { if (d) img.src = d; else if (img.parentNode) img.parentNode.innerHTML = '<i class="fas fa-user"></i>'; });
+}
+new MutationObserver((muts) => {
+  for (const m of muts) {
+    if (m.type === 'attributes') { if (m.target.tagName === 'IMG') __avFix(m.target); continue; }
+    m.addedNodes.forEach(n => {
+      if (n.nodeType !== 1) return;
+      if (n.tagName === 'IMG') __avFix(n);
+      else n.querySelectorAll && n.querySelectorAll('img[src^="fsav:"]').forEach(__avFix);
+    });
+  }
+}).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+
+
+// ============================================================
 // 🔒 الحماية — طرد لو ما مسجل
 // ============================================================
 if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
@@ -3066,5 +3099,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<script type="module" src="presence.js"></script>
 </body>
 </html>
