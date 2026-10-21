@@ -1467,7 +1467,7 @@
       <label class="upload-area" for="avatarFileInput">
         <i class="fas fa-cloud-upload-alt"></i>
         <p>اضغط لاختيار صورة من جهازك</p>
-        <p style="font-size:11px;opacity:0.7;margin-top:4px;">PNG, JPG · أقل من 1MB</p>
+        <p style="font-size:11px;opacity:0.7;margin-top:4px;">PNG, JPG · حتى 2 ميجا</p>
       </label>
       <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
       <p id="avatarUploadStatus" style="font-size:12px;color:var(--success);font-weight:700;margin-top:8px;display:none;"></p>
@@ -1513,6 +1513,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { 
   getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -1526,6 +1527,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
@@ -1633,6 +1635,8 @@ let allCategories = [];
 
 let pendingAvatarType = 'url';
 let uploadedAvatarBase64 = '';
+let uploadedAvatarFile = null;
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2 ميجا
 
 let blockTriggered = false;
 
@@ -2313,6 +2317,7 @@ function openAvatarModal() {
 
   pendingAvatarType = 'url';
   uploadedAvatarBase64 = '';
+  uploadedAvatarFile = null;
 
   document.querySelectorAll('.avatar-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.avatar-tab[data-avatar-type="url"]').classList.add('active');
@@ -2374,10 +2379,16 @@ $('avatarFileInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  if (file.size > 1024 * 1024) {
-    return showToast('حجم الصورة أكبر من 1MB', 'error');
+  if (!file.type.startsWith('image/')) {
+    e.target.value = '';
+    return showToast('الملف يجب أن يكون صورة', 'error');
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    e.target.value = '';
+    return showToast('حجم الصورة أكبر من 2MB', 'error');
   }
 
+  uploadedAvatarFile = file;
   const reader = new FileReader();
   reader.onload = (ev) => {
     uploadedAvatarBase64 = ev.target.result;
@@ -2387,6 +2398,67 @@ $('avatarFileInput').addEventListener('change', (e) => {
   };
   reader.readAsDataURL(file);
 });
+
+// ============================================================
+// 🗜️ ضغط الصورة + رفعها (Firebase Storage) مع بديل مصغّر آمن
+// ============================================================
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('تعذّر قراءة الصورة')); };
+    img.src = url;
+  });
+}
+
+async function resizeImage(file, maxDim, quality) {
+  const img = await loadImageFromFile(file);
+  const k = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * k));
+  const h = Math.max(1, Math.round(img.height * k));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+  const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', quality));
+  if (!blob) throw new Error('تعذّر معالجة الصورة');
+  return { blob, canvas: c };
+}
+
+function uploadAvatarToStorage(blob) {
+  const path = `avatars/${collectionName}_${currentUser.id}_${Date.now()}.jpg`;
+  return new Promise((resolve, reject) => {
+    const task = uploadBytesResumable(sRef(storage, path), blob, { contentType: 'image/jpeg' });
+    let stall;
+    const arm = () => { clearTimeout(stall); stall = setTimeout(() => { try { task.cancel(); } catch (e) {} reject(new Error('timeout')); }, 15000); };
+    arm();
+    task.on('state_changed', arm,
+      (err) => { clearTimeout(stall); reject(err); },
+      async () => { clearTimeout(stall); try { resolve(await getDownloadURL(task.snapshot.ref)); } catch (e) { reject(e); } }
+    );
+  });
+}
+
+// يرجع رابطاً قصيراً (Storage) أو صورة مصغّرة صغيرة جداً تتسع داخل Firestore
+async function prepareAvatarFromFile(file) {
+  const main = await resizeImage(file, 512, 0.86);
+  try {
+    return await uploadAvatarToStorage(main.blob);
+  } catch (storageErr) {
+    console.warn('Storage upload failed, using compact thumbnail:', storageErr);
+    let q = 0.8, size = 160, out = '';
+    for (let i = 0; i < 4; i++) {
+      const t = await resizeImage(file, size, q);
+      out = t.canvas.toDataURL('image/jpeg', q);
+      if (out.length <= 24000) return out;
+      size = Math.round(size * 0.8); q = Math.max(0.55, q - 0.08);
+    }
+    return out;
+  }
+}
 
 $('avatarCancel').addEventListener('click', () => {
   $('avatarModal').classList.remove('show');
@@ -2406,10 +2478,9 @@ $('avatarSave').addEventListener('click', async () => {
       return showToast('الرجاء إدخال رابط الصورة', 'error');
     }
   } else if (pendingAvatarType === 'upload') {
-    if (!uploadedAvatarBase64) {
+    if (!uploadedAvatarFile) {
       return showToast('الرجاء رفع صورة أولاً', 'error');
     }
-    finalUrl = uploadedAvatarBase64;
   }
 
   const btn = $('avatarSave');
@@ -2418,6 +2489,10 @@ $('avatarSave').addEventListener('click', async () => {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
   try {
+    if (pendingAvatarType === 'upload') {
+      finalUrl = await prepareAvatarFromFile(uploadedAvatarFile);
+    }
+
     const snap = await getDoc(doc(db, collectionName, 'all'));
 
     if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
@@ -2432,17 +2507,24 @@ $('avatarSave').addEventListener('click', async () => {
       updatedAt: new Date().toISOString()
     };
 
+    // حماية: مستند Firestore الواحد لا يتجاوز 1MiB
+    if (JSON.stringify(items).length > 950000) {
+      throw new Error('حجم بيانات الحسابات كبير جداً — استخدم رابط صورة بدلاً من الرفع');
+    }
+
     await setDoc(doc(db, collectionName, 'all'), {
       items,
       updatedAt: serverTimestamp()
     });
 
+    uploadedAvatarFile = null;
+    uploadedAvatarBase64 = '';
     $('avatarModal').classList.remove('show');
     showToast('تم حفظ الصورة ✓', 'success');
 
   } catch (err) {
     console.error(err);
-    showToast('حدث خطأ: ' + err.message, 'error');
+    showToast('تعذّر حفظ الصورة: ' + (err && err.message ? err.message : 'خطأ غير معروف'), 'error');
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHTML;

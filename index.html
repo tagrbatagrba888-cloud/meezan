@@ -2706,8 +2706,8 @@ function getSwReg() {
 }
 
 async function registerPushToken() {
-  // 🔍 وضع التشخيص: يعرض سبب أي توقف على الشاشة (احذفه بعد حل المشكلة)
-  const dbg = (m) => { try { showToast('🔍 ' + m, 'warning'); } catch (e) {} console.log('push debug:', m); };
+  // تسجيل صامت في الكونسول فقط
+  const dbg = (m) => { console.log('push debug:', m); }; // صامت: لا تظهر أي رسائل للمستخدم
   try {
     if (!pushSupported()) return dbg('المتصفح لا يدعم الإشعارات');
     if (Notification.permission !== 'granted') return dbg('إذن الإشعارات: ' + Notification.permission);
