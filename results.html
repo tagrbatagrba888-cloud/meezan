@@ -7,7 +7,7 @@
 <title>نتائجي | MEEZAN</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Reem+Kufi:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Reem+Kufi:wght@400;600;700&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -1126,8 +1126,7 @@
   #certificateRender {
     width: 1000px;
     height: 700px;
-    background:
-      radial-gradient(circle at 50% 40%, #FFFDF4 0%, #FCF6E0 40%, #F6EBC4 75%, #EFE0A8 100%);
+    background: var(--cv-bg-color, #FFFDF4);
     position: absolute;
     top: 0;
     left: 0;
@@ -1145,121 +1144,132 @@
     position: absolute;
     inset: 0;
     background-image:
-      repeating-linear-gradient(45deg, rgba(201, 169, 97, 0.035) 0px, rgba(201, 169, 97, 0.035) 1px, transparent 1px, transparent 14px),
-      repeating-linear-gradient(-45deg, rgba(201, 169, 97, 0.035) 0px, rgba(201, 169, 97, 0.035) 1px, transparent 1px, transparent 14px);
+      repeating-linear-gradient(45deg, var(--cv-bg-pattern-color, rgba(201, 169, 97, 0.035)) 0px, var(--cv-bg-pattern-color, rgba(201, 169, 97, 0.035)) 1px, transparent 1px, transparent 14px),
+      repeating-linear-gradient(-45deg, var(--cv-bg-pattern-color, rgba(201, 169, 97, 0.035)) 0px, var(--cv-bg-pattern-color, rgba(201, 169, 97, 0.035)) 1px, transparent 1px, transparent 14px);
     pointer-events: none;
     z-index: 0;
+    opacity: var(--cv-bg-pattern-enabled, 1);
   }
 
+  /* الإطار الخارجي */
   .cert-frame-outer {
     position: absolute;
-    top: 22px;
-    left: 22px;
-    right: 22px;
-    bottom: 22px;
-    border: 14px solid #C9A961;
-    border-radius: 4px;
+    top: var(--cv-frame-offset, 22px);
+    left: var(--cv-frame-offset, 22px);
+    right: var(--cv-frame-offset, 22px);
+    bottom: var(--cv-frame-offset, 22px);
+    border: var(--cv-frame-width, 14px) solid var(--cv-frame-color, #C9A961);
+    border-radius: var(--cv-frame-radius, 4px);
     box-shadow:
       inset 0 0 0 2px #FFFBEE,
-      inset 0 0 0 4px #8B6914,
+      inset 0 0 0 4px var(--cv-frame-inner-color, #8B6914),
       inset 0 0 0 6px #FFFBEE,
-      inset 0 0 55px rgba(201, 169, 97, 0.28);
+      inset 0 0 55px var(--cv-frame-shadow, rgba(201, 169, 97, 0.28));
     pointer-events: none;
     z-index: 1;
     background:
       repeating-linear-gradient(45deg, transparent 0, transparent 8px, rgba(255, 255, 255, 0.06) 8px, rgba(255, 255, 255, 0.06) 9px);
   }
 
+  /* الإطار الداخلي */
   .cert-frame-inner {
     position: absolute;
-    top: 54px;
-    left: 54px;
-    right: 54px;
-    bottom: 54px;
-    border: 1.5px solid #8B6914;
+    top: calc(var(--cv-frame-offset, 22px) + 32px);
+    left: calc(var(--cv-frame-offset, 22px) + 32px);
+    right: calc(var(--cv-frame-offset, 22px) + 32px);
+    bottom: calc(var(--cv-frame-offset, 22px) + 32px);
+    border: 1.5px solid var(--cv-frame-inner-color, #8B6914);
     border-radius: 2px;
     pointer-events: none;
     z-index: 1;
+    display: var(--cv-inner-frame-display, block);
   }
 
+  /* زخارف الأركان */
   .cert-corner {
     position: absolute;
     width: 90px;
     height: 90px;
     pointer-events: none;
     z-index: 2;
+    display: var(--cv-corners-display, block);
   }
 
-  .cert-corner.tr { top: 52px; right: 52px; }
-  .cert-corner.tl { top: 52px; left: 52px; }
-  .cert-corner.br { bottom: 52px; right: 52px; }
-  .cert-corner.bl { bottom: 52px; left: 52px; }
+  .cert-corner.top-right { top: calc(var(--cv-frame-offset, 22px) + 30px); right: calc(var(--cv-frame-offset, 22px) + 30px); }
+  .cert-corner.top-left { top: calc(var(--cv-frame-offset, 22px) + 30px); left: calc(var(--cv-frame-offset, 22px) + 30px); }
+  .cert-corner.bottom-right { bottom: calc(var(--cv-frame-offset, 22px) + 30px); right: calc(var(--cv-frame-offset, 22px) + 30px); }
+  .cert-corner.bottom-left { bottom: calc(var(--cv-frame-offset, 22px) + 30px); left: calc(var(--cv-frame-offset, 22px) + 30px); }
 
   .cert-corner::before,
   .cert-corner::after {
     content: '';
     position: absolute;
-    background: #C9A961;
+    background: var(--cv-corner-color, #C9A961);
     border-radius: 2px;
   }
 
-  .cert-corner.tr::before { top: 0; right: 0; width: 65px; height: 3px; }
-  .cert-corner.tr::after { top: 0; right: 0; width: 3px; height: 65px; }
-  .cert-corner.tl::before { top: 0; left: 0; width: 65px; height: 3px; }
-  .cert-corner.tl::after { top: 0; left: 0; width: 3px; height: 65px; }
-  .cert-corner.br::before { bottom: 0; right: 0; width: 65px; height: 3px; }
-  .cert-corner.br::after { bottom: 0; right: 0; width: 3px; height: 65px; }
-  .cert-corner.bl::before { bottom: 0; left: 0; width: 65px; height: 3px; }
-  .cert-corner.bl::after { bottom: 0; left: 0; width: 3px; height: 65px; }
+  .cert-corner.top-right::before { top: 0; right: 0; width: 65px; height: 3px; }
+  .cert-corner.top-right::after { top: 0; right: 0; width: 3px; height: 65px; }
+  .cert-corner.top-left::before { top: 0; left: 0; width: 65px; height: 3px; }
+  .cert-corner.top-left::after { top: 0; left: 0; width: 3px; height: 65px; }
+  .cert-corner.bottom-right::before { bottom: 0; right: 0; width: 65px; height: 3px; }
+  .cert-corner.bottom-right::after { bottom: 0; right: 0; width: 3px; height: 65px; }
+  .cert-corner.bottom-left::before { bottom: 0; left: 0; width: 65px; height: 3px; }
+  .cert-corner.bottom-left::after { bottom: 0; left: 0; width: 3px; height: 65px; }
 
-  .cert-corner-dot {
+  .cert-corner-circle {
     position: absolute;
     width: 16px;
     height: 16px;
-    background: radial-gradient(circle at 30% 30%, #F5EBC8 0%, #C9A961 70%, #8B6914 100%);
+    background: radial-gradient(circle at 30% 30%, #F5EBC8 0%, var(--cv-corner-color, #C9A961) 70%, var(--cv-frame-inner-color, #8B6914) 100%);
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(139, 105, 20, 0.5);
   }
 
-  .cert-corner.tr .cert-corner-dot { top: -8px; right: -8px; }
-  .cert-corner.tl .cert-corner-dot { top: -8px; left: -8px; }
-  .cert-corner.br .cert-corner-dot { bottom: -8px; right: -8px; }
-  .cert-corner.bl .cert-corner-dot { bottom: -8px; left: -8px; }
+  .cert-corner.top-right .cert-corner-circle { top: -8px; right: -8px; }
+  .cert-corner.top-left .cert-corner-circle { top: -8px; left: -8px; }
+  .cert-corner.bottom-right .cert-corner-circle { bottom: -8px; right: -8px; }
+  .cert-corner.bottom-left .cert-corner-circle { bottom: -8px; left: -8px; }
 
+  /* حاوية المحتوى */
   .cert-content {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 68px 100px 190px;
+    padding: var(--cv-content-padding, 68px 100px 190px);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     text-align: center;
     box-sizing: border-box;
     z-index: 3;
   }
 
+  /* اللوجو */
   .cert-logo {
-    width: 74px;
-    height: 74px;
+    width: var(--cv-logo-size, 74px);
+    height: var(--cv-logo-size, 74px);
     object-fit: contain;
     border-radius: 50%;
     background: #FFFFFF;
     padding: 4px;
-    border: 2.5px solid #C9A961;
+    border: 2.5px solid var(--cv-logo-border-color, #C9A961);
     box-shadow: 0 6px 22px rgba(201, 169, 97, 0.4);
     margin-bottom: 10px;
     box-sizing: border-box;
     flex-shrink: 0;
+    display: var(--cv-logo-display, inline-block);
   }
 
+  /* العنوان الرئيسي */
   .cert-main-title {
-    font-family: 'Aref Ruqaa', 'Amiri', serif;
-    font-size: 52px;
-    font-weight: 700;
-    color: #0B3D2E;
+    font-family: var(--cv-title-font, 'Aref Ruqaa'), serif;
+    font-size: var(--cv-title-size, 52px);
+    font-weight: var(--cv-title-weight, 700);
+    color: var(--cv-title-color, #0B3D2E);
     margin: 0;
     padding: 0;
     line-height: 1.15;
@@ -1267,11 +1277,12 @@
     unicode-bidi: isolate;
   }
 
+  /* العنوان الإنجليزي */
   .cert-en-title {
     font-family: 'Cairo', sans-serif;
-    font-size: 10px;
+    font-size: var(--cv-entitle-size, 10px);
     font-weight: 800;
-    color: #8B6914;
+    color: var(--cv-entitle-color, #8B6914);
     letter-spacing: 6px;
     margin: 4px 0 0 0;
     padding-left: 6px;
@@ -1279,6 +1290,7 @@
     flex-shrink: 0;
   }
 
+  /* الفاصل */
   .cert-divider {
     display: flex;
     align-items: center;
@@ -1292,32 +1304,35 @@
   .cert-divider .line {
     width: 110px;
     height: 1.5px;
-    background: linear-gradient(90deg, transparent, #C9A961 50%, transparent);
+    background: linear-gradient(90deg, transparent, var(--cv-divider-color, #C9A961) 50%, transparent);
   }
 
   .cert-divider .diamond {
     width: 9px;
     height: 9px;
-    background: #C9A961;
+    background: var(--cv-divider-color, #C9A961);
     transform: rotate(45deg);
     box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.18);
     flex-shrink: 0;
   }
 
+  /* النصوص */
   .cert-line-1 {
-    font-size: 15px;
-    color: #4A5B56;
+    font-size: var(--cv-line1-size, 15px);
+    color: var(--cv-line1-color, #4A5B56);
     font-weight: 600;
     margin: 0 0 4px 0;
     line-height: 1.5;
     letter-spacing: 0;
+    flex-shrink: 0;
   }
 
+  /* ✅ اسم الطالب — يقبل الالتفاف */
   .cert-student-name {
-    font-family: 'Aref Ruqaa', 'Amiri', serif;
-    font-size: 38px;
+    font-family: var(--cv-name-font, 'Aref Ruqaa'), serif;
+    font-size: var(--cv-name-size, 38px);
     font-weight: 700;
-    color: #0B3D2E;
+    color: var(--cv-name-color, #0B3D2E);
     line-height: 1.35;
     margin: 8px 0 0 0;
     padding: 4px 20px;
@@ -1330,22 +1345,24 @@
     letter-spacing: 0;
     unicode-bidi: isolate;
     display: block;
+    flex-shrink: 0;
   }
 
   .cert-name-underline {
-    width: 400px;
+    width: var(--cv-underline-width, 400px);
     max-width: 70%;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #0B3D2E 50%, transparent);
+    background: linear-gradient(90deg, transparent, var(--cv-underline-color, #0B3D2E) 50%, transparent);
     margin: 8px 0 6px;
     border-radius: 2px;
     flex-shrink: 0;
+    display: var(--cv-underline-display, block);
   }
 
   .cert-student-code {
     font-family: 'Cairo', sans-serif;
-    font-size: 11.5px;
-    color: #5A6B66;
+    font-size: var(--cv-code-size, 11.5px);
+    color: var(--cv-code-color, #5A6B66);
     font-weight: 700;
     letter-spacing: 0;
     margin: 0 0 10px 0;
@@ -1354,21 +1371,22 @@
   }
 
   .cert-line-2 {
-    font-size: 14px;
-    color: #4A5B56;
+    font-size: var(--cv-line2-size, 14px);
+    color: var(--cv-line2-color, #4A5B56);
     font-weight: 600;
     margin: 0 0 8px 0;
     line-height: 1.5;
     letter-spacing: 0;
+    flex-shrink: 0;
   }
 
   .cert-item-name {
-    font-family: 'Reem Kufi', 'Cairo', sans-serif;
-    font-size: 22px;
+    font-family: var(--cv-item-font, 'Reem Kufi'), 'Cairo', sans-serif;
+    font-size: var(--cv-item-size, 22px);
     font-weight: 700;
-    color: #8B6914;
-    background: linear-gradient(135deg, rgba(201, 169, 97, 0.18), rgba(224, 200, 136, 0.08));
-    border: 1.5px dashed #C9A961;
+    color: var(--cv-item-color, #8B6914);
+    background: var(--cv-item-bg, linear-gradient(135deg, rgba(201, 169, 97, 0.18), rgba(224, 200, 136, 0.08)));
+    border: 1.5px dashed var(--cv-item-border-color, #C9A961);
     border-radius: 10px;
     padding: 7px 24px;
     margin: 0 0 10px 0;
@@ -1382,9 +1400,9 @@
   }
 
   .cert-score {
-    font-size: 17px;
+    font-size: var(--cv-score-size, 17px);
     font-weight: 800;
-    color: #1E7A5A;
+    color: var(--cv-score-color, #1E7A5A);
     margin: 0 0 5px 0;
     letter-spacing: 0;
     flex-shrink: 0;
@@ -1392,14 +1410,14 @@
   }
 
   .cert-score .highlight {
-    color: #C9A961;
-    font-size: 20px;
+    color: var(--cv-score-highlight, #C9A961);
+    font-size: calc(var(--cv-score-size, 17px) * 1.18);
     font-weight: 900;
   }
 
   .cert-date {
-    font-size: 12px;
-    color: #5A6B66;
+    font-size: var(--cv-date-size, 12px);
+    color: var(--cv-date-color, #5A6B66);
     font-weight: 700;
     margin: 0;
     letter-spacing: 0;
@@ -1407,12 +1425,13 @@
     unicode-bidi: isolate;
   }
 
+  /* التوقيعات */
   .cert-footer {
     position: absolute;
-    bottom: 68px;
-    left: 100px;
-    right: 100px;
-    display: flex;
+    bottom: var(--cv-footer-bottom, 68px);
+    left: var(--cv-footer-left, 100px);
+    right: var(--cv-footer-right, 100px);
+    display: var(--cv-footer-display, flex);
     justify-content: space-between;
     align-items: flex-end;
     z-index: 4;
@@ -1420,22 +1439,22 @@
 
   .cert-signature-block {
     text-align: center;
-    width: 220px;
+    width: var(--cv-signature-width, 220px);
   }
 
   .cert-sig-line {
     width: 100%;
     height: 1.5px;
-    background: #0B3D2E;
+    background: var(--cv-sig-line-color, #0B3D2E);
     margin-bottom: 8px;
     border-radius: 2px;
   }
 
   .cert-sig-name {
-    font-family: 'Aref Ruqaa', 'Amiri', serif;
-    font-size: 15px;
+    font-family: var(--cv-sig-font, 'Aref Ruqaa'), serif;
+    font-size: var(--cv-sig-name-size, 15px);
     font-weight: 700;
-    color: #0B3D2E;
+    color: var(--cv-sig-name-color, #0B3D2E);
     margin-bottom: 2px;
     line-height: 1.2;
     letter-spacing: 0;
@@ -1443,32 +1462,33 @@
   }
 
   .cert-sig-title {
-    font-size: 11px;
-    color: #5A6B66;
+    font-size: var(--cv-sig-title-size, 11px);
+    color: var(--cv-sig-title-color, #5A6B66);
     font-weight: 600;
     letter-spacing: 0;
     unicode-bidi: isolate;
   }
 
+  /* الخاتم */
   .cert-seal {
     position: absolute;
-    bottom: 55px;
+    bottom: var(--cv-seal-bottom, 55px);
     left: 50%;
     transform: translateX(-50%);
-    width: 96px;
-    height: 96px;
+    width: var(--cv-seal-size, 96px);
+    height: var(--cv-seal-size, 96px);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #FFFDF5 0%, #E0C888 45%, #C9A961 100%);
-    border: 3px double #8B6914;
-    display: flex;
+    background: radial-gradient(circle at 35% 30%, #FFFDF5 0%, var(--cv-seal-mid, #E0C888) 45%, var(--cv-seal-color, #C9A961) 100%);
+    border: 3px double var(--cv-seal-border, #8B6914);
+    display: var(--cv-seal-display, flex);
     align-items: center;
     justify-content: center;
-    color: #8B6914;
-    font-size: 34px;
+    color: var(--cv-seal-icon-color, #8B6914);
+    font-size: calc(var(--cv-seal-size, 96px) * 0.35);
     box-shadow:
       0 8px 24px rgba(139, 105, 20, 0.4),
       inset 0 0 0 2px #FFFBEE,
-      inset 0 0 0 4px #8B6914,
+      inset 0 0 0 4px var(--cv-seal-border, #8B6914),
       inset 0 0 15px rgba(139, 105, 20, 0.3);
     z-index: 5;
   }
@@ -1479,10 +1499,11 @@
     content: '';
     position: absolute;
     inset: -8px;
-    border: 1.5px dashed #C9A961;
+    border: 1.5px dashed var(--cv-seal-color, #C9A961);
     border-radius: 50%;
     opacity: 0.6;
   }
+
 
   .toast {
     position: fixed;
@@ -2172,17 +2193,39 @@ let hiddenDataLoaded = false;
 let renderTimer = null;
 let lastDataHash = '';
 
-let certSettings = {
+const DEFAULT_CERT_SETTINGS = {
+  siteNameAr: 'ميزان',
+  siteNameEn: 'MEEZAN',
   adminName: 'مدير المنصة',
   adminTitle: 'المدير التنفيذي',
   signature: '_______________',
   logoUrl: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png',
-  siteNameAr: 'ميزان',
-  siteNameEn: 'MEEZAN',
+  mainTitle: 'شهادة تقدير',
+  enTitle: 'CERTIFICATE OF ACHIEVEMENT',
+  line1: 'تشهد إدارة منصة {site} التعليمية بأن',
+  line2: 'قد حصل على هذه الشهادة تقديراً لتفوقه في {type}',
+  homeworkLabel: 'الواجب',
+  examLabel: 'الامتحان',
+  rightSigTitle: 'المنصة التعليمية',
+  leftSigTitle: 'المدير التنفيذي',
+
+  bgColor: '#FFFDF4', bgPatternColor: 'rgba(201, 169, 97, 0.035)',
+  frameColor: '#C9A961', frameInnerColor: '#8B6914',
+  titleColor: '#0B3D2E', nameColor: '#0B3D2E', itemColor: '#8B6914',
+  scoreColor: '#1E7A5A', scoreHighlight: '#C9A961', bodyColor: '#4A5B56', cornerColor: '#C9A961',
+  titleFont: 'Aref Ruqaa', nameFont: 'Aref Ruqaa', itemFont: 'Reem Kufi', bodyFont: 'Cairo',
+  titleSize: 52, nameSize: 38, itemSize: 22, bodySize: 15,
+  frameWidth: 14, frameOffset: 22, frameRadius: 4,
+  cornersEnabled: true, innerFrameEnabled: true, bgPatternEnabled: true,
+  logoSize: 74, logoEnabled: true,
+  sealSize: 96, sealIcon: 'fa-certificate',
+  footerBottom: 68, footerLeft: 100, footerRight: 100, signatureWidth: 220, sealBottom: 55,
+
   minPercent: 80,       // الحد الأدنى للشهادة التلقائية (يتحكم فيه الأدمن)
   autoEnabled: true,    // تفعيل الشهادات التلقائية
   notifyAuto: true      // إشعار عند إنشاء شهادة تلقائية
 };
+let certSettings = { ...DEFAULT_CERT_SETTINGS };
 
 let currentCertData = null;
 let myCertDocs = [];            // ⚡ الشهادات الخام من Firestore (collection: certificates)
@@ -2320,7 +2363,8 @@ function applyFromCache() {
   // 7. إعدادات الشهادة
   const cCert = loadCache(CACHE_KEYS.certSettings);
   if (cCert && cCert.data) {
-    certSettings = { ...certSettings, ...cCert.data };
+    certSettings = { ...DEFAULT_CERT_SETTINGS, ...cCert.data };
+    applyCertCSS(certSettings);
     hasAnything = true;
   }
 
@@ -3313,7 +3357,12 @@ function renderCertificates() {
   const q = cleanInput($('searchCerts')?.value || '').toLowerCase();
   let list = myCertificates;
   if (q) {
-    list = list.filter(c => c.itemName.toLowerCase().includes(q));
+    list = list.filter(c =>
+      (c.itemName || '').toLowerCase().includes(q) ||
+      (c.title || '').toLowerCase().includes(q) ||
+      (c.category || '').toLowerCase().includes(q) ||
+      certTypeLabel(c).toLowerCase().includes(q)
+    );
   }
 
   if (list.length === 0) {
@@ -3352,7 +3401,7 @@ function createCertCard(cert) {
       <div class="cert-preview-icon">
         <i class="fas fa-award"></i>
       </div>
-      <div class="cert-preview-title">${escapeHtml(cert.title)}</div>
+      <div class="cert-preview-title">${escapeHtml(certDisplayTitle(cert))}</div>
       <div class="cert-preview-sub">CERTIFICATE OF ACHIEVEMENT</div>
     </div>
     <div class="cert-card-body">
@@ -3460,7 +3509,7 @@ window.addEventListener('resize', () => {
 function autoFitCertTitle() {
   const titleEl = document.querySelector('#certificateRender .cert-main-title');
   if (!titleEl) return;
-  let size = 52;
+  let size = Number(certSettings.titleSize) || 52;
   titleEl.style.fontSize = size + 'px';
   let guard = 0;
   while (titleEl.scrollWidth > 760 && size > 28 && guard < 40) {
@@ -3475,7 +3524,7 @@ function autoFitStudentName() {
   const nameEl = document.querySelector('#certificateRender .cert-student-name');
   if (!nameEl) return;
 
-  const MAX_SIZE = 38;
+  const MAX_SIZE = Number(certSettings.nameSize) || 38;
   const MIN_SIZE = 20;
   let size = MAX_SIZE;
 
@@ -3492,43 +3541,138 @@ function autoFitStudentName() {
 }
 
 // ============================================================
-// ✅ رسم الشهادة
+// 🎨 تطبيق إعدادات تصميم الشهادة (نفس دالة نسخة الأدمن)
+// ============================================================
+function hexToRgba(hex, alpha) {
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return `rgba(201,169,97,${alpha})`;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyCertCSS(settings) {
+  const el = document.documentElement;
+  const set = (k, v) => el.style.setProperty(k, v);
+  set('--cv-bg-color', settings.bgColor);
+  set('--cv-bg-pattern-color', settings.bgPatternColor);
+  set('--cv-frame-color', settings.frameColor);
+  set('--cv-frame-inner-color', settings.frameInnerColor);
+  set('--cv-title-color', settings.titleColor);
+  set('--cv-name-color', settings.nameColor);
+  set('--cv-item-color', settings.itemColor);
+  set('--cv-score-color', settings.scoreColor);
+  set('--cv-score-highlight', settings.scoreHighlight);
+  set('--cv-line1-color', settings.bodyColor);
+  set('--cv-line2-color', settings.bodyColor);
+  set('--cv-code-color', settings.bodyColor);
+  set('--cv-date-color', settings.bodyColor);
+  set('--cv-sig-title-color', settings.bodyColor);
+  set('--cv-sig-name-color', settings.nameColor);
+  set('--cv-sig-line-color', settings.nameColor);
+  set('--cv-corner-color', settings.cornerColor);
+  set('--cv-underline-color', settings.nameColor);
+  set('--cv-item-border-color', settings.frameColor);
+  set('--cv-item-bg', hexToRgba(settings.frameColor, 0.15));
+  set('--cv-divider-color', settings.frameColor);
+  set('--cv-logo-border-color', settings.frameColor);
+  set('--cv-seal-color', settings.frameColor);
+  set('--cv-seal-border', settings.frameInnerColor);
+  set('--cv-seal-mid', settings.scoreHighlight);
+  set('--cv-seal-icon-color', settings.frameInnerColor);
+
+  set('--cv-title-font', `'${settings.titleFont}'`);
+  set('--cv-name-font', `'${settings.nameFont}'`);
+  set('--cv-item-font', `'${settings.itemFont}'`);
+  set('--cv-body-font', `'${settings.bodyFont}'`);
+  set('--cv-sig-font', `'${settings.nameFont}'`);
+
+  set('--cv-title-size', settings.titleSize + 'px');
+  set('--cv-name-size', settings.nameSize + 'px');
+  set('--cv-item-size', settings.itemSize + 'px');
+  set('--cv-line1-size', settings.bodySize + 'px');
+  set('--cv-line2-size', settings.bodySize + 'px');
+  set('--cv-code-size', (settings.bodySize - 3.5) + 'px');
+  set('--cv-date-size', (settings.bodySize - 3) + 'px');
+  set('--cv-sig-name-size', (settings.bodySize) + 'px');
+  set('--cv-sig-title-size', (settings.bodySize - 4) + 'px');
+  set('--cv-score-size', (settings.bodySize + 2) + 'px');
+
+  set('--cv-frame-width', settings.frameWidth + 'px');
+  set('--cv-frame-offset', settings.frameOffset + 'px');
+  set('--cv-frame-radius', settings.frameRadius + 'px');
+  set('--cv-corners-display', settings.cornersEnabled ? 'block' : 'none');
+  set('--cv-inner-frame-display', settings.innerFrameEnabled ? 'block' : 'none');
+  set('--cv-bg-pattern-enabled', settings.bgPatternEnabled ? '1' : '0');
+
+  set('--cv-logo-size', settings.logoSize + 'px');
+  set('--cv-logo-display', settings.logoEnabled ? 'inline-block' : 'none');
+
+  set('--cv-seal-size', settings.sealSize + 'px');
+  set('--cv-seal-bottom', settings.sealBottom + 'px');
+
+  set('--cv-footer-bottom', settings.footerBottom + 'px');
+  set('--cv-footer-left', settings.footerLeft + 'px');
+  set('--cv-footer-right', settings.footerRight + 'px');
+  set('--cv-signature-width', settings.signatureWidth + 'px');
+}
+
+// ============================================================
+// ✅ نصوص الشهادة — منطق موحّد مع نسخة الأدمن
+// ============================================================
+function certDisplayTitle(cert) {
+  const t = (cert.title || '').trim();
+  // العنوان الافتراضي يتبع تصميم الأدمن؛ العنوان المخصص يُعرض كما هو
+  return (t && t !== 'شهادة تقدير') ? t : (certSettings.mainTitle || 'شهادة تقدير');
+}
+
+function certKindLabel(cert) {
+  if (cert.kind === 'homework') return certSettings.homeworkLabel || 'الواجب';
+  if (cert.kind === 'exam') return certSettings.examLabel || 'الامتحان';
+  return 'الإنجاز';
+}
+
+function certLine2Text(cert) {
+  if (cert.description) return cert.description;
+  const tpl = certSettings.line2 || DEFAULT_CERT_SETTINGS.line2;
+  if (cert.kind === 'custom' && cert.category) {
+    return `قد حصل على هذه الشهادة تقديراً لتميزه في ${cert.category}`;
+  }
+  return tpl.replace(/{type}/g, certKindLabel(cert));
+}
+
+// ============================================================
+// ✅ رسم الشهادة (نفس buildCertHTML في نسخة الأدمن)
 // ============================================================
 function renderCertHTML(cert) {
   const container = $('certificateRender');
+  applyCertCSS(certSettings);
 
   const studentName = getStudentFullName();
   const studentCode = getStudentCode();
   const dateFormatted = formatDateFull(cert.date);
   const hasScore = cert.percent !== null;
-
-  let line2;
-  if (cert.description) {
-    line2 = escapeHtml(cert.description);
-  } else if (cert.kind === 'homework') {
-    line2 = 'قد حصل على هذه الشهادة تقديراً لتفوقه في الواجب';
-  } else if (cert.kind === 'exam') {
-    line2 = 'قد حصل على هذه الشهادة تقديراً لتفوقه في الامتحان';
-  } else if (cert.category) {
-    line2 = `قد حصل على هذه الشهادة تقديراً لتميزه في ${escapeHtml(cert.category)}`;
-  } else {
-    line2 = 'قد حصل على هذه الشهادة تقديراً لجهوده وتميّزه';
-  }
+  const siteNameAr = certSettings.siteNameAr || 'ميزان';
+  const line1 = (certSettings.line1 || '').replace(/{site}/g, siteNameAr);
+  const line2 = certLine2Text(cert);
+  const line2Style = cert.description
+    ? 'max-width:92%;'
+    : 'white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;';
 
   container.innerHTML = `
     <div class="cert-frame-outer"></div>
     <div class="cert-frame-inner"></div>
 
-    <div class="cert-corner tr"><div class="cert-corner-dot"></div></div>
-    <div class="cert-corner tl"><div class="cert-corner-dot"></div></div>
-    <div class="cert-corner br"><div class="cert-corner-dot"></div></div>
-    <div class="cert-corner bl"><div class="cert-corner-dot"></div></div>
+    <div class="cert-corner top-right"><div class="cert-corner-circle"></div></div>
+    <div class="cert-corner top-left"><div class="cert-corner-circle"></div></div>
+    <div class="cert-corner bottom-right"><div class="cert-corner-circle"></div></div>
+    <div class="cert-corner bottom-left"><div class="cert-corner-circle"></div></div>
 
     <div class="cert-content">
-      <img src="${certSettings.logoUrl}" alt="logo" class="cert-logo" crossorigin="anonymous">
+      <img src="${escapeHtml(certSettings.logoUrl)}" alt="logo" class="cert-logo" crossorigin="anonymous" onerror="this.style.display='none'">
 
-      <h1 class="cert-main-title" style="white-space:nowrap;">${escapeHtml(cert.title)}</h1>
-      <div class="cert-en-title">CERTIFICATE OF ACHIEVEMENT</div>
+      <h1 class="cert-main-title" style="white-space:nowrap;">${escapeHtml(certDisplayTitle(cert))}</h1>
+      <div class="cert-en-title">${escapeHtml(certSettings.enTitle || 'CERTIFICATE OF ACHIEVEMENT')}</div>
 
       <div class="cert-divider">
         <span class="line"></span>
@@ -3536,13 +3680,13 @@ function renderCertHTML(cert) {
         <span class="line"></span>
       </div>
 
-      <p class="cert-line-1">تشهد إدارة منصة ${escapeHtml(certSettings.siteNameAr)} التعليمية بأن</p>
+      <p class="cert-line-1">${escapeHtml(line1)}</p>
 
       <div class="cert-student-name">${escapeHtml(studentName)}</div>
       <div class="cert-name-underline"></div>
       <div class="cert-student-code">كود الطالب: ${escapeHtml(studentCode)}</div>
 
-      <p class="cert-line-2" style="white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;">${line2}</p>
+      <p class="cert-line-2" style="${line2Style}">${escapeHtml(line2)}</p>
 
       ${cert.itemName ? `<div class="cert-item-name">« ${escapeHtml(cert.itemName)} »</div>` : ''}
 
@@ -3557,18 +3701,18 @@ function renderCertHTML(cert) {
       <div class="cert-signature-block">
         <div class="cert-sig-line"></div>
         <div class="cert-sig-name">${escapeHtml(certSettings.adminName)}</div>
-        <div class="cert-sig-title">${escapeHtml(certSettings.adminTitle)}</div>
+        <div class="cert-sig-title">${escapeHtml(certSettings.leftSigTitle || certSettings.adminTitle)}</div>
       </div>
 
       <div class="cert-signature-block">
         <div class="cert-sig-line"></div>
-        <div class="cert-sig-name">${escapeHtml(certSettings.siteNameAr)}</div>
-        <div class="cert-sig-title">المنصة التعليمية</div>
+        <div class="cert-sig-name">${escapeHtml(siteNameAr)}</div>
+        <div class="cert-sig-title">${escapeHtml(certSettings.rightSigTitle || 'المنصة التعليمية')}</div>
       </div>
     </div>
 
     <div class="cert-seal">
-      <i class="fas fa-certificate"></i>
+      <i class="fas ${escapeHtml(certSettings.sealIcon || 'fa-certificate')}"></i>
     </div>
   `;
 
@@ -3637,7 +3781,7 @@ async function renderCertToCanvas() {
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#FBF7E9',
+      backgroundColor: certSettings.bgColor || '#FFFDF4',
       logging: false,
       width: 1000,
       height: 700,
@@ -3952,18 +4096,16 @@ function startExamSubsListener() {
 function startCertSettingsListener() {
   onSnapshot(doc(db, 'settings', 'certificates'), (snap) => {
     if (snap.exists()) {
-      const data = snap.data();
+      const data = { ...snap.data() };
+      delete data.updatedAt; delete data.updatedBy;
       certSettings = {
-        adminName: data.adminName || certSettings.adminName,
-        adminTitle: data.adminTitle || certSettings.adminTitle,
-        signature: data.signature || certSettings.signature,
-        logoUrl: data.logoUrl || certSettings.logoUrl,
-        siteNameAr: data.siteNameAr || certSettings.siteNameAr,
-        siteNameEn: data.siteNameEn || certSettings.siteNameEn,
-        minPercent: (data.minPercent !== undefined && data.minPercent !== null) ? Number(data.minPercent) : certSettings.minPercent,
-        autoEnabled: data.autoEnabled !== undefined ? !!data.autoEnabled : certSettings.autoEnabled,
-        notifyAuto: data.notifyAuto !== undefined ? !!data.notifyAuto : certSettings.notifyAuto
+        ...DEFAULT_CERT_SETTINGS,
+        ...data,
+        minPercent: (data.minPercent !== undefined && data.minPercent !== null && !isNaN(Number(data.minPercent))) ? Number(data.minPercent) : DEFAULT_CERT_SETTINGS.minPercent,
+        autoEnabled: data.autoEnabled !== undefined ? !!data.autoEnabled : DEFAULT_CERT_SETTINGS.autoEnabled,
+        notifyAuto: data.notifyAuto !== undefined ? !!data.notifyAuto : DEFAULT_CERT_SETTINGS.notifyAuto
       };
+      applyCertCSS(certSettings);
       saveCache(CACHE_KEYS.certSettings, certSettings);
     }
     certSettingsLoaded = true;
@@ -4118,6 +4260,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================
 // 🚀 Init
 // ============================================================
+applyCertCSS(certSettings);
 applyFromCache();
 
 requestAnimationFrame(() => document.body.classList.add('ready'));
