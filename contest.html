@@ -2004,6 +2004,50 @@
   #chatSndBtn.playing{color:var(--accent);animation:livep 1s infinite}
   .cf{position:fixed;top:-12px;width:9px;height:14px;z-index:100000;pointer-events:none;animation:cff linear forwards}
   @keyframes cff{to{transform:translateY(105vh) rotate(720deg)}}
+/* ===== إضافات: غرفة الانتظار / إشعارات / حوار / انسحاب ===== */
+.time-clock{display:block;font-size:11px;font-weight:700;color:var(--text-sub);margin-top:2px}
+.time-clock i{margin-inline-end:4px;color:var(--accent)}
+.btn-leave{padding:14px;border-radius:12px;border:2px solid var(--error);background:transparent;color:var(--error);font:800 13px Cairo,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;flex-shrink:0}
+.btn-leave:hover{background:var(--error);color:#fff}
+.contestant-status.ready{color:var(--success)}.contestant-status.notready{color:var(--text-sub)}
+.c-more{border:1px dashed var(--accent);background:transparent;color:var(--accent);border-radius:7px;font:800 10px Cairo,sans-serif;padding:2px 8px;cursor:pointer}
+.c-more:hover{background:var(--accent);color:#fff}
+.bell-btn{position:relative;width:42px;height:42px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);color:var(--primary);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .25s}
+[data-theme="dark"] .bell-btn{color:var(--accent)}
+.bell-btn:hover{background:var(--primary);color:#fff}
+.bell-badge{position:absolute;top:-6px;inset-inline-start:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--error);color:#fff;font:800 10px Cairo,sans-serif;display:none;align-items:center;justify-content:center;padding:0 4px}
+#notifPanel{display:none;position:fixed;top:68px;inset-inline-end:12px;width:min(360px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 48px var(--shadow);z-index:3000}
+#notifPanel.show{display:block}
+.np-h{padding:14px 16px;font-weight:900;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg-card)}
+.np-c{background:var(--error);color:#fff;border-radius:9px;padding:0 7px;font-size:11px}
+.np-i{padding:12px 16px;border-bottom:1px solid var(--border)}.np-i.new{background:rgba(201,169,97,.1)}
+.np-t{font-weight:800;font-size:13px}.np-x{font-size:12.5px;color:var(--text-sub);margin-top:3px;line-height:1.7}.np-d{font-size:10.5px;color:var(--text-sub);margin-top:4px}
+.np-pw{display:flex;gap:8px;align-items:center;margin-top:8px}.np-pw code{flex:1;text-align:center;font:800 16px monospace;letter-spacing:2px;padding:7px;border-radius:9px;background:var(--bg-input);border:1.5px dashed var(--accent);direction:ltr}
+.np-pw button{border:0;background:var(--primary);color:#fff;border-radius:9px;padding:8px 12px;font:800 12px Cairo,sans-serif;cursor:pointer}
+.np-e{padding:30px;text-align:center;color:var(--text-sub);font-weight:700}
+.ui-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.ui-box{width:min(380px,100%);background:var(--bg-card);border-radius:20px;padding:24px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border:1px solid var(--border)}
+.ui-ic{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;background:rgba(201,169,97,.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px}
+.ui-ic.danger{background:rgba(192,57,43,.12);color:var(--error)}
+.ui-t{font-weight:900;font-size:17px;margin-bottom:6px}.ui-m{font-size:13px;color:var(--text-sub);line-height:1.8;margin-bottom:12px}
+.ui-in{width:100%;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--bg-input);color:var(--text-main);font:800 18px monospace;letter-spacing:3px;text-align:center;text-transform:uppercase;direction:ltr;margin-bottom:8px}
+.ui-in:focus{outline:none;border-color:var(--accent)}
+.ui-err{color:var(--error);font-size:12px;font-weight:700;margin-bottom:8px}
+.ui-act{display:flex;gap:8px;margin-top:6px}
+.ui-b{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--bg-input);color:var(--text-main);font:800 14px Cairo,sans-serif;cursor:pointer}
+.ui-b.ok{background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;border-color:transparent}
+.ui-b.ok.danger{background:var(--error)}
+.lobby{display:flex;gap:14px;align-items:center;margin:10px 12px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(201,169,97,.14),rgba(201,169,97,.04));border:1.5px solid var(--accent)}
+.lobby.live{border-color:var(--success);background:linear-gradient(135deg,rgba(30,122,90,.16),rgba(30,122,90,.04))}
+.lb-ic{width:46px;height:46px;border-radius:14px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.lobby.live .lb-ic{background:var(--success);animation:lbp 1s ease-in-out infinite}
+@keyframes lbp{50%{transform:scale(1.1)}}
+.lb-body{flex:1;min-width:0}.lb-t{font-weight:900;font-size:15px}.lb-s{font-size:12.5px;color:var(--text-sub);font-weight:700;margin-top:2px}
+.lb-big{font-size:20px;color:var(--success)}
+.lb-bar{height:6px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden}.lb-bar i{display:block;height:100%;background:var(--success);transition:width .5s linear}
+.lb-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.lb-chip{font:800 11px Cairo,sans-serif;padding:3px 9px;border-radius:9px;background:var(--bg-card);border:1px solid var(--border);color:var(--success)}
+.lb-chip.me{color:var(--info)}
 </style>
 <style>
 .q-first{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(201,169,97,.12);border:1px dashed var(--accent);font:600 12px Cairo,sans-serif;color:var(--text-main);line-height:1.9}
@@ -2017,6 +2061,10 @@
 .c-chip.bad{border-color:var(--error);color:var(--error)}
 .c-chip.fast{background:var(--success);color:#fff;border-color:var(--success)}
 .fair-note{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:var(--bg-input);border:1px solid var(--border);font:600 11px Cairo,sans-serif;color:var(--text-sub);line-height:1.8}
+</style>
+<style>
+  [data-action].joining, .btn-join.joining, #chatJoinBtn.joining { opacity: .85; pointer-events: none; cursor: progress; }
+  .joining i.fa-spin { margin-inline-end: 6px; }
 </style>
 </head>
 <body>
@@ -2037,6 +2085,7 @@
     </div>
 
     <div class="topbar-actions">
+      <button class="bell-btn" id="bellBtn" title="الإشعارات"><i class="fas fa-bell"></i><span class="bell-badge" id="bellBadge">0</span></button>
       <button class="icon-btn" id="themeToggle" title="الوضع">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
@@ -2142,6 +2191,7 @@
         <button class="chat-icon-btn" id="chatJoinBtn" title="انضم للمسابقة" style="display:none;">
           <i class="fas fa-user-plus"></i>
         </button>
+        <button class="chat-icon-btn" id="chatLeaveBtn" title="انسحاب من المسابقة" style="display:none;"><i class="fas fa-door-open"></i></button>
         <button class="chat-icon-btn" id="chatSndBtn" title="الأصوات"><i class="fas fa-volume-high"></i></button>
         <button class="chat-icon-btn" id="chatToggleSidebar" title="قائمة المتسابقين">
           <i class="fas fa-users"></i>
@@ -2159,6 +2209,7 @@
         <div class="ctl-hud" id="ctlHud"></div>
         <div id="annWrap"></div>
         <div id="statusWrap"></div>
+        <div id="lobbyWrap"></div>
         <div id="winnerBannerWrap"></div>
 
         <div class="chat-messages" id="chatMessages">
@@ -2284,7 +2335,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 let db;
-try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), experimentalAutoDetectLongPolling: true, ignoreUndefinedProperties: true }); }
 catch (e) { db = getFirestore(app); }
 const $ = (id) => document.getElementById(id);
 
@@ -2483,6 +2534,54 @@ const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
 // ============================================================
+// ⚡ التنفيذ الفوري: أي ضغطة تظهر نتيجتها في نفس اللحظة والحفظ يتم في الخلفية
+// ============================================================
+const JOIN_BTN_MS = 2000;                      // مدة ظهور "جاري الانضمام..." (غيّر الرقم لو عايز أقل/أكثر)
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const allowHint = {}, roomSawKicked = {};      // إشارة "سُمح لك" القادمة من الغرفة (أسرع من مستند المسابقات)
+let allowShownFor = null;
+const hintActive = (cid) => !!allowHint[cid] && Date.now() - allowHint[cid] < 20000;
+const isKickedIn = (c) => !!c && (c.kickedUsers || []).includes(userId) && !hintActive(c.id);
+const uOps = new Map();                        // تعديلات محلية مؤقتة فوق بيانات السيرفر
+let baseRaw = [], baseLoaded = false;
+const applyU = (items) => {
+  if (!uOps.size) return items;
+  let out = items;
+  uOps.forEach(op => { out = out.map(c => c.id === op.cid ? { ...c, ...op.fn(c) } : c); });
+  return out;
+};
+function refreshLocal() {
+  if (!baseLoaded) return;
+  rawContests = applyU(baseRaw);
+  allContests = rawContests.filter(isContestForMe);
+  if (currentChatContestId) {
+    const u = allContests.find(c => c.id === currentChatContestId);
+    if (u) { currentChatContest = u; determineMyRoleSync(); updateRoleBadge(); updateChatInputState(); }
+  }
+  applyFilters(); updateStats();
+}
+function patchLocalContest(cid, fn, ttl = 3500) {
+  const key = 'u' + Date.now() + Math.random().toString(36).slice(2, 6);
+  uOps.set(key, { cid, fn });
+  refreshLocal();
+  setTimeout(() => { uOps.delete(key); refreshLocal(); }, ttl);
+  return key;
+}
+function dropLocalOp(key) { uOps.delete(key); refreshLocal(); }
+const pendingAns = new Map();                  // إجابات اتبعتت ولسه السيرفر ماأكدهاش
+function withPending(d) {
+  if (!pendingAns.size) return d;
+  let answers = d.answers || {}, changed = false;
+  pendingAns.forEach((p, qid) => {
+    if (!answers[qid]?.[userId]) {
+      if (!changed) { answers = { ...answers }; changed = true; }
+      answers[qid] = { ...(answers[qid] || {}), [userId]: p };
+    }
+  });
+  return changed ? { ...d, answers } : d;
+}
+
+// ============================================================
 // 🔊 الأصوات (نفس مركز الصوت في نسخة الأدمن)
 // ============================================================
 const SND = Object.assign({ vol: 0.7, warn: true, ev: true }, lsGet('meezan_snd') || {});
@@ -2578,6 +2677,9 @@ addEventListener('offline', () => { online = false; setConn(false); });
 // ============================================================
 function isContestForMe(contest) {
   if (!userData) return false;
+
+  // مسابقة فردية: تظهر فقط للمستخدمين المحددين من الأدمن (بصرف النظر عن الفرقة)
+  if (contest.accessMode === 'individual') return (contest.allowedUserIds || []).map(String).includes(String(userId));
   
   // لو المسابقة لكل الفرق → تظهر للجميع
   if (contest.allGrades === true) return true;
@@ -2633,10 +2735,12 @@ function startContestsListener() {
     if (snap.exists()) {
       const all = (snap.data().items || []).filter(c => c.status === 'published');
       // ⭐ فلترة أولية - إظهار فقط المسابقات المخصصة لفرقتي
-      rawContests = all;
+      baseRaw = all; baseLoaded = true;
+      rawContests = applyU(all);
       lsSet(CK + '_c', all);
       allContests = rawContests.filter(isContestForMe);
     } else {
+      baseRaw = []; baseLoaded = true;
       rawContests = [];
       allContests = [];
     }
@@ -2657,8 +2761,14 @@ function startContestsListener() {
           renderWinnerBanner(updated.winner);
         }
 
+        if (previousKickedList.includes(userId) && !(updated.kickedUsers || []).includes(userId)) {
+          lastSeenKicked = false;
+          if (allowShownFor !== updated.id) { showInChatNotify('🔓 سُمح لك بالتسجيل كمتسابق', 'success'); SFX.chime(); }
+          allowShownFor = null;
+        }
         const kickedUsers = updated.kickedUsers || [];
         if (kickedUsers.includes(userId) && !previousKickedList.includes(userId)) {
+          delete allowHint[updated.id];
           showInChatNotify('🚫 تم طردك من المسابقة', 'error');
           myRole = 'viewer';
           updateRoleBadge();
@@ -2788,7 +2898,7 @@ function createContestCard(contest) {
   };
   const statusInfo = statusMap[status];
 
-  const questionsCount = (contest.questions || []).length;
+  const questionsCount = Math.max((contest.questions || []).length, (contest.questionBank || []).length);
   const contestantsCount = contest.contestantsCount || 0;
   const maxContestants = contest.maxContestants || 1;
   const isFull = contestantsCount >= maxContestants;
@@ -2811,6 +2921,7 @@ function createContestCard(contest) {
         <div class="time-info">
           <span class="time-label">تبدأ بعد</span>
           <span class="time-value" id="countdown-${contest.id}">${formatCountdown(diff)}</span>
+          <span class="time-clock"><i class="far fa-clock"></i> الساعة ${formatClockShort(startAt)} · ${formatClock(startAt)}</span>
         </div>
       </div>
     `;
@@ -2822,6 +2933,7 @@ function createContestCard(contest) {
         <div class="time-info">
           <span class="time-label">تنتهي بعد</span>
           <span class="time-value" id="countdown-${contest.id}">${formatCountdown(diff)}</span>
+          <span class="time-clock"><i class="far fa-clock"></i> تنتهي الساعة ${formatClockShort(endAt)}</span>
         </div>
       </div>
     `;
@@ -2871,10 +2983,16 @@ function createContestCard(contest) {
     btnIcon = 'fa-eye';
   } else if (status === 'upcoming') {
     if (myStatus === 'contestant') {
-      btnText = 'أنت مسجل ✓';
-      btnClass = 'disabled';
-      btnIcon = 'fa-check-circle';
-      btnAction = 'none';
+      if (lobbyOpen(contest)) {
+        btnText = 'ادخل غرفة الانتظار';
+        btnIcon = 'fa-door-open';
+        btnAction = 'enter';
+      } else {
+        btnText = 'أنت مسجل ✓';
+        btnClass = 'disabled';
+        btnIcon = 'fa-check-circle';
+        btnAction = 'none';
+      }
     } else if (myStatus === 'pending') {
       btnText = 'بانتظار موافقة الأدمن';
       btnClass = 'pending';
@@ -2924,6 +3042,8 @@ function createContestCard(contest) {
   if (btnAction === 'join' && contest.locked) {
     btnText = 'الانضمام مغلق'; btnClass = 'disabled'; btnIcon = 'fa-lock'; btnAction = 'none';
   }
+  const canLeave = (myStatus === 'contestant' || myStatus === 'pending') && status !== 'finished'
+    && contest.roomStatus !== 'finished' && !(contest.winner && contest.winner.id === userId);
   const capPct = Math.min(100, Math.round(contestantsCount / maxContestants * 100));
 
   card.innerHTML = `
@@ -2964,6 +3084,7 @@ function createContestCard(contest) {
         ${status === 'active' && contest.roomStatus === 'live' ? '<span class="badge live-b"><i class="fas fa-circle"></i> مباشر</span>' : ''}
         ${contest.roomStatus === 'paused' && status !== 'finished' ? '<span class="badge pending"><i class="fas fa-pause"></i> متوقفة مؤقتاً</span>' : ''}
         ${contest.locked && status !== 'finished' ? '<span class="badge kicked"><i class="fas fa-lock"></i> مغلق</span>' : ''}
+        ${accessBadge(contest)}
         ${myStatusBadge}
         ${winnerBadge}
       </div>
@@ -2974,6 +3095,7 @@ function createContestCard(contest) {
         <i class="fas ${btnIcon}"></i>
         <span>${btnText}</span>
       </button>
+      ${canLeave ? `<button class="btn-leave" data-leave="${contest.id}" title="${myStatus === 'pending' ? 'إلغاء الطلب' : 'انسحاب'}"><i class="fas fa-door-open"></i><span>${myStatus === 'pending' ? 'إلغاء الطلب' : 'انسحاب'}</span></button>` : ''}
     </div>
   `;
 
@@ -2981,10 +3103,15 @@ function createContestCard(contest) {
     e.stopPropagation();
     if (btnAction === 'none') return;
     if (btnAction === 'join') {
-      requestJoin(contest);
+      requestJoin(contest, e.currentTarget);
     } else if (btnAction === 'enter') {
       enterContest(contest);
     }
+  });
+
+  card.querySelector('[data-leave]')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    withdrawFromContest(contest);
   });
 
   return card;
@@ -2994,7 +3121,7 @@ function getMyContestStatus(contest) {
   if (!userId) return null;
 
   const kickedUsers = contest.kickedUsers || [];
-  if (kickedUsers.includes(userId)) return 'kicked';
+  if (isKickedIn(contest)) return 'kicked';
 
   const contestantIds = contest.contestantIds || [];
   if (contestantIds.includes(userId)) return 'contestant';
@@ -3041,40 +3168,69 @@ setInterval(() => {
 // ============================================================
 // 📝 Request Join
 // ============================================================
-async function requestJoin(contest) {
+async function requestJoin(contest, btn) {
   if (!userId || !userData) return showToast('بياناتك غير محملة', 'error');
+  if (btn && btn.dataset.joining) return;                     // منع الضغط المزدوج
   const me = { id: userId, name: userData.fullName || userName, avatarUrl: userData.avatarUrl || '', joinedAt: new Date().toISOString(), finished: false };
+  const gate = await accessGate(contest);
+  if (!gate.ok) return;
+
+  // ⚡ الزر يتحول فوراً إلى "جاري الانضمام..."
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.dataset.joining = '1'; btn.disabled = true; btn.classList.add('joining'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري الانضمام...</span>'; }
+  const restore = () => { if (btn && btn.isConnected) { btn.disabled = false; btn.classList.remove('joining'); btn.innerHTML = orig; delete btn.dataset.joining; } };
+
   const cref = doc(db, 'contests', 'all');
-  let res;
-  try {
-    res = await runTransaction(db, async (tx) => {
-      const sn = await tx.get(cref); if (!sn.exists()) return 'gone';
-      const items = sn.data().items || [], i = items.findIndex(c => c.id === contest.id); if (i < 0) return 'gone';
-      const c = items[i], ids = [...(c.contestantIds || [])], pend = [...(c.pendingJoins || [])], list = [...(c.contestants || [])];
-      if ((c.kickedUsers || []).includes(userId)) return 'kicked';
-      if (ids.includes(userId)) return 'in';
-      if (pend.includes(userId)) return 'pending';
-      if (c.locked) return 'locked';
-      if (ids.length >= (c.maxContestants || 1)) return 'full';
-      const auto = c.autoAccept !== false;
-      if (auto) { ids.push(userId); list.push(me); items[i] = { ...c, contestantIds: ids, contestants: list, contestantsCount: ids.length, updatedAt: me.joinedAt }; }
-      else { pend.push(userId); items[i] = { ...c, pendingJoins: pend, updatedAt: me.joinedAt }; }
-      tx.set(cref, { items, updatedAt: serverTimestamp() });
-      return auto ? 'joined' : 'requested';
-    });
-  } catch (e) { console.error(e); return showToast('حدث خطأ، حاول مرة أخرى', 'error'); }
-  const msgs = { kicked: ['لا يمكنك الانضمام (مطرود)', 'error'], in: ['أنت مسجل بالفعل', 'warning'], pending: ['طلبك قيد المراجعة', 'info'], locked: ['🔒 الانضمام مغلق الآن', 'warning'], full: ['المسابقة ممتلئة', 'warning'], gone: ['المسابقة غير متاحة', 'error'] };
+  const rref = doc(db, 'contest_rooms', String(contest.id));
+  // الحفظ يشتغل فوراً في الخلفية (مستند المسابقات + الغرفة في عملية واحدة) والزر يفضل "جاري الانضمام" مدة قصيرة
+  const work = (async () => {
+    try {
+      return await runTransaction(db, async (tx) => {
+        const sn = await tx.get(cref); if (!sn.exists()) return 'gone';
+        const items = sn.data().items || [], i = items.findIndex(c => c.id === contest.id); if (i < 0) return 'gone';
+        const c = items[i], ids = [...(c.contestantIds || [])], pend = [...(c.pendingJoins || [])], list = [...(c.contestants || [])];
+        if ((c.kickedUsers || []).includes(userId) && !hintActive(contest.id)) return 'kicked';
+        if (ids.includes(userId)) return 'in';
+        if (pend.includes(userId)) return 'pending';
+        if (c.locked) return 'locked';
+        { const acc = checkAccess(c, userId, gate.pw); if (acc !== 'ok') return acc; }
+        if (ids.length >= (c.maxContestants || 1)) return 'full';
+        const auto = c.autoAccept !== false;
+        const kicked = (c.kickedUsers || []).filter(x => x !== userId);
+        const viewers = (c.viewers || []).filter(v => v.id !== userId);
+        let m;
+        if (auto) {
+          ids.push(userId); list.push(me);
+          items[i] = { ...c, contestantIds: ids, contestants: list, contestantsCount: ids.length, kickedUsers: kicked, viewers, updatedAt: me.joinedAt };
+          m = { id: 'sys_' + Date.now(), sender: 'system', type: 'system', text: `⚡ انضم ${me.name} تلقائياً`, createdAt: me.joinedAt };
+        } else {
+          pend.push(userId);
+          items[i] = { ...c, pendingJoins: pend, kickedUsers: kicked, viewers, updatedAt: me.joinedAt };
+          m = { id: 'join_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), sender: 'user', senderId: userId, senderName: me.name, senderAvatar: me.avatarUrl, type: 'join_request', processed: false, accepted: false, createdAt: me.joinedAt };
+        }
+        tx.set(cref, { items, updatedAt: serverTimestamp() });
+        tx.set(rref, { contestId: contest.id, messages: arrayUnion(m), ...(auto ? { contestants: arrayUnion(me) } : {}), updatedAt: serverTimestamp() }, { merge: true });
+        return auto ? 'joined' : 'requested';
+      });
+    } catch (e) { console.error(e); return 'err'; }
+  })();
+  const [res] = await Promise.all([work, sleep(JOIN_BTN_MS)]);
+
+  restore();
+  const msgs = { kicked: ['لا يمكنك الانضمام (مطرود)', 'error'], in: ['أنت مسجل بالفعل', 'warning'], pending: ['طلبك قيد المراجعة', 'info'], locked: ['🔒 الانضمام مغلق الآن', 'warning'], full: ['المسابقة ممتلئة', 'warning'], gone: ['المسابقة غير متاحة', 'error'], notallowed: ['🔒 هذه المسابقة مخصصة لمستخدمين محددين', 'error'], badpw: ['❌ كلمة السر غير صحيحة', 'error'], needpw: ['🔐 كلمة السر مطلوبة', 'warning'], err: ['حدث خطأ، حاول مرة أخرى', 'error'] };
   if (msgs[res]) return showToast(...msgs[res]);
-  const m = res === 'joined'
-    ? { id: 'sys_' + Date.now(), sender: 'system', type: 'system', text: `⚡ انضم ${me.name} تلقائياً`, createdAt: me.joinedAt }
-    : { id: 'join_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), sender: 'user', senderId: userId, senderName: me.name, senderAvatar: me.avatarUrl, type: 'join_request', processed: false, accepted: false, createdAt: me.joinedAt };
-  try {
-    await setDoc(doc(db, 'contest_rooms', String(contest.id)), { contestId: contest.id, messages: arrayUnion(m), ...(res === 'joined' ? { contestants: arrayUnion(me) } : {}), updatedAt: serverTimestamp() }, { merge: true });
-  } catch (e) { console.error(e); }
+
   if (res === 'joined') {
+    patchLocalContest(contest.id, c => {
+      const ids = [...new Set([...(c.contestantIds || []), userId])];
+      return { contestantIds: ids, contestants: (c.contestants || []).some(x => x.id === userId) ? c.contestants : [...(c.contestants || []), me], contestantsCount: ids.length, kickedUsers: (c.kickedUsers || []).filter(x => x !== userId) };
+    });
     showToast('⚡ تم انضمامك تلقائياً!', 'success'); SFX.chime();
-    setTimeout(() => enterContest({ ...contest, contestantIds: [...(contest.contestantIds || []), userId], contestants: [...(contest.contestants || []), me] }), 400);
-  } else showToast('📩 تم إرسال طلب الانضمام', 'info');
+    enterContest(allContests.find(c => c.id === contest.id) || contest);
+  } else {
+    patchLocalContest(contest.id, c => ({ pendingJoins: [...new Set([...(c.pendingJoins || []), userId])], kickedUsers: (c.kickedUsers || []).filter(x => x !== userId) }));
+    showToast('📩 تم إرسال طلب الانضمام', 'info');
+  }
 }
 
 // ============================================================
@@ -3084,14 +3240,14 @@ async function requestJoin(contest) {
 async function enterContest(contest) {
   const status = getContestStatus(contest);
 
-  if (status === 'upcoming') {
+  if (status === 'upcoming' && !lobbyOpen(contest)) {
     return showToast('المسابقة لم تبدأ بعد', 'info');
   }
 
   currentChatContestId = contest.id;
   currentChatContest = contest;
   lastSeenWinnerId = contest.winner?.id || null;
-  lastSeenKicked = (contest.kickedUsers || []).includes(userId);
+  lastSeenKicked = isKickedIn(contest);
   lastMessagesHash = '';
 
   $('chatTitle').textContent = contest.name;
@@ -3127,7 +3283,7 @@ function determineMyRoleSync() {
 
   if (contestantIds.includes(userId)) {
     myRole = 'contestant';
-  } else if (kickedUsers.includes(userId)) {
+  } else if (isKickedIn(currentChatContest)) {
     myRole = 'kicked';
   } else if (pendingJoins.includes(userId)) {
     myRole = 'pending';
@@ -3141,7 +3297,7 @@ function updateRoleBadge() {
   const joinBtn = $('chatJoinBtn');
   if (!badge) return;
 
-  const isKicked = currentChatContest?.kickedUsers?.includes(userId);
+  const isKicked = isKickedIn(currentChatContest);
 
   if (myRole === 'contestant') {
     badge.className = 'chat-header-badge contestant';
@@ -3166,6 +3322,13 @@ function updateRoleBadge() {
     }
   }
 
+  const lb = $('chatLeaveBtn');
+  if (lb) {
+    const c = currentChatContest;
+    const can = (myRole === 'contestant' || myRole === 'pending') && c && c.roomStatus !== 'finished' && roomStatus !== 'finished' && !(c.winner && c.winner.id === userId);
+    lb.style.display = can ? 'flex' : 'none';
+  }
+  if (myRole === 'contestant') presenceBeat(false);
   updateChatInputState();
 }
 
@@ -3175,7 +3338,7 @@ function updateChatInputState() {
   const banner = $('viewOnlyBanner');
   const text = $('viewOnlyText');
 
-  const isKicked = currentChatContest?.kickedUsers?.includes(userId);
+  const isKicked = isKickedIn(currentChatContest);
 
   if (myRole === 'contestant') {
     input.disabled = false;
@@ -3225,7 +3388,7 @@ function startChatListener() {
   unsubscribeChat = onSnapshot(doc(db, 'contest_rooms', String(rid)), { includeMetadataChanges: true }, (snap) => {
     setConn(!snap.metadata.fromCache);
     if (!snap.exists() || rid !== currentChatContestId) return;
-    applyRoom(snap.data(), firstSnap);
+    applyRoom(withPending(snap.data()), firstSnap);
     if (!snap.metadata.fromCache) firstSnap = false;
   }, (err) => { console.log('chat error:', err.message); setConn(false); });
 }
@@ -3255,7 +3418,18 @@ function applyRoom(d, silent) {
   if ((d.kickedUsers || []).includes(userId) && !lastSeenKicked) {
     lastSeenKicked = true;
     if (myRole === 'contestant') { showInChatNotify('🚫 تم طردك من المسابقة', 'error'); SFX.wrong(); }
+    delete allowHint[currentChatContestId];
     myRole = 'kicked'; updateRoleBadge();
+  }
+  if ((d.kickedUsers || []).includes(userId)) roomSawKicked[currentChatContestId] = true;
+  else if (roomSawKicked[currentChatContestId] && lastSeenKicked) {
+    // ⚡ الأدمن ضغط "سماح" → الغرفة اتحدثت أولاً، فنفتح التسجيل فوراً بدون انتظار مستند المسابقات
+    roomSawKicked[currentChatContestId] = false;
+    lastSeenKicked = false;
+    allowHint[currentChatContestId] = Date.now();
+    allowShownFor = currentChatContestId;
+    showInChatNotify('🔓 سُمح لك بالتسجيل كمتسابق', 'success'); SFX.chime();
+    determineMyRoleSync(); updateRoleBadge(); updateChatInputState(); applyFilters();
   }
   const w = d.winner;
   if (w && w.id !== lastSeenWinnerId) {
@@ -3293,6 +3467,8 @@ function applyRoom(d, silent) {
   paintFirst();
   updateChatInputState();
   updateSidebarBadge();
+  paintLobby();
+  if (myRole === 'contestant') presenceBeat(false);
 }
 
 // ⏱️ مراقب المؤقتات: شريط الوقت + تكّات آخر 10 ثواني + جرس الانتهاء
@@ -3344,7 +3520,7 @@ function startCountdownTimer() {
 
     let text = '';
     if (startAt && startAt > now) {
-      text = `⏰ تبدأ بعد: ${formatCountdown(startAt - now)}`;
+      text = `⏰ تبدأ ${formatClockShort(startAt)} · بعد ${formatCountdown(startAt - now)}`;
     } else if (endAt && endAt > now) {
       text = `⏳ تنتهي بعد: ${formatCountdown(endAt - now)}`;
     } else {
@@ -3670,9 +3846,17 @@ function createQuestionMessageElement(msg) {
 // ============================================================
 async function submitAnswer(questionId, payload) {
   if (myRole !== 'contestant') return showInChatNotify('فقط المتسابقون يمكنهم الإجابة', 'warning');
-  const ref = doc(db, 'contest_rooms', String(currentChatContestId));
+  if (pendingAns.has(questionId)) return;                       // منع الضغط المزدوج
+  const rid = currentChatContestId;
+  const ref = doc(db, 'contest_rooms', String(rid));
+
+  // ⚡ فوري: اختيارك يظهر في نفس اللحظة، والتسجيل الرسمي يتم في الخلفية
+  pendingAns.set(questionId, { ...payload, answeredAt: new Date().toISOString(), pending: true });
+  if (currentRoomData) applyRoom(withPending(currentRoomData), true);
+
+  let r = 'exc';
   try {
-    const r = await runTransaction(db, async (tx) => {
+    r = await runTransaction(db, async (tx) => {
       const sn = await tx.get(ref); if (!sn.exists()) return 'err';
       const d = sn.data();
       if (d.roomStatus === 'paused' || d.roomStatus === 'finished') return 'blocked';
@@ -3684,10 +3868,20 @@ async function submitAnswer(questionId, payload) {
       tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date().toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
       return 'ok';
     });
-    const t = { ok: ['✅ تم تسجيل إجابتك', 'success'], done: ['لقد أجبت بالفعل', 'warning'], time: ['⏰ انتهى وقت السؤال', 'error'], target: ['🎯 هذا السؤال ليس لك', 'warning'], blocked: ['⏸️ المسابقة متوقفة الآن', 'warning'], err: ['السؤال غير متاح', 'error'] }[r];
-    showInChatNotify(...t);
-    if (r === 'ok') SFX.ping();
-  } catch (e) { console.error(e); showInChatNotify('حدث خطأ', 'error'); }
+  } catch (e) { console.error(e); }
+
+  if (r === 'ok') setTimeout(() => pendingAns.delete(questionId), 2500);
+  else {
+    pendingAns.delete(questionId);
+    // الإجابة ماتسجلتش → شيل الاختيار المؤقت من الشاشة
+    if (rid === currentChatContestId && currentRoomData?.answers?.[questionId]?.[userId]?.pending) {
+      const na = { ...currentRoomData.answers[questionId] }; delete na[userId];
+      applyRoom({ ...currentRoomData, answers: { ...currentRoomData.answers, [questionId]: na } }, true);
+    }
+  }
+  const t = { ok: ['✅ تم تسجيل إجابتك', 'success'], done: ['لقد أجبت بالفعل', 'warning'], time: ['⏰ انتهى وقت السؤال', 'error'], target: ['🎯 هذا السؤال ليس لك', 'warning'], blocked: ['⏸️ المسابقة متوقفة الآن', 'warning'], err: ['السؤال غير متاح', 'error'], exc: ['حدث خطأ — حاول مرة أخرى', 'error'] }[r];
+  showInChatNotify(...t);
+  if (r === 'ok') SFX.ping();
 }
 const submitMcqAnswer = (qid, i) => submitAnswer(qid, { selectedIndices: [i], type: 'mcq' });
 function submitEssayAnswer(qid, text) {
@@ -3801,13 +3995,15 @@ function renderContestants(contestants) {
     item.style.alignItems = 'flex-start';
     const status = isWinner ? `<span class="contestant-status winner"><i class="fas fa-crown"></i> الفائز</span>`
       : c.finished ? `<span class="contestant-status finished"><i class="fas fa-check-circle"></i> انتهى</span>`
-      : `<span class="contestant-status active"><i class="fas fa-pen"></i> يجاوب</span>`;
-    const chips = st.qs.map(q => {
+      : isReady(c) ? `<span class="contestant-status ready"><i class="fas fa-circle-check"></i> جاهز</span>`
+      : `<span class="contestant-status notready"><i class="fas fa-circle-xmark"></i> غير جاهز</span>`;
+    const chipArr = st.qs.map(q => {
       const t = p.times[q.m.questionId];
       if (!t) return `<span class="c-chip">${q.idx}: —</span>`;
       const fast = q.fastest && q.fastest.uid === c.id;
       return `<span class="c-chip ${fast ? 'fast' : t.ok === true ? 'ok' : t.ok === false ? 'bad' : ''}">${q.idx}: ${fmtMs(t.ms)}${fast ? ' ⚡' : ''}${t.late ? ' ⏰متأخر' : ''}</span>`;
-    }).join('');
+    });
+    const chips = chipsHTML(chipArr, c.id);
     item.innerHTML = `
       <div class="contestant-avatar">${avatarOf(c)}</div>
       <div class="contestant-info">
@@ -4008,13 +4204,15 @@ async function sendChatMessage() {
 // ============================================================
 $('chatJoinBtn').addEventListener('click', async () => {
   if (!currentChatContest) return;
-  await requestJoin(currentChatContest);
+  requestJoin(currentChatContest, $('chatJoinBtn'));
 });
 
 // ============================================================
 // ❌ Close Chat
 // ============================================================
 function closeChatRoom() {
+  presenceBeat(true, 0);
+  $('lobbyWrap').innerHTML = ''; $('lobbyWrap').dataset.h = '';
   $('chatModal').classList.remove('show');
   document.body.style.overflow = '';
   currentChatContestId = null;
@@ -4105,6 +4303,376 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// 🕒 أدوات الوقت (الساعة المحددة بجوار العدّاد)
+// ============================================================
+const formatClock = (d) => {
+  try { return new Date(d).toLocaleString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }); }
+  catch (e) { return ''; }
+};
+const formatClockShort = (d) => {
+  try { return new Date(d).toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit' }); }
+  catch (e) { return ''; }
+};
+const LOBBY_OPEN_MS = 10 * 60 * 1000; // غرفة الانتظار تفتح قبل البدء بـ 10 دقائق للمسجلين
+function lobbyOpen(c) {
+  if (getMyContestStatus(c) !== 'contestant' || !c.startAt) return false;
+  const left = new Date(c.startAt).getTime() - Date.now();
+  return left > 0 && left <= LOBBY_OPEN_MS;
+}
+
+// ============================================================
+// 🪟 نافذة حوار موحّدة (تأكيد / إدخال كلمة سر)
+// ============================================================
+function uiDialog({ title, message = '', icon = 'fa-circle-question', input = null, okText = 'تأكيد', danger = false }) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'ui-ov';
+    ov.innerHTML = `<div class="ui-box">
+      <div class="ui-ic ${danger ? 'danger' : ''}"><i class="fas ${icon}"></i></div>
+      <div class="ui-t">${escapeHtml(title)}</div>
+      <div class="ui-m">${message}</div>
+      ${input ? `<input class="ui-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${escapeHtml(input.placeholder || '')}">` : ''}
+      <div class="ui-err" style="display:none;"></div>
+      <div class="ui-act"><button type="button" class="ui-b cancel">إلغاء</button><button type="button" class="ui-b ok ${danger ? 'danger' : ''}">${escapeHtml(okText)}</button></div>
+    </div>`;
+    document.body.appendChild(ov);
+    const inp = ov.querySelector('.ui-in');
+    const done = (ok) => { ov.remove(); resolve(ok ? { ok: true, value: inp ? cleanInput(inp.value) : '' } : { ok: false }); };
+    ov.querySelector('.cancel').addEventListener('click', () => done(false));
+    ov.querySelector('.ok').addEventListener('click', () => {
+      if (inp && !cleanInput(inp.value)) { const er = ov.querySelector('.ui-err'); er.textContent = 'اكتب كلمة السر'; er.style.display = 'block'; return; }
+      done(true);
+    });
+    ov.addEventListener('click', e => { if (e.target === ov) done(false); });
+    if (inp) { inp.addEventListener('keydown', e => { if (e.key === 'Enter') ov.querySelector('.ok').click(); }); setTimeout(() => inp.focus(), 80); }
+  });
+}
+
+// ============================================================
+// 🔐 كلمة السر + قائمة المسموح لهم (مطابق لنسخة الأدمن)
+// ============================================================
+function checkAccess(c, uid, pw) {
+  const mode = c.accessMode || 'none';
+  if (mode === 'none') return 'ok';
+  let need = '';
+  if (mode === 'group') need = cleanInput(c.groupPassword || '');
+  else if (mode === 'individual') {
+    if (!(c.allowedUserIds || []).map(String).includes(String(uid))) return 'notallowed';
+    const row = (c.userPasswords || []).find(r => String(r.userId) === String(uid));
+    need = cleanInput(row?.password || '');
+  }
+  if (!need) return 'ok';
+  if (pw == null) return 'needpw';
+  return cleanInput(pw).toLowerCase() === need.toLowerCase() ? 'ok' : 'badpw';
+}
+function accessBadge(c) {
+  const m = c.accessMode || 'none';
+  if (m === 'group') return `<span class="badge kicked" style="color:var(--accent);border-color:var(--accent);background:rgba(201,169,97,.1);"><i class="fas fa-key"></i> بكلمة سر</span>`;
+  if (m === 'individual') return `<span class="badge kicked" style="color:var(--accent);border-color:var(--accent);background:rgba(201,169,97,.1);"><i class="fas fa-user-lock"></i> مخصصة لك</span>`;
+  return '';
+}
+async function accessGate(contest) {
+  const pre = checkAccess(contest, userId, null);
+  if (pre === 'ok') return { ok: true, pw: null };
+  if (pre === 'notallowed') { showToast('🔒 هذه المسابقة مخصصة لمستخدمين محددين', 'error'); return { ok: false }; }
+  for (let tries = 0; tries < 3; tries++) {
+    const r = await uiDialog({ title: 'كلمة سر المسابقة', message: 'هذه المسابقة محمية. أدخل كلمة السر المرسلة إليك.', icon: 'fa-key', input: { placeholder: 'كلمة السر' }, okText: 'دخول' });
+    if (!r.ok) return { ok: false };
+    if (checkAccess(contest, userId, r.value) === 'ok') return { ok: true, pw: r.value };
+    showToast('❌ كلمة السر غير صحيحة', 'error');
+  }
+  return { ok: false };
+}
+
+// ============================================================
+// 🚪 الانسحاب من المسابقة
+// ============================================================
+async function withdrawFromContest(contest) {
+  if (!contest) return;
+  const st = getMyContestStatus(contest);
+  if (st !== 'contestant' && st !== 'pending') return;
+  if (contest.roomStatus === 'finished') return showToast('المسابقة انتهت', 'info');
+  if (contest.winner && contest.winner.id === userId) return showToast('لا يمكنك الانسحاب بعد إعلان فوزك', 'warning');
+  const r = await uiDialog({
+    title: st === 'pending' ? 'إلغاء طلب الانضمام' : 'الانسحاب من المسابقة',
+    message: st === 'pending' ? 'سيتم سحب طلبك. يمكنك التقديم مرة أخرى لاحقاً.'
+      : `ستترك مقعدك في <strong>${escapeHtml(contest.name)}</strong> ولن تُحتسب في الترتيب. يمكنك التسجيل مجدداً إن كان هناك مقعد متاح.`,
+    icon: 'fa-door-open', okText: st === 'pending' ? 'إلغاء الطلب' : 'انسحاب', danger: true
+  });
+  if (!r.ok) return;
+  const cref = doc(db, 'contests', 'all');
+  const rref = doc(db, 'contest_rooms', String(contest.id));
+  const name = userData?.fullName || userName;
+
+  // ⚡ فوري: يتشال من القائمة ويقفل الشات في نفس اللحظة، والحفظ في الخلفية
+  const key = patchLocalContest(contest.id, c => {
+    const ids = (c.contestantIds || []).filter(x => x !== userId);
+    return { contestantIds: ids, contestants: (c.contestants || []).filter(x => x.id !== userId), pendingJoins: (c.pendingJoins || []).filter(x => x !== userId), contestantsCount: ids.length };
+  }, 8000);
+  showToast('🚪 تم الانسحاب', 'success');
+  if (currentChatContestId === contest.id) closeChatRoom();
+
+  (async () => {
+    let res = 'err';
+    try {
+      res = await runTransaction(db, async (tx) => {
+        const sn = await tx.get(cref); if (!sn.exists()) return 'gone';
+        const rs = await tx.get(rref);
+        const items = sn.data().items || [], i = items.findIndex(c => c.id === contest.id); if (i < 0) return 'gone';
+        const c = items[i];
+        if (c.roomStatus === 'finished') return 'finished';
+        const ids = (c.contestantIds || []).filter(x => x !== userId);
+        const list = (c.contestants || []).filter(x => x.id !== userId);
+        const pend = (c.pendingJoins || []).filter(x => x !== userId);
+        items[i] = { ...c, contestantIds: ids, contestants: list, pendingJoins: pend, contestantsCount: ids.length, updatedAt: new Date().toISOString() };
+        tx.set(cref, { items, updatedAt: serverTimestamp() });
+        if (rs.exists()) {
+          const d = rs.data();
+          const msgs = (d.messages || []).filter(m => !(m.type === 'join_request' && m.senderId === userId && !m.processed));
+          if (st === 'contestant') msgs.push({ id: 'sys_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5), sender: 'system', type: 'system', text: `🚪 انسحب ${name} من المسابقة`, createdAt: new Date().toISOString() });
+          tx.update(rref, { contestants: (d.contestants || []).filter(x => x.id !== userId), messages: msgs, updatedAt: serverTimestamp() });
+        }
+        return 'ok';
+      });
+    } catch (e) { console.error(e); }
+    if (res !== 'ok') {
+      dropLocalOp(key);
+      showToast(res === 'finished' ? 'المسابقة انتهت' : res === 'gone' ? 'المسابقة غير متاحة' : 'تعذّر الانسحاب — حاول مرة أخرى', 'warning');
+    }
+  })();
+}
+$('chatLeaveBtn').addEventListener('click', () => withdrawFromContest(currentChatContest));
+
+// ============================================================
+// ✅ الحضور (جاهز / غير جاهز)
+// ============================================================
+const PRESENCE_TTL = 60000;
+let lastBeat = 0;
+async function presenceBeat(force, value) {
+  const id = currentChatContestId;
+  if (!id || !userId) return;
+  if (value === undefined && myRole !== 'contestant') return;
+  const n = Date.now();
+  if (!force && n - lastBeat < 4000) return;
+  lastBeat = n;
+  try { await updateDoc(doc(db, 'contest_rooms', String(id)), new FieldPath('presence', userId), value === undefined ? n : value); } catch (e) {}
+}
+setInterval(() => { if (currentChatContestId && myRole === 'contestant' && document.visibilityState === 'visible') presenceBeat(true); }, 20000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') presenceBeat(false); });
+addEventListener('pagehide', () => { if (currentChatContestId && myRole === 'contestant') presenceBeat(true, 0); });
+const lastSeenOf = c => (c.id === userId && currentChatContestId && myRole === 'contestant') ? Date.now() : (tsMs(currentRoomData?.presence?.[c.id]) || tsMs(c.lastSeen) || 0);
+const isReady = c => Date.now() - lastSeenOf(c) < PRESENCE_TTL;
+setInterval(() => { if (currentChatContestId && currentRoomData) renderContestants(getContestants()); }, 5000);
+
+// ============================================================
+// 🎛️ غرفة الانتظار + عدّاد نزول أول سؤال
+// ============================================================
+function paintLobby() {
+  const w = $('lobbyWrap'); if (!w) return;
+  const c = currentChatContest, d = currentRoomData;
+  if (!c || !currentChatContestId) { w.innerHTML = ''; return; }
+  const now = Date.now(), st = d?.roomStatus || 'waiting', flow = d?.flow || {};
+  const cs = getContestants(), ready = cs.filter(isReady).length;
+  const readyTxt = cs.length ? `<span class="lb-chip"><i class="fas fa-circle-check"></i> جاهز ${ready}/${cs.length}</span>` : '';
+  const meChip = myRole === 'contestant' ? `<span class="lb-chip me"><i class="fas fa-user-check"></i> أنت جاهز</span>` : '';
+  const start = c.startAt ? new Date(c.startAt).getTime() : 0;
+  let html = '';
+  if (st === 'finished') html = '';
+  else if (st === 'waiting' && start > now) {
+    html = `<div class="lobby"><div class="lb-ic"><i class="fas fa-hourglass-start"></i></div><div class="lb-body">
+      <div class="lb-t">غرفة الانتظار</div>
+      <div class="lb-s">تبدأ المسابقة الساعة <b>${formatClockShort(start)}</b> · بعد <b dir="ltr">${formatCountdown(start - now)}</b></div>
+      <div class="lb-chips">${meChip}${readyTxt}</div></div></div>`;
+  } else if (st === 'waiting') {
+    html = `<div class="lobby"><div class="lb-ic"><i class="fas fa-spinner fa-spin"></i></div><div class="lb-body">
+      <div class="lb-t">حان موعد المسابقة</div><div class="lb-s">بانتظار بدء المسابقة...</div><div class="lb-chips">${meChip}${readyTxt}</div></div></div>`;
+  } else if (st === 'live' && (flow.cursor || 0) === 0 && flow.firstAt) {
+    const left = Math.max(0, flow.firstAt - now), tot = FIRST_DELAY_MS, pct = Math.max(0, Math.min(100, (1 - left / tot) * 100));
+    html = `<div class="lobby live"><div class="lb-ic"><i class="fas fa-bolt"></i></div><div class="lb-body">
+      <div class="lb-t">${escapeHtml(flow.firstLabel || 'جاري نزول أول سؤال')}</div>
+      <div class="lb-s">تأكد أنك جاهز — سينزل السؤال الأول خلال <b class="lb-big">${Math.ceil(left / 1000)}</b> ثانية</div>
+      <div class="lb-bar"><i style="width:${pct}%"></i></div>
+      <div class="lb-chips">${meChip}${readyTxt}</div></div></div>`;
+  } else if (st === 'paused' && (flow.cursor || 0) === 0 && flow.firstRemaining != null) {
+    html = `<div class="lobby"><div class="lb-ic"><i class="fas fa-pause"></i></div><div class="lb-body"><div class="lb-t">المسابقة متوقفة مؤقتاً</div><div class="lb-s">أول سؤال بعد الاستئناف بـ ${Math.ceil(flow.firstRemaining / 1000)} ثانية</div></div></div>`;
+  }
+  if (w.dataset.h !== html) { w.dataset.h = html; w.innerHTML = html; }
+}
+const FIRST_DELAY_MS = 60000;
+setInterval(paintLobby, 500);
+
+// ============================================================
+// ⚙️ محرك احتياطي: يكمّل نزول الأسئلة لو الأدمن خرج (يتدخل فقط عند التأخر 3 ثواني)
+// ============================================================
+const ENGINE_GRACE = 3000;
+const iso = () => new Date().toISOString();
+const sysMsg = (text) => ({ id: 'sys_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), sender: 'system', type: 'system', text, createdAt: iso() });
+async function mutRoomById(id, fn) {
+  const ref = doc(db, 'contest_rooms', String(id));
+  await runTransaction(db, async (tx) => {
+    const s = await tx.get(ref); if (!s.exists()) return;
+    const patch = fn(s.data());
+    if (patch) tx.update(ref, { ...patch, updatedAt: serverTimestamp() });
+  });
+}
+async function patchContest(id, patchOrFn) {
+  const ref = doc(db, 'contests', 'all');
+  await runTransaction(db, async (tx) => {
+    const s = await tx.get(ref); if (!s.exists()) return;
+    const items = (s.data().items || []).map(c => c.id === id ? { ...c, ...(typeof patchOrFn === 'function' ? patchOrFn(c) : patchOrFn), updatedAt: iso() } : c);
+    tx.set(ref, { items, updatedAt: serverTimestamp() });
+  });
+}
+let engBusy = false;
+async function engAutoStart(c) {
+  let done = false;
+  await mutRoomById(c.id, d => {
+    const flow = d.flow || {};
+    if ((d.roomStatus || 'waiting') !== 'waiting' || flow.noAutoStart) return null;
+    done = true;
+    return { roomStatus: 'live', startedAt: iso(), flow: { ...flow, cursor: flow.cursor || 0, firstAt: Date.now() + FIRST_DELAY_MS, firstRemaining: null },
+      messages: [...(d.messages || []), sysMsg('🚀 بدأت المسابقة — جاري نزول أول سؤال خلال دقيقة، تأكد أن الجميع دخل')] };
+  });
+  if (done) await patchContest(c.id, { roomStatus: 'live' });
+}
+async function engSend(c, expected) {
+  const q = (c.questionBank || [])[expected]; if (!q) return;
+  let done = false;
+  await mutRoomById(c.id, d => {
+    const flow = d.flow || {};
+    if ((flow.cursor || 0) !== expected) return null;
+    if (d.roomStatus === 'finished' || d.roomStatus === 'paused') return null;
+    const ms = [...(d.messages || [])], n = Date.now(), t = parseInt(q.timer) || 0;
+    const idx = ms.filter(m => m.type === 'question' && !m.deleted).length + 1;
+    ms.push({ id: 'qmsg_' + n + '_' + Math.random().toString(36).slice(2, 5), sender: 'admin', senderId: c.createdBy || 'admin', senderName: 'المشرف',
+      type: 'question', questionId: q.id, questionIndex: idx, bank: true, bankIndex: expected,
+      question: { type: q.type, title: q.title, score: q.score || 1, timer: t, targetStudentId: '', options: q.type === 'mcq' ? q.options : [], correctEssayAnswer: q.correctEssayAnswer || '', explanation: q.explanation || '' },
+      targetStudent: null, timer: t > 0 ? t : null, timerEndAt: t > 0 ? new Date(n + t * 1000).toISOString() : null, createdAt: new Date(n).toISOString() });
+    done = true;
+    return { flow: { ...flow, cursor: expected + 1, firstAt: null, firstRemaining: null, auto: flow.auto !== undefined ? flow.auto : c.qAuto !== false }, messages: ms };
+  });
+  if (done) {
+    const copy = { id: q.id, type: q.type, title: q.title, score: q.score || 1, options: q.type === 'mcq' ? q.options : [], correctEssayAnswer: q.correctEssayAnswer || '', explanation: q.explanation || '' };
+    patchContest(c.id, cc => ({ questions: [...(cc.questions || []).filter(x => x.id !== q.id), copy] })).catch(() => {});
+  }
+}
+// مستمعو الغرف للمسابقات اللي أنا متسابق فيها (حتى لو أنا واقف في قائمة المسابقات ومش داخل الغرفة)
+const engRooms = new Map();
+function engEligible(c) {
+  return !!c && (c.questionBank || []).length > 0 && c.roomStatus !== 'finished'
+    && !(c.endAt && new Date(c.endAt).getTime() <= Date.now()) && getMyContestStatus(c) === 'contestant';
+}
+function syncEngRooms() {
+  const want = new Set(allContests.filter(engEligible).map(c => c.id));
+  for (const [id, e] of engRooms) if (!want.has(id)) { e.unsub(); engRooms.delete(id); }
+  want.forEach(id => {
+    if (engRooms.has(id)) return;
+    const e = { data: null };
+    e.unsub = onSnapshot(doc(db, 'contest_rooms', String(id)), s => { e.data = s.exists() ? s.data() : null; }, () => {});
+    engRooms.set(id, e);
+  });
+}
+setInterval(syncEngRooms, 2000);
+
+setInterval(async () => {
+  if (engBusy) return;
+  const now = Date.now();
+  let job = null;
+  for (const c of allContests) {
+    const bank = c.questionBank || []; if (!bank.length) continue;
+    const open = c.id === currentChatContestId;
+    const d = open ? currentRoomData : engRooms.get(c.id)?.data;
+    if (!d) continue;
+    const flow = d.flow || {}, auto = flow.auto !== undefined ? flow.auto : c.qAuto !== false; if (!auto) continue;
+    const st = d.roomStatus || 'waiting', cursor = Math.min(flow.cursor || 0, bank.length);
+    if (st === 'paused' || st === 'finished') continue;
+    if (c.endAt && new Date(c.endAt).getTime() <= now) continue;
+    if (st === 'waiting') {
+      if (!flow.noAutoStart && cursor === 0 && c.startAt && new Date(c.startAt).getTime() + ENGINE_GRACE <= now) { job = () => engAutoStart(c); break; }
+    } else if (cursor === 0) {
+      if (flow.firstAt && flow.firstAt + ENGINE_GRACE <= now) { job = () => engSend(c, 0); break; }
+    } else if (cursor < bank.length) {
+      const m = (d.messages || []).filter(x => x.type === 'question' && x.bank && x.bankIndex === cursor - 1 && !x.deleted).pop();
+      if (m && m.timerEndAt && !m.timerPaused && new Date(m.timerEndAt).getTime() + ENGINE_GRACE <= now) { job = () => engSend(c, cursor); break; }
+    }
+  }
+  if (!job) return;
+  engBusy = true; try { await job(); } catch (e) {} finally { engBusy = false; }
+}, 1000);
+
+// ============================================================
+// 🔔 مركز الإشعارات (كلمات السر + السماح بالتسجيل)
+// ============================================================
+let notifItems = [], notifFirst = true, notifSeen = new Set();
+const bell = $('bellBtn'), notifPanel = document.createElement('div');
+notifPanel.id = 'notifPanel'; document.body.appendChild(notifPanel);
+function renderNotifs() {
+  const unread = notifItems.filter(n => !n.read).length;
+  const b = $('bellBadge'); b.style.display = unread ? 'flex' : 'none'; b.textContent = unread > 9 ? '9+' : unread;
+  const list = [...notifItems].sort((a, b2) => new Date(b2.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 30);
+  notifPanel.innerHTML = `<div class="np-h"><i class="fas fa-bell"></i> الإشعارات ${unread ? `<span class="np-c">${unread}</span>` : ''}</div>`
+    + (list.length ? list.map(n => `<div class="np-i ${n.read ? '' : 'new'}">
+        <div class="np-t">${n.type === 'contest_password' ? '🔐' : n.type === 'contest_allowed' ? '🔓' : '🔔'} ${escapeHtml(n.title || 'إشعار')}</div>
+        <div class="np-x">${escapeHtml(n.text || '')}</div>
+        ${n.password ? `<div class="np-pw"><code>${escapeHtml(n.password)}</code><button type="button" data-copy="${escapeHtml(n.password)}"><i class="fas fa-copy"></i> نسخ</button></div>` : ''}
+        <div class="np-d">${formatDateTime(n.createdAt)}</div></div>`).join('')
+      : `<div class="np-e"><i class="far fa-bell-slash"></i><br>لا توجد إشعارات</div>`);
+}
+async function markNotifsRead() {
+  if (!notifItems.some(n => !n.read)) return;
+  const ref = doc(db, 'notifications', String(userId));
+  try {
+    await runTransaction(db, async (tx) => {
+      const s = await tx.get(ref); if (!s.exists()) return;
+      tx.update(ref, { items: (s.data().items || []).map(n => ({ ...n, read: true })) });
+    });
+  } catch (e) {}
+}
+bell.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const open = notifPanel.classList.toggle('show');
+  if (open) setTimeout(markNotifsRead, 1200);
+});
+notifPanel.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const t = b.dataset.copy;
+  try { await navigator.clipboard.writeText(t); } catch (er) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  showToast('📋 تم نسخ كلمة السر', 'success');
+});
+document.addEventListener('click', () => notifPanel.classList.remove('show'));
+function startNotifListener() {
+  if (!userId) return;
+  onSnapshot(doc(db, 'notifications', String(userId)), (snap) => {
+    notifItems = snap.exists() ? (snap.data().items || []) : [];
+    if (!notifFirst) {
+      const fresh = notifItems.filter(n => !n.read && !notifSeen.has(n.id));
+      if (fresh.length) { showToast('🔔 ' + (fresh[fresh.length - 1].title || 'إشعار جديد'), 'info'); try { if (SND.ev) SFX.chime(); } catch (er) {} }
+    }
+    notifItems.forEach(n => notifSeen.add(n.id)); notifFirst = false;
+    renderNotifs();
+  }, () => {});
+}
+
+// ============================================================
+// ➕ عرض المزيد لأوقات الإجابة (أكثر من 3)
+// ============================================================
+const expandedChips = new Set();
+function chipsHTML(arr, id) {
+  if (arr.length <= 3) return arr.join('');
+  const open = expandedChips.has(id);
+  return (open ? arr : arr.slice(0, 3)).join('')
+    + `<button type="button" class="c-more" data-more="${escapeHtml(String(id))}">${open ? 'عرض أقل' : `عرض المزيد (+${arr.length - 3})`}</button>`;
+}
+$('contestantsList').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-more]'); if (!b) return;
+  const id = b.dataset.more;
+  expandedChips.has(id) ? expandedChips.delete(id) : expandedChips.add(id);
+  renderContestants(getContestants());
+});
+
+
+// ============================================================
 // 🚀 Init
 // ============================================================
 requestAnimationFrame(() => document.body.classList.add('ready'));
@@ -4119,6 +4687,7 @@ if (userData) {
 }
 startUserListener();
 startContestsListener();
+startNotifListener();
 
 window.addEventListener('pageshow', (e) => {
   if (e.persisted && sessionStorage.getItem('meezan_logged_in') !== 'true') {
