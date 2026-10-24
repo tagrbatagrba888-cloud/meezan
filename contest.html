@@ -2438,14 +2438,16 @@ const _RN = Date.now.bind(Date);
 let CLOCK_OFFSET = 0, CLOCK_TRIED = false, CLOCK_OK = false;
 const NOW = () => _RN() + CLOCK_OFFSET;
 const _withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
-async function syncClock() {
+async function syncClock(extra = 2) {
   const samples = [];
+  const apply = () => { if (samples.length) { samples.sort((a, b) => a.rtt - b.rtt); CLOCK_OFFSET = Math.round(samples[0].off); CLOCK_OK = true; } };
+  let one = null;
   try {
     let key = null;
     try { key = localStorage.getItem('meezan_clk'); } catch (e) {}
     if (!key) { key = 'd' + _RN().toString(36) + Math.random().toString(36).slice(2, 7); try { localStorage.setItem('meezan_clk', key); } catch (e) {} }
     const ref = doc(db, 'contest_rooms', '__clk_' + key);
-    for (let i = 0; i < 3; i++) {
+    one = async () => {
       const t0 = _RN();
       await _withTimeout(setDoc(ref, { t: serverTimestamp(), isClock: true }), 5000);
       const s = await _withTimeout(getDocFromServer(ref), 5000);
@@ -2453,7 +2455,8 @@ async function syncClock() {
       const v = s.exists() ? s.data().t : null;
       const ms = v && typeof v.toMillis === 'function' ? v.toMillis() : 0;
       if (ms) samples.push({ off: ms - (t0 + t1) / 2, rtt: t1 - t0 });
-    }
+    };
+    await one();                       // ⚡ عينة واحدة تكفي للبدء فوراً
   } catch (e) {}
   if (!samples.length) {
     try {
@@ -2464,12 +2467,14 @@ async function syncClock() {
       if (ms) samples.push({ off: ms + 500 - (t0 + t1) / 2, rtt: (t1 - t0) + 1500 });
     } catch (e) {}
   }
-  if (samples.length) { samples.sort((a, b) => a.rtt - b.rtt); CLOCK_OFFSET = Math.round(samples[0].off); CLOCK_OK = true; }
+  apply();
   CLOCK_TRIED = true;
+  // تحسين الدقة في الخلفية بدون تعطيل أحد
+  if (one && extra > 0) setTimeout(async () => { for (let i = 0; i < extra; i++) { try { await one(); } catch (e) {} } apply(); }, 2500);
 }
 const clockReady = syncClock().catch(() => { CLOCK_TRIED = true; });
 setTimeout(() => { CLOCK_TRIED = true; }, 6000);
-setInterval(() => { syncClock().catch(() => {}); }, 600000);
+setInterval(() => { syncClock(1).catch(() => {}); }, 600000);
 const waitClock = () => Promise.race([clockReady, new Promise(r => setTimeout(r, 3500))]);
 
 // ----- وقت نهاية السؤال (مع حماية من القيم الغلط القديمة) -----
@@ -3516,9 +3521,7 @@ async function enterContest(contest) {
   startCountdownTimer();
   startTimerTick();
 
-  setTimeout(() => {
-    $('chatInput').focus();
-  }, 300);
+  if (window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches) setTimeout(() => { try { $('chatInput').focus({ preventScroll: true }); } catch (e) {} }, 300);
 }
 
 function determineMyRoleSync() {
@@ -3578,7 +3581,7 @@ function updateRoleBadge() {
     const can = (myRole === 'contestant' || myRole === 'pending') && c && c.roomStatus !== 'finished' && roomStatus !== 'finished' && !(c.winner && c.winner.id === userId);
     lb.style.display = can ? 'flex' : 'none';
   }
-  if (myRole === 'contestant') presenceBeat(false);
+  presenceMaybe();
   updateChatInputState();
 }
 
@@ -3632,13 +3635,21 @@ const getContestants = () => currentChatContest?.contestants ?? currentRoomData?
 const isCorrectAns = (q, a) => q?.type === 'mcq' && evalAns(q, a || {}) === true;
 const canAns = (d, m) => myRole === 'contestant' && !d.answers?.[m.questionId]?.[userId] && (!m.targetStudent || m.targetStudent.id === userId);
 
+let _applied = '';
+const roomKey = d => { try { const { presence, updatedAt, ...r } = d; return JSON.stringify(r) + '|' + myRole + '|' + getContestants().map(c => c.id + (c.finished ? 1 : 0)).join(','); } catch (e) { return 'x' + Math.random(); } };
 function startChatListener() {
   if (unsubscribeChat) unsubscribeChat();
   const rid = currentChatContestId;
   unsubscribeChat = onSnapshot(doc(db, 'contest_rooms', String(rid)), { includeMetadataChanges: true }, (snap) => {
     setConn(!snap.metadata.fromCache);
     if (!snap.exists() || rid !== currentChatContestId) return;
-    applyRoom(withPending(snap.data()), firstSnap);
+    const data = withPending(snap.data());
+    if (currentRoomData && roomKey(data) === _applied) {      // تغيير حضور/ميتاداتا فقط: بدون إعادة رسم
+      currentRoomData = { ...currentRoomData, presence: data.presence };
+      if (!snap.metadata.fromCache) firstSnap = false;
+      return;
+    }
+    applyRoom(data, firstSnap);
     if (!snap.metadata.fromCache) firstSnap = false;
   }, (err) => { console.log('chat error:', err.message); setConn(false); });
 }
@@ -3653,6 +3664,7 @@ function paintAnn(a) {
 }
 
 function applyRoom(d, silent) {
+  try { _applied = roomKey(d); } catch (e) { _applied = ''; }
   const prev = currentRoomData, live = !silent && !!prev;
   currentRoomData = d;
   lsSetDeb(CK + '_r' + currentChatContestId, { ...d, messages: (d.messages || []).slice(-200), updatedAt: null, createdAt: null });
@@ -3718,7 +3730,7 @@ function applyRoom(d, silent) {
   updateChatInputState();
   updateSidebarBadge();
   paintLobby();
-  if (myRole === 'contestant') presenceBeat(false);
+  presenceMaybe();
 }
 
 // ⏱️ مراقب المؤقتات: شريط ثابت دائماً (لا يظهر/يختفي فلا يهز الشاشة)
@@ -4111,28 +4123,31 @@ async function submitAnswer(questionId, payload) {
   const rid = currentChatContestId;
   const ref = doc(db, 'contest_rooms', String(rid));
 
-  // ⚡ فوري: اختيارك يظهر في نفس اللحظة، والتسجيل الرسمي يتم في الخلفية
-  pendingAns.set(questionId, { ...payload, answeredAt: new Date(NOW()).toISOString(), pending: true });
-  if (currentRoomData) applyRoom(withPending(currentRoomData), true);
+  // فحص محلي فوري (بدون انتظار السيرفر)
+  const d0 = currentRoomData || {};
+  let pre = null;
+  if (d0.roomStatus === 'paused' || d0.roomStatus === 'finished') pre = 'blocked';
+  else if (d0.answers?.[questionId]?.[userId]) pre = 'done';
+  else {
+    const q0 = (d0.messages || []).find(m => m.type === 'question' && m.questionId === questionId);
+    if (!q0 || q0.deleted) pre = 'err';
+    else if (q0.closed || q0.timerPaused || (q0.timerEndAt && endMsOf(q0) <= NOW())) pre = 'time';
+    else if (q0.targetStudent && q0.targetStudent.id !== userId) pre = 'target';
+  }
 
-  let r = 'exc';
-  try {
-    r = await runTransaction(db, async (tx) => {
-      const sn = await tx.get(ref); if (!sn.exists()) return 'err';
-      const d = sn.data();
-      if (d.roomStatus === 'paused' || d.roomStatus === 'finished') return 'blocked';
-      if (d.answers?.[questionId]?.[userId]) return 'done';
-      const q = (d.messages || []).find(m => m.type === 'question' && m.questionId === questionId);
-      if (!q || q.deleted) return 'err';
-      if (q.closed || q.timerPaused || (q.timerEndAt && endMsOf(q) <= NOW())) return 'time';
-      if (q.targetStudent && q.targetStudent.id !== userId) return 'target';
-      tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date(NOW()).toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
-      return 'ok';
-    });
-  } catch (e) { console.error(e); }
+  let r = pre || 'exc';
+  if (!pre) {
+    // ⚡ فوري: اختيارك يظهر في نفس اللحظة، والتسجيل الرسمي يتم في الخلفية
+    pendingAns.set(questionId, { ...payload, answeredAt: new Date(NOW()).toISOString(), pending: true });
+    if (currentRoomData) applyRoom(withPending(currentRoomData), true);
+    const wp = updateDoc(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date(NOW()).toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
+    try { r = await Promise.race([wp.then(() => 'ok'), new Promise(res => setTimeout(() => res('slow'), 6000))]); }
+    catch (e) { console.error(e); r = 'exc'; }
+    if (r === 'slow') wp.then(() => setTimeout(() => pendingAns.delete(questionId), 2500)).catch(() => pendingAns.delete(questionId));
+  }
 
   if (r === 'ok') setTimeout(() => pendingAns.delete(questionId), 2500);
-  else {
+  else if (r !== 'slow') {
     pendingAns.delete(questionId);
     // الإجابة ماتسجلتش → شيل الاختيار المؤقت من الشاشة
     if (rid === currentChatContestId && currentRoomData?.answers?.[questionId]?.[userId]?.pending) {
@@ -4140,7 +4155,7 @@ async function submitAnswer(questionId, payload) {
       applyRoom({ ...currentRoomData, answers: { ...currentRoomData.answers, [questionId]: na } }, true);
     }
   }
-  const t = { ok: ['✅ تم تسجيل إجابتك', 'success'], done: ['لقد أجبت بالفعل', 'warning'], time: ['⏰ انتهى وقت السؤال', 'error'], target: ['🎯 هذا السؤال ليس لك', 'warning'], blocked: ['⏸️ المسابقة متوقفة الآن', 'warning'], err: ['السؤال غير متاح', 'error'], exc: ['حدث خطأ — حاول مرة أخرى', 'error'] }[r];
+  const t = { ok: ['✅ تم تسجيل إجابتك', 'success'], slow: ['📶 الاتصال بطيء — إجابتك في الطريق', 'warning'], done: ['لقد أجبت بالفعل', 'warning'], time: ['⏰ انتهى وقت السؤال', 'error'], target: ['🎯 هذا السؤال ليس لك', 'warning'], blocked: ['⏸️ المسابقة متوقفة الآن', 'warning'], err: ['السؤال غير متاح', 'error'], exc: ['حدث خطأ — حاول مرة أخرى', 'error'] }[r];
   showInChatNotify(...t);
   if (r === 'ok') SFX.ping();
 }
@@ -4185,7 +4200,13 @@ function evalAns(q, a) {
 }
 const fmtMs = ms => ms < 60000 ? (ms / 1000).toFixed(1) + 'ث' : Math.floor(ms / 60000) + ':' + String(Math.floor(ms % 60000 / 1000)).padStart(2, '0') + 'د';
 
+let _csMemo = null;
 function computeStats() {
+  const dd = currentRoomData, cs = getContestants();
+  if (_csMemo && _csMemo.d === dd && _csMemo.cs === cs) return _csMemo.r;
+  const r = computeStatsRaw(); _csMemo = { d: dd, cs, r }; return r;
+}
+function computeStatsRaw() {
   const d = currentRoomData || {}, ans = d.answers || {};
   const qmsgs = (d.messages || []).filter(m => m.type === 'question' && !m.deleted);
   const per = {};
@@ -4705,7 +4726,7 @@ $('chatLeaveBtn').addEventListener('click', () => withdrawFromContest(currentCha
 // ============================================================
 // ✅ الحضور (جاهز / غير جاهز)
 // ============================================================
-const PRESENCE_TTL = 60000;
+const PRESENCE_TTL = 100000;
 let lastBeat = 0;
 async function presenceBeat(force, value) {
   const id = currentChatContestId;
@@ -4716,7 +4737,22 @@ async function presenceBeat(force, value) {
   lastBeat = n;
   try { await updateDoc(doc(db, 'contest_rooms', String(id)), new FieldPath('presence', userId), value === undefined ? n : value); } catch (e) {}
 }
-setInterval(() => { if (currentChatContestId && myRole === 'contestant' && document.visibilityState === 'visible') presenceBeat(true); }, 20000);
+function activeQuestionNow() {
+  const ms = currentRoomData?.messages || [], n = NOW();
+  for (let i = ms.length - 1; i >= 0 && i >= ms.length - 4; i--) { const m = ms[i]; if (m.type === 'question' && !m.deleted && !m.closed && !m.timerPaused && m.timerEndAt && endMsOf(m) > n) return true; }
+  return false;
+}
+// يكتب فقط لو حضوري قديم فعلاً (بدل كتابة مع كل لقطة كانت تخنق قاعدة البيانات)
+function presenceMaybe() {
+  if (myRole !== 'contestant' || !currentRoomData) return;
+  const mine = tsMs(currentRoomData.presence?.[userId]);
+  if (!mine || NOW() - mine > 45000) presenceBeat(false);
+}
+setInterval(() => {
+  if (!(currentChatContestId && myRole === 'contestant' && document.visibilityState === 'visible')) return;
+  if (activeQuestionNow() && NOW() - lastBeat < 50000) return;   // أثناء السؤال: الإجابات نفسها دليل الحضور
+  presenceBeat(true);
+}, 40000 + Math.floor(Math.random() * 6000));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') presenceBeat(false); });
 addEventListener('pagehide', () => { if (currentChatContestId && myRole === 'contestant') presenceBeat(true, 0); });
 const lastSeenOf = c => (c.id === userId && currentChatContestId && myRole === 'contestant') ? NOW() : (tsMs(currentRoomData?.presence?.[c.id]) || tsMs(c.lastSeen) || 0);
@@ -4764,6 +4800,15 @@ setInterval(paintLobby, 500);
 // ⚙️ محرك احتياطي: يكمّل نزول الأسئلة لو الأدمن خرج (يتدخل فقط عند التأخر 3 ثواني)
 // ============================================================
 const ENGINE_GRACE = 3000;
+// بدل ما كل المتسابقين يحاولوا نزول السؤال في نفس اللحظة (ازدحام كتابة على مستند واحد)، يتم ترتيبهم: الأول يتحرك بعد 3 ثواني، والتالي لو الأول فشل
+function engGrace(c, d) {
+  const cs = c.id === currentChatContestId ? getContestants() : (c.contestants || []);
+  const pres = d?.presence || {}, n = NOW();
+  const cand = cs.filter(x => x.id === userId || (n - tsMs(pres[x.id])) < 90000).map(x => String(x.id)).sort();
+  let r = cand.indexOf(String(userId)); if (r < 0) r = cand.length;
+  let h = 0; for (const ch of String(userId)) h = (h * 31 + ch.charCodeAt(0)) % 400;
+  return ENGINE_GRACE + Math.min(r, 6) * 2500 + h;
+}
 const iso = () => new Date(NOW()).toISOString();
 const sysMsg = (text) => ({ id: 'sys_' + NOW() + '_' + Math.random().toString(36).slice(2, 6), sender: 'system', type: 'system', text, createdAt: iso() });
 async function mutRoomById(id, fn) {
@@ -4821,7 +4866,7 @@ async function engSend(c, expected) {
 const engRooms = new Map();
 function engEligible(c) {
   return !!c && (c.questionBank || []).length > 0 && c.roomStatus !== 'finished'
-    && !(c.endAt && new Date(c.endAt).getTime() <= NOW()) && getMyContestStatus(c) === 'contestant';
+    && !(c.endAt && new Date(c.endAt).getTime() <= NOW()) && !(c.startAt && new Date(c.startAt).getTime() - 120000 > NOW()) && getMyContestStatus(c) === 'contestant';
 }
 function syncEngRooms() {
   const want = new Set(allContests.filter(engEligible).map(c => c.id));
@@ -4848,13 +4893,14 @@ setInterval(async () => {
     const st = d.roomStatus || 'waiting', cursor = Math.min(flow.cursor || 0, bank.length);
     if (st === 'paused' || st === 'finished') continue;
     if (c.endAt && new Date(c.endAt).getTime() <= now) continue;
+    const G = engGrace(c, d);
     if (st === 'waiting') {
-      if (!flow.noAutoStart && cursor === 0 && c.startAt && new Date(c.startAt).getTime() + ENGINE_GRACE <= now) { job = () => engAutoStart(c); break; }
+      if (!flow.noAutoStart && cursor === 0 && c.startAt && new Date(c.startAt).getTime() + G <= now) { job = () => engAutoStart(c); break; }
     } else if (cursor === 0) {
-      if (flow.firstAt && flow.firstAt + ENGINE_GRACE <= now) { job = () => engSend(c, 0); break; }
+      if (flow.firstAt && flow.firstAt + G <= now) { job = () => engSend(c, 0); break; }
     } else if (cursor < bank.length) {
       const m = (d.messages || []).filter(x => x.type === 'question' && x.bank && x.bankIndex === cursor - 1 && !x.deleted).pop();
-      if (m && m.timerEndAt && !m.timerPaused && endMsOf(m) + ENGINE_GRACE <= now) { job = () => engSend(c, cursor); break; }
+      if (m && m.timerEndAt && !m.timerPaused && endMsOf(m) + G <= now) { job = () => engSend(c, cursor); break; }
     }
   }
   if (!job) return;
