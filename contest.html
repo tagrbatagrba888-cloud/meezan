@@ -2086,6 +2086,76 @@
 .ctl-hud{display:flex!important;min-height:40px;align-items:center}
 .ctl-hud .h-t{font-size:18px;margin-inline-start:auto}
 </style>
+<style id="question-stage">
+/* ===== شاشة السؤال: الكارت = مساحة الشاشة المتاحة بالظبط، كل تفاصيله ظاهرة ===== */
+.chat-messages{padding:8px!important;gap:10px!important;scroll-snap-type:y proximity}
+.chat-main{position:relative}
+.chat-messages .msg.question{align-self:stretch!important;width:100%!important;max-width:100%!important;height:var(--stage-h,66dvh);min-height:0;flex:0 0 auto;scroll-snap-align:start;scroll-margin-top:8px}
+.chat-messages .msg.question .msg-content{display:flex;flex-direction:column;padding:0!important;overflow:hidden!important;max-height:none!important;border:2px solid var(--border);border-radius:22px;background:var(--bg-card);box-shadow:0 10px 30px var(--shadow);position:relative;transition:border-color .25s}
+.chat-messages .msg.question .msg-content::before{content:none!important}
+.msg.question.st-open .msg-content{border-color:var(--accent)}
+.msg.question.st-done .msg-content{border-color:var(--success)}
+.msg.question.hot .msg-content{border-color:var(--error);animation:qcHot 1s ease-in-out infinite}
+@keyframes qcHot{50%{box-shadow:0 0 0 5px rgba(192,57,43,.25),0 10px 30px var(--shadow)}}
+
+.qc-head{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 15px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-lighter))}
+[data-theme="dark"] .qc-head{color:var(--bg-page)}
+.msg.question.fitting,.msg.question.fitting *{transition:none!important}
+.msg.question.hot .qc-head{background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff}
+.qc-head-main{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+.qc-num{font-weight:900;font-size:17px;display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
+.qc-num small{font-size:12px;font-weight:800;opacity:.75}
+.qc-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.2);font-size:11px;font-weight:800;white-space:nowrap}
+[data-theme="dark"] .qc-chip{background:rgba(0,0,0,.14)}
+.msg.question.hot .qc-chip{background:rgba(255,255,255,.2)}
+.qc-head .target-badge{margin:0;background:rgba(255,255,255,.2);border:none;color:inherit;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qc-head .timer-badge{margin:0;flex:0 0 auto;background:rgba(255,255,255,.2);border:none;color:inherit;font-size:20px;font-weight:900;padding:5px 14px;min-width:86px;gap:6px}
+[data-theme="dark"] .qc-head .timer-badge{background:rgba(0,0,0,.14)}
+.qc-head .timer-badge.expired{background:rgba(0,0,0,.28);color:#fff}
+.qc-bar{position:absolute;inset-inline:0;bottom:0;height:5px;background:rgba(255,255,255,.22)}
+[data-theme="dark"] .qc-bar{background:rgba(0,0,0,.14)}
+.qc-bar i{display:block;height:100%;background:var(--accent-light);transition:width .25s linear}
+.msg.question.hot .qc-bar i{background:#fff}
+
+.qc-body{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:calc(12px*var(--fs,1));padding:calc(14px*var(--fs,1)) 14px}
+.qc-body>*{flex-shrink:0}
+.qc-body>:first-child{margin-top:auto}
+.qc-body>:last-child{margin-bottom:auto}
+.qc-body .question-title-chat{font-size:calc(19px*var(--fs,1))!important;font-weight:800!important;line-height:1.75!important;margin:0!important;padding:calc(12px*var(--fs,1)) 14px;background:var(--bg-input);border:1px solid var(--border);border-inline-start:4px solid var(--accent);border-radius:14px;color:var(--text-main);white-space:pre-wrap}
+.qc-body .question-options-chat{margin:0;gap:calc(10px*var(--fs,1))}
+.qc-body .question-option-chat{padding:calc(12px*var(--fs,1)) calc(14px*var(--fs,1));min-height:calc(52px*var(--fs,1));gap:calc(12px*var(--fs,1));font-size:calc(15.5px*var(--fs,1));font-weight:700;line-height:1.6;border-radius:16px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.qc-body .question-option-chat:active:not(.disabled){transform:scale(.985)}
+.qc-body .question-option-chat .option-letter{width:calc(32px*var(--fs,1));height:calc(32px*var(--fs,1));font-size:calc(14px*var(--fs,1))}
+.qc-body .opt-text{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.qc-body .question-option-chat.selected.disabled,.qc-body .question-option-chat.correct-reveal.disabled,.qc-body .question-option-chat.wrong-reveal.disabled{opacity:1}
+.qc-body .question-option-chat.disabled:not(.selected):not(.correct-reveal):not(.wrong-reveal){opacity:.55}
+.qc-body .question-essay-answer{flex:1 1 auto;margin:0;min-height:calc(120px*var(--fs,1))}
+.qc-body .question-essay-input{flex:1;min-height:0;height:100%;resize:none;font-size:16px;border-radius:14px}
+.qc-body .q-first{margin:0;font-size:calc(12px*var(--fs,1))}
+.qc-body .q-first:empty{display:none}
+.qc-body .reveal-box{margin:0;font-size:calc(13px*var(--fs,1))}
+
+.qc-foot{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--border);background:var(--bg-input)}
+.qc-status{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:14px;border:1.5px solid;font-size:14px;font-weight:800;line-height:1.5;text-align:center}
+.qc-status.ok{color:var(--success);border-color:var(--success);background:rgba(30,122,90,.1)}
+.qc-status.bad{color:var(--error);border-color:var(--error);background:rgba(192,57,43,.09)}
+.qc-status.warn{color:var(--warning);border-color:var(--warning);background:rgba(230,126,34,.1)}
+.qc-status.info{color:var(--info);border-color:var(--info);background:rgba(41,128,185,.09)}
+.qc-status.hint{color:var(--text-sub);border-color:var(--border);border-style:dashed;background:transparent;font-size:12.5px;font-weight:700;padding:8px 12px}
+.qc-foot .question-submit-btn{width:100%;align-self:stretch;padding:14px;font-size:15px;border-radius:14px;touch-action:manipulation}
+.qc-foot .question-submit-btn:active:not(:disabled){transform:scale(.985)}
+
+.q-jump{position:absolute;inset-inline:0;margin:0 auto;width:max-content;z-index:20;display:none;align-items:center;gap:8px;padding:10px 18px;border:0;border-radius:24px;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;font:800 13px Cairo,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:pointer;touch-action:manipulation}
+[data-theme="dark"] .q-jump{color:var(--bg-page)}
+.q-jump.show{display:flex}
+
+@media (max-width:600px){
+  .chat-header{padding:8px 10px!important}
+  .ctl-hud{padding:5px 12px!important;min-height:34px!important}
+  .qc-num{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){.msg.question.hot .msg-content{animation:none}.qc-bar i{transition:none}}
+</style>
 </head>
 <body>
 
@@ -2455,8 +2525,8 @@ function resetChatView() { const c = document.getElementById('chatMessages'); if
 // ----- محرك رسم الرسائل: يحدّث اللي اتغيّر بس، ولا يلمس الباقي أبداً -----
 function revealNew(c, el, st) {
   const cr = c.getBoundingClientRect(), er = el.getBoundingClientRect();
-  if (er.height + 24 <= c.clientHeight) { c.scrollTop = c.scrollHeight; st.stick = true; }
-  else { c.scrollTop = Math.max(0, er.top - cr.top + c.scrollTop - 12); st.stick = false; }   // سؤال طويل: نعرضه من أوله
+  if (!el.classList.contains('question') && er.height + 24 <= c.clientHeight) { c.scrollTop = c.scrollHeight; st.stick = true; }
+  else { c.scrollTop = Math.max(0, er.top - cr.top + c.scrollTop - 8); st.stick = false; }   // سؤال طويل: نعرضه من أوله
 }
 function reconcileList(container, items, roomKey, emptyHTML) {
   let st = container.__rc;
@@ -3728,6 +3798,8 @@ function startTimerTick() {
     const now = NOW();
     document.querySelectorAll('[data-q-timer]').forEach(el => {
       const diff = (+el.dataset.end) - now;
+      const qcard = el.closest('.msg.question');
+      if (qcard) { const hot = diff > 0 && diff <= 10000; if (qcard.classList.contains('hot') !== hot) qcard.classList.toggle('hot', hot); }
       if (diff > 0) {
         const t = fmtRem(diff);
         if (el.dataset.t !== t) { el.dataset.t = t; el.innerHTML = `<i class="fas fa-clock"></i> ${t}`; }
@@ -3737,6 +3809,11 @@ function startTimerTick() {
         el.innerHTML = '<i class="fas fa-times-circle"></i> انتهى';
         el.classList.add('expired');
       }
+    });
+    document.querySelectorAll('[data-q-bar]').forEach(b => {
+      const tot = +b.dataset.total || 0; if (!tot) return;
+      const w = Math.max(0, Math.min(100, ((+b.dataset.end - now) / tot) * 100)).toFixed(1) + '%';
+      if (b.__w !== w) { b.__w = w; b.style.width = w; }
     });
   }, 250);
 }
@@ -3881,11 +3958,15 @@ function createJoinRequestElement(msg) {
 function createQuestionMessageElement(msg) {
   const el = document.createElement('div');
   el.className = 'msg question';
+  el.dataset.qid = String(msg.questionId);
+  const cachedFs = window.__qfs && window.__qfs.get(String(msg.questionId));
+  if (cachedFs) el.style.setProperty('--fs', cachedFs);
 
   const q = msg.question || {};
   const qIndex = msg.questionIndex || 1;
   const isMcq = q.type === 'mcq';
   const typeLabel = isMcq ? 'اختياري' : 'مقالي';
+  const totalQ = Math.max((currentChatContest?.questions || []).length, (currentChatContest?.questionBank || []).length);
 
   const myAnswer = currentRoomData?.answers?.[msg.questionId]?.[userId];
   const hasAnswered = !!myAnswer;
@@ -3894,20 +3975,26 @@ function createQuestionMessageElement(msg) {
   const isOtherTarget = msg.targetStudent && msg.targetStudent.id !== userId;
 
   const roomBlocked = roomStatus === 'paused' || roomStatus === 'finished';
-  let timerHTML = '';
+  let timerHTML = '', barHTML = '';
   let timerExpired = !!msg.closed;
+  const totalMs = ((+msg.timer || 0) + (+msg.extra || 0)) * 1000;
+  const pct = ms => totalMs > 0 ? Math.max(0, Math.min(100, ms / totalMs * 100)).toFixed(1) : '100.0';
   if (msg.timerPaused) {
     timerHTML = `<span class="timer-badge"><i class="fas fa-pause"></i> ${Math.ceil((msg.timerRemainingMs || 0) / 1000)}ث</span>`;
+    barHTML = `<i style="width:${pct(msg.timerRemainingMs || 0)}%"></i>`;
   } else if (msg.timer && msg.timerEndAt) {
     const diff = remainMs(msg);
     if (diff > 0 && !msg.closed) {
       timerHTML = `<span class="timer-badge" data-q-timer="${msg.questionId}" data-end="${endMsOf(msg)}" data-t="${fmtRem(diff)}"><i class="fas fa-clock"></i> ${fmtRem(diff)}</span>`;
+      barHTML = `<i data-q-bar data-end="${endMsOf(msg)}" data-total="${totalMs}" style="width:${pct(diff)}%"></i>`;
     } else {
       timerHTML = `<span class="timer-badge expired"><i class="fas fa-times-circle"></i> انتهى</span>`;
+      barHTML = `<i style="width:0%"></i>`;
       timerExpired = true;
     }
   } else if (msg.closed) {
     timerHTML = `<span class="timer-badge expired"><i class="fas fa-times-circle"></i> مغلق</span>`;
+    barHTML = `<i style="width:0%"></i>`;
   }
 
   let targetHTML = '';
@@ -3916,22 +4003,26 @@ function createQuestionMessageElement(msg) {
   }
 
   const canAnswer = myRole === 'contestant' && !hasAnswered && (!msg.targetStudent || isTargeted) && !timerExpired && !roomBlocked && !msg.timerPaused;
+  el.classList.add(hasAnswered ? 'st-done' : (canAnswer ? 'st-open' : 'st-over'));
 
-  let contentHTML = `
-    <span class="question-number-badge">
-      <i class="fas fa-hashtag"></i> سؤال ${qIndex}
-    </span>
-    <span class="question-type-badge-chat">${typeLabel}</span>
-    <span class="question-type-badge-chat"><i class="fas fa-star"></i> ${q.score || 1}</span>
-    ${timerHTML}
-    ${targetHTML}
+  // ---------- الرأس: رقم السؤال + النوع + الدرجة + المؤقت ----------
+  const headHTML = `
+    <div class="qc-head">
+      <div class="qc-head-main">
+        <span class="qc-num"><span><i class="fas fa-hashtag"></i> سؤال ${qIndex}</span>${totalQ >= qIndex ? `<small>من ${totalQ}</small>` : ''}</span>
+        <span class="qc-chip">${typeLabel}</span>
+        <span class="qc-chip"><i class="fas fa-star"></i> ${q.score || 1}</span>
+        ${targetHTML}
+      </div>
+      ${timerHTML}
+      ${barHTML ? `<div class="qc-bar">${barHTML}</div>` : ''}
+    </div>`;
 
-    <div class="question-title-chat">${escapeHtml(q.title || '')}</div>
-  `;
+  // ---------- الجسم: السؤال + الاختيارات / خانة المقال ----------
+  let bodyHTML = `<div class="question-title-chat">${escapeHtml(q.title || '')}</div>`;
 
   if (isMcq) {
     let optionsHTML = '<div class="question-options-chat">';
-
     (q.options || []).forEach((opt, i) => {
       const isSelected = myAnswer && myAnswer.selectedIndices && myAnswer.selectedIndices.includes(i);
       const isCorrect = opt.correct;
@@ -3948,51 +4039,40 @@ function createQuestionMessageElement(msg) {
       optionsHTML += `
         <div class="${classes}" data-option-idx="${i}" data-qid="${msg.questionId}">
           <div class="option-letter">${letter}</div>
-          <div style="flex:1;">${escapeHtml(opt.text)}</div>
+          <div class="opt-text">${escapeHtml(opt.text)}</div>
           ${isSelected ? '<i class="fas fa-check-circle" style="color: var(--primary);"></i>' : ''}
           ${revealCorrect && !isSelected ? '<i class="fas fa-check" style="color: var(--success);"></i>' : ''}
-        </div>
-      `;
+        </div>`;
     });
-
     optionsHTML += '</div>';
-    contentHTML += optionsHTML;
-
-    if (hasAnswered) {
-      contentHTML += `<div class="question-answered-badge"><i class="fas fa-check-circle"></i> أجبت</div>`;
-    } else if (isOtherTarget) {
-      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-user"></i> موجّه لـ ${escapeHtml(msg.targetStudent.name || '')}</div>`;
-    } else if (timerExpired) {
-      contentHTML += `<div class="question-waiting-badge" style="background: rgba(192, 57, 43, 0.1); border-color: var(--error); color: var(--error);"><i class="fas fa-times-circle"></i> انتهى الوقت</div>`;
-    } else if (myRole === 'viewer' || myRole === 'kicked') {
-      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-eye"></i> أنت مشاهد</div>`;
-    }
+    bodyHTML += optionsHTML;
   } else {
-    contentHTML += `
+    bodyHTML += `
       <div class="question-essay-answer">
         <textarea class="question-essay-input" data-essay-input data-qid="${msg.questionId}" placeholder="${hasAnswered ? 'إجابتك:' : (canAnswer ? 'اكتب إجابتك...' : 'لا يمكنك الإجابة')}" ${canAnswer ? '' : 'disabled'}>${hasAnswered ? escapeHtml(myAnswer?.text || '') : escapeHtml(essayDrafts[msg.questionId] || '')}</textarea>
-        ${!hasAnswered && canAnswer ? `<button class="question-submit-btn" data-essay-submit data-qid="${msg.questionId}"><i class="fas fa-paper-plane"></i> إرسال</button>` : ''}
-      </div>
-    `;
-
-    if (hasAnswered) {
-      contentHTML += `<div class="question-answered-badge"><i class="fas fa-check-circle"></i> أجبت</div>`;
-    } else if (isOtherTarget) {
-      contentHTML += `<div class="question-waiting-badge"><i class="fas fa-user"></i> موجّه لـ ${escapeHtml(msg.targetStudent.name || '')}</div>`;
-    } else if (timerExpired) {
-      contentHTML += `<div class="question-waiting-badge" style="background: rgba(192, 57, 43, 0.1); border-color: var(--error); color: var(--error);"><i class="fas fa-times-circle"></i> انتهى الوقت</div>`;
-    }
+      </div>`;
   }
 
-  contentHTML += `<div class="q-first wait" data-first-for="${msg.questionId}"></div>`;
-
+  bodyHTML += `<div class="q-first wait" data-first-for="${msg.questionId}"></div>`;
   if (msg.revealed) {
-    if (!isMcq && q.correctEssayAnswer) contentHTML += `<div class="reveal-box"><i class="fas fa-check-circle"></i> <strong>الإجابة النموذجية:</strong> ${escapeHtml(q.correctEssayAnswer)}</div>`;
-    if (q.explanation) contentHTML += `<div class="reveal-box info"><i class="fas fa-info-circle"></i> ${escapeHtml(q.explanation)}</div>`;
+    if (!isMcq && q.correctEssayAnswer) bodyHTML += `<div class="reveal-box"><i class="fas fa-check-circle"></i> <strong>الإجابة النموذجية:</strong> ${escapeHtml(q.correctEssayAnswer)}</div>`;
+    if (q.explanation) bodyHTML += `<div class="reveal-box info"><i class="fas fa-info-circle"></i> ${escapeHtml(q.explanation)}</div>`;
   }
-  contentHTML += `<div class="msg-meta" style="margin-top: 12px; justify-content: flex-start;"><i class="far fa-clock"></i> ${formatTimeOnly(msg.createdAt)}</div>`;
 
-  el.innerHTML = `<div class="msg-content">${contentHTML}</div>`;
+  // ---------- التذييل: حالتك + زر الإرسال ----------
+  const st = (cls, ic, txt) => `<div class="qc-status ${cls}"><i class="fas ${ic}"></i> ${txt}</div>`;
+  let footHTML = '';
+  if (isMcq && msg.revealed && hasAnswered) footHTML += isCorrectAns(q, myAnswer) ? st('ok', 'fa-circle-check', 'إجابتك صحيحة') : st('bad', 'fa-circle-xmark', 'إجابتك غير صحيحة');
+  else if (isMcq && msg.revealed) footHTML += st('bad', 'fa-clock', 'لم تُجب على هذا السؤال');
+  else if (hasAnswered) footHTML += st('ok', 'fa-circle-check', 'تم تسجيل إجابتك');
+  else if (isOtherTarget) footHTML += st('warn', 'fa-user', `السؤال موجّه لـ ${escapeHtml(msg.targetStudent.name || '')}`);
+  else if (timerExpired) footHTML += st('bad', 'fa-times-circle', 'انتهى الوقت');
+  else if (roomStatus === 'paused' || msg.timerPaused) footHTML += st('warn', 'fa-pause', 'متوقف مؤقتاً');
+  else if (myRole === 'viewer' || myRole === 'kicked') footHTML += st('info', 'fa-eye', 'أنت مشاهد');
+  else if (canAnswer && isMcq) footHTML += st('hint', 'fa-hand-pointer', 'اضغط على إجابتك — الاختيار نهائي');
+  if (!isMcq && !hasAnswered && canAnswer) footHTML += `<button class="question-submit-btn" data-essay-submit data-qid="${msg.questionId}"><i class="fas fa-paper-plane"></i> إرسال الإجابة</button>`;
+
+  el.innerHTML = `<div class="msg-content">${headHTML}<div class="qc-body">${bodyHTML}</div>${footHTML ? `<div class="qc-foot">${footHTML}</div>` : ''}</div>`;
 
   if (isMcq) {
     el.querySelectorAll('.question-option-chat').forEach(optEl => {
@@ -4003,6 +4083,7 @@ function createQuestionMessageElement(msg) {
           else if (isOtherTarget) showInChatNotify('🎯 السؤال ليس لك', 'warning');
           return;
         }
+        try { navigator.vibrate && navigator.vibrate(18); } catch (e) {}
         submitMcqAnswer(msg.questionId, parseInt(optEl.dataset.optionIdx));
       });
     });
@@ -4882,5 +4963,88 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<script>
+/* ===== محرّك شاشة السؤال: مقاس الكارت = الشاشة، وتكبير/تصغير الخط تلقائياً ليظهر كل شيء ===== */
+(function () {
+  const fsCache = window.__qfs = new Map();
+  const box = document.getElementById('chatMessages'), modal = document.getElementById('chatModal');
+  if (!box || !box.parentElement) return;
+  const main = box.parentElement;
+  const cards = () => box.querySelectorAll('.msg.question');
+
+  function setStage() {
+    const h = box.clientHeight; if (h < 120) return false;
+    const v = (h - 16) + 'px';
+    if (box.style.getPropertyValue('--stage-h') !== v) box.style.setProperty('--stage-h', v);
+    return true;
+  }
+  const fits = body => body.scrollHeight <= body.clientHeight + 1;
+  function fit(card) {
+    const body = card.querySelector('.qc-body'); if (!body || !card.offsetHeight) return;
+    const set = s => card.style.setProperty('--fs', s);
+    const HI = 1.3, LO = 0.55; let res;
+    card.classList.add('fitting');
+    set(HI);
+    if (fits(body)) res = HI;
+    else { set(LO); if (!fits(body)) res = LO; else {
+      let lo = LO, hi = HI;
+      for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2; set(mid.toFixed(3)); if (fits(body)) lo = mid; else hi = mid; }
+      res = +lo.toFixed(3); set(res);
+    } }
+    void body.offsetHeight; card.classList.remove('fitting');
+    if (card.dataset.qid) fsCache.set(card.dataset.qid, res);
+  }
+
+  const dirty = new Set(); let tm = 0;
+  function schedule() { if (tm) return; tm = setTimeout(() => { tm = 0; setStage(); dirty.forEach(c => { if (c.isConnected) fit(c); }); dirty.clear(); updateJump(); }, 50); }
+
+  new MutationObserver(muts => {
+    let any = false;
+    for (const m of muts) {
+      const t = m.target.nodeType === 1 ? m.target : m.target.parentElement; if (!t) continue;
+      if (t.closest('[data-q-timer],.qc-bar')) continue;
+      m.addedNodes.forEach(n => { if (n.nodeType === 1) { const c = n.matches('.msg.question') ? n : n.closest('.msg.question'); if (c) { dirty.add(c); any = true; } } });
+      const c = t.closest('.msg.question'); if (c) { dirty.add(c); any = true; }
+      if (t === box) any = true;
+    }
+    if (any) schedule();
+  }).observe(box, { childList: true, subtree: true, characterData: true });
+
+  if (window.ResizeObserver) new ResizeObserver(() => { if (setStage()) { cards().forEach(c => dirty.add(c)); schedule(); } }).observe(box);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { cards().forEach(c => dirty.add(c)); schedule(); });
+
+  /* زر "السؤال الحالي" لو الكارت خرج من الشاشة */
+  const jump = document.createElement('button'); jump.type = 'button'; jump.className = 'q-jump';
+  main.appendChild(jump);
+  const lastCard = () => { const a = cards(); return a[a.length - 1] || null; };
+  function updateJump() {
+    const c = lastCard(); if (!c) { jump.classList.remove('show'); return; }
+    const b = box.getBoundingClientRect(), r = c.getBoundingClientRect();
+    const vis = Math.max(0, Math.min(r.bottom, b.bottom) - Math.max(r.top, b.top));
+    const show = r.height > 0 && b.height > 0 && vis < r.height * 0.6;
+    jump.classList.toggle('show', show);
+    if (show) {
+      jump.innerHTML = '<i class="fas fa-arrow-down"></i> ' + (c.classList.contains('st-open') ? 'السؤال الحالي' : 'آخر سؤال');
+      jump.style.bottom = (main.getBoundingClientRect().bottom - b.bottom + 12) + 'px';
+    }
+  }
+  jump.addEventListener('click', () => {
+    const c = lastCard(); if (!c) return;
+    const b = box.getBoundingClientRect(), r = c.getBoundingClientRect();
+    box.scrollTo({ top: box.scrollTop + (r.top - b.top) - 8, behavior: 'smooth' });
+  });
+  let uj = 0;
+  box.addEventListener('scroll', () => { if (!uj) uj = requestAnimationFrame(() => { uj = 0; updateJump(); }); }, { passive: true });
+
+  /* الشاشة تفضل صاحية طول ما المسابقة مفتوحة */
+  let wl = null;
+  async function wake() { try { if (!('wakeLock' in navigator) || wl || document.visibilityState !== 'visible') return; wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } catch (e) {} }
+  function unwake() { try { wl && wl.release(); } catch (e) {} wl = null; }
+  if (modal) new MutationObserver(() => { modal.classList.contains('show') ? wake() : unwake(); }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && modal && modal.classList.contains('show')) wake(); });
+
+  setStage();
+})();
+</script>
 </body>
 </html>
