@@ -2066,6 +2066,26 @@
   [data-action].joining, .btn-join.joining, #chatJoinBtn.joining { opacity: .85; pointer-events: none; cursor: progress; }
   .joining i.fa-spin { margin-inline-end: 6px; }
 </style>
+
+<style id="stability-patch">
+/* ===== ثبات العرض: لا رعشة ولا قفز ===== */
+.chat-messages{scroll-behavior:auto!important;overscroll-behavior:contain;overflow-anchor:auto}
+.chat-messages>*{flex-shrink:0!important}
+.msg{animation:none!important}
+.msg.enter{animation:msgFade .25s ease-out both!important}
+@keyframes msgFade{from{opacity:0}to{opacity:1}}
+.msg-content{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.msg.question,.msg.question .msg-content{max-height:none!important;overflow:visible!important}
+.question-title-chat{white-space:pre-wrap;max-height:none!important;overflow:visible!important;display:block!important;-webkit-line-clamp:unset!important;line-clamp:unset!important}
+.question-option-chat{min-width:0}
+.question-option-chat>div:not(.option-letter){min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.timer-badge,.ctl-hud b,.lb-big,#hudT{font-variant-numeric:tabular-nums}
+.timer-badge{min-width:58px;justify-content:center}
+#annWrap,#statusWrap,#lobbyWrap,#winnerBannerWrap{contain:layout style}
+@media (prefers-reduced-motion:reduce){.msg.enter{animation:none!important}}
+.ctl-hud{display:flex!important;min-height:40px;align-items:center}
+.ctl-hud .h-t{font-size:18px;margin-inline-start:auto}
+</style>
 </head>
 <body>
 
@@ -2320,7 +2340,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  doc, onSnapshot, setDoc, getDoc, serverTimestamp, updateDoc, arrayUnion, runTransaction, FieldPath
+  doc, onSnapshot, setDoc, getDoc, serverTimestamp, updateDoc, arrayUnion, runTransaction, FieldPath, getDocFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2338,6 +2358,166 @@ let db;
 try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), experimentalAutoDetectLongPolling: true, ignoreUndefinedProperties: true }); }
 catch (e) { db = getFirestore(app); }
 const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// ⏱️ الساعة الموحّدة (توقيت الخادم) + محرك العرض الثابت بدون رعشة
+// ============================================================
+// أي جهاز كان بيحسب الوقت من ساعته هو، فلو الساعة غلط كان الوقت يطلع عشوائي.
+// دلوقتي كل الأجهزة بتستخدم NOW() وهي ساعة الخادم.
+const _RN = Date.now.bind(Date);
+let CLOCK_OFFSET = 0, CLOCK_TRIED = false, CLOCK_OK = false;
+const NOW = () => _RN() + CLOCK_OFFSET;
+const _withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+async function syncClock() {
+  const samples = [];
+  try {
+    let key = null;
+    try { key = localStorage.getItem('meezan_clk'); } catch (e) {}
+    if (!key) { key = 'd' + _RN().toString(36) + Math.random().toString(36).slice(2, 7); try { localStorage.setItem('meezan_clk', key); } catch (e) {} }
+    const ref = doc(db, 'contest_rooms', '__clk_' + key);
+    for (let i = 0; i < 3; i++) {
+      const t0 = _RN();
+      await _withTimeout(setDoc(ref, { t: serverTimestamp(), isClock: true }), 5000);
+      const s = await _withTimeout(getDocFromServer(ref), 5000);
+      const t1 = _RN();
+      const v = s.exists() ? s.data().t : null;
+      const ms = v && typeof v.toMillis === 'function' ? v.toMillis() : 0;
+      if (ms) samples.push({ off: ms - (t0 + t1) / 2, rtt: t1 - t0 });
+    }
+  } catch (e) {}
+  if (!samples.length) {
+    try {
+      const t0 = _RN();
+      const r = await _withTimeout(fetch(location.href.split('#')[0], { method: 'HEAD', cache: 'no-store' }), 4000);
+      const t1 = _RN();
+      const h = r.headers.get('date'), ms = h ? new Date(h).getTime() : 0;
+      if (ms) samples.push({ off: ms + 500 - (t0 + t1) / 2, rtt: (t1 - t0) + 1500 });
+    } catch (e) {}
+  }
+  if (samples.length) { samples.sort((a, b) => a.rtt - b.rtt); CLOCK_OFFSET = Math.round(samples[0].off); CLOCK_OK = true; }
+  CLOCK_TRIED = true;
+}
+const clockReady = syncClock().catch(() => { CLOCK_TRIED = true; });
+setTimeout(() => { CLOCK_TRIED = true; }, 6000);
+setInterval(() => { syncClock().catch(() => {}); }, 600000);
+const waitClock = () => Promise.race([clockReady, new Promise(r => setTimeout(r, 3500))]);
+
+// ----- وقت نهاية السؤال (مع حماية من القيم الغلط القديمة) -----
+const _endCache = new Map();
+function endMsOf(m) {
+  if (!m || !m.timerEndAt) return 0;
+  const raw = new Date(m.timerEndAt).getTime();
+  if (isNaN(raw)) return 0;
+  const cap = ((+m.timer || 0) + (+m.extra || 0)) * 1000, now = NOW();
+  if (cap <= 0 || raw - now <= cap + 3000) return raw;
+  // نهاية بعيدة بشكل غير منطقي (بيانات قديمة بساعة غلط): نبدأ العد من لحظة ظهور السؤال عندنا
+  const k = m.id + '|' + m.timerEndAt;
+  let e = _endCache.get(k);
+  if (!e) { e = now + cap; _endCache.set(k, e); }
+  return e;
+}
+const remainMs = m => endMsOf(m) - NOW();
+function fmtRem(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : s + 'ث';
+}
+const setTxt = (el, t) => { if (el && el.textContent !== t) el.textContent = t; };
+
+// ----- منع إعادة الرسم لو المحتوى لم يتغير (يمنع الوميض في كل مكان) -----
+(function () {
+  const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  if (!desc || !desc.set) return;
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    configurable: true, enumerable: desc.enumerable,
+    get() { return desc.get.call(this); },
+    set(v) {
+      const s = String(v);
+      if (this.__ihSet === s && this.__ihSer === desc.get.call(this)) return;
+      desc.set.call(this, s);
+      this.__ihSet = s; this.__ihSer = desc.get.call(this);
+    }
+  });
+})();
+function swapKids(container, frag) {
+  const tmp = document.createElement('div');
+  tmp.appendChild(frag.cloneNode(true));
+  const h = tmp.innerHTML;
+  if (container.__kh === h && container.childNodes.length) return;
+  container.__kh = h;
+  container.innerHTML = '';
+  container.appendChild(frag);
+}
+function setHTML(el, html) { if (el && el.__sh !== html) { el.__sh = html; el.innerHTML = html; } }
+const _lsT = {};
+function lsSetDeb(k, v) { clearTimeout(_lsT[k]); _lsT[k] = setTimeout(() => { try { lsSet(k, v); } catch (e) {} }, 1500); }
+function resetChatView() { const c = document.getElementById('chatMessages'); if (c) c.__rc = null; }
+
+// ----- محرك رسم الرسائل: يحدّث اللي اتغيّر بس، ولا يلمس الباقي أبداً -----
+function revealNew(c, el, st) {
+  const cr = c.getBoundingClientRect(), er = el.getBoundingClientRect();
+  if (er.height + 24 <= c.clientHeight) { c.scrollTop = c.scrollHeight; st.stick = true; }
+  else { c.scrollTop = Math.max(0, er.top - cr.top + c.scrollTop - 12); st.stick = false; }   // سؤال طويل: نعرضه من أوله
+}
+function reconcileList(container, items, roomKey, emptyHTML) {
+  let st = container.__rc;
+  if (!st || st.roomKey !== roomKey) {
+    container.textContent = '';
+    st = container.__rc = { roomKey, nodes: new Map(), first: true, stick: true, empty: null };
+  }
+  if (!container.__rcBound) {
+    container.__rcBound = true;
+    container.addEventListener('scroll', () => {
+      const s = container.__rc; if (s) s.stick = (container.scrollHeight - container.scrollTop - container.clientHeight) < 140;
+    }, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(() => { const s = container.__rc; if (s && s.stick) container.scrollTop = container.scrollHeight; }).observe(container);
+  }
+  if (!items.length) {
+    if (!st.empty) {
+      container.textContent = ''; st.nodes.clear();
+      const t = document.createElement('div'); t.innerHTML = emptyHTML;
+      st.empty = t.firstElementChild; container.appendChild(st.empty);
+    }
+    st.first = false; return;
+  }
+  if (st.empty) { st.empty.remove(); st.empty = null; }
+  const managed = new Set(); st.nodes.forEach(r => managed.add(r.el));
+  Array.from(container.children).forEach(ch => { if (!managed.has(ch)) ch.remove(); });
+
+  const used = new Set(), seenKeys = new Map();
+  let newQ = null, force = false, prev = null;
+  for (const it of items) {
+    let k = it.key; const n = seenKeys.get(k) || 0; seenKeys.set(k, n + 1); if (n) k = k + '#' + n;
+    used.add(k);
+    let rec = st.nodes.get(k);
+    if (!rec) {
+      const el = it.build();
+      if (!st.first) el.classList.add('enter');
+      rec = { el, sig: it.sig }; st.nodes.set(k, rec);
+      if (!st.first) { if (it.isQuestion) newQ = el; if (it.force) force = true; }
+    } else if (rec.sig !== it.sig) {
+      const old = rec.el, ae = document.activeElement; let fs = null;
+      if (ae && old.contains(ae) && /^(TEXTAREA|INPUT)$/.test(ae.tagName)) {
+        const all = Array.from(old.querySelectorAll('textarea,input'));
+        fs = { i: all.indexOf(ae), v: ae.value, a: ae.selectionStart, b: ae.selectionEnd };
+      }
+      const el = it.build(); old.replaceWith(el); rec.el = el; rec.sig = it.sig;
+      if (fs) {
+        const t = Array.from(el.querySelectorAll('textarea,input'))[fs.i];
+        if (t && !t.disabled) { t.value = fs.v; try { t.focus({ preventScroll: true }); t.setSelectionRange(fs.a, fs.b); } catch (e) {} }
+      }
+    }
+    const want = prev ? prev.nextSibling : container.firstChild;
+    if (rec.el !== want) container.insertBefore(rec.el, want);
+    prev = rec.el;
+  }
+  for (const [k, rec] of Array.from(st.nodes)) { if (!used.has(k)) { rec.el.remove(); st.nodes.delete(k); } }
+
+  if (newQ) revealNew(container, newQ, st);
+  else if (force) { container.scrollTop = container.scrollHeight; st.stick = true; }
+  else if (st.stick || st.first) container.scrollTop = container.scrollHeight;
+  st.first = false;
+}
+
 
 // ============================================================
 // 🔒 الحماية
@@ -2540,7 +2720,7 @@ const JOIN_BTN_MS = 2000;                      // مدة ظهور "جاري ال
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const allowHint = {}, roomSawKicked = {};      // إشارة "سُمح لك" القادمة من الغرفة (أسرع من مستند المسابقات)
 let allowShownFor = null;
-const hintActive = (cid) => !!allowHint[cid] && Date.now() - allowHint[cid] < 20000;
+const hintActive = (cid) => !!allowHint[cid] && NOW() - allowHint[cid] < 20000;
 const isKickedIn = (c) => !!c && (c.kickedUsers || []).includes(userId) && !hintActive(c.id);
 const uOps = new Map();                        // تعديلات محلية مؤقتة فوق بيانات السيرفر
 let baseRaw = [], baseLoaded = false;
@@ -2561,7 +2741,7 @@ function refreshLocal() {
   applyFilters(); updateStats();
 }
 function patchLocalContest(cid, fn, ttl = 3500) {
-  const key = 'u' + Date.now() + Math.random().toString(36).slice(2, 6);
+  const key = 'u' + NOW() + Math.random().toString(36).slice(2, 6);
   uOps.set(key, { cid, fn });
   refreshLocal();
   setTimeout(() => { uOps.delete(key); refreshLocal(); }, ttl);
@@ -2803,7 +2983,7 @@ function updateStats() {
 function getContestStatus(contest) {
   if (contest.roomStatus === 'finished') return 'finished';
 
-  const now = new Date();
+  const now = new Date(NOW());
   const startAt = contest.startAt ? new Date(contest.startAt) : null;
   const endAt = contest.endAt ? new Date(contest.endAt) : null;
 
@@ -2909,7 +3089,7 @@ function createContestCard(contest) {
   }
 
   let timeBoxHTML = '';
-  const now = new Date();
+  const now = new Date(NOW());
   const startAt = contest.startAt ? new Date(contest.startAt) : null;
   const endAt = contest.endAt ? new Date(contest.endAt) : null;
 
@@ -3136,7 +3316,7 @@ function getMyContestStatus(contest) {
 // ⏰ Live Countdown
 // ============================================================
 setInterval(() => {
-  const now = new Date();
+  const now = new Date(NOW());
   document.querySelectorAll('[data-countdown]').forEach(el => {
     const contestId = parseInt(el.dataset.countdown);
     const contest = allContests.find(c => c.id === contestId);
@@ -3171,7 +3351,7 @@ setInterval(() => {
 async function requestJoin(contest, btn) {
   if (!userId || !userData) return showToast('بياناتك غير محملة', 'error');
   if (btn && btn.dataset.joining) return;                     // منع الضغط المزدوج
-  const me = { id: userId, name: userData.fullName || userName, avatarUrl: userData.avatarUrl || '', joinedAt: new Date().toISOString(), finished: false };
+  const me = { id: userId, name: userData.fullName || userName, avatarUrl: userData.avatarUrl || '', joinedAt: new Date(NOW()).toISOString(), finished: false };
   const gate = await accessGate(contest);
   if (!gate.ok) return;
 
@@ -3202,11 +3382,11 @@ async function requestJoin(contest, btn) {
         if (auto) {
           ids.push(userId); list.push(me);
           items[i] = { ...c, contestantIds: ids, contestants: list, contestantsCount: ids.length, kickedUsers: kicked, viewers, updatedAt: me.joinedAt };
-          m = { id: 'sys_' + Date.now(), sender: 'system', type: 'system', text: `⚡ انضم ${me.name} تلقائياً`, createdAt: me.joinedAt };
+          m = { id: 'sys_' + NOW(), sender: 'system', type: 'system', text: `⚡ انضم ${me.name} تلقائياً`, createdAt: me.joinedAt };
         } else {
           pend.push(userId);
           items[i] = { ...c, pendingJoins: pend, kickedUsers: kicked, viewers, updatedAt: me.joinedAt };
-          m = { id: 'join_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), sender: 'user', senderId: userId, senderName: me.name, senderAvatar: me.avatarUrl, type: 'join_request', processed: false, accepted: false, createdAt: me.joinedAt };
+          m = { id: 'join_' + NOW() + '_' + Math.random().toString(36).slice(2, 6), sender: 'user', senderId: userId, senderName: me.name, senderAvatar: me.avatarUrl, type: 'join_request', processed: false, accepted: false, createdAt: me.joinedAt };
         }
         tx.set(cref, { items, updatedAt: serverTimestamp() });
         tx.set(rref, { contestId: contest.id, messages: arrayUnion(m), ...(auto ? { contestants: arrayUnion(me) } : {}), updatedAt: serverTimestamp() }, { merge: true });
@@ -3248,7 +3428,7 @@ async function enterContest(contest) {
   currentChatContest = contest;
   lastSeenWinnerId = contest.winner?.id || null;
   lastSeenKicked = isKickedIn(contest);
-  lastMessagesHash = '';
+  lastMessagesHash = ''; resetChatView();
 
   $('chatTitle').textContent = contest.name;
   $('chatModal').classList.add('show');
@@ -3395,17 +3575,17 @@ function startChatListener() {
 
 function paintStatus() {
   const m = { paused: ['fa-pause', '⏸️ المسابقة متوقفة مؤقتاً — المؤقتات مجمّدة', 'warn'], finished: ['fa-flag-checkered', '🏁 انتهت المسابقة — هذه النتائج النهائية', 'end'] }[roomStatus];
-  $('statusWrap').innerHTML = m ? `<div class="st-banner ${m[2]}"><i class="fas ${m[0]}"></i> ${m[1]}</div>` : '';
+  setHTML($('statusWrap'), m ? `<div class="st-banner ${m[2]}"><i class="fas ${m[0]}"></i> ${m[1]}</div>` : '');
 }
 function paintAnn(a) {
-  const fresh = a && a.text && (!a.at || Date.now() - new Date(a.at).getTime() < 180000);
-  $('annWrap').innerHTML = fresh ? `<div class="ann-banner"><i class="fas fa-bullhorn"></i><span>${escapeHtml(a.text)}</span></div>` : '';
+  const fresh = a && a.text && (!a.at || NOW() - new Date(a.at).getTime() < 180000);
+  setHTML($('annWrap'), fresh ? `<div class="ann-banner"><i class="fas fa-bullhorn"></i><span>${escapeHtml(a.text)}</span></div>` : '');
 }
 
 function applyRoom(d, silent) {
   const prev = currentRoomData, live = !silent && !!prev;
   currentRoomData = d;
-  lsSet(CK + '_r' + currentChatContestId, { ...d, messages: (d.messages || []).slice(-200), updatedAt: null, createdAt: null });
+  lsSetDeb(CK + '_r' + currentChatContestId, { ...d, messages: (d.messages || []).slice(-200), updatedAt: null, createdAt: null });
   const ms = d.messages || [], st = d.roomStatus || 'waiting';
 
   if (live && st !== roomStatus) {
@@ -3426,7 +3606,7 @@ function applyRoom(d, silent) {
     // ⚡ الأدمن ضغط "سماح" → الغرفة اتحدثت أولاً، فنفتح التسجيل فوراً بدون انتظار مستند المسابقات
     roomSawKicked[currentChatContestId] = false;
     lastSeenKicked = false;
-    allowHint[currentChatContestId] = Date.now();
+    allowHint[currentChatContestId] = NOW();
     allowShownFor = currentChatContestId;
     showInChatNotify('🔓 سُمح لك بالتسجيل كمتسابق', 'success'); SFX.chime();
     determineMyRoleSync(); updateRoleBadge(); updateChatInputState(); applyFilters();
@@ -3459,7 +3639,7 @@ function applyRoom(d, silent) {
 
   const sig = Object.keys(d.answers || {}).filter(k => d.answers[k]?.[userId]).join(',');
   const h = ms.map(m => (m.id || m.createdAt || '') + (m.processed ? 1 : 0) + (m.accepted ? 1 : 0) + (m.timerEndAt || '') + (m.timerPaused ? 1 : 0) + (m.closed ? 1 : 0) + (m.revealed ? 1 : 0) + (m.deleted ? 1 : 0)).join('|') + st + myRole + sig + (d.allowViewersChat ? 1 : 0);
-  if (h !== lastMessagesHash) { lastMessagesHash = h; renderMessages(ms); }
+  lastMessagesHash = h; renderMessages(ms);
 
   renderContestants(getContestants());
   renderWinner(w);
@@ -3471,24 +3651,35 @@ function applyRoom(d, silent) {
   if (myRole === 'contestant') presenceBeat(false);
 }
 
-// ⏱️ مراقب المؤقتات: شريط الوقت + تكّات آخر 10 ثواني + جرس الانتهاء
+// ⏱️ مراقب المؤقتات: شريط ثابت دائماً (لا يظهر/يختفي فلا يهز الشاشة)
+let _expSig = '';
+function tickExpiry(d) {
+  const sg = (d.messages || []).filter(m => m.type === 'question' && !m.deleted)
+    .map(m => (m.timerEndAt && !m.timerPaused && !m.closed && remainMs(m) <= 0) ? 1 : 0).join('');
+  if (sg !== _expSig) { _expSig = sg; try { renderMessages(d.messages || []); paintFirst(); } catch (e) {} }
+}
 setInterval(() => {
   const hud = $('ctlHud'), d = currentRoomData;
   if (!hud) return;
-  if (!d || !currentChatContestId) { hud.style.display = 'none'; return; }
-  const n = Date.now(); let act = null;
+  if (!hud.__init) { hud.__init = 1; hud.innerHTML = '<span class="h-q"></span><span class="h-a"></span><b class="h-t"></b><i class="h-bar"></i>'; }
+  const hq = hud.children[0], ha = hud.children[1], ht = hud.children[2], hb = hud.children[3];
+  const idle = (txt) => { hud.classList.remove('hot'); setTxt(hq, txt); setTxt(ha, ''); setTxt(ht, ''); if (hb.style.width !== '0%') hb.style.width = '0%'; };
+  if (!d || !currentChatContestId) { idle(''); return; }
+  const n = NOW(); let act = null;
   (d.messages || []).forEach(m => {
     if (m.type !== 'question' || !m.timerEndAt || m.deleted || m.timerPaused || m.closed) return;
-    const e = new Date(m.timerEndAt).getTime(), k = m.id + e;
+    const e = endMsOf(m), k = m.id + e;
     if (e > n) { if (!act || e < act.e) act = { m, e, k }; }
     else if (seenQ[k] === 1) { seenQ[k] = 2; if (SND.warn && canAns(d, m)) SFX.buzzer(); }
   });
-  if (!act) { hud.style.display = 'none'; return; }
+  tickExpiry(d);
+  if (!act) { idle(roomStatus === 'paused' ? '⏸️ المسابقة متوقفة مؤقتاً' : roomStatus === 'finished' ? '🏁 انتهت المسابقة' : '⏳ بانتظار السؤال التالي'); return; }
   seenQ[act.k] = 1;
-  const rem = Math.ceil((act.e - n) / 1000), tot = act.m.timer || rem;
+  const rem = Math.ceil((act.e - n) / 1000), cap = (+act.m.timer || 0) + (+act.m.extra || 0), tot = Math.max(1, cap || rem);
   const got = Object.keys(d.answers?.[act.m.questionId] || {}).length;
-  hud.style.display = 'flex';
-  hud.innerHTML = `<span>سؤال ${act.m.questionIndex || ''}</span><span>أجاب ${got}/${getContestants().length}</span><b>${rem}ث</b><i style="width:${Math.max(0, Math.min(100, (act.e - n) / (tot * 10)))}%"></i>`;
+  setTxt(hq, 'سؤال ' + (act.m.questionIndex || '')); setTxt(ha, `أجاب ${got}/${getContestants().length}`); setTxt(ht, fmtRem(act.e - n));
+  const w = Math.max(0, Math.min(100, (act.e - n) / (tot * 10))).toFixed(1) + '%';
+  if (hb.style.width !== w) hb.style.width = w;
   hud.classList.toggle('hot', rem <= 10);
   const key = act.k + ':' + rem;
   if (SND.warn && rem <= 10 && key !== lastTick && canAns(d, act.m)) { lastTick = key; rem <= 5 ? SFX.urgent() : SFX.tick(rem); }
@@ -3514,7 +3705,7 @@ function startCountdownTimer() {
   countdownInterval = setInterval(() => {
     if (!currentChatContest) return;
 
-    const now = new Date();
+    const now = new Date(NOW());
     const startAt = currentChatContest.startAt ? new Date(currentChatContest.startAt) : null;
     const endAt = currentChatContest.endAt ? new Date(currentChatContest.endAt) : null;
 
@@ -3533,22 +3724,21 @@ function startCountdownTimer() {
 
 function startTimerTick() {
   if (timerTickInterval) clearInterval(timerTickInterval);
-
   timerTickInterval = setInterval(() => {
+    const now = NOW();
     document.querySelectorAll('[data-q-timer]').forEach(el => {
-      const end = new Date(el.dataset.end).getTime();
-      const now = Date.now();
-      const diff = end - now;
-
+      const diff = (+el.dataset.end) - now;
       if (diff > 0) {
-        el.innerHTML = `<i class="fas fa-clock"></i> ${Math.floor(diff / 1000)}ث`;
-        el.classList.remove('expired');
-      } else {
+        const t = fmtRem(diff);
+        if (el.dataset.t !== t) { el.dataset.t = t; el.innerHTML = `<i class="fas fa-clock"></i> ${t}`; }
+        if (el.classList.contains('expired')) el.classList.remove('expired');
+      } else if (el.dataset.t !== 'x') {
+        el.dataset.t = 'x';
         el.innerHTML = '<i class="fas fa-times-circle"></i> انتهى';
         el.classList.add('expired');
       }
     });
-  }, 1000);
+  }, 250);
 }
 
 // ============================================================
@@ -3556,31 +3746,21 @@ function startTimerTick() {
 // ============================================================
 function renderMessages(messages) {
   const container = $('chatMessages');
-  const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-
-  container.innerHTML = '';
-
-  if (messages.length === 0) {
-    container.innerHTML = `
-      <div class="msg system">
-        <div class="msg-content">
-          <div class="msg-text">🎯 مرحباً بك في غرفة المسابقة</div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  messages.forEach(msg => {
+  if (!container) return;
+  const d = currentRoomData || {};
+  const ctx = roomStatus + '|' + myRole + '|' + (d.allowViewersChat ? 1 : 0);
+  const items = [];
+  (messages || []).forEach((msg, i) => {
     if (msg.deleted) return;
-    container.appendChild(createMessageElement(msg));
+    let sig = JSON.stringify(msg) + '|' + myRole;
+    if (msg.type === 'question') {
+      sig += '|' + ctx + '|' + JSON.stringify(d.answers?.[msg.questionId]?.[userId] || null)
+        + '|' + ((msg.timerEndAt && !msg.timerPaused && !msg.closed && remainMs(msg) <= 0) ? 1 : 0);
+    }
+    items.push({ key: msg.id || ('i' + i), sig, isQuestion: msg.type === 'question', force: msg.type !== 'question' && msg.senderId === userId, build: () => createMessageElement(msg) });
   });
-
-  if (wasAtBottom) {
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 100);
-  }
+  reconcileList(container, items, String(currentChatContestId),
+    '<div class="msg system"><div class="msg-content"><div class="msg-text">🎯 مرحباً بك في غرفة المسابقة</div></div></div>');
 }
 
 function createMessageElement(msg) {
@@ -3719,9 +3899,9 @@ function createQuestionMessageElement(msg) {
   if (msg.timerPaused) {
     timerHTML = `<span class="timer-badge"><i class="fas fa-pause"></i> ${Math.ceil((msg.timerRemainingMs || 0) / 1000)}ث</span>`;
   } else if (msg.timer && msg.timerEndAt) {
-    const diff = new Date(msg.timerEndAt).getTime() - Date.now();
+    const diff = remainMs(msg);
     if (diff > 0 && !msg.closed) {
-      timerHTML = `<span class="timer-badge" data-q-timer="${msg.questionId}" data-end="${msg.timerEndAt}"><i class="fas fa-clock"></i> ${Math.floor(diff / 1000)}ث</span>`;
+      timerHTML = `<span class="timer-badge" data-q-timer="${msg.questionId}" data-end="${endMsOf(msg)}" data-t="${fmtRem(diff)}"><i class="fas fa-clock"></i> ${fmtRem(diff)}</span>`;
     } else {
       timerHTML = `<span class="timer-badge expired"><i class="fas fa-times-circle"></i> انتهى</span>`;
       timerExpired = true;
@@ -3851,7 +4031,7 @@ async function submitAnswer(questionId, payload) {
   const ref = doc(db, 'contest_rooms', String(rid));
 
   // ⚡ فوري: اختيارك يظهر في نفس اللحظة، والتسجيل الرسمي يتم في الخلفية
-  pendingAns.set(questionId, { ...payload, answeredAt: new Date().toISOString(), pending: true });
+  pendingAns.set(questionId, { ...payload, answeredAt: new Date(NOW()).toISOString(), pending: true });
   if (currentRoomData) applyRoom(withPending(currentRoomData), true);
 
   let r = 'exc';
@@ -3863,9 +4043,9 @@ async function submitAnswer(questionId, payload) {
       if (d.answers?.[questionId]?.[userId]) return 'done';
       const q = (d.messages || []).find(m => m.type === 'question' && m.questionId === questionId);
       if (!q || q.deleted) return 'err';
-      if (q.closed || q.timerPaused || (q.timerEndAt && new Date(q.timerEndAt) <= new Date())) return 'time';
+      if (q.closed || q.timerPaused || (q.timerEndAt && endMsOf(q) <= NOW())) return 'time';
       if (q.targetStudent && q.targetStudent.id !== userId) return 'target';
-      tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date().toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
+      tx.update(ref, new FieldPath('answers', questionId, userId), { ...payload, answeredAt: new Date(NOW()).toISOString(), serverAt: serverTimestamp() }, 'updatedAt', serverTimestamp());
       return 'ok';
     });
   } catch (e) { console.error(e); }
@@ -4019,8 +4199,7 @@ function renderContestants(contestants) {
       <div style="font-size:14px;font-weight:900;color:var(--accent);min-width:42px;text-align:center;padding:4px 8px;background:var(--bg-card);border-radius:8px;border:1.5px solid var(--accent);">${p.correct}</div>`;
     frag.appendChild(item);
   });
-  container.innerHTML = '';
-  container.appendChild(frag);
+  swapKids(container, frag);
   renderMyScore();
 }
 
@@ -4083,8 +4262,7 @@ function renderLeaderboard() {
       <div class="leaderboard-score">${s.correct}</div>`;
     frag.appendChild(item);
   });
-  container.innerHTML = '';
-  container.appendChild(frag);
+  swapKids(container, frag);
 }
 
 // ============================================================
@@ -4175,7 +4353,7 @@ async function sendChatMessage() {
   try {
     const roomRef = doc(db, 'contest_rooms', String(currentChatContestId));
     const newMsg = {
-      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      id: 'msg_' + NOW() + '_' + Math.random().toString(36).slice(2, 7),
       sender: 'user',
       senderId: userId,
       senderName: userData?.fullName || userName,
@@ -4183,7 +4361,7 @@ async function sendChatMessage() {
       text: text,
       type: 'chat',
       role: myRole,
-      createdAt: new Date().toISOString()
+      createdAt: new Date(NOW()).toISOString()
     };
 
     // ⭐ arrayUnion — عملية ذرية، لا race conditions
@@ -4220,7 +4398,7 @@ function closeChatRoom() {
   currentRoomData = null;
   lastSeenWinnerId = null;
   lastSeenKicked = false;
-  lastMessagesHash = '';
+  lastMessagesHash = ''; resetChatView();
 
   roomStatus = 'waiting'; prevMsgIds = null; lastAnnId = null; seenRev.clear();
   const hud = $('ctlHud'); if (hud) hud.style.display = 'none';
@@ -4316,7 +4494,7 @@ const formatClockShort = (d) => {
 const LOBBY_OPEN_MS = 10 * 60 * 1000; // غرفة الانتظار تفتح قبل البدء بـ 10 دقائق للمسجلين
 function lobbyOpen(c) {
   if (getMyContestStatus(c) !== 'contestant' || !c.startAt) return false;
-  const left = new Date(c.startAt).getTime() - Date.now();
+  const left = new Date(c.startAt).getTime() - NOW();
   return left > 0 && left <= LOBBY_OPEN_MS;
 }
 
@@ -4424,12 +4602,12 @@ async function withdrawFromContest(contest) {
         const ids = (c.contestantIds || []).filter(x => x !== userId);
         const list = (c.contestants || []).filter(x => x.id !== userId);
         const pend = (c.pendingJoins || []).filter(x => x !== userId);
-        items[i] = { ...c, contestantIds: ids, contestants: list, pendingJoins: pend, contestantsCount: ids.length, updatedAt: new Date().toISOString() };
+        items[i] = { ...c, contestantIds: ids, contestants: list, pendingJoins: pend, contestantsCount: ids.length, updatedAt: new Date(NOW()).toISOString() };
         tx.set(cref, { items, updatedAt: serverTimestamp() });
         if (rs.exists()) {
           const d = rs.data();
           const msgs = (d.messages || []).filter(m => !(m.type === 'join_request' && m.senderId === userId && !m.processed));
-          if (st === 'contestant') msgs.push({ id: 'sys_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5), sender: 'system', type: 'system', text: `🚪 انسحب ${name} من المسابقة`, createdAt: new Date().toISOString() });
+          if (st === 'contestant') msgs.push({ id: 'sys_' + NOW() + '_' + Math.random().toString(36).slice(2, 5), sender: 'system', type: 'system', text: `🚪 انسحب ${name} من المسابقة`, createdAt: new Date(NOW()).toISOString() });
           tx.update(rref, { contestants: (d.contestants || []).filter(x => x.id !== userId), messages: msgs, updatedAt: serverTimestamp() });
         }
         return 'ok';
@@ -4452,7 +4630,7 @@ async function presenceBeat(force, value) {
   const id = currentChatContestId;
   if (!id || !userId) return;
   if (value === undefined && myRole !== 'contestant') return;
-  const n = Date.now();
+  const n = NOW();
   if (!force && n - lastBeat < 4000) return;
   lastBeat = n;
   try { await updateDoc(doc(db, 'contest_rooms', String(id)), new FieldPath('presence', userId), value === undefined ? n : value); } catch (e) {}
@@ -4460,8 +4638,8 @@ async function presenceBeat(force, value) {
 setInterval(() => { if (currentChatContestId && myRole === 'contestant' && document.visibilityState === 'visible') presenceBeat(true); }, 20000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') presenceBeat(false); });
 addEventListener('pagehide', () => { if (currentChatContestId && myRole === 'contestant') presenceBeat(true, 0); });
-const lastSeenOf = c => (c.id === userId && currentChatContestId && myRole === 'contestant') ? Date.now() : (tsMs(currentRoomData?.presence?.[c.id]) || tsMs(c.lastSeen) || 0);
-const isReady = c => Date.now() - lastSeenOf(c) < PRESENCE_TTL;
+const lastSeenOf = c => (c.id === userId && currentChatContestId && myRole === 'contestant') ? NOW() : (tsMs(currentRoomData?.presence?.[c.id]) || tsMs(c.lastSeen) || 0);
+const isReady = c => NOW() - lastSeenOf(c) < PRESENCE_TTL;
 setInterval(() => { if (currentChatContestId && currentRoomData) renderContestants(getContestants()); }, 5000);
 
 // ============================================================
@@ -4471,7 +4649,7 @@ function paintLobby() {
   const w = $('lobbyWrap'); if (!w) return;
   const c = currentChatContest, d = currentRoomData;
   if (!c || !currentChatContestId) { w.innerHTML = ''; return; }
-  const now = Date.now(), st = d?.roomStatus || 'waiting', flow = d?.flow || {};
+  const now = NOW(), st = d?.roomStatus || 'waiting', flow = d?.flow || {};
   const cs = getContestants(), ready = cs.filter(isReady).length;
   const readyTxt = cs.length ? `<span class="lb-chip"><i class="fas fa-circle-check"></i> جاهز ${ready}/${cs.length}</span>` : '';
   const meChip = myRole === 'contestant' ? `<span class="lb-chip me"><i class="fas fa-user-check"></i> أنت جاهز</span>` : '';
@@ -4505,8 +4683,8 @@ setInterval(paintLobby, 500);
 // ⚙️ محرك احتياطي: يكمّل نزول الأسئلة لو الأدمن خرج (يتدخل فقط عند التأخر 3 ثواني)
 // ============================================================
 const ENGINE_GRACE = 3000;
-const iso = () => new Date().toISOString();
-const sysMsg = (text) => ({ id: 'sys_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), sender: 'system', type: 'system', text, createdAt: iso() });
+const iso = () => new Date(NOW()).toISOString();
+const sysMsg = (text) => ({ id: 'sys_' + NOW() + '_' + Math.random().toString(36).slice(2, 6), sender: 'system', type: 'system', text, createdAt: iso() });
 async function mutRoomById(id, fn) {
   const ref = doc(db, 'contest_rooms', String(id));
   await runTransaction(db, async (tx) => {
@@ -4525,24 +4703,26 @@ async function patchContest(id, patchOrFn) {
 }
 let engBusy = false;
 async function engAutoStart(c) {
+  await waitClock();
   let done = false;
   await mutRoomById(c.id, d => {
     const flow = d.flow || {};
     if ((d.roomStatus || 'waiting') !== 'waiting' || flow.noAutoStart) return null;
     done = true;
-    return { roomStatus: 'live', startedAt: iso(), flow: { ...flow, cursor: flow.cursor || 0, firstAt: Date.now() + FIRST_DELAY_MS, firstRemaining: null },
+    return { roomStatus: 'live', startedAt: iso(), flow: { ...flow, cursor: flow.cursor || 0, firstAt: NOW() + FIRST_DELAY_MS, firstRemaining: null },
       messages: [...(d.messages || []), sysMsg('🚀 بدأت المسابقة — جاري نزول أول سؤال خلال دقيقة، تأكد أن الجميع دخل')] };
   });
   if (done) await patchContest(c.id, { roomStatus: 'live' });
 }
 async function engSend(c, expected) {
   const q = (c.questionBank || [])[expected]; if (!q) return;
+  await waitClock();
   let done = false;
   await mutRoomById(c.id, d => {
     const flow = d.flow || {};
     if ((flow.cursor || 0) !== expected) return null;
     if (d.roomStatus === 'finished' || d.roomStatus === 'paused') return null;
-    const ms = [...(d.messages || [])], n = Date.now(), t = parseInt(q.timer) || 0;
+    const ms = [...(d.messages || [])], n = NOW(), t = parseInt(q.timer) || 0;
     const idx = ms.filter(m => m.type === 'question' && !m.deleted).length + 1;
     ms.push({ id: 'qmsg_' + n + '_' + Math.random().toString(36).slice(2, 5), sender: 'admin', senderId: c.createdBy || 'admin', senderName: 'المشرف',
       type: 'question', questionId: q.id, questionIndex: idx, bank: true, bankIndex: expected,
@@ -4560,7 +4740,7 @@ async function engSend(c, expected) {
 const engRooms = new Map();
 function engEligible(c) {
   return !!c && (c.questionBank || []).length > 0 && c.roomStatus !== 'finished'
-    && !(c.endAt && new Date(c.endAt).getTime() <= Date.now()) && getMyContestStatus(c) === 'contestant';
+    && !(c.endAt && new Date(c.endAt).getTime() <= NOW()) && getMyContestStatus(c) === 'contestant';
 }
 function syncEngRooms() {
   const want = new Set(allContests.filter(engEligible).map(c => c.id));
@@ -4575,8 +4755,8 @@ function syncEngRooms() {
 setInterval(syncEngRooms, 2000);
 
 setInterval(async () => {
-  if (engBusy) return;
-  const now = Date.now();
+  if (engBusy || !CLOCK_TRIED) return;
+  const now = NOW();
   let job = null;
   for (const c of allContests) {
     const bank = c.questionBank || []; if (!bank.length) continue;
@@ -4593,7 +4773,7 @@ setInterval(async () => {
       if (flow.firstAt && flow.firstAt + ENGINE_GRACE <= now) { job = () => engSend(c, 0); break; }
     } else if (cursor < bank.length) {
       const m = (d.messages || []).filter(x => x.type === 'question' && x.bank && x.bankIndex === cursor - 1 && !x.deleted).pop();
-      if (m && m.timerEndAt && !m.timerPaused && new Date(m.timerEndAt).getTime() + ENGINE_GRACE <= now) { job = () => engSend(c, cursor); break; }
+      if (m && m.timerEndAt && !m.timerPaused && endMsOf(m) + ENGINE_GRACE <= now) { job = () => engSend(c, cursor); break; }
     }
   }
   if (!job) return;
