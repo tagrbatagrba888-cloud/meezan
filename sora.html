@@ -1305,6 +1305,8 @@
       </div>
     </div>
 
+    <div id="editAddressMount"></div>
+
     <button class="btn-save" id="saveInfoBtn">
       <i class="fas fa-save"></i>
       حفظ التعديلات
@@ -1527,6 +1529,398 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 📍 مكوّن العنوان (محافظة ← مركز ← قرية ← عنوان تفصيلي)
+// ============================================================
+const ADDR_DEFAULTS = {
+  'القاهرة': 'مدينة نصر أول،مدينة نصر ثان،مصر الجديدة،النزهة،الزيتون،المطرية،عين شمس،السلام أول،السلام ثان،المرج،الشروق،بدر،القاهرة الجديدة أول،القاهرة الجديدة ثان،القاهرة الجديدة ثالث،المعادي،دار السلام،البساتين،حلوان،المعصرة،التبين،15 مايو،طرة،مصر القديمة،السيدة زينب،الخليفة،المقطم،الوايلي،الظاهر،الأزبكية،عابدين،الموسكي،باب الشعرية،بولاق،الساحل،شبرا،روض الفرج،الشرابية،حدائق القبة،قصر النيل،وسط البلد،منشأة ناصر،الدرب الأحمر،الجمالية،الأميرية،الزمالك،العاصمة الإدارية',
+  'الجيزة': 'الجيزة،الدقي،العجوزة،إمبابة،بولاق الدكرور،الهرم،فيصل،العمرانية،المنيب،الوراق،أوسيم،كرداسة،منشأة القناطر،الصف،أطفيح،العياط،الواحات البحرية،البدرشين،الحوامدية،أبو النمرس،6 أكتوبر،الشيخ زايد،الوراق،الطالبية،المهندسين',
+  'القليوبية': 'بنها،قليوب،شبرا الخيمة أول،شبرا الخيمة ثان،القناطر الخيرية،الخانكة،كفر شكر،طوخ،شبين القناطر،الخصوص،العبور،قها،الخانكة',
+  'الإسكندرية': 'المنتزه أول،المنتزه ثان،شرق،وسط،غرب،الجمرك،العجمي،العامرية أول،العامرية ثان،برج العرب،برج العرب الجديدة،الرمل،سيدي جابر،سموحة،المنشية،اللبان،محرم بك،كرموز،العطارين،الدخيلة',
+  'البحيرة': 'دمنهور،كفر الدوار،رشيد،إدكو،أبو حمص،الدلنجات،المحمودية،الرحمانية،إيتاي البارود،حوش عيسى،شبراخيت،كوم حمادة،بدر،وادي النطرون،أبو المطامير،النوبارية الجديدة',
+  'كفر الشيخ': 'كفر الشيخ،دسوق،فوه،مطوبس،بلطيم،الحامول،بيلا،الرياض،سيدي سالم،قلين،البرلس',
+  'الغربية': 'طنطا،المحلة الكبرى أول،المحلة الكبرى ثان،كفر الزيات،زفتى،السنطة،قطور،بسيون،سمنود',
+  'المنوفية': 'شبين الكوم،منوف،أشمون،الباجور،قويسنا،بركة السبع،تلا،الشهداء،السادات',
+  'الدقهلية': 'المنصورة،طلخا،ميت غمر،دكرنس،أجا،منية النصر،السنبلاوين،الكردي،بني عبيد،المنزلة،تمي الأمديد،الجمالية،شربين،المطرية،بلقاس،ميت سلسيل،جمصة،نبروه',
+  'دمياط': 'دمياط،فارسكور،الزرقا،كفر سعد،كفر البطيخ،ميت أبو غالب،رأس البر،دمياط الجديدة،عزبة البرج',
+  'الشرقية': 'الزقازيق،العاشر من رمضان،منيا القمح،بلبيس،مشتول السوق،القرين،أبو كبير،فاقوس،الصالحية الجديدة،الإبراهيمية،ديرب نجم،كفر صقر،أولاد صقر،الحسينية،ههيا،أبو حماد،القنايات،أولاد صقر',
+  'بورسعيد': 'الشرق،العرب،المناخ،الضواحي،الزهور،بورفؤاد،الجنوب',
+  'الإسماعيلية': 'الإسماعيلية،التل الكبير،فايد،القنطرة شرق،القنطرة غرب،أبو صوير،القصاصين',
+  'السويس': 'السويس،الأربعين،عتاقة،فيصل،الجناين',
+  'شمال سيناء': 'العريش،بئر العبد،الحسنة،رفح،الشيخ زويد،نخل',
+  'جنوب سيناء': 'الطور،شرم الشيخ،دهب،نويبع،طابا،سانت كاترين،أبو رديس،أبو زنيمة،رأس سدر',
+  'الفيوم': 'الفيوم،سنورس،إطسا،طامية،يوسف الصديق،إبشواي',
+  'بني سويف': 'بني سويف،الواسطى،ناصر،إهناسيا،ببا،الفشن،سمسطا،بني سويف الجديدة',
+  'المنيا': 'المنيا،العدوة،مغاغة،بني مزار،مطاي،سمالوط،ملوي،أبو قرقاص،دير مواس',
+  'أسيوط': 'أسيوط،ديروط،القوصية،منفلوط،أبنوب،أبو تيج،الغنايم،ساحل سليم،البداري،صدفا،الفتح،أسيوط الجديدة',
+  'سوهاج': 'سوهاج،أخميم،البلينا،المراغة،المنشاة،دار السلام،جرجا،جهينة،ساقلتة،طما،طهطا،العسيرات',
+  'قنا': 'قنا،أبو تشت،نجع حمادي،دشنا،الوقف،قفط،نقادة،فرشوط،قوص',
+  'الأقصر': 'الأقصر،الزينية،البياضية،القرنة،أرمنت،الطود،إسنا',
+  'أسوان': 'أسوان،دراو،كوم أمبو،نصر النوبة،كلابشة،إدفو،الرديسية،البصيلية،أبو سمبل',
+  'البحر الأحمر': 'الغردقة،رأس غارب،سفاجا،القصير،مرسى علم،شلاتين،حلايب',
+  'الوادي الجديد': 'الخارجة،الداخلة،الفرافرة،باريس،بلاط',
+  'مطروح': 'مرسى مطروح،الحمام،العلمين،الضبعة،النجيلة،سيدي براني،السلوم،سيوة'
+};
+Object.keys(ADDR_DEFAULTS).forEach(g => {
+  ADDR_DEFAULTS[g] = Array.from(new Set(ADDR_DEFAULTS[g].split('،').map(s => s.trim()).filter(Boolean)));
+});
+
+const __arNorm = (s) => String(s == null ? '' : s)
+  .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+  .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+  .replace(/\s+/g, ' ').trim().toLowerCase();
+const __cleanName = (s) => String(s == null ? '' : s).replace(/[<>"`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+const __cleanText = (s) => String(s == null ? '' : s).replace(/[<>`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 250);
+const __escA = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const __addrUid = () => 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const __addrEmpty = () => ({ govs: [], centers: [], villages: [], hidden: [], renames: {}, parents: {} });
+let ADDR_CUSTOM = __addrEmpty();
+let ADDR = { govs: [], centers: [], villages: [] };
+const __addrSubs = new Set();
+
+function __addrMerge(d) {
+  const hidden = new Set(d.hidden || []);
+  const rn = d.renames || {};
+  const pr = d.parents || {};
+  const govs = [], centers = [], villages = [];
+  Object.keys(ADDR_DEFAULTS).forEach(g => {
+    const gid = 'g:' + g;
+    if (!hidden.has(gid)) govs.push({ id: gid, name: rn[gid] || g, def: true });
+  });
+  (d.govs || []).forEach(g => { if (g && g.id && g.name) govs.push({ id: g.id, name: g.name, def: false }); });
+  const govIds = new Set(govs.map(g => g.id));
+  Object.keys(ADDR_DEFAULTS).forEach(g => {
+    ADDR_DEFAULTS[g].forEach(c => {
+      const cid = 'c:' + g + '|' + c;
+      if (hidden.has(cid)) return;
+      const gid = pr[cid] || ('g:' + g);
+      if (govIds.has(gid)) centers.push({ id: cid, name: rn[cid] || c, govId: gid, def: true });
+    });
+  });
+  (d.centers || []).forEach(c => {
+    if (c && c.id && c.name && govIds.has(c.govId)) centers.push({ id: c.id, name: c.name, govId: c.govId, def: false });
+  });
+  const centerIds = new Set(centers.map(c => c.id));
+  (d.villages || []).forEach(v => {
+    if (v && v.id && v.name && centerIds.has(v.centerId)) villages.push({ id: v.id, name: v.name, centerId: v.centerId });
+  });
+  const ar = (a, b) => a.name.localeCompare(b.name, 'ar');
+  govs.sort(ar); centers.sort(ar); villages.sort(ar);
+  return { govs, centers, villages };
+}
+
+function __addrBuild() {
+  ADDR = __addrMerge(ADDR_CUSTOM);
+  __addrSubs.forEach(fn => { try { fn(); } catch (e) {} });
+}
+
+const addrFindGov = (name) => { const n = __arNorm(name); return n ? ADDR.govs.find(g => __arNorm(g.name) === n) || null : null; };
+const addrCentersOf = (govId) => ADDR.centers.filter(c => c.govId === govId);
+const addrFindCenter = (govId, name) => { const n = __arNorm(name); return n ? addrCentersOf(govId).find(c => __arNorm(c.name) === n) || null : null; };
+const addrVillagesOf = (centerId) => ADDR.villages.filter(v => v.centerId === centerId);
+
+(function __addrLoad() {
+  __addrBuild();
+  try {
+    onSnapshot(doc(db, 'settings', 'addresses'), (snap) => {
+      ADDR_CUSTOM = Object.assign(__addrEmpty(), snap.exists() ? snap.data() : {});
+      __addrBuild();
+    }, () => {});
+  } catch (e) {}
+})();
+
+async function addrMutate(fn) {
+  const ref = doc(db, 'settings', 'addresses');
+  let data = {};
+  try { const s = await getDoc(ref); if (s.exists()) data = s.data(); } catch (e) {}
+  const d = Object.assign(__addrEmpty(), data);
+  d.govs = [...(d.govs || [])]; d.centers = [...(d.centers || [])]; d.villages = [...(d.villages || [])];
+  d.hidden = [...(d.hidden || [])]; d.renames = { ...(d.renames || {}) }; d.parents = { ...(d.parents || {}) };
+  const res = fn(d, __addrMerge(d));
+  if (res === false) return false;
+  await setDoc(ref, {
+    govs: d.govs, centers: d.centers, villages: d.villages,
+    hidden: d.hidden, renames: d.renames, parents: d.parents,
+    updatedAt: serverTimestamp()
+  });
+  ADDR_CUSTOM = d;
+  __addrBuild();
+  return true;
+}
+
+// يحفظ القيم المكتوبة يدوياً (محافظة/مركز/قرية جديدة) لتظهر في القوائم لاحقاً
+async function addrCommit(v) {
+  const gName = __cleanName(v.governorate), cName = __cleanName(v.center), vName = __cleanName(v.village);
+  if (!gName || !cName || !vName) return;
+  const g0 = addrFindGov(gName);
+  const c0 = g0 ? addrFindCenter(g0.id, cName) : null;
+  const v0 = c0 ? addrVillagesOf(c0.id).find(x => __arNorm(x.name) === __arNorm(vName)) : null;
+  if (g0 && c0 && v0) return;
+  await addrMutate((d, m) => {
+    let g = m.govs.find(x => __arNorm(x.name) === __arNorm(gName));
+    if (!g) { g = { id: __addrUid(), name: gName }; d.govs.push(g); }
+    let c = m.centers.find(x => x.govId === g.id && __arNorm(x.name) === __arNorm(cName));
+    if (!c) { c = { id: __addrUid(), name: cName, govId: g.id }; d.centers.push(c); }
+    const vv = m.villages.find(x => x.centerId === c.id && __arNorm(x.name) === __arNorm(vName));
+    if (!vv) d.villages.push({ id: __addrUid(), name: vName, centerId: c.id });
+  });
+}
+
+function formatAddress(u) {
+  if (!u) return '';
+  const parts = [u.addressDetails, u.village, u.center, u.governorate].map(s => String(s || '').trim()).filter(Boolean);
+  return parts.join('، ');
+}
+const hasFullAddress = (u) => !!(u && u.governorate && u.center && u.village && u.addressDetails);
+
+// ---------------- CSS ----------------
+(function __addrStyle() {
+  if (document.getElementById('adwStyle')) return;
+  const st = document.createElement('style');
+  st.id = 'adwStyle';
+  st.textContent = `
+  .adw{border:1.5px solid var(--border,#E0E5E1);border-radius:14px;padding:14px;background:var(--bg-card,#fff);margin:6px 0 12px;text-align:right}
+  .adw-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;color:var(--text-main,#0B3D2E);margin-bottom:4px}
+  .adw-head i{color:var(--primary,#0B3D2E)}
+  .adw-note{font-size:11px;color:var(--text-sub,#5A6B66);margin-bottom:12px;font-weight:600}
+  .adw-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .adw-lbl{display:block;font-size:12px;font-weight:700;color:var(--text-main,#0B3D2E);margin-bottom:5px}
+  .adw-lbl b{color:var(--error,#C0392B);margin-right:3px}
+  .adw-combo{position:relative}
+  .adw-input,.adw-select,.adw-ta{width:100%;box-sizing:border-box;padding:11px 38px 11px 34px;font-size:13.5px;font-family:inherit;border:2px solid var(--border,#E0E5E1);border-radius:11px;background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);outline:none;font-weight:600;transition:border-color .2s,box-shadow .2s}
+  .adw-select{padding:10px 12px}
+  .adw-ta{padding:11px 12px;min-height:64px;resize:vertical;line-height:1.7}
+  .adw-input:focus,.adw-select:focus,.adw-ta:focus{border-color:var(--primary,#0B3D2E);box-shadow:0 0 0 3px rgba(30,122,90,.15)}
+  .adw-input:disabled{opacity:.55;cursor:not-allowed}
+  .adw-ico{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--text-sub,#5A6B66);font-size:13px;pointer-events:none}
+  .adw-arrow{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub,#5A6B66);font-size:11px;pointer-events:none}
+  .adw-tag{display:none;position:absolute;left:30px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(230,126,34,.15);color:var(--warning,#E67E22);pointer-events:none}
+  .adw-combo.manual .adw-tag{display:block}
+  .adw-list{display:none;position:absolute;right:0;left:0;top:calc(100% + 4px);z-index:50;max-height:230px;overflow-y:auto;background:var(--bg-card,#fff);border:1.5px solid var(--border,#E0E5E1);border-radius:12px;box-shadow:0 12px 30px var(--shadow,rgba(0,0,0,.18))}
+  .adw-combo.open .adw-list{display:block}
+  .adw-item{padding:9px 14px;font-size:13px;font-weight:600;color:var(--text-main,#0B3D2E);cursor:pointer;display:flex;align-items:center;gap:8px}
+  .adw-item:hover,.adw-item.hl{background:var(--bg-input,#F8FBF9);color:var(--primary,#0B3D2E)}
+  .adw-item.add{color:var(--warning,#E67E22);border-top:1px dashed var(--border,#E0E5E1);font-weight:800}
+  .adw-empty{padding:12px 14px;font-size:12px;color:var(--text-sub,#5A6B66);font-weight:600}
+  .adw-more{padding:8px 14px;font-size:11px;color:var(--text-sub,#5A6B66);text-align:center;border-top:1px solid var(--border,#E0E5E1)}
+  @media(min-width:560px){.adw-grid.cols3{grid-template-columns:1fr 1fr 1fr}}
+  /* بوابة العنوان (الرئيسية) */
+  .adw-overlay{position:fixed;inset:0;z-index:1000001;background:rgba(5,15,11,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
+  .adw-overlay.show{display:flex}
+  .adw-box{width:100%;max-width:560px;background:var(--bg-card,#fff);color:var(--text-main,#0B3D2E);border-radius:20px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:96vh;overflow-y:auto;text-align:right}
+  .adw-box h2{margin:0 0 4px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
+  .adw-box p{margin:0 0 10px;font-size:12.5px;color:var(--text-sub,#5A6B66);font-weight:600;line-height:1.8}
+  .adw-btn{padding:11px 18px;border:none;border-radius:11px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .adw-btn.pri{background:var(--primary,#0B3D2E);color:#fff}
+  [data-theme="dark"] .adw-btn.pri{color:#0A1612}
+  .adw-btn.ghost{background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);border:1.5px solid var(--border,#E0E5E1)}
+  .adw-btn.dng{background:var(--error,#C0392B);color:#fff}
+  .adw-btn.sm{padding:6px 10px;font-size:12px;border-radius:9px}
+  .adw-btn:disabled{opacity:.6;cursor:not-allowed}
+  .adw-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .adw-actions .adw-btn.pri{flex:1}
+  /* مدير العناوين */
+  .adm-tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+  .adm-tab{flex:1;min-width:90px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--border,#E0E5E1);background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer}
+  .adm-tab.active{background:var(--primary,#0B3D2E);color:#fff;border-color:var(--primary,#0B3D2E)}
+  [data-theme="dark"] .adm-tab.active{color:#0A1612}
+  .adm-card{border:1.5px solid var(--border,#E0E5E1);border-radius:13px;padding:12px;margin-bottom:12px;background:var(--bg-card,#fff)}
+  .adm-card h4{margin:0 0 8px;font-size:13px;font-weight:900;color:var(--text-main,#0B3D2E);display:flex;gap:6px;align-items:center}
+  .adm-row{display:flex;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid var(--border,#E0E5E1);flex-wrap:wrap}
+  .adm-row:last-child{border-bottom:none}
+  .adm-row .nm{flex:1;min-width:120px;font-weight:800;font-size:13px;color:var(--text-main,#0B3D2E)}
+  .adm-row .sub{font-size:11px;color:var(--text-sub,#5A6B66);font-weight:600}
+  .adm-row .adw-input,.adm-row .adw-select{padding:8px 10px;font-size:12.5px;flex:1;min-width:110px}
+  .adm-list{max-height:42vh;overflow-y:auto;border:1.5px solid var(--border,#E0E5E1);border-radius:12px;margin-top:8px}
+  .adm-filters{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:6px}
+  @media(min-width:560px){.adm-filters{grid-template-columns:1fr 1fr 1fr}}
+  .adm-cnt{font-size:11.5px;color:var(--text-sub,#5A6B66);font-weight:700;margin-top:6px}
+  `;
+  document.head.appendChild(st);
+})();
+
+// ---------------- Combobox ----------------
+function __addrCombo(cfg) {
+  const wrap = document.createElement('div');
+  wrap.className = 'adw-combo';
+  wrap.innerHTML = `<i class="fas ${cfg.icon} adw-ico"></i><input type="text" class="adw-input" autocomplete="off" maxlength="80"><i class="fas fa-chevron-down adw-arrow"></i><span class="adw-tag">يدوي</span><div class="adw-list"></div>`;
+  const input = wrap.querySelector('input');
+  const list = wrap.querySelector('.adw-list');
+  input.placeholder = cfg.placeholder || '';
+  let hl = -1, last = '';
+  const LIMIT = 200;
+
+  const opts = () => { try { return cfg.getOptions() || []; } catch (e) { return []; } };
+  const findExact = (v) => { const n = __arNorm(v); return n ? opts().find(o => __arNorm(o) === n) : undefined; };
+
+  function updateTag() {
+    const v = input.value.trim();
+    wrap.classList.toggle('manual', !!v && !findExact(v));
+  }
+
+  function render() {
+    const q = __arNorm(input.value);
+    const all = opts();
+    const matched = q ? all.filter(o => __arNorm(o).includes(q)) : all;
+    const shown = matched.slice(0, LIMIT);
+    let html = '';
+    shown.forEach((o, i) => { html += `<div class="adw-item" data-i="${i}" data-v="${__escA(o)}"><i class="fas fa-location-dot" style="font-size:11px;opacity:.5"></i>${__escA(o)}</div>`; });
+    if (matched.length > LIMIT) html += `<div class="adw-more">يوجد ${matched.length - LIMIT} نتيجة أخرى — اكتب للتصفية</div>`;
+    if (!matched.length && !input.value.trim()) html += `<div class="adw-empty">${cfg.emptyText || 'لا توجد خيارات — اكتب القيمة يدوياً'}</div>`;
+    const typed = input.value.trim();
+    if (typed && !findExact(typed)) html += `<div class="adw-item add" data-manual="1"><i class="fas fa-plus-circle"></i>إضافة «${__escA(typed)}» يدوياً</div>`;
+    list.innerHTML = html;
+    hl = -1;
+  }
+
+  function open() { if (input.disabled) return; render(); wrap.classList.add('open'); }
+  function close() {
+    wrap.classList.remove('open');
+    const ex = findExact(input.value);
+    if (ex) input.value = ex;
+    updateTag();
+  }
+  function fire() {
+    const cur = __arNorm(input.value);
+    if (cur === last) return;
+    last = cur;
+    updateTag();
+    if (cfg.onUserChange) cfg.onUserChange();
+  }
+  function pick(v) { input.value = v; close(); fire(); }
+
+  input.addEventListener('focus', open);
+  input.addEventListener('click', () => { if (!wrap.classList.contains('open')) open(); });
+  input.addEventListener('input', () => { if (!wrap.classList.contains('open')) wrap.classList.add('open'); render(); fire(); });
+  list.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const it = e.target.closest('.adw-item');
+    if (!it) return;
+    if (it.dataset.manual) { close(); input.blur(); return; }
+    pick(it.dataset.v);
+  });
+  input.addEventListener('keydown', (e) => {
+    const items = [...list.querySelectorAll('.adw-item:not(.add)')];
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!wrap.classList.contains('open')) open();
+      if (!items.length) return;
+      hl = e.key === 'ArrowDown' ? (hl + 1) % items.length : (hl <= 0 ? items.length - 1 : hl - 1);
+      items.forEach((x, i) => x.classList.toggle('hl', i === hl));
+      items[hl].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (hl >= 0 && items[hl]) pick(items[hl].dataset.v); else { close(); }
+    } else if (e.key === 'Escape') { close(); }
+  });
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  document.addEventListener('mousedown', (e) => { if (!wrap.contains(e.target) && wrap.classList.contains('open')) close(); });
+
+  return {
+    el: wrap,
+    get value() { return __cleanName(input.value); },
+    set(v) { input.value = v || ''; last = __arNorm(input.value); updateTag(); },
+    setDisabled(b) { input.disabled = !!b; if (b) wrap.classList.remove('open'); },
+    refresh() { updateTag(); if (wrap.classList.contains('open')) render(); },
+    isManual() { const v = input.value.trim(); return !!v && !findExact(v); },
+    focus() { input.focus(); }
+  };
+}
+
+// ---------------- Widget ----------------
+function createAddressWidget(mount, opts) {
+  opts = opts || {};
+  const root = document.createElement('div');
+  root.className = 'adw';
+  root.innerHTML = `
+    <div class="adw-head"><i class="fas fa-map-location-dot"></i> العنوان <span style="color:var(--error,#C0392B)">*</span></div>
+    <div class="adw-note">اختر من القائمة أو اكتب يدوياً إن لم تجده — كل الحقول إجبارية</div>
+    <div class="adw-grid">
+      <div><label class="adw-lbl">المحافظة <b>*</b></label><div data-slot="gov"></div></div>
+      <div><label class="adw-lbl">المركز <b>*</b></label><div data-slot="center"></div></div>
+      <div><label class="adw-lbl">القرية / المنطقة <b>*</b></label><div data-slot="village"></div></div>
+      <div><label class="adw-lbl">العنوان تفصيلياً <b>*</b></label><textarea class="adw-ta" maxlength="250" placeholder="مثال: شارع المدرسة، بجوار مسجد الرحمن، عمارة 5، الدور الثالث"></textarea></div>
+    </div>`;
+  mount.innerHTML = '';
+  mount.appendChild(root);
+
+  const centersNames = (gName) => { const g = addrFindGov(gName); return g ? addrCentersOf(g.id).map(c => c.name) : []; };
+  const villagesNames = (gName, cName) => {
+    const g = addrFindGov(gName); if (!g) return [];
+    const c = addrFindCenter(g.id, cName); return c ? addrVillagesOf(c.id).map(v => v.name) : [];
+  };
+  const has = (arr, v) => { const n = __arNorm(v); return !!n && arr.some(x => __arNorm(x) === n); };
+
+  let lastGov = '', lastCenter = '';
+  const gov = __addrCombo({ icon: 'fa-map', placeholder: 'اختر المحافظة أو اكتبها', getOptions: () => ADDR.govs.map(g => g.name),
+    onUserChange: () => {
+      const prev = lastGov; lastGov = gov.value;
+      if (center.value) {
+        const was = has(centersNames(prev), center.value), now = has(centersNames(lastGov), center.value);
+        if (was && !now) { center.set(''); village.set(''); lastCenter = ''; }
+      }
+      sync();
+    } });
+  const center = __addrCombo({ icon: 'fa-city', placeholder: 'اختر المركز أو اكتبه', emptyText: 'لا توجد مراكز مسجلة لهذه المحافظة — اكتب اسم المركز يدوياً',
+    getOptions: () => centersNames(gov.value),
+    onUserChange: () => {
+      const prev = lastCenter; lastCenter = center.value;
+      if (village.value) {
+        const was = has(villagesNames(gov.value, prev), village.value), now = has(villagesNames(gov.value, lastCenter), village.value);
+        if (was && !now) village.set('');
+      }
+      sync();
+    } });
+  const village = __addrCombo({ icon: 'fa-house-chimney', placeholder: 'اختر القرية أو اكتبها', emptyText: 'لا توجد قرى مسجلة لهذا المركز — اكتب اسم القرية يدوياً',
+    getOptions: () => villagesNames(gov.value, center.value), onUserChange: () => sync() });
+  root.querySelector('[data-slot="gov"]').appendChild(gov.el);
+  root.querySelector('[data-slot="center"]').appendChild(center.el);
+  root.querySelector('[data-slot="village"]').appendChild(village.el);
+  const ta = root.querySelector('textarea');
+
+  function sync() {
+    center.setDisabled(!gov.value);
+    village.setDisabled(!center.value);
+    center.refresh(); village.refresh();
+  }
+  const sub = () => { gov.refresh(); center.refresh(); village.refresh(); };
+  __addrSubs.add(sub);
+
+  const api = {
+    root,
+    getValue() {
+      return { governorate: gov.value, center: center.value, village: village.value, addressDetails: __cleanText(ta.value) };
+    },
+    setValue(v) {
+      v = v || {};
+      gov.set(v.governorate || ''); center.set(v.center || ''); village.set(v.village || '');
+      lastGov = gov.value; lastCenter = center.value;
+      ta.value = v.addressDetails || '';
+      sync();
+    },
+    reset() { api.setValue({}); },
+    validate() {
+      const v = api.getValue();
+      if (!v.governorate) return 'الرجاء اختيار المحافظة أو كتابتها';
+      if (v.governorate.length < 2) return 'اسم المحافظة قصير جداً';
+      if (!v.center) return 'الرجاء اختيار المركز أو كتابته';
+      if (v.center.length < 2) return 'اسم المركز قصير جداً';
+      if (!v.village) return 'الرجاء اختيار القرية أو كتابتها';
+      if (v.village.length < 2) return 'اسم القرية قصير جداً';
+      if (!v.addressDetails) return 'الرجاء كتابة العنوان تفصيلياً';
+      if (v.addressDetails.length < 5) return 'العنوان التفصيلي قصير جداً (5 أحرف على الأقل)';
+      return '';
+    },
+    async commit() { try { await addrCommit(api.getValue()); } catch (e) { console.log('addr commit:', e && e.message); } }
+  };
+  api.reset();
+  return api;
+}
+
+const addrWidget = createAddressWidget($('editAddressMount'));
+let lastAddrSig = null;
 
 // ============================================================
 // 🖼️ صور الحسابات المخزّنة في عدة مستندات Firestore (fsav:...)
@@ -1871,16 +2265,17 @@ function startUserListener() {
         return;
       }
 
-      if (user.isDisabled === true) {
-        const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
-        if (!expired) {
-          if (!blockTriggered) {
-            blockTriggered = true;
-            showToast('حسابك معطّل حالياً', 'error');
-            setTimeout(forceLogout, 2000);
-          }
-          return;
+      // 🚫 أي تعطيل = تسجيل خروج فوري (حتى لو انتهت مدته لاحقاً)
+      const loginAt = Number(sessionStorage.getItem('meezan_login_at') || 0);
+      const forceAt = user.forceLogoutAt ? new Date(user.forceLogoutAt).getTime() : 0;
+      if (user.isDisabled === true || (forceAt && forceAt > loginAt)) {
+        if (!blockTriggered) {
+          blockTriggered = true;
+          try { document.documentElement.style.visibility = 'hidden'; } catch (e) {}
+          try { sessionStorage.setItem('meezan_logout_reason', 'disabled'); } catch (e) {}
+          forceLogout();
         }
+        return;
       }
 
       currentUser = user;
@@ -2071,6 +2466,13 @@ function renderUser(user) {
       }
     }
 
+    // العنوان (يتحدّث فقط لو تغيّر فعلاً حتى لا يُفقد ما يكتبه المستخدم)
+    const addrSig = [user.governorate, user.center, user.village, user.addressDetails].join('|');
+    if (addrSig !== lastAddrSig) {
+      lastAddrSig = addrSig;
+      addrWidget.setValue({ governorate: user.governorate, center: user.center, village: user.village, addressDetails: user.addressDetails });
+    }
+
     // الحقول المقفلة
     $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
     $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
@@ -2226,8 +2628,17 @@ $('saveInfoBtn').addEventListener('click', async () => {
     return showToast('الرجاء اختيار ' + (userRole === 'teacher' ? 'المادة الدراسية' : 'الفرقة الدراسية'), 'error');
   }
 
+  const addrErr = addrWidget.validate();
+  if (addrErr) return showToast(addrErr, 'error');
+  const newAddr = addrWidget.getValue();
+  const addrSame =
+    newAddr.governorate === (currentUser.governorate || '') &&
+    newAddr.center === (currentUser.center || '') &&
+    newAddr.village === (currentUser.village || '') &&
+    newAddr.addressDetails === (currentUser.addressDetails || '');
+
   const currentPassword = decryptPassword(currentUser.passwordEncrypted) || '';
-  const noChange =
+  const noChange = addrSame &&
     newFullName === (currentUser.fullName || '') &&
     newUsername.toLowerCase() === (currentUser.username || '').toLowerCase() &&
     newPassword === currentPassword &&
@@ -2252,6 +2663,7 @@ $('saveInfoBtn').addEventListener('click', async () => {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
   try {
+    await addrWidget.commit();
     const snap = await getDoc(doc(db, collectionName, 'all'));
 
     if (!snap.exists()) throw new Error('لم يتم العثور على البيانات');
@@ -2279,6 +2691,7 @@ $('saveInfoBtn').addEventListener('click', async () => {
       username: newUsername,
       passwordEncrypted: encryptPassword(newPassword),
       grade: newGrade,
+      ...newAddr,
       updatedAt: new Date().toISOString()
     };
 
