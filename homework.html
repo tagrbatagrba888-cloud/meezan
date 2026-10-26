@@ -976,8 +976,9 @@
   .solve-body {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 24px 20px 120px;
+    padding: 24px 20px 280px;
     width: 100%;
+    flex-shrink: 0;
   }
 
   .solve-question-card {
@@ -1544,7 +1545,7 @@
     .topbar-actions .menu-btn { display: flex; }
     .container { padding: 16px 12px 100px; }
     .homeworks-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-    .solve-body { padding: 16px 14px 130px; }
+    .solve-body { padding: 16px 14px 300px; }
     .solve-q-title { font-size: 15px; }
     .solve-option { font-size: 13.5px; padding: 12px 14px; }
   }
@@ -3494,12 +3495,14 @@ function startUserAccessListener() {
       const key = `homework_${hwId}`;
       const access = getMyAccess();
 
-      if (access.blockedItems[key]) {
+      if (access.blockedItems[key] && !isStaleEntry(access.blockedItems[key], currentHomework)) {
         forceKickCurrent('blocked');
         return;
       }
 
-      if (access.closedItems[key]) {
+      const ci = access.closedItems[key];
+      // لا نطرد الطالب إلا بإغلاق حقيقي من الإدارة (وليس الإغلاق التلقائي بعد التسليم أو إدخال قديم)
+      if (ci && !isStaleEntry(ci, currentHomework) && !ci.autoClosed && ci.closedBy !== 'auto_after_submit') {
         const oa = access.openAccess[key];
         if (!oa || new Date(oa.endAt) <= new Date()) {
           forceKickCurrent('closed');
