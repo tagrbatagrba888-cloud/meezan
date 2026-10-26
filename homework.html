@@ -1883,7 +1883,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, updateDoc, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2256,15 +2256,9 @@ async function resetHomeworkForUser(hwId) {
   // 4) امسح closedItems القديمة من user_access + users/all
   try {
     const uaRef = doc(db, 'user_access', userId);
-    const uaSnap = await getDoc(uaRef);
-    if (uaSnap.exists()) {
-      const uaData = uaSnap.data();
-      if (uaData.closedItems && uaData.closedItems[key]) {
-        delete uaData.closedItems[key];
-        await setDoc(uaRef, { closedItems: uaData.closedItems, updatedAt: serverTimestamp() }, { merge: true });
-        console.log(`🧹 removed closedItems[${key}] from user_access`);
-      }
-    }
+    // ✅ الحذف الصحيح لمفتاح داخل map (setDoc+merge كان لا يحذفه)
+    await updateDoc(uaRef, { [`closedItems.${key}`]: deleteField() });
+    console.log(`🧹 removed closedItems[${key}] from user_access`);
   } catch (e) {}
 
   try {
@@ -2301,6 +2295,17 @@ async function resetHomeworkForUser(hwId) {
 }
 
 // ============================================================
+// 🛡️ تجاهل الإدخالات القديمة (إغلاق/حظر لواجب سابق بنفس الرقم)
+// ============================================================
+function isStaleEntry(entry, hw) {
+  if (!entry) return true;
+  if (entry.itemId !== undefined && Number(entry.itemId) !== Number(hw.id)) return true;
+  const t = Date.parse(entry.closedAt || entry.blockedAt || entry.createdAt || '');
+  const c = Date.parse(hw.createdAt || '');
+  return !isNaN(t) && !isNaN(c) && t < c;
+}
+
+// ============================================================
 // 🎨 getHomeworkStatus — ترتيب أوضح
 // ============================================================
 function getHomeworkStatus(hw) {
@@ -2309,7 +2314,7 @@ function getHomeworkStatus(hw) {
   const access = getMyAccess();
 
   // 1) محظور
-  if (access.blockedItems[key]) return 'blocked';
+  if (access.blockedItems[key] && !isStaleEntry(access.blockedItems[key], hw)) return 'blocked';
 
   // 2) openAccess نشط → opened (أعلى أولوية بعد blocked)
   if (access.openAccess[key]) {
@@ -2328,7 +2333,7 @@ function getHomeworkStatus(hw) {
   }
 
   // 4) closedItems (بعد ما شيكنا على openAccess)
-  if (access.closedItems[key]) return 'closed';
+  if (access.closedItems[key] && !isStaleEntry(access.closedItems[key], hw)) return 'closed';
 
   // 5) مسودة
   const draftKey = 'hw_draft_' + hw.id;
