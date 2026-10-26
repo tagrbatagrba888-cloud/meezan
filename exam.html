@@ -1098,8 +1098,9 @@
   .solve-body {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 24px 20px 120px;
+    padding: 24px 20px 280px;
     width: 100%;
+    flex-shrink: 0;
   }
 
   .solve-question-card {
@@ -1659,7 +1660,7 @@
     .topbar-actions .menu-btn { display: flex; }
     .container { padding: 16px 12px 100px; }
     .exams-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-    .solve-body { padding: 16px 14px 130px; }
+    .solve-body { padding: 16px 14px 300px; }
     .solve-q-title { font-size: 15px; }
     .solve-option { font-size: 13.5px; padding: 12px 14px; }
     .exam-timer { padding: 8px 12px; font-size: 14px; }
@@ -2043,7 +2044,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, updateDoc, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2450,13 +2451,26 @@ function getExamTimeStatus(exam) {
 // ============================================================
 // 🎨 getExamStatus — ترتيب أوضح
 // ============================================================
+// 🛡️ تجاهل الإدخالات القديمة (إغلاق/حظر لامتحان سابق بنفس الرقم)
+// ============================================================
+function isStaleEntry(entry, item, sub) {
+  if (!entry) return true;
+  if (entry.itemId !== undefined && Number(entry.itemId) !== Number(item.id)) return true;
+  // إغلاق تلقائي بعد تسليم لكن التسليم لم يعد موجوداً (حُذف/أُعيد فتحه) → قديم
+  if (entry.autoClosed && !(sub && sub.submitted)) return true;
+  const t = Date.parse(entry.closedAt || entry.blockedAt || entry.createdAt || '');
+  const c = Date.parse(item.createdAt || '');
+  return !isNaN(t) && !isNaN(c) && t < c;
+}
+
+// ============================================================
 function getExamStatus(exam) {
   const sub = mySubs[exam.id];
   const key = `exam_${exam.id}`;
   const access = getMyAccess();
 
   // 1) محظور
-  if (access.blockedItems[key]) return 'blocked';
+  if (access.blockedItems[key] && !isStaleEntry(access.blockedItems[key], exam, sub)) return 'blocked';
 
   // 2) openAccess نشط → opened (أعلى أولوية بعد blocked)
   if (access.openAccess[key]) {
@@ -2475,7 +2489,7 @@ function getExamStatus(exam) {
   }
 
   // 4) closedItems (بعد ما شيكنا على openAccess)
-  if (access.closedItems[key]) return 'closed';
+  if (access.closedItems[key] && !isStaleEntry(access.closedItems[key], exam, sub)) return 'closed';
 
   // 5) الوقت
   const timeStatus = getExamTimeStatus(exam);
@@ -2533,15 +2547,9 @@ async function resetExamForUser(examId) {
   // 3) امسح closedItems القديمة من user_access + users/all
   try {
     const uaRef = doc(db, 'user_access', userId);
-    const uaSnap = await getDoc(uaRef);
-    if (uaSnap.exists()) {
-      const uaData = uaSnap.data();
-      if (uaData.closedItems && uaData.closedItems[key]) {
-        delete uaData.closedItems[key];
-        await setDoc(uaRef, { closedItems: uaData.closedItems, updatedAt: serverTimestamp() }, { merge: true });
-        console.log(`🧹 removed closedItems[${key}] from user_access`);
-      }
-    }
+    // ✅ الحذف الصحيح لمفتاح داخل map (setDoc+merge لا يحذفه)
+    await updateDoc(uaRef, { [`closedItems.${key}`]: deleteField() });
+    console.log(`🧹 removed closedItems[${key}] from user_access`);
   } catch (e) {}
 
   try {
@@ -3935,12 +3943,14 @@ function startUserAccessListener() {
       const key = `exam_${examId}`;
       const access = getMyAccess();
 
-      if (access.blockedItems[key]) {
+      if (access.blockedItems[key] && !isStaleEntry(access.blockedItems[key], currentExam, mySubs[examId])) {
         forceKickCurrent('blocked');
         return;
       }
 
-      if (access.closedItems[key]) {
+      const ci = access.closedItems[key];
+      // لا نطرد الطالب إلا بإغلاق حقيقي من الإدارة (وليس الإغلاق التلقائي بعد التسليم أو إدخال قديم)
+      if (ci && !isStaleEntry(ci, currentExam, mySubs[examId]) && !ci.autoClosed && ci.closedBy !== 'auto_after_submit') {
         const oa = access.openAccess[key];
         if (!oa || new Date(oa.endAt) <= new Date()) {
           forceKickCurrent('closed');
