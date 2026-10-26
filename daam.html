@@ -3158,8 +3158,9 @@ document.addEventListener('keydown', (e) => {
 // 🔔 الإشعارات: محلية + Push حتى لو الموقع مقفول
 // ============================================================
 // ⚠️ ضع هنا مفتاح VAPID من: Firebase Console → Project settings → Cloud Messaging → Web Push certificates
-const VAPID_KEY = 'PUT_YOUR_VAPID_KEY_HERE';
-const SW_PATH = 'firebase-messaging-sw.js';
+const VAPID_KEY = 'BFglI2X03X5yqfH-9PJ8oLVUK3zsfck64a9JOdvobajpaPJxeBvaUPfdDQ_oBNrcF5cB-PZ5ThorfwrS5k8mG34';
+// نفس الـ Service Worker المستخدم في الصفحة الرئيسية (لازم يكون واحد لنفس النطاق وإلا كل صفحة تلغي التانية)
+const SW_PATH = 'sw1.js';
 let swReg = null;
 
 const pushSupported = () => ('Notification' in window) && ('serviceWorker' in navigator);
@@ -3173,14 +3174,27 @@ async function getSW() {
 }
 
 async function registerPush() {
-  if (!pushSupported() || Notification.permission !== 'granted' || !sessionId) return false;
+  if (!pushSupported() || Notification.permission !== 'granted') return false;
   if (!VAPID_KEY || VAPID_KEY.startsWith('PUT_')) return false;
   const reg = await getSW(); if (!reg) return false;
   try {
     const { getMessaging, getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
     const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
     if (!token) return false;
-    await setDoc(doc(db, 'support_chats', sessionId), { fcmTokens: arrayUnion(token), pushUpdatedAt: new Date().toISOString() }, { merge: true });
+    try { localStorage.setItem('meezan_fcm_token', token); } catch (e) {}
+    // 1) تسجيل الجهاز بنفس طريقة الصفحة الرئيسية (push_tokens) عشان السيرفر يعرف يبعتله
+    if (currentUserId) {
+      const sig = token + '|' + currentUserId;
+      let same = false; try { same = localStorage.getItem('meezan_push_sig') === sig; } catch (e) {}
+      if (!same) {
+        await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp() });
+        try { localStorage.setItem('meezan_push_sig', sig); } catch (e) {}
+      }
+    }
+    // 2) ربط الجهاز بمحادثة الدعم نفسها
+    if (sessionId) {
+      await setDoc(doc(db, 'support_chats', sessionId), { fcmTokens: arrayUnion(token), pushUpdatedAt: new Date().toISOString() }, { merge: true });
+    }
     return true;
   } catch (e) { console.warn('push token:', e); return false; }
 }
