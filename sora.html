@@ -1185,6 +1185,18 @@
 
     .stat-number { font-size: 16px; }
   }
+  .link-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:var(--bg-input);border:2px solid var(--border);color:var(--text-main);text-decoration:none;font-weight:700;font-size:14.5px;transition:all .25s ease}
+  .link-row i:first-child{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;display:flex;align-items:center;justify-content:center}
+  [data-theme="dark"] .link-row i:first-child{color:var(--bg-page)}
+  .link-row span{flex:1}.link-row>i:last-child{color:var(--text-sub)}
+  .link-row:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 20px var(--shadow)}
+  .danger-card{border-color:rgba(192,57,43,.4)}
+  .danger-card .card-title i{background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff}
+  .danger-note{font-size:13.5px;color:var(--text-sub);font-weight:600;line-height:1.8;margin-bottom:14px}
+  .btn-danger{width:100%;padding:14px 18px;border-radius:12px;border:none;background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 18px rgba(192,57,43,.4);transition:all .25s ease}
+  .btn-danger:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 26px rgba(192,57,43,.5)}
+  .btn-danger:disabled{opacity:.6;cursor:not-allowed}
+  .btn-confirm.danger{background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff;box-shadow:0 6px 18px rgba(192,57,43,.4)}
 </style>
 </head>
 <body>
@@ -1435,6 +1447,17 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title"><i class="fas fa-file-contract"></i><span>الشروط والأحكام</span></div>
+    <a href="shorot.html" class="link-row"><i class="fas fa-scroll"></i><span>اقرأ شروط وأحكام المنصة</span><i class="fas fa-chevron-left"></i></a>
+  </div>
+
+  <div class="card danger-card">
+    <div class="card-title"><i class="fas fa-triangle-exclamation"></i><span>منطقة الخطر</span></div>
+    <p class="danger-note">حذف الحساب إجراء نهائي: ستُحذف بياناتك ولا يمكنك الدخول مرة أخرى، ولا يمكن التراجع عنه.</p>
+    <button class="btn-danger" id="deleteAccBtn"><i class="fas fa-user-xmark"></i><span>حذف حسابي</span></button>
+  </div>
+
 </div>
 
 <div class="modal-overlay" id="avatarModal">
@@ -1513,7 +1536,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2188,6 +2211,7 @@ function showConfirm(options = {}) {
 
     okBtn.className = 'btn btn-confirm';
     if (okType === 'warning') okBtn.classList.add('warning');
+    if (okType === 'danger') okBtn.classList.add('danger');
     okBtn.innerHTML = `<i class="fas fa-check"></i> <span>${okText}</span>`;
     cancelBtn.innerHTML = `<i class="fas fa-times"></i> <span>${cancelText}</span>`;
 
@@ -2994,6 +3018,30 @@ $('logoutBtn').addEventListener('click', async () => {
 
   if (!confirmed) return;
   forceLogout();
+});
+
+$('deleteAccBtn').addEventListener('click', async () => {
+  if (!currentUser) return;
+  const c1 = await showConfirm({ title: 'حذف الحساب', message: 'هل تريد حذف حسابك نهائياً؟<br>ستفقد بياناتك ونتائجك ولا يمكن التراجع.', icon: 'fa-user-xmark', iconType: 'danger', okText: 'نعم، متابعة', okType: 'danger' });
+  if (!c1) return;
+  const c2 = await showConfirm({ title: 'تأكيد أخير', message: '<b style="color:var(--error)">هذا هو التأكيد الأخير.</b><br>سيتم حذف حسابك فوراً وتسجيل خروجك. هل أنت متأكد تماماً؟', icon: 'fa-triangle-exclamation', iconType: 'danger', okText: 'احذف حسابي نهائياً', okType: 'danger' });
+  if (!c2) return;
+  const btn = $('deleteAccBtn'); btn.disabled = true;
+  try {
+    const ref = doc(db, collectionName, 'all'), snap = await getDoc(ref);
+    const items = snap.exists() ? (snap.data().items || []) : [];
+    const next = items.filter(u => String(u.id) !== String(currentUser.id));
+    if (next.length === items.length) throw new Error('لم يتم العثور على حسابك');
+    blockTriggered = true;
+    await setDoc(ref, { items: next, updatedAt: serverTimestamp() });
+    try { await deleteDoc(doc(db, 'user_access', String(currentUser.id))); } catch (e) {}
+    showToast('تم حذف حسابك نهائياً', 'success');
+    setTimeout(forceLogout, 1500);
+  } catch (err) {
+    blockTriggered = false;
+    showToast('حدث خطأ: ' + err.message, 'error');
+    btn.disabled = false;
+  }
 });
 
 function forceLogout() {
