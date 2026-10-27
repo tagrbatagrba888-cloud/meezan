@@ -29,10 +29,23 @@ messaging.onBackgroundMessage((payload) => {
   });
 });
 
+// يحوّل أي رابط لعنوان كامل على دومين الموقع نفسه (ويصلّح لو السيرفر لزّق دومينه على الرابط)
+const PUSH_SERVER_HOST = 'vercel-server-nine-tau.vercel.app';
+function resolveTarget(u) {
+  try {
+    const base = self.registration.scope;
+    const x = new URL(u || 'index.html', base);
+    if (x.host === PUSH_SERVER_HOST) {
+      return new URL(x.pathname.replace(/^\/+/, '') + x.search + x.hash, base).href;
+    }
+    return x.href;
+  } catch (e) { return new URL('index.html', self.registration.scope).href; }
+}
+
 // الضغط على الإشعار يفتح الموقع
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || 'index.html';
+  const url = resolveTarget(event.notification.data && event.notification.data.url);
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
       for (const c of list) {
