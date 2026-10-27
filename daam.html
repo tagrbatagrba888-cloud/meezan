@@ -1244,6 +1244,37 @@
   <span id="toastText"></span>
 </div>
 
+<script>
+/* 🔐 استرجاع الدخول: sessionStorage خاص بكل تبويب، فالإشعار (تبويب جديد) كان بيفتح كضيف.
+   بنحتفظ بنسخة احتياطية في localStorage ونرجّعها لو التبويب فاضي. */
+(function () {
+  var K = 'meezan_session_bk', TTL = 30 * 24 * 3600 * 1000;
+  var KEYS = ['meezan_logged_in', 'meezan_username', 'meezan_role', 'meezan_user_id', 'meezan_user_data'];
+  function save() {
+    try {
+      if (sessionStorage.getItem('meezan_logged_in') === 'true' && sessionStorage.getItem('meezan_username')) {
+        var o = { t: Date.now(), d: {} };
+        KEYS.forEach(function (k) { var v = sessionStorage.getItem(k); if (v !== null) o.d[k] = v; });
+        localStorage.setItem(K, JSON.stringify(o));
+      }
+    } catch (e) {}
+  }
+  function restore() {
+    try {
+      if (sessionStorage.getItem('meezan_logged_in') === 'true' && sessionStorage.getItem('meezan_username')) return;
+      var o = JSON.parse(localStorage.getItem(K) || 'null');
+      if (!o || !o.d || Date.now() - (o.t || 0) > TTL) return;
+      if (o.d.meezan_logged_in !== 'true' || !o.d.meezan_username) return;
+      Object.keys(o.d).forEach(function (k) { sessionStorage.setItem(k, o.d[k]); });
+      sessionStorage.removeItem('meezan_guest_mode');
+    } catch (e) {}
+  }
+  window.mzSaveSessionBk = save;
+  window.mzClearSessionBk = function () { try { localStorage.removeItem(K); } catch (e) {} };
+  restore();
+  save();
+})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -1326,11 +1357,12 @@ const PLATFORM_CACHE_TTL = 120000;
 // البوت الداخلي بيشتغل في حالتين بس: (1) الذكاء الخارجي مقفول/غير مضبوط  (2) رصيده خلص.
 const MZ_PERSONA_MARK = '[MZ-PERSONA-V2]';
 const MZ_HOLD_KEY = 'mz_ext_hold_until';
-const MZ_HOLD_EXHAUSTED_MS = 15 * 60 * 1000;   // بعد ما الرصيد يخلص: الداخلي يشتغل 15 دقيقة ثم نجرّب الخارجي تاني
-const MZ_HOLD_RATE_MS = 2 * 60 * 1000;         // لو الحد المؤقت اتكرر: دقيقتين
+const MZ_HOLD_EXHAUSTED_MS = 0;   // بعد ما الرصيد يخلص: الداخلي يشتغل 15 دقيقة ثم نجرّب الخارجي تاني
+const MZ_HOLD_RATE_MS = 0;         // لو الحد المؤقت اتكرر: دقيقتين
 const MZ_INTERNAL_ON_HARD_ERRORS = false;      // true = الداخلي يرد حتى لو الخارجي وقع بأي خطأ (مش الرصيد بس)
 const MZ_TEMP_ERR = '⏳ حصل تأخير مؤقت وأنا بجهّز ردي. ابعت رسالتك تاني بعد لحظات وهرد عليك فوراً.';
-let mzHoldMem = 0, mzToolsOk = true;
+let mzHoldMem = 0, mzToolsOk = true, mzSettingsOk = false;
+try { localStorage.removeItem(MZ_HOLD_KEY); } catch (e) {}  // تنظيف أي قفل قديم
 
 function mzHoldUntil() { let v = 0; try { v = parseInt(localStorage.getItem(MZ_HOLD_KEY)) || 0; } catch (e) {} return Math.max(v, mzHoldMem); }
 function mzSetHold(ms) { mzHoldMem = Date.now() + ms; try { localStorage.setItem(MZ_HOLD_KEY, String(mzHoldMem)); } catch (e) {} }
@@ -1898,6 +1930,7 @@ $('guestForm').addEventListener('submit', async (e) => {
         role: foundRole
       }));
 
+      try { window.mzSaveSessionBk && window.mzSaveSessionBk(); } catch (e) {}
       showToast('تم التحقق من حسابك ✓', 'success');
     } else {
       currentRole = 'guest';
@@ -1938,6 +1971,7 @@ function startBotSettingsListener() {
 
   unsubscribeBotSettings = onSnapshot(doc(db, 'settings', 'bot'), (snap) => {
     if (snap.exists()) {
+      mzSettingsOk = true;
       botSettings = { ...DEFAULT_BOT_SETTINGS, ...snap.data() };
       // لو الـ systemPrompt قديم، استخدم الجديد
       if (!botSettings.systemPrompt || botSettings.systemPrompt.indexOf(MZ_PERSONA_MARK) === -1) {
@@ -1950,7 +1984,7 @@ function startBotSettingsListener() {
     updateBannersVisibility();
   }, (e) => {
     console.warn('bot settings error:', e);
-    botSettings = { ...DEFAULT_BOT_SETTINGS };
+    if (!mzSettingsOk) botSettings = { ...DEFAULT_BOT_SETTINGS };
   });
 }
 
@@ -2312,6 +2346,18 @@ async function respondWithBot(userText, userMsgId) {
   let reply = null, goTransfer = false;
   try {
     try { await loadPlatformData(); } catch (e) {}
+    // ✅ تأكد إن إعدادات البوت الخارجي اتحمّلت قبل الرد (بدونها كان بيرد الداخلي)
+    if (!mzSettingsOk) {
+      try {
+        const bs = await getDoc(doc(db, 'settings', 'bot'));
+        if (bs.exists()) {
+          mzSettingsOk = true;
+          botSettings = { ...DEFAULT_BOT_SETTINGS, ...bs.data() };
+          if (!botSettings.systemPrompt || botSettings.systemPrompt.indexOf(MZ_PERSONA_MARK) === -1) botSettings.systemPrompt = STRONG_SYSTEM_PROMPT;
+        }
+      } catch (e) { console.warn('bot settings load failed:', e); }
+    }
+    console.log('[bot] mode =', mzExtMode(), '| apiEnabled =', !!botSettings.apiEnabled, '| apiUrl =', !!botSettings.apiUrl);
     const userData = (botSettings.accessDb && currentUserId) ? await fetchUserData(currentUserId, currentRole) : null;
     // ✅ الذكاء الخارجي هو المتحكم الوحيد طول ما هو شغال ورصيده موجود
     let internal = mzExtMode() === 'internal';
@@ -3239,7 +3285,7 @@ function handleUserRemoved() {
     </div>
   `;
   document.body.appendChild(overlay);
-  setTimeout(() => { sessionStorage.clear(); window.location.replace('login.html'); }, 3000);
+  setTimeout(() => { sessionStorage.clear(); try { window.mzClearSessionBk && window.mzClearSessionBk(); } catch (e) {} window.location.replace('login.html'); }, 3000);
 }
 
 function handleUserDisabled(user) {
@@ -3267,7 +3313,7 @@ function handleUserDisabled(user) {
     </div>
   `;
   document.body.appendChild(overlay);
-  setTimeout(() => { sessionStorage.clear(); window.location.replace('login.html'); }, 4000);
+  setTimeout(() => { sessionStorage.clear(); try { window.mzClearSessionBk && window.mzClearSessionBk(); } catch (e) {} window.location.replace('login.html'); }, 4000);
 }
 
 function formatDateTime(iso) {
