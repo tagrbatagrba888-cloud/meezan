@@ -82,8 +82,17 @@
   .pimg img { width:100%; height:100%; object-fit:cover; }
   .pimg .tg { position:absolute; top:8px; right:8px; }
   .pb { padding:11px; display:flex; flex-direction:column; gap:4px; flex:1; }
-  .pn { font-weight:900; font-size:13.5px; line-height:1.4; } .pd { font-size:11px; color:var(--text-sub); font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .pp { font-size:17px; font-weight:900; color:var(--success); margin-top:auto; padding-top:4px; }
+.sent-body {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: 3px;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}  .pp { font-size:17px; font-weight:900; color:var(--success); margin-top:auto; padding-top:4px; }
   .tag { font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:20px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sub); display:inline-flex; align-items:center; gap:4px; }
   .tag.ok { background:rgba(30,122,90,.14); color:var(--success); border-color:rgba(30,122,90,.4); } .tag.bad { background:rgba(192,57,43,.12); color:var(--error); border-color:rgba(192,57,43,.35); } .tag.wait { background:rgba(230,126,34,.13); color:var(--warning); border-color:rgba(230,126,34,.4); }
 
@@ -223,7 +232,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, collection, onSnapshot, setDoc, getDoc, query, where, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, collection, onSnapshot, setDoc, getDoc, query, where, runTransaction, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0", authDomain: "qanon-c716d.firebaseapp.com", projectId: "qanon-c716d",
@@ -438,14 +447,30 @@ const REWARD_SINCE = ''; // اختياري: 'YYYY-MM-DD' لتجاهل النتا
 const isPassed = (s) => s.submitted && s.corrected && num(s.totalScore) > 0 && num(s.score) / num(s.totalScore) >= 0.5;
 const rewardBusy = new Set();
 
-// 🔔 رابط سيرفر الإشعارات (نفس الرابط اللي بتستخدمه صفحات الأدمن عند إرسال الإشعارات)
+// 🔔 إشعار Push فوري للهدية — بنفس طريقة إشعارات الإيداع والسحب (صفحة إدارة المتجر)
 const PUSH_URL = 'https://vercel-server-nine-tau.vercel.app/api/send';
-function sendRewardPush(txId) {
-  fetch(PUSH_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ rewardTxId: txId })
-  }).catch((e) => console.warn('reward push failed:', e));
+const PUSH_KEY = 'Meezan2026Secret';
+async function sendRewardPush(kind, amount, itemName, txId) {
+  try {
+    const notifId = 'rwn_' + txId; // رقم ثابت: نفس الهدية ما تتبعتش مرتين
+    const title = kind === 'exam' ? '🎁 مبروك! هدية نجاح الامتحان' : '🎁 مبروك! هدية نجاح الواجب';
+    const body = `تمت إضافة ${money(amount)} إلى محفظتك${itemName ? ' — ' + itemName : ''}`;
+    const now = iso();
+    await setDoc(doc(db, 'notifications', notifId), {
+      id: notifId, title, body, type: 'page', url: 'stor.html', kind: 'store', mediaType: 'page',
+      senderId: 'system', senderName: 'MEEZAN', createdAt: now, target: 'custom', targetLabel: 'محفظة', recipients: [uid]
+    });
+    const uRef = doc(db, 'user_notifications', uid);
+    const old = (await getDoc(uRef)).data() || {};
+    let notifIds = old.notifIds || [], unread = old.unreadCount || 0;
+    if (!notifIds.includes(notifId)) { notifIds = [notifId, ...notifIds].slice(0, 100); unread++; }
+    await setDoc(uRef, { userId: uid, notifIds, unreadCount: unread, updatedAt: serverTimestamp() }, { merge: true });
+    await fetch(PUSH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': PUSH_KEY },
+      body: JSON.stringify({ notifId, resend: false })
+    });
+  } catch (e) { console.warn('reward push failed:', e); }
 }
 
 async function grantReward(kind, s, idKey, nameKey) {
@@ -471,7 +496,7 @@ async function grantReward(kind, s, idKey, nameKey) {
       granted = true;
     });
     if (granted) toast(`🎁 مبروك! تمت إضافة هدية ${kind === 'exam' ? 'الامتحان' : 'الواجب'}: ${money(rw.amount)}`);
-    if (granted) sendRewardPush(tRef.id);
+    if (granted && c.notificationsEnabled !== false) sendRewardPush(kind, rw.amount, s[nameKey] || '', tRef.id);
   } catch (e) { console.error('reward error:', e); }
   finally { rewardBusy.delete(key); }
 }
