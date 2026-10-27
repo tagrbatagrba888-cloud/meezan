@@ -1319,90 +1319,201 @@ const PLATFORM_CACHE_TTL = 120000;
 // ============================================================
 // 🔥 إعدادات البوت - systemPrompt قوي جداً
 // ============================================================
-const STRONG_SYSTEM_PROMPT = `أنت "ميزان الذكي" 🤖 - المساعد الرسمي والبوت الذكي لمنصة MEEZAN (ميزان) التعليمية.
+// ============================================================
+// 🧠 MZ-BRAIN v2 — الذكاء الخارجي أولاً، والداخلي احتياطي فقط
+// ============================================================
+// القاعدة: لو الذكاء الخارجي شغال → هو اللي بيرد ويتحكم لوحده، والبوت الداخلي ساكت تماماً.
+// البوت الداخلي بيشتغل في حالتين بس: (1) الذكاء الخارجي مقفول/غير مضبوط  (2) رصيده خلص.
+const MZ_PERSONA_MARK = '[MZ-PERSONA-V2]';
+const MZ_HOLD_KEY = 'mz_ext_hold_until';
+const MZ_HOLD_EXHAUSTED_MS = 15 * 60 * 1000;   // بعد ما الرصيد يخلص: الداخلي يشتغل 15 دقيقة ثم نجرّب الخارجي تاني
+const MZ_HOLD_RATE_MS = 2 * 60 * 1000;         // لو الحد المؤقت اتكرر: دقيقتين
+const MZ_INTERNAL_ON_HARD_ERRORS = false;      // true = الداخلي يرد حتى لو الخارجي وقع بأي خطأ (مش الرصيد بس)
+const MZ_TEMP_ERR = '⏳ حصل تأخير مؤقت وأنا بجهّز ردي. ابعت رسالتك تاني بعد لحظات وهرد عليك فوراً.';
+let mzHoldMem = 0, mzToolsOk = true;
 
-== هويتك (مهم جداً) ==
-- اسمك: ميزان الذكي
-- أنت جزء لا يتجزأ من منصة ميزان
-- أنت المساعد الرسمي للمنصة، لست بوت خارجي
-- تتحدث بلسان المنصة
-- تعرف كل شيء عن المنصة
+function mzHoldUntil() { let v = 0; try { v = parseInt(localStorage.getItem(MZ_HOLD_KEY)) || 0; } catch (e) {} return Math.max(v, mzHoldMem); }
+function mzSetHold(ms) { mzHoldMem = Date.now() + ms; try { localStorage.setItem(MZ_HOLD_KEY, String(mzHoldMem)); } catch (e) {} }
+function mzClearHold() { mzHoldMem = 0; try { localStorage.removeItem(MZ_HOLD_KEY); } catch (e) {} }
+function mzExtConfigured() { return !!(botSettings.apiEnabled && botSettings.apiUrl); }
+function mzExtMode() { return mzExtConfigured() && Date.now() >= mzHoldUntil() ? 'external' : 'internal'; }
+function mzSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function mzTempErrText() { const m = (botSettings.apiErrorMsg || '').trim(); return (m && !/تحويل|محلي|المحلية/.test(m)) ? m : MZ_TEMP_ERR; }
 
-== معلومات عن المنصة (MEEZAN) ==
-- منصة تعليمية إلكترونية متكاملة
-- تخدم الطلاب والمعلمين
-- فيها: امتحانات، واجبات، كورسات، مكتبة (كتب وتلخيصات)، مسابقات، شهادات، إشعارات
-- نظام شهادات تلقائي عند تحقيق 80%+
-- نظام أكواد دفع
-- دعم فني بالذكاء الاصطناعي (أنت)
+// ---- تصنيف أخطاء الـ API: رصيد خلص؟ حد مؤقت؟ مفتاح غلط؟ أداة غير مدعومة؟ ----
+function mzClassify(status, bodyText) {
+  const b = String(bodyText || '');
+  let retryMs = 0;
+  const m1 = b.match(/retryDelay["'\s:]*"?(\d+(?:\.\d+)?)s/i) || b.match(/retry in\s+(\d+(?:\.\d+)?)\s*s/i);
+  if (m1) retryMs = Math.min(Math.ceil(parseFloat(m1[1]) * 1000), 15000);
+  if (status === 402) return { kind: 'exhausted' };
+  if (status === 401 || (status === 400 && /api[ _-]?key/i.test(b) && /invalid|not valid|expired|missing/i.test(b))) return { kind: 'auth' };
+  if (status === 429 || status === 403) {
+    if (/insufficient[_ ]quota|out of credits|credit balance|billing[_ ]hard[_ ]limit|spending limit|PerDay|per day|daily|limit:\s*0\b/i.test(b)) return { kind: 'exhausted' };
+    if (/PerMinute|per minute|rate[_ ]?limit|too many requests|retry/i.test(b)) return { kind: 'rate', retryMs: retryMs || 4000 };
+    if (status === 429) return { kind: 'rate', retryMs: retryMs || 4000 };
+    if (/quota|billing|credit/i.test(b)) return { kind: 'exhausted' };
+    return { kind: 'auth' };
+  }
+  if (status === 400 && /url_context|google_search|grounding|tool|unsupported|not supported|Unknown name|Invalid JSON payload/i.test(b)) return { kind: 'tools_unsupported' };
+  if (status >= 500) return { kind: 'transient' };
+  return { kind: 'other' };
+}
 
-== الصفحات المتاحة في المنصة ==
-- index.html (الرئيسية)
-- sora.html (الملف الشخصي)
-- ashara.html (الإشعارات)
-- exams (الامتحانات)
-- homeworks (الواجبات)
-- courses (الكورسات)
-- library (المكتبة)
-- contests (المسابقات)
-- certificates (الشهادات)
-- login.html (تسجيل الدخول)
+// ---- إعادة المحاولة الذكية حول أي استدعاء خارجي ----
+async function mzRetry(call) {
+  let r = await call();
+  if (r.ok) { mzClearHold(); return r; }
+  if (r.kind === 'exhausted') { mzSetHold(MZ_HOLD_EXHAUSTED_MS); return r; }
+  if (r.kind === 'rate') {
+    await mzSleep(r.retryMs || 4000);
+    r = await call();
+    if (r.ok) { mzClearHold(); return r; }
+    if (r.kind === 'rate' || r.kind === 'exhausted') { mzSetHold(r.kind === 'exhausted' ? MZ_HOLD_EXHAUSTED_MS : MZ_HOLD_RATE_MS); r.kind = 'exhausted'; }
+    return r;
+  }
+  if (r.kind === 'transient' || r.reason === 'timeout' || r.reason === 'network') {
+    await mzSleep(1500);
+    r = await call();
+    if (r.ok) { mzClearHold(); return r; }
+    if (r.kind === 'exhausted') mzSetHold(MZ_HOLD_EXHAUSTED_MS);
+  }
+  return r;
+}
+
+// ---- أوامر النظام اللي الذكاء الخارجي بيطلقها بنفسه ----
+function mzParseTags(text) {
+  let t = String(text || '');
+  const r = { transfer: /\[\[\s*TRANSFER\s*\]\]/i.test(t), cancel: /\[\[\s*CANCEL(?:_TRANSFER)?\s*\]\]/i.test(t) };
+  r.text = t.replace(/\[\[\s*(?:TRANSFER|CANCEL(?:_TRANSFER)?)\s*\]\]/gi, '').trim();
+  return r;
+}
+
+// ---- الروابط: يوتيوب + جوجل درايف/دوكس (لازم تكون مشاركة "أي شخص لديه الرابط") ----
+function mzYoutubeUrl(t) {
+  const m = String(t || '').match(/https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?[^\s]*v=|shorts\/|live\/)|youtu\.be\/)[\w-]{6,}[^\s]*/i);
+  return m ? m[0] : '';
+}
+function mzExpandLinks(t) {
+  t = String(t || '');
+  const extra = [];
+  t.replace(/https?:\/\/drive\.google\.com\/file\/d\/([\w-]+)[^\s]*/gi, (m, id) => { extra.push('رابط التحميل المباشر لملف الدرايف: https://drive.google.com/uc?export=download&id=' + id); return m; });
+  t.replace(/https?:\/\/drive\.google\.com\/open\?id=([\w-]+)[^\s]*/gi, (m, id) => { extra.push('رابط التحميل المباشر لملف الدرايف: https://drive.google.com/uc?export=download&id=' + id); return m; });
+  t.replace(/https?:\/\/docs\.google\.com\/(document|presentation)\/d\/([\w-]+)[^\s]*/gi, (m, k, id) => { extra.push('نسخة نصية من المستند: https://docs.google.com/' + k + '/d/' + id + '/export?format=txt'); return m; });
+  t.replace(/https?:\/\/docs\.google\.com\/spreadsheets\/d\/([\w-]+)[^\s]*/gi, (m, id) => { extra.push('نسخة CSV من الجدول: https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv'); return m; });
+  return extra.length ? t + '\n\n[ملحوظة للنظام (مش من المستخدم): ' + extra.slice(0, 3).join(' | ') + ']' : t;
+}
+
+// ---- Gemini: بحث جوجل + قراءة الروابط + فيديو يوتيوب ----
+function mzBuildGeminiBody(system, history, userMessage, maxTokens, opts) {
+  opts = opts || {};
+  if (history.length && history[history.length - 1].role === 'user' && history[history.length - 1].content === userMessage) history = history.slice(0, -1);
+  const turns = [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.content })), { role: 'user', text: mzExpandLinks(userMessage) }];
+  const contents = [];
+  for (const t of turns) {
+    if (!t.text) continue;
+    const last = contents[contents.length - 1];
+    if (last && last.role === t.role) last.parts[0].text += '\n' + t.text;
+    else contents.push({ role: t.role, parts: [{ text: t.text }] });
+  }
+  while (contents.length && contents[0].role !== 'user') contents.shift();
+  const yt = opts.yt ? mzYoutubeUrl(userMessage) : '';
+  if (yt && contents.length) contents[contents.length - 1].parts.push({ fileData: { fileUri: yt } });
+  const body = { systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: Math.max(maxTokens || 0, 4096) } };
+  if (opts.tools) body.tools = [{ google_search: {} }, { url_context: {} }];
+  return body; // بدون temperature: جوجل أوقفتها في موديلات 3.5+
+}
+function mzSources(data) {
+  try {
+    const ch = (data.candidates && data.candidates[0] && data.candidates[0].groundingMetadata && data.candidates[0].groundingMetadata.groundingChunks) || [];
+    const seen = new Set(), out = [];
+    for (const c of ch) { const w = c && c.web; if (!w) continue; const t = String(w.title || '').trim(); if (!t || seen.has(t)) continue; seen.add(t); out.push(t); if (out.length >= 5) break; }
+    return out.length ? '\n\n🔎 المصادر: ' + out.join(' • ') : '';
+  } catch (e) { return ''; }
+}
+function mzCapabilities(toolsOn) {
+  return toolsOn
+    ? '== أدواتك في الطلب ده ==\n- عندك بحث جوجل مباشر وقراءة روابط. استخدمهم لما السؤال محتاج كتاب أو مرجع أو مبحث أو خبر أو رابط.\n- لو المستخدم بعت رابط (مقال/PDF/كتاب/جوجل درايف عام) افتحه واقرا محتواه وبعدين اشرحه. لو بعت رابط يوتيوب فالفيديو نفسه مرفق معاك.\n- لو رابط ما اتفتحش قول ده بصراحة واطلب منه يخلي الملف «أي شخص لديه الرابط» أو يلصق النص.'
+    : '== أدواتك في الطلب ده ==\n- البحث على الإنترنت وفتح الروابط مش متاحين دلوقتي. لو المستخدم طلب بحث أو فتح رابط/كتاب، وضّحله بصراحة إنك مش قادر تفتحه حالياً واطلب منه يلصق النص، وساعده بمعرفتك العامة من غير ما تألف مصادر أو اقتباسات.';
+}
+const MZ_FINAL_RULES = '== قواعد نهائية ==\n- ما تكشفش معلومات حساسة (كلمة السر، الإيميل الكامل، الرقم القومي، أكواد الدفع).\n- لو سُئلت عن اسم المستخدم أو بياناته جاوب فوراً من (بيانات المستخدم الحالي).\n- اسأل نفسك الأول: السؤال عن المنصة ولا موضوع علمي/عام؟ (كلمة «قانون» لوحدها مش معناها قوانين المنصة) وجاوب على الأساس ده.\n- طوّل أو اختصر على قد السؤال: السؤال البسيط في أسطر قليلة، والشرح الدراسي كامل ومنظم.\n- ما تدّعيش إنك فتحت رابط أو كتاب إلا لو محتواه وصلك فعلاً، وما تألفش اقتباسات أو أرقام صفحات.\n- لو المستخدم طلب موظف/دعم بشري صراحةً ضيف [[TRANSFER]] في آخر ردك.';
+
+// ============================================================
+// 🎯 كاشف نوع السؤال: موضوع علمي/عام ولا يخص المنصة؟
+// (مثال: «اشرح قانون الأسرة» ≠ «قوانين المنصة»)
+// ============================================================
+const MZ_PLAT_RE = /(منصه|موقع|ميزان|meezan|تطبيق|دعم|حسابي|حسابك|بياناتي|كورس|امتحان|اختبار|واجب|شهاد|كود|دخول|تسجيل|اشتراك|مسابق|اشعار|باسورد|كلمه السر|كلمه المرور|فرقتي|فرقتك|معلم|مدرس|درجات|نتيجتي|نسبتي|رابط|لينك)/;
+const MZ_BOOK_RE = /(كتاب|كتب|مكتبه|ملخص|تلخيص|pdf)/;
+const MZ_EXPLAIN_RE = /(^|\s)(اشرح|اشرحلي|شرح|تشرح|فهمني|وضحلي|وضح|لخص|لخصلي|فسر|حلل|عرفني|عرف|تعريف|يعني ايه|معني|ما هو|ما هي|ايه هو|ايه هي|ايه هما|مبحث|محاضره|مذكره|ابحث عن|دور علي|دورلي علي|هاتلي|هات لي|احكيلي|حدثني عن|اذاكر|مراجعه)(\s|$)/;
+const MZ_EXPLAIN_G = /(^|\s)(اشرحلي|اشرح لي|اشرح|شرح|تشرح|فهمني|وضحلي|وضح لي|وضح|لخصلي|لخص لي|لخص|فسر|حلل|عرفني|عرف|تعريف|يعني ايه|معني|ما هو|ما هي|ايه هو|ايه هي|ايه هما|مبحث|محاضره|مذكره|ابحث عن|دور علي|دورلي علي|هاتلي|هات لي|احكيلي|حدثني عن|اذاكر|مراجعه)(?=\s|$)/g;
+const MZ_LAW_RE = /(^|\s)(قانون|قوانين|تشريع|تشريعات|لايحه|دستور)(\s|$)/;
+const MZ_LAW_WORDS = new Set(['قانون', 'قوانين', 'تشريع', 'تشريعات', 'لايحه', 'دستور']);
+const MZ_FILLER = new Set(['عايز', 'عاوز', 'اريد', 'ممكن', 'لو', 'سمحت', 'اعرف', 'معلومات', 'عن', 'في', 'علي', 'من', 'لي', 'لا', 'ده', 'دي', 'دا', 'انا', 'يا', 'بقي', 'طيب', 'كده', 'حاجه', 'موضوع', 'بخصوص', 'يعني', 'ايه', 'هو', 'هي', 'ما', 'هل', 'الي', 'اللي', 'كل', 'عندي', 'مش', 'فاهم', 'فاهمه', 'بالتفصيل', 'ببساطه', 'شويه', 'كتاب', 'كتب', 'ملخص', 'تلخيص', 'مكتبه', 'pdf', 'ازاي', 'ليه', 'امتي', 'مين', 'فين', 'كام']);
+function mzIsPlatformText(lower) { return MZ_PLAT_RE.test(lower); }
+function mzTopicTokens(lower) {
+  return lower.replace(MZ_EXPLAIN_G, ' ').split(' ').map(w => w.replace(/^(وال|بال|لل|ال)/, '')).filter(w => w.length > 2 && !MZ_FILLER.has(w));
+}
+function mzGeneralTopic(userText) {
+  const raw = String(userText || '');
+  const lower = norm(raw);
+  const words = lower.split(' ').filter(Boolean);
+  if (words.length < 2) return null;
+  if (/(حولني|تحويل|دعم بشري|الغي|الغاء|مش شغال|عندي مشكله|شكوي)/.test(lower)) return null;
+  const explain = MZ_EXPLAIN_RE.test(lower), law = MZ_LAW_RE.test(lower);
+  if (MZ_PLAT_RE.test(lower)) return null;
+  if (MZ_BOOK_RE.test(lower) && !explain && !law) return null;
+  let topic = mzTopicTokens(lower);
+  if (law && !explain) topic = topic.filter(w => !MZ_LAW_WORDS.has(w));
+  const ok = (explain && topic.length >= 1) || (law && topic.length >= 1);
+  if (!ok) return null;
+  const shown = raw.replace(/^\s*(?:ممكن\s+|لو سمحت\s+|عايز\s+|عاوز\s+)?(?:تشرح(?:لي| لي)?|اشرح(?:لي| لي)?|شرح|فهمني|وضح(?:لي| لي)?|لخص(?:لي| لي)?|فسر|عرفني(?: ب| عن)?|هات(?:لي| لي)?)\s+/, '').replace(/[؟?!.]+$/, '').trim().slice(0, 60) || raw.slice(0, 60);
+  return { topic: topic.join(' '), shown };
+}
+const MZ_GENERAL_NOTE_NONE = (name, shown) => `🤔 يا ${name}، سؤالك عن «${shown}» ده موضوع علمي/عام، ومش من قوانين أو خدمات منصة ميزان.\n\nأنا دلوقتي شغال بالمساعد المحلي اللي بيجاوب عن المنصة وحسابك (امتحانات، واجبات، كورسات، شهادات، مكتبة...). والمساعد الذكي المتقدم اللي بيشرح الموضوعات العامة مش متاح لحظياً، فمش هقدر أشرحه صح من غير ما أخمّن.\n\nتقدر:\n• تسأل عن قوانين المنصة بكتابة «قوانين المنصة»\n• تدوّر في المكتبة أو الكورسات بالاسم\n• تكتب «حولني للدعم» وموظف يساعدك\n• أو ترجع تسألني بعد شوية 🌟`;
+const MZ_GENERAL_NOTE_FOUND = (name, shown, lines) => `📚 يا ${name}، «${shown}» موضوع دراسي/عام ومش من قوانين المنصة نفسها.\n\nبس لقيتلك في المنصة حاجات قريبة منه:\n${lines}\n\n⚠️ شرحه بالتفصيل محتاج المساعد الذكي المتقدم وهو مش متاح لحظياً دلوقتي. افتح المحتوى ده من المنصة، ولو عايز حد يشرحلك اكتب «حولني للدعم».`;
+
+
+const STRONG_SYSTEM_PROMPT = `[MZ-PERSONA-V2]
+أنت «ميزان الذكي» 🤖 — العقل الذكي الرسمي لمنصة ميزان (MEEZAN) التعليمية. أنت في نفس الوقت: مدرّس خبير بيشرح أي حاجة، وباحث شاطر بيجيب الكتب والمراجع، ومساعد دعم فني عارف المنصة وبيانات المستخدم كويس.
+
+== شخصيتك وأسلوبك ==
+- بتتكلم بلهجة مصرية طبيعية وسلسة ومحترمة، زي مدرّس شاطر بيحب طلابه. وبتستخدم الفصحى بس في المصطلحات العلمية والقانونية والنصوص اللي لازم تتنقل بدقة.
+- بتفهم قصد المستخدم الحقيقي حتى لو كتب بسرعة أو بأخطاء إملائية، وبتجاوب على اللي اتسأل فيه بالظبط من غير لف ولا دوران.
+- واثق وهادي ومنظّم وودود، وبتستخدم الإيموجي باعتدال.
+- لو المستخدم كتب بلغة تانية (إنجليزي مثلاً) رد بنفس لغته.
+- مبتقولش «معرفش» وتسكت: لو محتاج تتأكد بتبحث، ولو ملقيتش حاجة بتقول بصراحة اللي عرفته واللي لأ.
+
+== أول حاجة تفكر فيها في كل رسالة ==
+فرّق بين نوعين من الأسئلة وجاوب على الأساس ده:
+1) أسئلة عن المنصة وحسابه (قوانين المنصة، الدخول، الامتحانات، الواجبات، الكورسات، الشهادات، الدعم، بياناته) ← جاوب من «بيانات المستخدم» و«سياق المنصة» اللي معاك.
+2) أسئلة علمية أو دراسية أو عامة (مثلاً: اشرح لي قانون الأسرة، لخّصلي كتاب، يعني إيه التضخم) ← ده موضوع دراسي ملوش علاقة بقوانين المنصة، فاشرحه من معرفتك وبحثك.
+مهم: كلمة «قانون» لوحدها مش معناها قوانين المنصة. «قانون الأسرة» أو «القانون المدني» مادة قانونية بتشرحها، و«قوانين المنصة» قواعد استخدام ميزان. ولو الجملة ممكن تتفسر بالاتنين اسأل سؤال واحد قصير بس.
 
 == قدراتك ==
-- لديك وصول لكل بيانات المستخدم الحقيقية (اسمه، كوده، فرقته، امتحاناته، واجباته، نسبته، شهاداته)
-- تعرف إحصائيات المنصة
-- تعرف الميزات والصفحات
-- تستطيع توجيه المستخدم للصفحة الصحيحة
-- تستطيع تحويله للدعم البشري عند الحاجة
+1) شرح أي حاجة: في أي مادة (قانون، شريعة، لغات، علوم، رياضيات، تاريخ، طب، تجارة، برمجة...). لما حد يقولك «اشرح لي المبحث/الجزئية دي» اشرحها شرح كامل ومرتب: فكرة عامة ← تفصيل بعناوين واضحة ← أمثلة ← خلاصة في الآخر. بسّط من غير ما تخل بالمعنى، ولو في نقطة صعبة اشرحها بمثال من الواقع. وفي الآخر اسأله لو عايز تفصيل أكتر في نقطة معينة.
+2) البحث على الإنترنت (لما أداة البحث تكون متاحة): أي كتاب أو مرجع أو مبحث أو قانون أو خبر. دوّر، قارن بين أكتر من مصدر، وفضّل المصادر الرسمية والأكاديمية، وقول اسم المصدر.
+3) فتح الروابط وقراءتها: لو بعت رابط (مقال، PDF، كتاب، فيديو يوتيوب، ملف أو مجلد جوجل درايف) افتحه واقرا اللي جواه واشرحه ولخّصه وجاوب على أسئلته عنه. ملفات جوجل درايف لازم تكون مشاركة «أي شخص لديه الرابط».
+4) «افتح الكتاب واشرحه»: دوّر على الكتاب، افتح الرابط لو لقيته، وبعدين اشرح الباب أو الفصل أو الجزئية اللي طلبها بالترتيب مع التلخيص والأمثلة.
+5) بيانات المنصة والمستخدم: استخدم بياناته الحقيقية (اسمه، كوده، فرقته، امتحاناته، واجباته، نسبته، شهاداته) وإحصائيات المنصة وكورساتها ومكتبتها.
 
-== الأوامر الخاصة (مهم جداً - يجب أن تنفذها بدقة) ==
-1. إذا قال المستخدم أي من هذه:
-   - "حولني للدعم" / "عايز دعم" / "أريد التحدث مع موظف" / "دعم بشري" / "اتكلم مع حد" / "مسؤول"
-   - "مش شغال" / "عندي مشكلة" / "شكوى"
-   → **يجب أن ترد بـ** "✅ تم تحويلك للدعم البشري. سيتم الرد عليك في أقرب وقت." (وسيقوم النظام تلقائياً بالتحويل)
+== أمانة المعلومات (مهم جداً) ==
+- ممنوع تماماً تدّعي إنك فتحت رابط أو قريت كتاب وإنت ما قريتوش فعلاً. لو الرابط ما اتفتحش (خاص، محتاج تسجيل دخول، أو محمي) قول ده بصراحة واطلب منه يخلي الملف عام أو يلصق النص.
+- ممنوع تألف اقتباسات أو أرقام صفحات أو مواد قانونية أو مصادر. لو مش متأكد من رقم مادة أو نص، قول كده وادّيله الفكرة العامة.
+- في الكتب المحمية بحقوق نشر: لخّص واشرح بأسلوبك، وما تنسخش فقرات طويلة حرفياً.
+- بيانات المنصة اللي مش متاحة معاك ما تخترعهاش، قول إنها مش متاحة واقترح الدعم البشري.
 
-2. إذا قال "ألغِ التحويل" / "ارجعني للبوت" / "الغِ التحويل" / "وقف التحويل":
-   → **يجب أن ترد بـ** "✅ تم إلغاء التحويل. أنا هنا لمساعدتك مرة أخرى." (وسيقوم النظام تلقائياً بإلغاء التحويل)
+== أمان ==
+- ⛔ ما تكشفش أبداً: كلمة السر، الإيميل الكامل، الرقم القومي، أكواد الدفع، أو أي معلومة حساسة.
+- ✅ تقدر تذكر: اسمه، كوده، فرقته، عدد امتحاناته وواجباته، نسبته، شهاداته.
 
-3. إذا سأل "مين أنت" / "من أنت" / "انت مين" / "who are you":
-   → **يجب أن ترد بـ**: "أنا ميزان الذكي 🤖 - المساعد الرسمي لمنصة ميزان التعليمية. كيف أقدر أساعدك؟"
+== أوامر النظام (تنفذها بدقة) ==
+- لو المستخدم طلب صراحةً يكلم موظف أو دعم بشري، أو عنده مشكلة فعلاً مش هتقدر تحلها: رد بجملة قصيرة وضيف في آخر الرد العلامة [[TRANSFER]] بالظبط.
+- لو قال «متحولنيش» أو «مش عايز دعم»: ما تحولهوش، وكمّل معاه عادي.
+- لو سأل «انت مين»: أنا ميزان الذكي، المساعد الرسمي لمنصة ميزان.
 
-4. إذا سأل "معلوماتي" / "بياناتي" / "حسابي" / "من أنا":
-   → اعرض له معلوماته من البيانات الحقيقية (اسمه، كوده، فرقته)
-
-5. إذا سأل "نسبتي" / "مستواي" / "درجاتي":
-   → اعرض له نسبة تفوقه الحقيقية
-
-6. إذا سأل عن الامتحانات أو الواجبات:
-   → اعرض العدد الحقيقي المكتمل من الإجمالي
-
-== قواعد صارمة (يجب الالتزام) ==
-⛔ **لا تكشف أبداً**:
-- كلمة السر
-- الإيميل الكامل
-- الرقم القومي
-- أكواد الدفع
-- أي معلومات حساسة
-
-✅ **يمكنك ذكر**:
-- اسم المستخدم
-- الكود
-- الفرقة/المادة
-- عدد الامتحانات/الواجبات (الحقيقي)
-- النسبة المئوية
-- الشهادات المستحقة
-
-== أسلوب الرد ==
-- بالعربية الفصحى المبسطة
-- ودود ومحترف
-- مختصر (2-4 أسطر) إلا لو طُلب التفصيل
-- استخدم إيموجي باعتدال
-- لا تختلق معلومات. إذا لم تتوفر بيانات، قل ذلك بوضوح واقترح الدعم
-
-== تذكير ==
-أنت "ميزان الذكي" - مساعد منصة ميزان الرسمي.
-لا تقل "لا أعرف" أبداً. إذا كنت لا تعرف شيء، قل "هذه المعلومة غير متاحة لي، هل تريد التحويل للدعم البشري؟"
-كن ذكياً واستخدم البيانات الحقيقية المرفقة معك.`;
+== طريقة العرض ==
+- الشات بيعرض **الخط الغامق** والنقاط (•) والإيموجي بس، فما تستخدمش جداول ولا علامات # للعناوين.
+- السؤال البسيط: جاوب في سطرين لخمسة. الشرح الدراسي أو البحث: رد كامل ومنظم بعناوين قصيرة بالإيموجي وفقرات قصيرة، من غير حشو.`;
 
 const DEFAULT_BOT_SETTINGS = {
   enabled: true,
@@ -1425,7 +1536,7 @@ const DEFAULT_BOT_SETTINGS = {
   welcomeMsg: 'أهلاً بك يا {name} 👋\nأنا ميزان الذكي، المساعد الرسمي للمنصة.\nكيف أقدر أساعدك اليوم؟',
   transferMsg: '✅ تم تحويل محادثتك لفريق الدعم الفني.\nسيتم الرد عليك في أقرب وقت ممكن.\nشكراً لصبرك 🌸',
   returnMsg: '🤖 تم إعادة تحويل محادثتك للبوت الذكي.\nأنا هنا لمساعدتك! كيف أقدر أساعدك؟',
-  apiErrorMsg: '⚠️ حدث خطأ مؤقت، جاري تحويلك للدعم البشري.'
+  apiErrorMsg: MZ_TEMP_ERR
 };
 
 let botSettings = { ...DEFAULT_BOT_SETTINGS };
@@ -1829,7 +1940,7 @@ function startBotSettingsListener() {
     if (snap.exists()) {
       botSettings = { ...DEFAULT_BOT_SETTINGS, ...snap.data() };
       // لو الـ systemPrompt قديم، استخدم الجديد
-      if (!botSettings.systemPrompt || botSettings.systemPrompt.length < 200) {
+      if (!botSettings.systemPrompt || botSettings.systemPrompt.indexOf(MZ_PERSONA_MARK) === -1) {
         botSettings.systemPrompt = STRONG_SYSTEM_PROMPT;
       }
     } else {
@@ -2197,28 +2308,40 @@ async function respondWithBot(userText, userMsgId) {
   if (!isBotAvailable()) return;
   if (userMsgId) { if (processedMsgIds.has(userMsgId)) return; processedMsgIds.add(userMsgId); }
   const name = currentUser?.fullName || currentUserName || 'صديقي';
-  const cmd = detectCommand(userText);
-  if (cmd === 'transfer') { await triggerTransferToSupport(); return; }
-  if (cmd === 'cancel') {
-    try { await saveMessage({ id: userMsgId ? 'botr_' + userMsgId : undefined, sender: 'bot', text: '👍 تمام، مش هحولك لحد. أنا معاك وأقدر أساعدك في أي حاجة.', actions: getMainMenu() }); } catch (e) {}
-    return;
-  }
   if (botSettings.typingSignal !== false) { botTyping = true; $('typingIndicator').classList.remove('hidden'); scrollToBottom(); }
-  let reply = null;
+  let reply = null, goTransfer = false;
   try {
     try { await loadPlatformData(); } catch (e) {}
     const userData = (botSettings.accessDb && currentUserId) ? await fetchUserData(currentUserId, currentRole) : null;
-    if (botSettings.apiEnabled && botSettings.apiUrl) {
-      const exact = buildLocalBotReply(userText, name, userData, true);
-      if (exact) reply = exact;
-      else {
-        const r = await callExternalAPI(userText, userData);
-        if (r.ok) reply = { text: r.text, actions: [] }; else console.warn('API failed:', r.reason);
+    // ✅ الذكاء الخارجي هو المتحكم الوحيد طول ما هو شغال ورصيده موجود
+    let internal = mzExtMode() === 'internal';
+    if (!internal) {
+      const r = await mzRetry(() => callExternalAPI(userText, userData));
+      if (r.ok) {
+        const tg = mzParseTags(r.text);
+        if (tg.transfer) goTransfer = true;
+        else reply = { text: tg.text || '👍', actions: [] };
+      } else if (r.kind === 'exhausted' || MZ_INTERNAL_ON_HARD_ERRORS) {
+        internal = true; // الرصيد خلص → البوت الداخلي يستلم
+      } else {
+        console.warn('external AI failed:', r.reason);
+        reply = { text: mzTempErrText(), actions: [] };
       }
     }
-    if (!reply) reply = buildLocalBotReply(userText, name, userData);
+    // 🤖 البوت الداخلي: لا يعمل إلا لو الخارجي مقفول أو رصيده خلص
+    if (internal) {
+      const gt = mzGeneralTopic(userText);
+      if (gt) reply = mzGeneralTopicReply(gt, name);
+      else {
+        const cmd = detectCommand(userText);
+        if (cmd === 'transfer') goTransfer = true;
+        else if (cmd === 'cancel') reply = { text: '👍 تمام، مش هحولك لحد. أنا معاك وأقدر أساعدك في أي حاجة.', actions: getMainMenu() };
+        else reply = buildLocalBotReply(userText, name, userData);
+      }
+    }
   } catch (e) { console.warn('bot error', e); }
   botTyping = false; $('typingIndicator').classList.add('hidden');
+  if (goTransfer) { await triggerTransferToSupport(); return; }
   if (!reply) return;
   if (reply.transferToSupport) { await triggerTransferToSupport(); return; }
   if (reply.cancelTransfer) { await cancelTransfer(); return; }
@@ -2230,19 +2353,6 @@ const processedMsgIds = new Set();
 
 // ===== دعم Gemini (generativelanguage.googleapis.com): صيغة الطلب + ترويسة المفتاح =====
 const isGeminiUrl = (u) => /generativelanguage\.googleapis\.com/i.test(u || '');
-function buildGeminiBody(system, history, userMessage, maxTokens, temperature) {
-  if (history.length && history[history.length - 1].role === 'user' && history[history.length - 1].content === userMessage) history = history.slice(0, -1); // منع تكرار نفس رسالة المستخدم
-  const turns = [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.content })), { role: 'user', text: userMessage }];
-  const contents = [];
-  for (const t of turns) {
-    if (!t.text) continue;
-    const last = contents[contents.length - 1];
-    if (last && last.role === t.role) last.parts[0].text += '\n' + t.text;
-    else contents.push({ role: t.role, parts: [{ text: t.text }] });
-  }
-  while (contents.length && contents[0].role !== 'user') contents.shift();
-  return { systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: Math.max(maxTokens || 500, 1024) } }; // بدون temperature: جوجل أوقفتها في موديلات 3.5+
-}
 function applyGeminiAuth(headers, url, key) {
   delete headers['Authorization'];
   if (key && !/[?&]key=/.test(url) && !headers['x-goog-api-key']) headers['x-goog-api-key'] = key;
@@ -2252,94 +2362,76 @@ function applyGeminiAuth(headers, url, key) {
 // 🌐 استدعاء الـ API الخارجي - نسخة قوية
 // ============================================================
 async function callExternalAPI(userMessage, userData) {
-  if (!botSettings.apiEnabled || !botSettings.apiUrl) {
-    return { ok: false, reason: 'api_disabled' };
-  }
+  if (!botSettings.apiEnabled || !botSettings.apiUrl) return { ok: false, reason: 'api_disabled', kind: 'disabled' };
 
-  const systemPrompt = botSettings.systemPrompt || STRONG_SYSTEM_PROMPT;
+  const systemPrompt = (botSettings.systemPrompt && botSettings.systemPrompt.indexOf(MZ_PERSONA_MARK) !== -1) ? botSettings.systemPrompt : STRONG_SYSTEM_PROMPT;
   const userContext = buildUserContext(userData);
   const siteContext = await buildSiteContext();
+  const mkSystem = (toolsOn) => `${systemPrompt}\n\n${userContext}\n\n== سياق المنصة ==\n${siteContext}\n\n${mzCapabilities(toolsOn)}\n\n${MZ_FINAL_RULES}`;
 
-  // سياق كامل
-  const systemContent = `${systemPrompt}
-
-${userContext}
-
-== سياق المنصة ==
-${siteContext}
-
-== قواعد نهائية ==
-- أنت "ميزان الذكي" المساعد الرسمي للمنصة
-- لا تقل "لا أعرف" أبداً
-- استخدم البيانات الحقيقية فوق
-- لا تكشف معلومات حساسة (كلمة سر، إيميل كامل، رقم قومي، أكواد دفع)
-- إذا لم تجد معلومة، اقترح التحويل للدعم البشري\n- أنت المتحدث الرسمي باسم منصة ميزان؛ أجب عن أي سؤال عن المنصة (الرابط، التسجيل، الدخول، القوانين، الواجبات، الامتحانات، الكورسات والأسعار، المكتبة، المعلمين، الإشعارات) بالتفصيل من (معرفة المنصة) و(بيانات المنصة الحية) أعلاه. وإذا سُئلت عن اسم المستخدم أو بياناته فأجب فوراً من (بيانات المستخدم الحالي). لا تقل أبداً إنك لا تعرف اسمه إذا كان مكتوباً في بياناته. اجعل الإجابة دقيقة ومنظمة وودودة`;
-
-  // آخر 10 رسائل
-  const history = (localMessages || []).slice(-10).map(m => ({
+  let history = (localMessages || []).filter(m => !m.isSystem && !m.deleted).slice(-12).map(m => ({
     role: m.sender === 'user' ? 'user' : 'assistant',
     content: m.text || ''
   })).filter(m => m.content);
-
-  const body = {
-    model: botSettings.apiModel || 'default',
-    messages: [
-      { role: 'system', content: systemContent },
-      ...history,
-      { role: 'user', content: userMessage }
-    ],
-    max_tokens: parseInt(botSettings.apiMaxTokens) || 500,
-    temperature: parseFloat(botSettings.apiTemperature) || 0.7
-  };
+  if (history.length && history[history.length - 1].role === 'user' && history[history.length - 1].content === userMessage) history = history.slice(0, -1);
 
   let extraHeaders = {};
-  if (botSettings.apiHeaders) {
-    try { extraHeaders = JSON.parse(botSettings.apiHeaders); } catch (e) {}
-  }
-
+  if (botSettings.apiHeaders) { try { extraHeaders = JSON.parse(botSettings.apiHeaders); } catch (e) {} }
   const headers = { 'Content-Type': 'application/json', ...extraHeaders };
   const gem = isGeminiUrl(botSettings.apiUrl);
   if (gem) applyGeminiAuth(headers, botSettings.apiUrl, botSettings.apiKey);
-  else if (botSettings.apiKey && !headers['Authorization']) {
-    headers['Authorization'] = 'Bearer ' + botSettings.apiKey;
+  else if (botSettings.apiKey && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + botSettings.apiKey;
+
+  const maxTok = parseInt(botSettings.apiMaxTokens) || 0;
+  const hasYt = !!mzYoutubeUrl(userMessage);
+  let list = gem ? (mzToolsOk ? [{ tools: true, yt: hasYt }, { tools: true, yt: false }, { tools: false, yt: false }] : [{ tools: false, yt: false }]) : [{ tools: false, yt: false }];
+  list = list.filter((x, i) => i === 0 || JSON.stringify(x) !== JSON.stringify(list[i - 1]));
+  const timeoutMs = Math.max(parseInt(botSettings.apiTimeout) || 30, gem ? 45 : 30) * 1000;
+  let lastFail = { ok: false, reason: 'network', kind: 'transient' };
+
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i];
+    const sys = mkSystem(a.tools);
+    const reqBody = gem
+      ? mzBuildGeminiBody(sys, history, userMessage, maxTok, a)
+      : { model: botSettings.apiModel || 'default', messages: [{ role: 'system', content: sys }, ...history, { role: 'user', content: mzExpandLinks(userMessage) }], max_tokens: Math.max(maxTok, 1500), temperature: parseFloat(botSettings.apiTemperature) || 0.7 };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(botSettings.apiUrl, { method: 'POST', headers, body: JSON.stringify(reqBody), signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) {
+        let bt = ''; try { bt = await res.text(); } catch (e) {}
+        const c = mzClassify(res.status, bt);
+        lastFail = { ok: false, reason: 'http_' + res.status, kind: c.kind, retryMs: c.retryMs };
+        if (c.kind === 'tools_unsupported' && i < list.length - 1) { if (!list[i + 1].tools) mzToolsOk = false; continue; }
+        return lastFail;
+      }
+      const data = await res.json();
+      let replyText = '';
+      if (data.choices && data.choices[0]?.message?.content) replyText = data.choices[0].message.content;
+      else if (data.candidates && data.candidates[0]?.content?.parts?.length) replyText = data.candidates[0].content.parts.map(p => p.text || '').join('');
+      else if (Array.isArray(data.content) && data.content[0]?.text) replyText = data.content[0].text;
+      else if (data.content && typeof data.content === 'string') replyText = data.content;
+      else if (data.reply) replyText = data.reply;
+      else if (data.message) replyText = typeof data.message === 'string' ? data.message : data.message.content;
+      else if (data.response) replyText = data.response;
+      else if (typeof data === 'string') replyText = data;
+
+      if (!replyText || !String(replyText).trim()) {
+        lastFail = { ok: false, reason: 'empty_response', kind: 'other' };
+        if (i < list.length - 1) continue;
+        return lastFail;
+      }
+      if (data.candidates) replyText += mzSources(data);
+      return { ok: true, text: String(replyText).trim() };
+    } catch (e) {
+      clearTimeout(timer);
+      return { ok: false, reason: e.name === 'AbortError' ? 'timeout' : 'network', kind: 'transient' };
+    }
   }
-  const reqBody = gem ? buildGeminiBody(systemContent, history, userMessage, parseInt(botSettings.apiMaxTokens) || 500, parseFloat(botSettings.apiTemperature) || 0.7) : body;
-
-  const controller = new AbortController();
-  const timeoutMs = (parseInt(botSettings.apiTimeout) || 30) * 1000;
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(botSettings.apiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(reqBody),
-      signal: controller.signal
-    });
-
-    clearTimeout(timer);
-
-    if (!res.ok) return { ok: false, reason: 'http_' + res.status };
-
-    const data = await res.json();
-
-    let replyText = '';
-    if (data.choices && data.choices[0]?.message?.content) replyText = data.choices[0].message.content;
-    else if (data.candidates && data.candidates[0]?.content?.parts?.length) replyText = data.candidates[0].content.parts.map(p => p.text || '').join('');
-    else if (data.content && typeof data.content === 'string') replyText = data.content;
-    else if (data.reply) replyText = data.reply;
-    else if (data.message) replyText = typeof data.message === 'string' ? data.message : data.message.content;
-    else if (data.response) replyText = data.response;
-    else if (typeof data === 'string') replyText = data;
-
-    if (!replyText) return { ok: false, reason: 'empty_response' };
-
-    return { ok: true, text: replyText.trim() };
-
-  } catch (e) {
-    clearTimeout(timer);
-    return { ok: false, reason: e.name === 'AbortError' ? 'timeout' : 'network' };
-  }
+  return lastFail;
 }
 
 // ============================================================
@@ -2526,6 +2618,20 @@ function smartLocalAnswer(userText, lower, has, ctx) {
   return null;
 }
 
+function mzGeneralTopicReply(gt, name) {
+  const qt = new Set(tokens(gt.topic));
+  const L = platformItems(); const found = [];
+  [['library', L.library], ['course', L.courses], ['exam', L.exams], ['homework', L.homeworks]].forEach(([kind, arr]) => (arr || []).forEach(o => {
+    const tt = tokens(val(o, T_KEYS)); if (!tt.length || !qt.size) return;
+    const hit = tt.filter(w => qt.has(w)).length; const cov = hit / qt.size;
+    if (hit >= 1 && cov >= 0.6) found.push({ kind, o, cov, hit });
+  }));
+  found.sort((x, y) => y.cov - x.cov || y.hit - x.hit);
+  const back = [{ id: 'support', label: '💬 الدعم البشري', icon: 'fa-headset', type: 'danger' }, { id: 'main_menu', label: '🔙 القائمة', icon: 'fa-arrow-right' }];
+  if (found.length) return { text: MZ_GENERAL_NOTE_FOUND(name, gt.shown, found.slice(0, 5).map(f => describeItem(f.kind, f.o)).join('\n\n')), actions: back };
+  return { text: MZ_GENERAL_NOTE_NONE(name, gt.shown), actions: back };
+}
+
 function buildUserContext(userData) {
   const u = userData || currentUser || {};
   const name = u.fullName || currentUserName || 'مستخدم';
@@ -2585,6 +2691,9 @@ function buildLocalBotReply(userText, name, userData, strict) {
   const lower = norm(userText);
   const has = (...kws) => kws.some(k => lower.includes(norm(k)));
 
+  // 🎯 موضوع علمي/عام (مش قوانين المنصة)؟
+  const __gt = mzGeneralTopic(userText); if (__gt) return mzGeneralTopicReply(__gt, name);
+
   // ⭐ 1. إلغاء التحويل (أولوية عالية)
   if (has('الغاء التحويل', 'إلغاء التحويل', 'الغي التحويل', 'ألغي التحويل', 'ارجعني للبوت', 'رجعني للبوت', 'الغ التحويل', 'وقف التحويل', 'إلغ تحويل', 'الغ تحويل')) {
     return {
@@ -2624,7 +2733,7 @@ function buildLocalBotReply(userText, name, userData, strict) {
   if (has('سجل دخول', 'تسجيل الدخول', 'تسجيل دخول', 'login', 'sign in', 'اسجل', 'انشاء حساب', 'register', 'sign up')) {
     return { text: isLoggedIn ? `أنت مسجل دخولك بالفعل يا ${name} ✅` : `🔐 طريقة الدخول:\n1) افتح صفحة الدخول: ${base}login.html\n2) أدخل بياناتك أو اختر الدخول بجوجل.\n3) لو ليس لديك حساب اختر إنشاء حساب جديد.\nلو واجهتك مشكلة اكتب "حولني للدعم".`, actions: back };
   }
-  if (has('قانون', 'قوانين', 'شروط', 'سياسة', 'لائحة', 'القواعد')) {
+  if (has('قانون', 'قوانين', 'شروط', 'سياسة', 'لائحة', 'القواعد') && (mzIsPlatformText(lower) || lower.split(' ').length <= 3)) {
     const r = platformDataCache?.rules; const t = r && Object.values(r)[0];
     return { text: t ? `📜 قوانين المنصة:\n${t.slice(0, 700)}` : '📜 لمعرفة قوانين المنصة راجع صفحة الشروط أو اكتب "حولني للدعم".', actions: back };
   }
@@ -3282,7 +3391,7 @@ $('quickChips').addEventListener('click', (e) => {
 });
 
 function formatText(t) {
-  let s = escapeHtml(t);
+  let s = escapeHtml(String(t || '').replace(/^\s{0,3}#{1,6}\s*(.+)$/gm, '**$1**').replace(/^\s*[*\-]\s+/gm, '• '));
   s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(https?:\/\/[^\s<"']+[^\s<"'.,;:!؟،)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
   return s;
