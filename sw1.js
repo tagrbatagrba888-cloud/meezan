@@ -42,20 +42,32 @@ function resolveTarget(u) {
   } catch (e) { return new URL('index.html', self.registration.scope).href; }
 }
 
+// لو الصفحة المطلوبة مش موجودة (404) نرجع لصفحة الإشعارات بدل الشاشة السوداء
+async function safeTarget(url) {
+  try {
+    const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    if (r.status === 404) return new URL('asharat.html', self.registration.scope).href;
+  } catch (e) { /* أوفلاين: نكمل بالرابط كما هو */ }
+  return url;
+}
+
 // الضغط على الإشعار يفتح الصفحة المطلوبة
 // لو في تاب مفتوح للموقع نحوّله للصفحة (تبقى الجلسة محفوظة)، وإلا نفتح تاب جديد
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = resolveTarget(event.notification.data && event.notification.data.url);
+  const raw = resolveTarget(event.notification.data && event.notification.data.url);
   event.waitUntil((async () => {
+    const sameOrigin = new URL(raw).origin === new URL(self.registration.scope).origin;
+    const url = sameOrigin ? await safeTarget(raw) : raw;
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
     const origin = new URL(self.registration.scope).origin;
-    const mine = list.filter((c) => c.url.startsWith(origin));
-    for (const c of mine) {
-      try {
-        const nc = await c.navigate(url);
-        if (nc) { await nc.focus(); return; }
-      } catch (e) { /* نجرب اللي بعده */ }
+    if (sameOrigin) {
+      for (const c of list.filter((w) => w.url.startsWith(origin))) {
+        try {
+          const nc = await c.navigate(url);
+          if (nc) { await nc.focus(); return; }
+        } catch (e) { /* نجرب اللي بعده */ }
+      }
     }
     return clients.openWindow(url);
   })());

@@ -2,1436 +2,264 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0B3D2E">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ميزان">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="ميزان | MEEZAN">
-
 <title>الإشعارات | ميزان MEEZAN</title>
+
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('meezan_theme')||'light')}catch(e){}</script>
 
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ⚡ تحميل أسرع: اتصال مبكر + تحميل Firebase في الخلفية + خطوط وأيقونات غير معطِّلة للعرض -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</noscript>
 
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;
+  --accent:#C9A961;--accent-light:#E0C888;
+  --bg-page:#F3F0E8;--bg-card:#FFFFFF;--bg-input:#EEF2F0;
+  --text-main:#10261F;--text-sub:#66776F;--border:#E4E8E5;
+  --shadow:rgba(11,61,46,.10);
+  --error:#C0392B;--success:#1E7A5A;--warning:#E67E22;--info:#2980B9;
+  --brand:var(--primary);--on-brand:#fff;--hl:var(--accent);
+  --unread-bg:rgba(201,169,97,.10);
+  --r:18px;
+}
+[data-theme="dark"]{
+  --primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;
+  --accent:#0B3D2E;--accent-light:#145A43;
+  --bg-page:#0A1310;--bg-card:#121F1A;--bg-input:#1A2B24;
+  --text-main:#F2EFE6;--text-sub:#97AAA1;--border:#1F342C;
+  --shadow:rgba(0,0,0,.45);
+  --error:#E74C3C;--success:#2ECC71;--warning:#F39C12;--info:#3498DB;
+  --brand:var(--primary);--on-brand:#0A1310;--hl:var(--primary);
+  --unread-bg:rgba(201,169,97,.10);
+}
+html{scroll-behavior:smooth;background:var(--bg-page)}
+body{font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+a{color:inherit}
 
-  :root {
-    --primary: #0B3D2E;
-    --primary-light: #145A43;
-    --primary-lighter: #1E7A5A;
-    --accent: #C9A961;
-    --accent-light: #E0C888;
-    --bg-page: #F5F1E8;
-    --bg-card: #FFFFFF;
-    --bg-input: #F8FBF9;
-    --text-main: #0B3D2E;
-    --text-sub: #5A6B66;
-    --border: #E0E5E1;
-    --shadow: rgba(11, 61, 46, 0.15);
-    --error: #C0392B;
-    --success: #1E7A5A;
-    --warning: #E67E22;
-    --info: #2980B9;
-    --unread-bg: rgba(201, 169, 97, 0.08);
-  }
+/* ===== الهيدر ===== */
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 2px 14px var(--shadow)}
+.topbar-inner{max-width:820px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.topbar-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.back-btn,.icon-btn,.menu-btn{width:40px;height:40px;border-radius:13px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-main);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;text-decoration:none;flex-shrink:0;transition:transform .15s,background .2s}
+.back-btn:active,.icon-btn:active,.menu-btn:active{transform:scale(.92)}
+.topbar-title{display:flex;align-items:center;gap:10px;min-width:0}
+.topbar-title i.header-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--primary-light));color:var(--on-brand);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.topbar-title-text h1{font-size:17px;font-weight:900;line-height:1.2;color:var(--text-main)}
+.topbar-title-text small{display:block;font-size:10px;font-weight:700;letter-spacing:1.6px;color:var(--text-sub)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.avatar-btn{width:40px;height:40px;border-radius:50%;border:2px solid var(--hl);background:linear-gradient(135deg,var(--brand),var(--primary-light));color:var(--on-brand);display:flex;align-items:center;justify-content:center;font-weight:800;text-decoration:none;overflow:hidden;flex-shrink:0}
+.avatar-btn img{width:100%;height:100%;object-fit:cover;display:block}
+.menu-btn{display:none}
 
-  [data-theme="dark"] {
-    --primary: #C9A961;
-    --primary-light: #E0C888;
-    --primary-lighter: #F0DBA8;
-    --accent: #0B3D2E;
-    --accent-light: #145A43;
-    --bg-page: #0A1612;
-    --bg-card: #11201B;
-    --bg-input: #1A2C25;
-    --text-main: #F5F1E8;
-    --text-sub: #9BAEA6;
-    --border: #1E3A31;
-    --shadow: rgba(0, 0, 0, 0.5);
-    --error: #E74C3C;
-    --success: #2ECC71;
-    --warning: #F39C12;
-    --info: #3498DB;
-    --unread-bg: rgba(201, 169, 97, 0.12);
-  }
+/* ===== الحاوية ===== */
+.container{max-width:820px;margin:0 auto;padding:16px 14px 90px}
 
-  html { scroll-behavior: smooth; }
+/* ===== بطاقة الملخص ===== */
+.toolbar{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px;border-radius:22px;margin-bottom:14px;color:var(--on-brand);background:linear-gradient(135deg,var(--brand) 0%,var(--primary-light) 100%);box-shadow:0 10px 26px var(--shadow)}
+.toolbar::after{content:"";position:absolute;inset-inline-end:-40px;top:-50px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}
+.notif-count{position:relative;font-size:13px;font-weight:700;opacity:.92}
+.notif-count strong{font-size:26px;font-weight:900;margin:0 4px;vertical-align:middle}
+.toolbar-actions{position:relative;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border-radius:12px;border:1px solid transparent;font-size:12.5px;font-weight:800;cursor:pointer;transition:transform .15s,opacity .2s,background .2s}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.toolbar .btn-primary{background:rgba(255,255,255,.20);color:var(--on-brand);border-color:rgba(255,255,255,.28)}
+.toolbar .btn-cancel{background:rgba(0,0,0,.18);color:var(--on-brand);border-color:rgba(255,255,255,.16)}
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--primary-light));color:var(--on-brand)}
+.btn-cancel{background:var(--bg-input);color:var(--text-main);border-color:var(--border)}
+.btn-danger{background:var(--error);color:#fff}
 
-  body {
-    font-family: 'Cairo', sans-serif;
-    background: var(--bg-page);
-    min-height: 100vh;
+/* ===== التبويبات ===== */
+.tabs{display:flex;gap:4px;padding:5px;margin-bottom:14px;background:var(--bg-input);border-radius:16px;border:1px solid var(--border)}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 6px;border:none;border-radius:12px;background:transparent;color:var(--text-sub);font-size:13px;font-weight:800;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+.tab i{font-size:13px}
+.tab.active{background:var(--bg-card);color:var(--text-main);box-shadow:0 3px 10px var(--shadow)}
+.tab .tab-badge{min-width:20px;padding:1px 6px;border-radius:99px;font-size:10.5px;font-weight:900;background:var(--hl);color:#fff;line-height:1.6}
+[data-theme="dark"] .tab .tab-badge{color:#0A1310}
+.tab:not(.active) .tab-badge{background:var(--border);color:var(--text-sub)}
+
+/* ===== البطاقات ===== */
+.notif-list{display:flex;flex-direction:column;gap:10px}
+.notif-card{position:relative;display:flex;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s;content-visibility:auto;contain-intrinsic-size:auto 100px}
+.notif-card:active{transform:scale(.985)}
+@media (hover:hover){.notif-card:hover{box-shadow:0 8px 22px var(--shadow);transform:translateY(-2px)}}
+.notif-card.unread{background:linear-gradient(90deg,var(--bg-card),var(--unread-bg));border-color:color-mix(in srgb,var(--hl) 38%,var(--border))}
+.notif-card.unread::before{content:"";position:absolute;inset-inline-start:0;top:16px;bottom:16px;width:4px;border-radius:0 4px 4px 0;background:var(--hl)}
+.notif-card.enter{animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.notif-icon{--c:var(--brand);width:46px;height:46px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.notif-icon.image{--c:#8E44AD}.notif-icon.video{--c:#E74C3C}.notif-icon.link{--c:var(--info)}.notif-icon.page{--c:var(--warning)}
+.notif-content{flex:1;min-width:0}
+.notif-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.notif-title {
+    font-size: 14.5px;
+    font-weight: 800;
+    line-height: 1.5;
     color: var(--text-main);
-    opacity: 0;
-    transition: opacity 0.3s ease, background 0.4s ease;
-    overflow-x: hidden;
-  }
-
-  body.ready { opacity: 1; }
-
-  /* ============================================================
-     الهيدر
-     ============================================================ */
-  .topbar {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 4px 20px var(--shadow);
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    transition: background 0.4s ease, border-color 0.4s ease;
-  }
-
-  .topbar-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-    flex: 1;
-  }
-
-  .back-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    color: var(--primary);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: all 0.25s ease;
-    flex-shrink: 0;
-  }
-
-  [data-theme="dark"] .back-btn { color: var(--accent); }
-
-  .back-btn:hover {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-    transform: translateX(-3px);
-  }
-
-  [data-theme="dark"] .back-btn:hover { color: var(--bg-page); }
-
-  .topbar-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-  }
-
-  .topbar-title i.header-icon {
-    color: var(--accent);
-    font-size: 22px;
-  }
-
-  .topbar-title-text {
-    min-width: 0;
-  }
-
-  .topbar-title-text h1 {
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--text-main);
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  [data-theme="dark"] .topbar-title-text h1 { color: var(--accent); }
-
-  .topbar-title-text small {
-    display: block;
-    font-size: 10.5px;
-    color: var(--text-sub);
-    font-weight: 600;
-    letter-spacing: 1.5px;
-  }
-
-  .topbar-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-    align-items: center;
-  }
-
-  .icon-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    color: var(--primary);
-    font-size: 17px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    flex-shrink: 0;
-    position: relative;
-  }
-
-  .icon-btn:hover {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-    transform: translateY(-2px);
-  }
-
-  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
-
-  .avatar-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: 3px solid var(--accent);
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    flex-shrink: 0;
-    overflow: hidden;
-    padding: 0;
-    box-shadow: 0 4px 12px var(--shadow);
-  }
-
-  [data-theme="dark"] .avatar-btn { color: var(--bg-page); }
-
-  .avatar-btn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 8px 20px var(--shadow);
-    border-color: var(--primary);
-  }
-
-  .avatar-btn img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-  }
-
-  .avatar-btn.has-photo {
-    background: var(--bg-card);
-    border-color: var(--accent);
-  }
-
-  .menu-btn {
-    display: none;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    color: var(--primary);
-    font-size: 18px;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.25s ease;
-    flex-shrink: 0;
-  }
-
-  .menu-btn:hover,
-  .menu-btn:active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-
-  /* ============================================================
-     Container
-     ============================================================ */
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px 16px 90px;
-  }
-
-  /* ============================================================
-     Toolbar
-     ============================================================ */
-  .toolbar {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 4px 14px var(--shadow);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 180px;
-  }
-
-  .notif-count {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-sub);
-  }
-
-  .notif-count strong {
-    color: var(--primary);
-    font-weight: 800;
-    font-size: 16px;
-  }
-
-  [data-theme="dark"] .notif-count strong { color: var(--accent); }
-
-  .toolbar-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .btn {
-    padding: 10px 16px;
-    border-radius: 11px;
-    border: none;
-    font-family: 'Cairo', sans-serif;
+    display: -webkit-box;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}.notif-time{display:flex;align-items:center;gap:6px;flex-shrink:0;font-size:11px;font-weight:700;color:var(--text-sub);padding-top:2px}
+.notif-dot{width:9px;height:9px;border-radius:50%;background:var(--hl);box-shadow:0 0 0 0 var(--hl);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--hl) 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.sent-body {
     font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    transition: all 0.25s ease;
-    white-space: nowrap;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    box-shadow: 0 4px 12px var(--shadow);
-  }
-
-  [data-theme="dark"] .btn-primary { color: var(--bg-page); }
-
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px var(--shadow);
-  }
-
-  .btn-cancel {
-    background: var(--bg-input);
-    color: var(--text-main);
-    border: 1.5px solid var(--border) !important;
-  }
-
-  .btn-cancel:hover:not(:disabled) {
-    background: var(--bg-card);
-    transform: translateY(-2px);
-  }
-
-  .btn-danger {
-    background: linear-gradient(135deg, #C0392B, #E74C3C);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
-  }
-
-  .btn-danger:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(192, 57, 43, 0.4);
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-  }
-
-  /* ============================================================
-     Tabs
-     ============================================================ */
-  .tabs {
-    display: flex;
-    gap: 6px;
-    background: var(--bg-card);
-    padding: 5px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 14px var(--shadow);
-    margin-bottom: 16px;
-  }
-
-  .tab {
-    flex: 1;
-    padding: 11px 14px;
-    border: none;
-    background: transparent;
-    border-radius: 10px;
-    font-family: 'Cairo', sans-serif;
-    font-size: 13.5px;
-    font-weight: 800;
-    cursor: pointer;
     color: var(--text-sub);
-    transition: all 0.25s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-  }
-
-  .tab:hover { color: var(--text-main); background: var(--bg-input); }
-
-  .tab.active {
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    box-shadow: 0 4px 12px var(--shadow);
-  }
-
-  [data-theme="dark"] .tab.active { color: var(--bg-page); }
-
-  .tab i { font-size: 14px; }
-
-  .tab .tab-badge {
-    padding: 1px 7px;
-    border-radius: 10px;
-    font-size: 10.5px;
-    font-weight: 800;
-    background: rgba(255, 255, 255, 0.25);
-    min-width: 20px;
-    text-align: center;
-  }
-
-  .tab:not(.active) .tab-badge {
-    background: var(--error);
-    color: #fff;
-  }
-
-  /* ============================================================
-     قائمة الإشعارات
-     ============================================================ */
-  .notif-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .notif-card {
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    gap: 14px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-    animation: slideIn 0.35s ease;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .notif-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px var(--shadow);
-  }
-
-  .notif-card.unread {
-    background: var(--unread-bg);
-    border-color: var(--accent);
-  }
-
-  .notif-card.unread::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 5px;
-    height: 100%;
-    background: linear-gradient(180deg, var(--accent), var(--accent-light));
-  }
-
-  .notif-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-    border: 2px solid var(--accent);
-    box-shadow: 0 4px 12px var(--shadow);
-  }
-
-  [data-theme="dark"] .notif-icon { color: var(--bg-page); }
-
-  .notif-icon.image { background: linear-gradient(135deg, #8E44AD, #9B59B6); }
-  .notif-icon.video { background: linear-gradient(135deg, #E74C3C, #C0392B); }
-  .notif-icon.link { background: linear-gradient(135deg, var(--info), #3498DB); }
-  .notif-icon.page { background: linear-gradient(135deg, var(--warning), #F39C12); }
-
-  .notif-content { flex: 1; min-width: 0; }
-
-  .notif-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
-
-  .notif-title {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--text-main);
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .notif-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex-shrink: 0;
-    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.2);
-    animation: pulseDot 2s infinite;
-  }
-
-  @keyframes pulseDot {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-  }
-
-  .notif-body {
-    font-size: 13.5px;
-    color: var(--text-sub);
-    font-weight: 500;
-    line-height: 1.6;
-    margin-bottom: 10px;
+    margin-top: 3px;
     display: -webkit-box;
     line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .notif-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 11.5px;
-    color: var(--text-sub);
-    font-weight: 600;
-    flex-wrap: wrap;
-  }
-
-  .notif-meta span {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .notif-meta i { color: var(--accent); font-size: 10.5px; }
-
-  .notif-type-tag {
-    padding: 3px 9px;
-    border-radius: 8px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--text-sub);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .notif-type-tag.image { color: #8E44AD; border-color: rgba(142, 68, 173, 0.3); }
-  .notif-type-tag.video { color: var(--error); border-color: rgba(192, 57, 43, 0.3); }
-  .notif-type-tag.link { color: var(--info); border-color: rgba(41, 128, 185, 0.3); }
-  .notif-type-tag.page { color: var(--warning); border-color: rgba(230, 126, 34, 0.3); }
-
-  /* ============================================================
-     Empty State
-     ============================================================ */
-  .empty-state {
-    padding: 60px 24px;
-    text-align: center;
-    color: var(--text-sub);
-    background: var(--bg-card);
-    border-radius: 18px;
-    border: 2px dashed var(--border);
-    animation: fadeIn 0.4s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .empty-state i {
-    font-size: 60px;
-    color: var(--accent);
-    opacity: 0.5;
-    margin-bottom: 16px;
-    display: block;
-    animation: floatIcon 3s ease-in-out infinite;
-  }
-
-  @keyframes floatIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .empty-state h3 {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 8px;
-  }
-
-  .empty-state p {
-    font-size: 13.5px;
-    font-weight: 500;
-    line-height: 1.6;
-  }
-
-  /* ============================================================
-     Loading Skeleton
-     ============================================================ */
-  .skeleton-card {
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    gap: 14px;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  .skeleton-icon-box {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: var(--border);
-    opacity: 0.5;
-    flex-shrink: 0;
-  }
-
-  .skeleton-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .skeleton-line {
-    height: 14px;
-    border-radius: 7px;
-    background: var(--border);
-    opacity: 0.5;
-  }
-
-  .skeleton-line.w-60 { width: 60%; }
-  .skeleton-line.w-90 { width: 90%; }
-  .skeleton-line.w-40 { width: 40%; }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  /* ============================================================
-     Modal تفاصيل الإشعار
-     ============================================================ */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 100000;
-    overflow-y: auto;
-  }
-
-  .modal-overlay.show { display: flex; }
-
-  .modal-box {
-    background: var(--bg-card);
-    border-radius: 22px;
-    padding: 26px 24px;
-    max-width: 620px;
-    width: 100%;
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
-    border-top: 6px solid var(--accent);
-    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    max-height: 92vh;
-    overflow-y: auto;
-  }
-
-  @keyframes modalPop {
-    from { opacity: 0; transform: scale(0.85) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 18px;
-    padding-bottom: 14px;
-    border-bottom: 2px dashed var(--border);
-  }
-
-  .modal-header-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    border: 2px solid var(--accent);
-  }
-
-  [data-theme="dark"] .modal-header-icon { color: var(--bg-page); }
-
-  .modal-header-icon.image { background: linear-gradient(135deg, #8E44AD, #9B59B6); }
-  .modal-header-icon.video { background: linear-gradient(135deg, #E74C3C, #C0392B); }
-  .modal-header-icon.link { background: linear-gradient(135deg, var(--info), #3498DB); }
-  .modal-header-icon.page { background: linear-gradient(135deg, var(--warning), #F39C12); }
-
-  .modal-header-text { flex: 1; min-width: 0; }
-
-  .modal-header-text h2 {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 4px;
     word-break: break-word;
-  }
-
-  .modal-header-text small {
-    font-size: 11.5px;
-    color: var(--text-sub);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .modal-header-text small i { color: var(--accent); }
-
-  .modal-close {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: none;
-    background: var(--bg-input);
-    color: var(--text-sub);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-
-  .modal-close:hover { background: var(--error); color: #fff; }
-
-  .modal-body {
-    font-size: 14.5px;
-    color: var(--text-main);
-    font-weight: 500;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    word-break: break-word;
-    margin-bottom: 16px;
-  }
-
-  .modal-media {
-    margin-bottom: 16px;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 2px solid var(--border);
-    background: var(--bg-input);
-  }
-
-  .modal-media img,
-  .modal-media video {
-    width: 100%;
-    max-height: 380px;
-    object-fit: contain;
-    display: block;
-    background: #000;
-  }
-
-  .modal-media img { background: transparent; }
-
-  .modal-info-box {
-    padding: 12px 14px;
-    background: var(--bg-input);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-sub);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .modal-info-box i { color: var(--accent); }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 2px dashed var(--border);
-  }
-
-  .modal-actions .btn { flex: 1; padding: 13px; }
-
-  /* ============================================================
-     شاشة الحظر
-     ============================================================ */
-  .block-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(12px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 999999;
-    overflow-y: auto;
-  }
-
-  .block-overlay.show { display: flex; }
-
-  .block-box {
-    background: var(--bg-card);
-    border-radius: 24px;
-    padding: 40px 30px;
-    max-width: 500px;
-    width: 100%;
-    text-align: center;
-    border-top: 8px solid var(--error);
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-    animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .block-icon {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--error), #E74C3C);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    margin: 0 auto 20px;
-    box-shadow: 0 15px 40px rgba(192, 57, 43, 0.4);
-  }
-
-  .block-title {
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--error);
-    margin-bottom: 12px;
-  }
-
-  .block-subtitle {
-    font-size: 14.5px;
-    color: var(--text-sub);
-    font-weight: 600;
-    line-height: 1.7;
-    margin-bottom: 20px;
-  }
-
-  .block-details {
-    background: var(--bg-input);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 20px;
-    text-align: right;
-    border: 1px solid var(--border);
-  }
-
-  .block-detail-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--text-main);
-    border-bottom: 1px dashed var(--border);
-  }
-
-  .block-detail-row:last-child { border-bottom: none; }
-  .block-detail-row i { color: var(--error); font-size: 15px; width: 20px; text-align: center; }
-  .block-detail-row strong { color: var(--error); font-weight: 800; }
-
-  .block-btn {
-    width: 100%;
-    padding: 15px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    border: none;
-    font-family: 'Cairo', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.25s ease;
-  }
-
-  [data-theme="dark"] .block-btn { color: var(--bg-page); }
-
-  .block-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px var(--shadow);
-  }
-
-  /* ============================================================
-     نافذة تأكيد
-     ============================================================ */
-  .confirm-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 1000000;
-  }
-
-  .confirm-modal.show { display: flex; }
-
-  .confirm-box {
-    background: var(--bg-card);
-    border-radius: 22px;
-    padding: 32px 26px 24px;
-    max-width: 440px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
-    border-top: 6px solid var(--accent);
-    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .confirm-icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    margin: 0 auto 20px;
-    box-shadow: 0 10px 25px var(--shadow);
-  }
-
-  [data-theme="dark"] .confirm-icon { color: var(--bg-page); }
-
-  .confirm-icon.danger {
-    background: linear-gradient(135deg, #C0392B, #E74C3C);
-    box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);
-  }
-
-  .confirm-icon.warning {
-    background: linear-gradient(135deg, var(--warning), #F39C12);
-  }
-
-  .confirm-title {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 10px;
-  }
-
-  .confirm-message {
-    font-size: 14px;
-    color: var(--text-sub);
-    font-weight: 600;
-    line-height: 1.7;
-    margin-bottom: 22px;
-    padding: 0 8px;
-  }
-
-  .confirm-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 6px;
-  }
-
-  .confirm-actions .btn {
-    flex: 1;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: none;
-    font-family: 'Cairo', sans-serif;
-    font-size: 14.5px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.25s ease;
-  }
-
-  /* ============================================================
-     قائمة الطعام (Drawer)
-     ============================================================ */
-  .drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 9998;
-  }
-
-  .drawer-overlay.show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 88%;
-    max-width: 340px;
-    height: 100vh;
-    height: 100dvh;
-    background: var(--bg-card);
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
-    transform: translateX(105%);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-left: 1px solid var(--border);
-  }
-
-  .drawer.open { transform: translateX(0); }
-
-  .drawer-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    padding: 20px;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .drawer-header-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .drawer-logo {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    object-fit: contain;
-    background: rgba(255,255,255,0.1);
-    padding: 3px;
-    border: 2px solid var(--accent);
-    flex-shrink: 0;
-  }
-
-  .drawer-brand { flex: 1; min-width: 0; }
-
-  .drawer-brand-name {
-    font-size: 16px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .drawer-brand-name .divider {
-    color: var(--accent);
-    font-weight: 300;
-  }
-
-  .drawer-brand-sub {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
-    margin-top: 2px;
-  }
-
-  .drawer-close {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-
-  .drawer-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-  }
-
-  .drawer-user-info {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    cursor: pointer;
-    transition: background 0.2s;
-    text-decoration: none;
-  }
-
-  .drawer-user-info:hover { background: rgba(255, 255, 255, 0.18); }
-
-  .drawer-user-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 800;
-    flex-shrink: 0;
-    overflow: hidden;
-    border: 2px solid var(--accent);
-  }
-
-  .drawer-user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .drawer-user-text { flex: 1; min-width: 0; }
-
-  .drawer-user-name {
-    font-size: 14px;
-    font-weight: 800;
-    color: #fff;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 3px;
-  }
-
-  .drawer-user-role {
-    font-size: 11.5px;
-    color: var(--accent-light);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .drawer-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px 14px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .drawer-section { margin-bottom: 20px; }
-  .drawer-section:last-child { margin-bottom: 0; }
-
-  .drawer-section-title {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--text-sub);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 12px;
-    padding-right: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .drawer-section-title i { color: var(--accent); font-size: 12px; }
-
-  .drawer-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 8px;
-    text-decoration: none;
-    color: var(--text-main);
-    font-family: 'Cairo', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-    text-align: right;
-  }
-
-  .drawer-btn:hover,
-  .drawer-btn:active {
-    background: var(--bg-card);
-    border-color: var(--accent);
-    transform: translateX(-3px);
-  }
-
-  .drawer-btn-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-lighter));
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-    position: relative;
-  }
-
-  [data-theme="dark"] .drawer-btn-icon { color: var(--bg-page); }
-
-  .drawer-btn-label { flex: 1; }
-
-  .drawer-btn.logout-btn {
-    color: var(--error);
-    border-color: rgba(192, 57, 43, 0.3);
-    background: rgba(192, 57, 43, 0.05);
-  }
-
-  .drawer-btn.logout-btn .drawer-btn-icon {
-    background: linear-gradient(135deg, #C0392B, #E74C3C);
-  }
-
-  .drawer-btn.logout-btn:hover {
-    background: var(--error);
-    color: #fff;
-    border-color: var(--error);
-  }
-
-  .drawer-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 4px;
-    border-radius: 9px;
-    background: var(--error);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 800;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--bg-input);
-  }
-
-  .drawer-badge.show { display: flex; }
-
-  /* ============================================================
-     Toast خفيف
-     ============================================================ */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(120px);
-    background: var(--bg-card);
-    color: var(--text-main);
-    padding: 14px 24px;
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border);
-    font-weight: 700;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 9999999;
-    transition: transform 0.4s ease, opacity 0.3s ease;
-    opacity: 0;
-    max-width: calc(100vw - 32px);
-  }
-
-  .toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-
-  .toast.success { border-color: var(--success); }
-  .toast.success i { color: var(--success); }
-  .toast.error { border-color: var(--error); }
-  .toast.error i { color: var(--error); }
-  .toast.warning { border-color: var(--warning); }
-  .toast.warning i { color: var(--warning); }
-  .toast.info { border-color: var(--info); }
-  .toast.info i { color: var(--info); }
-
-  /* ============================================================
-     Responsive
-     ============================================================ */
-  @media (max-width: 700px) {
-    .topbar-inner { padding: 12px 14px; }
-    .back-btn { width: 40px; height: 40px; font-size: 15px; border-radius: 11px; }
-    .topbar-title i.header-icon { font-size: 18px; }
-    .topbar-title-text h1 { font-size: 16px; }
-    .topbar-title-text small { font-size: 9.5px; }
-    .icon-btn { width: 38px; height: 38px; font-size: 15px; }
-    .avatar-btn { width: 40px; height: 40px; font-size: 16px; }
-    .menu-btn { display: flex; }
-
-    .topbar-actions .icon-btn,
-    .topbar-actions .avatar-btn {
-      display: none;
-    }
-
-    .topbar-actions .menu-btn { display: flex; }
-
-    .container { padding: 16px 12px 90px; }
-
-    .toolbar { padding: 12px; gap: 8px; }
-    .btn { padding: 9px 13px; font-size: 12px; }
-    .notif-count { font-size: 13px; }
-
-    .notif-card { padding: 14px; border-radius: 14px; gap: 12px; }
-    .notif-icon { width: 46px; height: 46px; font-size: 18px; border-radius: 12px; }
-    .notif-title { font-size: 14px; }
-    .notif-body { font-size: 12.5px; }
-    .notif-meta { font-size: 11px; gap: 8px; }
-
-    .modal-box { padding: 22px 18px; border-radius: 18px; }
-    .modal-header-icon { width: 42px; height: 42px; font-size: 17px; }
-    .modal-header-text h2 { font-size: 15.5px; }
-    .modal-body { font-size: 13.5px; }
-    .modal-actions { flex-direction: column-reverse; }
-
-    .confirm-box { padding: 26px 20px 20px; border-radius: 18px; }
-    .confirm-icon { width: 60px; height: 60px; font-size: 24px; margin-bottom: 16px; }
-    .confirm-title { font-size: 17px; }
-    .confirm-message { font-size: 13px; }
-    .confirm-actions { flex-direction: column-reverse; }
-
-    .block-box { padding: 28px 20px; border-radius: 20px; }
-    .block-icon { width: 70px; height: 70px; font-size: 32px; }
-    .block-title { font-size: 19px; }
-    .block-subtitle { font-size: 13px; }
-
-    .empty-state { padding: 50px 20px; }
-    .empty-state i { font-size: 50px; }
-    .empty-state h3 { font-size: 16px; }
-  }
-
-  @media (max-width: 380px) {
-    .topbar-title-text h1 { font-size: 14px; }
-    .back-btn { width: 36px; height: 36px; font-size: 14px; }
-    .icon-btn { width: 34px; height: 34px; font-size: 13px; }
-    .avatar-btn { width: 36px; height: 36px; font-size: 14px; }
-    .menu-btn { width: 36px; height: 36px; font-size: 16px; }
-    .btn { font-size: 11.5px; padding: 8px 11px; }
-    .btn span.label { display: none; }
-  }
+}.notif-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:11px;font-weight:700;color:var(--text-sub)}
+.notif-meta i{font-size:10px;opacity:.8}
+.notif-type-tag{--c:var(--brand);display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.notif-type-tag.image{--c:#8E44AD}.notif-type-tag.video{--c:#E74C3C}.notif-type-tag.link{--c:var(--info)}.notif-type-tag.page{--c:var(--warning)}
+.more-btn{display:none;width:100%;margin-top:12px;padding:13px}
+.more-btn.show{display:flex}
+
+/* ===== حالة فارغة ===== */
+.empty-state{text-align:center;padding:60px 20px;background:var(--bg-card);border:1px dashed var(--border);border-radius:var(--r);animation:rise .35s ease both}
+.empty-state i{font-size:46px;color:var(--hl);opacity:.75;margin-bottom:14px}
+.empty-state h3{font-size:16px;font-weight:900;margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text-sub)}
+
+/* ===== هيكل التحميل ===== */
+.skeleton-card{display:flex;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r)}
+.skeleton-icon-box,.skeleton-line{background:linear-gradient(90deg,var(--bg-input) 25%,var(--border) 50%,var(--bg-input) 75%);background-size:200% 100%;animation:shine 1.3s infinite linear}
+.skeleton-icon-box{width:46px;height:46px;border-radius:14px;flex-shrink:0}
+.skeleton-content{flex:1;display:flex;flex-direction:column;gap:9px;padding-top:4px}
+.skeleton-line{height:11px;border-radius:6px}
+.skeleton-line.w-60{width:60%}.skeleton-line.w-90{width:90%}.skeleton-line.w-40{width:40%}
+@keyframes shine{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* ===== النوافذ ===== */
+.modal-overlay,.confirm-modal{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;background:rgba(5,12,9,.55);padding:0}
+.modal-overlay.show,.confirm-modal.show{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-box,.confirm-box{width:100%;max-width:520px;max-height:90vh;max-height:90dvh;overflow-y:auto;background:var(--bg-card);border-radius:26px 26px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.3);animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+.modal-box::before,.confirm-box::before{content:"";display:block;width:42px;height:5px;border-radius:5px;background:var(--border);margin:0 auto 14px}
+@keyframes sheet{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (min-width:640px){.modal-overlay,.confirm-modal{align-items:center;padding:20px}.modal-box,.confirm-box{border-radius:24px;padding:22px}.modal-box::before,.confirm-box::before{display:none}}
+.modal-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.modal-header-icon{--c:var(--brand);width:46px;height:46px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.modal-header-icon.image{--c:#8E44AD}.modal-header-icon.video{--c:#E74C3C}.modal-header-icon.link{--c:var(--info)}.modal-header-icon.page{--c:var(--warning)}
+.modal-header-text{flex:1;min-width:0}
+.modal-header-text h2{font-size:16.5px;font-weight:900;line-height:1.5;word-break:break-word}
+.modal-header-text small{display:flex;flex-wrap:wrap;gap:10px;margin-top:3px;font-size:11.5px;font-weight:700;color:var(--text-sub)}
+.modal-header-text small i{color:var(--hl);margin-inline-end:3px}
+.modal-close{width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-input);color:var(--text-sub);cursor:pointer;flex-shrink:0}
+.modal-close:hover{background:var(--error);color:#fff}
+.modal-body{font-size:14px;line-height:1.95;white-space:pre-wrap;word-break:break-word;padding:14px;background:var(--bg-input);border-radius:14px;margin-bottom:12px}
+.modal-media{margin-bottom:12px;border-radius:14px;overflow:hidden;background:var(--bg-input)}
+.modal-media img,.modal-media video{display:block;width:100%;max-height:340px;object-fit:contain}
+.modal-info-box{display:flex;align-items:center;gap:7px;padding:9px 12px;margin-bottom:14px;border-radius:12px;font-size:12px;font-weight:700;color:var(--text-sub);background:var(--bg-input)}
+.modal-info-box i{color:var(--hl)}
+.modal-actions{display:flex;gap:10px}
+.modal-actions .btn{flex:1;padding:13px}
+
+.confirm-box{text-align:center;max-width:420px}
+.confirm-icon{width:60px;height:60px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),var(--primary-light))}
+.confirm-icon.danger{background:var(--error);color:#fff}.confirm-icon.warning{background:var(--warning);color:#fff}
+.confirm-title{font-size:17px;font-weight:900;margin-bottom:6px}
+.confirm-message{font-size:13.5px;line-height:1.8;color:var(--text-sub);margin-bottom:18px}
+.confirm-actions{display:flex;gap:10px}
+.confirm-actions .btn{flex:1;padding:13px}
+
+/* ===== شاشة الحظر ===== */
+.block-overlay{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;padding:20px;background:var(--bg-page)}
+.block-overlay.show{display:flex}
+.block-box{width:100%;max-width:420px;text-align:center;background:var(--bg-card);border:1px solid var(--border);border-radius:24px;padding:30px 22px;box-shadow:0 18px 50px var(--shadow)}
+.block-icon{width:74px;height:74px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;background:var(--error)}
+.block-title{font-size:20px;font-weight:900;margin-bottom:6px;color:var(--error)}
+.block-subtitle{font-size:13.5px;color:var(--text-sub);margin-bottom:16px}
+.block-details{background:var(--bg-input);border-radius:14px;padding:4px 14px;margin-bottom:18px;text-align:right}
+.block-detail-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:700}
+.block-detail-row:last-child{border-bottom:none}
+.block-detail-row i{color:var(--error);width:20px;text-align:center}
+.block-detail-row strong{color:var(--error);font-weight:800}
+.block-btn{width:100%;padding:13px;border:none;border-radius:13px;font-size:14px;font-weight:800;cursor:pointer;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),var(--primary-light))}
+
+/* ===== القائمة الجانبية ===== */
+.drawer-overlay{position:fixed;inset:0;z-index:300;background:rgba(5,12,9,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-overlay.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-start:0;z-index:301;width:min(320px,86vw);background:var(--bg-card);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:-10px 0 40px rgba(0,0,0,.3)}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:18px 16px;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),var(--primary-light))}
+.drawer-header-content{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.drawer-logo{width:42px;height:42px;border-radius:12px;object-fit:cover;background:rgba(255,255,255,.2)}
+.drawer-brand{flex:1;min-width:0}
+.drawer-brand-name{display:flex;gap:6px;align-items:center;font-size:15px;font-weight:900}
+.drawer-brand-name .divider{opacity:.5}
+.drawer-brand-sub{font-size:11px;opacity:.8;font-weight:600}
+.drawer-close{width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:inherit;cursor:pointer}
+.drawer-user-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.14);text-decoration:none;color:inherit}
+.drawer-user-info:hover{background:rgba(255,255,255,.2)}
+.drawer-user-avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:900;overflow:hidden;flex-shrink:0}
+.drawer-user-avatar img{width:100%;height:100%;object-fit:cover}
+.drawer-user-text{flex:1;min-width:0}
+.drawer-user-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer-user-role{display:flex;gap:6px;align-items:center;font-size:11px;opacity:.85;font-weight:700}
+.drawer-content{flex:1;overflow-y:auto;padding:16px}
+.drawer-section{margin-bottom:18px}
+.drawer-section-title{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--text-sub);margin-bottom:8px}
+.drawer-section-title i{color:var(--hl)}
+.drawer-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:6px;border-radius:14px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-main);font-size:13.5px;font-weight:800;cursor:pointer;text-decoration:none;transition:transform .15s}
+.drawer-btn:active{transform:scale(.97)}
+.drawer-btn-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),var(--primary-light))}
+.drawer-btn-label{flex:1;text-align:start}
+.drawer-btn.logout-btn{color:var(--error);border-color:color-mix(in srgb,var(--error) 30%,transparent)}
+.drawer-btn.logout-btn .drawer-btn-icon{background:var(--error);color:#fff}
+.drawer-badge{display:none;min-width:20px;height:20px;padding:0 6px;border-radius:99px;align-items:center;justify-content:center;font-size:11px;font-weight:900;background:var(--error);color:#fff}
+.drawer-badge.show{display:flex}
+
+/* ===== Toast ===== */
+.toast{position:fixed;left:50%;bottom:24px;z-index:500;display:flex;align-items:center;gap:9px;max-width:92vw;padding:12px 18px;border-radius:14px;background:var(--bg-card);color:var(--text-main);border:1.5px solid var(--border);box-shadow:0 12px 32px var(--shadow);font-size:13px;font-weight:800;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .3s,opacity .3s}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.toast.success{border-color:var(--success)}.toast.success i{color:var(--success)}
+.toast.error{border-color:var(--error)}.toast.error i{color:var(--error)}
+.toast.warning{border-color:var(--warning)}.toast.warning i{color:var(--warning)}
+.toast.info{border-color:var(--info)}.toast.info i{color:var(--info)}
+
+/* ===== شاشات صغيرة ===== */
+@media (max-width:600px){
+  .menu-btn{display:flex}
+  #logoutBtn{display:none}
+  .topbar-title-text small{display:none}
+  .toolbar{padding:16px}
+  .btn span.label{font-size:12px}
+  .tab{font-size:12px;padding:10px 4px}
+  .tab i{display:none}
+}
+@media (max-width:380px){.btn span.label{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -1544,6 +372,10 @@
     </div>
   </div>
 
+  <button class="btn btn-cancel more-btn" id="moreBtn" type="button">
+    <i class="fas fa-chevron-down"></i>
+    <span>عرض المزيد</span>
+  </button>
 </div>
 
 <!-- ============================================================
@@ -1733,7 +565,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, doc, onSnapshot, setDoc, getDoc, getDocs,
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  doc, onSnapshot, setDoc, getDoc, getDocs,
   collection, query, where, serverTimestamp, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -1748,7 +581,16 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// ⚡ كاش Firestore دائم على الجهاز: الفتح التالي يعرض البيانات فوراً من الذاكرة المحلية
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    experimentalAutoDetectLongPolling: true
+  });
+} catch (e) {
+  db = getFirestore(app);
+}
 const $ = (id) => document.getElementById(id);
 
 // ============================================================
@@ -1945,6 +787,7 @@ function saveNotifsCache() {
       notifIds: notifIdsSet,
       readIds: readIdsSet,
       deletedIds: deletedIdsSet,
+      visibleIds: allVisibleIds,
       cachedAt: Date.now()
     };
     localStorage.setItem(CACHE_NOTIFS, JSON.stringify(data));
@@ -1968,6 +811,7 @@ function loadNotifsCache() {
     notifIdsSet = data.notifIds || [];
     readIdsSet = data.readIds || [];
     deletedIdsSet = data.deletedIds || [];
+    allVisibleIds = data.visibleIds || (data.notifications || []).map(n => n.id);
 
     // املأ كاش التفاصيل في الذاكرة
     allNotifications.forEach(n => {
@@ -1987,6 +831,45 @@ function loadNotifsCache() {
     console.log('cache load error:', e.message);
     return false;
   }
+}
+
+// ============================================================
+// 🧭 تنقّل آمن للصفحات الداخلية (يمنع الشاشة السوداء 404)
+// ============================================================
+const PAGE_ALIASES = { 'ashara.html': 'asharat.html', 'ashara': 'asharat.html', 'asharat': 'asharat.html', 'store.html': 'stor.html', 'stor': 'stor.html', 'matgar': 'stor.html' };
+
+function normalizePage(u) {
+  let x = cleanInput(String(u || ''));
+  if (!x) return '';
+  if (/^https?:\/\//i.test(x)) {
+    try { const o = new URL(x); if (o.host === location.host) x = o.pathname.replace(/^\/+/, '') + o.search + o.hash; else return x; } catch (e) { return x; }
+  }
+  x = x.replace(/^\.?\/+/, '');
+  const m = x.match(/^([^?#]*)(.*)$/);
+  let path = m[1].toLowerCase(), rest = m[2] || '';
+  if (PAGE_ALIASES[path]) path = PAGE_ALIASES[path];
+  else if (path && !/\.[a-z0-9]+$/.test(path)) path += '.html';
+  return path + rest;
+}
+
+async function pageExists(u) {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 4000);
+    const r = await fetch(u, { method: 'HEAD', cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(t);
+    return r.status !== 404;
+  } catch (e) { return true; } // لو الفحص فشل (أوفلاين) لا نمنع التنقل
+}
+
+async function goInternal(url) {
+  const target = normalizePage(url);
+  if (!target) return;
+  if (!(await pageExists(target))) {
+    showToast('هذه الصفحة غير متاحة حالياً', 'warning');
+    return;
+  }
+  window.location.href = target;
 }
 
 // ============================================================
@@ -2149,22 +1032,27 @@ function renderUserInfo(user) {
 }
 
 // ============================================================
-// ⚡ جلب تفاصيل الإشعارات (Parallel + Cache)
+// ⚡ جلب تفاصيل الإشعارات (متوازي + كاش + تحميل تدريجي)
 // ============================================================
+const PAGE_SIZE = 25;
+let shownLimit = PAGE_SIZE;
+let allVisibleIds = [];   // كل الإشعارات الظاهرة (الأحدث أولاً)
+let totalVisible = 0;
+let unreadTotal = 0;
+let loadSeq = 0;
+let deepLinkHandled = false;
+
 async function fetchNotifDetails(ids) {
   const result = [];
-  const missingIds = [];
+  const missing = [];
 
   for (const id of ids) {
-    if (notifCache.has(id)) {
-      result.push({ id, ...notifCache.get(id) });
-    } else {
-      missingIds.push(id);
-    }
+    if (notifCache.has(id)) result.push({ id, ...notifCache.get(id) });
+    else missing.push(id);
   }
 
-  if (missingIds.length > 0) {
-    const promises = missingIds.map(async (id) => {
+  if (missing.length) {
+    const got = await Promise.all(missing.map(async (id) => {
       try {
         const snap = await getDoc(doc(db, 'notifications', id));
         if (!snap.exists()) return null;
@@ -2183,100 +1071,59 @@ async function fetchNotifDetails(ids) {
         console.log('fetch notif error:', e.message);
         return null;
       }
-    });
-
-    const fetched = await Promise.all(promises);
-    fetched.forEach(f => { if (f) result.push(f); });
+    }));
+    got.forEach(g => { if (g) result.push(g); });
   }
-
   return result;
 }
 
-// ============================================================
-// 📡 تحميل الإشعارات Real-time مع كاش فوري
-// ============================================================
+function applyDetails(details) {
+  details.sort((a, b) => (new Date(b.createdAt).getTime() || 0) - (new Date(a.createdAt).getTime() || 0));
+  details.forEach(n => { n.read = readIdsSet.includes(n.id); });
+  allNotifications = details;
+  unreadIds = new Set(details.filter(n => !n.read).map(n => n.id));
+  renderNotifications();
+  updateBadges();
+}
+
+// يحمّل أول shownLimit إشعار فقط (الباقي عند الضغط على "عرض المزيد")
+async function loadVisible() {
+  const seq = ++loadSeq;
+  const ids = allVisibleIds.slice(0, shownLimit);
+
+  // ارسم فوراً اللي موجود في الكاش، وبعدها كمّل الناقص
+  const cached = ids.filter(id => notifCache.has(id));
+  if (cached.length && cached.length < ids.length) {
+    applyDetails(cached.map(id => ({ id, ...notifCache.get(id) })));
+  }
+
+  const details = await fetchNotifDetails(ids);
+  if (seq !== loadSeq) return;
+  applyDetails(details);
+}
+
 function startNotificationsListener() {
   if (!currentUserId) return;
 
-  // ⚡ 1) اعرض الكاش فوراً (Instant Display)
+  // ⚡ 1) اعرض الكاش المحلي فوراً
   const hasCache = loadNotifsCache();
   if (hasCache && allNotifications.length > 0) {
     renderNotifications();
     updateBadges();
+    maybeOpenDeepLink();
   }
 
-  const userNotifsRef = doc(db, 'user_notifications', currentUserId);
+  // ⚡ 2) اشترك في التحديثات الحية
+  onSnapshot(doc(db, 'user_notifications', currentUserId), async (snap) => {
+    const data = snap.exists() ? snap.data() : {};
+    notifIdsSet = data.notifIds || [];
+    readIdsSet = data.readIds || [];
+    deletedIdsSet = data.deletedIds || [];
+    allVisibleIds = notifIdsSet.filter(id => !deletedIdsSet.includes(id));
 
-  onSnapshot(userNotifsRef, async (snap) => {
-    if (!snap.exists()) {
-      if (!hasCache) {
-        allNotifications = [];
-        unreadIds.clear();
-        notifIdsSet = [];
-        readIdsSet = [];
-        deletedIdsSet = [];
-        renderNotifications();
-        saveNotifsCache();
-      }
-      return;
-    }
-
-    const data = snap.data();
-    const notifIds = data.notifIds || [];
-    const readIds = data.readIds || [];
-    const deletedList = data.deletedIds || [];
-
-    const visibleIds = notifIds.filter(id => !deletedList.includes(id));
-
-    // ⚡ 2) لو مفيش تغيير في الـ IDs → حدّث read flags بس محلياً
-    const idsChanged = JSON.stringify([...visibleIds].sort()) !== JSON.stringify([...notifIdsSet].sort());
-    const readChanged = JSON.stringify([...readIds].sort()) !== JSON.stringify([...readIdsSet].sort());
-
-    if (hasCache && !idsChanged && !readChanged && allNotifications.length > 0) {
-      allNotifications.forEach(n => {
-        n.read = readIds.includes(n.id);
-      });
-      unreadIds = new Set(allNotifications.filter(n => !n.read).map(n => n.id));
-      readIdsSet = readIds;
-      renderNotifications();
-      updateBadges();
-      return;
-    }
-
-    // ⚡ 3) لو نفس الإشعارات موجودة في الكاش، استعملها ومتجيبش من السيرفر
-    const newIds = visibleIds.filter(id => !notifCache.has(id));
-
-    let details;
-    if (newIds.length === 0 && hasCache && allNotifications.length > 0) {
-      details = visibleIds
-        .map(id => {
-          const cached = notifCache.get(id);
-          return cached ? { id, ...cached } : null;
-        })
-        .filter(Boolean);
-    } else {
-      details = await fetchNotifDetails(visibleIds);
-    }
-
-    details.sort((a, b) => {
-      const da = new Date(a.createdAt).getTime() || 0;
-      const db_ = new Date(b.createdAt).getTime() || 0;
-      return db_ - da;
-    });
-
-    details.forEach(n => {
-      n.read = readIds.includes(n.id);
-    });
-
-    allNotifications = details;
-    unreadIds = new Set(details.filter(n => !n.read).map(n => n.id));
-    notifIdsSet = notifIds;
-    readIdsSet = readIds;
-    deletedIdsSet = deletedList;
-
-    renderNotifications();
-    updateBadges();
-    saveNotifsCache(); // 💾 احفظ للتشغيل القادم
+    await loadVisible();
+    saveNotifsCache();
+    maybeOpenDeepLink();
   }, (err) => {
     console.log('notifs listener error:', err.message);
     if (!hasCache) {
@@ -2286,20 +1133,31 @@ function startNotificationsListener() {
   });
 }
 
+// فتح إشعار محدد من رابط ?n=ID (يستخدمه ضغط إشعار Push)
+function maybeOpenDeepLink() {
+  if (deepLinkHandled) return;
+  const id = new URLSearchParams(location.search).get('n');
+  if (!id) { deepLinkHandled = true; return; }
+  const n = allNotifications.find(x => x.id === id);
+  if (n) {
+    deepLinkHandled = true;
+    openNotifModal(n);
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
+}
+
 // ============================================================
 // 🎨 عرض الإشعارات
 // ============================================================
 function renderNotifications() {
   const list = $('notifList');
-  list.innerHTML = '';
+  const frag = document.createDocumentFragment();
 
   let filtered = allNotifications;
   if (currentTab === 'unread') filtered = allNotifications.filter(n => !n.read);
   if (currentTab === 'read') filtered = allNotifications.filter(n => n.read);
 
-  $('totalCount').textContent = allNotifications.length;
-  $('allCountBadge').textContent = allNotifications.length;
-  $('unreadCountBadge').textContent = unreadIds.size;
+  updateBadges();
 
   if (filtered.length === 0) {
     let title = 'لا توجد إشعارات';
@@ -2326,16 +1184,14 @@ function renderNotifications() {
     return;
   }
 
-  filtered.forEach(n => {
-    list.appendChild(createNotifCard(n));
-  });
+  filtered.forEach((n, i) => frag.appendChild(createNotifCard(n, i < 8)));
+  list.replaceChildren(frag);
 }
 
-function createNotifCard(notif) {
+function createNotifCard(notif, animate) {
   const card = document.createElement('div');
-  card.className = 'notif-card' + (notif.read ? '' : ' unread');
+  card.className = 'notif-card' + (notif.read ? '' : ' unread') + (animate ? ' enter' : '');
 
-  // ✨ تحديد الأيقونة حسب نوع الرابط
   let typeInfo = getTypeInfo(notif.type);
   let displayType = notif.type;
 
@@ -2354,12 +1210,11 @@ function createNotifCard(notif) {
     <div class="notif-content">
       <div class="notif-header">
         <div class="notif-title">${escapeHtml(notif.title)}</div>
-        ${!notif.read ? '<div class="notif-dot"></div>' : ''}
+        <div class="notif-time">${!notif.read ? '<span class="notif-dot"></span>' : ''}${formatDate(notif.createdAt)}</div>
       </div>
       <div class="notif-body">${escapeHtml(notif.body)}</div>
       <div class="notif-meta">
         <span><i class="fas fa-user"></i> ${escapeHtml(notif.senderName)}</span>
-        <span><i class="fas fa-clock"></i> ${formatDate(notif.createdAt)}</span>
         ${displayType && displayType !== 'none' ? `<span class="notif-type-tag ${displayType}"><i class="fas ${typeInfo.icon}"></i> ${typeInfo.label}</span>` : ''}
       </div>
     </div>
@@ -2384,26 +1239,31 @@ function formatDate(iso) {
   if (!iso) return '—';
   try {
     const d = new Date(iso);
-    const now = new Date();
-    const diff = (now - d) / 1000;
+    const diff = (Date.now() - d) / 1000;
 
     if (diff < 60) return 'الآن';
     if (diff < 3600) return `قبل ${Math.floor(diff / 60)} دقيقة`;
     if (diff < 86400) return `قبل ${Math.floor(diff / 3600)} ساعة`;
     if (diff < 604800) return `قبل ${Math.floor(diff / 86400)} يوم`;
 
-    return d.toLocaleDateString('ar-EG', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
+    return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
   } catch (e) { return '—'; }
 }
 
 // ============================================================
-// 🔢 تحديث الشارات
+// 🔢 تحديث الشارات والعدّادات
 // ============================================================
 function updateBadges() {
-  $('unreadCountBadge').textContent = unreadIds.size;
-  $('allCountBadge').textContent = allNotifications.length;
+  const hidden = allVisibleIds.slice(shownLimit);
+  totalVisible = allNotifications.length + hidden.length;
+  unreadTotal = unreadIds.size + hidden.filter(id => !readIdsSet.includes(id)).length;
+
+  $('totalCount').textContent = totalVisible;
+  $('allCountBadge').textContent = totalVisible;
+  $('unreadCountBadge').textContent = unreadTotal;
+
+  const more = $('moreBtn');
+  if (more) more.classList.toggle('show', allVisibleIds.length > shownLimit);
 }
 
 // ============================================================
@@ -2458,9 +1318,7 @@ async function openNotifModal(notif) {
       // 🏠 صفحة داخلية → تحويل مباشر بدون تاب جديد
       actionBtn.style.display = 'flex';
       actionBtn.innerHTML = '<i class="fas fa-arrow-left"></i><span>الانتقال للصفحة</span>';
-      actionBtn.onclick = () => {
-        window.location.href = url;
-      };
+      actionBtn.onclick = () => goInternal(url);
     } else if (linkType === 'external' || notif.type === 'link') {
       // 🌐 رابط خارجي → افتح في تاب جديد
       actionBtn.style.display = 'flex';
@@ -2519,13 +1377,13 @@ async function markAsRead(notifId) {
 // ✅ تحديد الكل كمقروء
 // ============================================================
 $('markAllReadBtn').addEventListener('click', async () => {
-  if (unreadIds.size === 0) {
+  if (unreadTotal === 0) {
     return showToast('لا توجد إشعارات غير مقروءة', 'info');
   }
 
   const confirmed = await showConfirm({
     title: 'تحديد الكل كمقروء',
-    message: `هل تريد تعليم جميع الإشعارات (${unreadIds.size}) كمقروءة؟`,
+    message: `هل تريد تعليم جميع الإشعارات (${unreadTotal}) كمقروءة؟`,
     icon: 'fa-check-double',
     okText: 'نعم'
   });
@@ -2533,7 +1391,7 @@ $('markAllReadBtn').addEventListener('click', async () => {
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    const allIds = allNotifications.map(n => n.id);
+    const allIds = [...allVisibleIds];
 
     await setDoc(ref, {
       readIds: arrayUnion(...allIds),
@@ -2558,7 +1416,7 @@ $('markAllReadBtn').addEventListener('click', async () => {
 // 🗑️ حذف الكل
 // ============================================================
 $('deleteAllBtn').addEventListener('click', async () => {
-  if (allNotifications.length === 0) {
+  if (allVisibleIds.length === 0) {
     return showToast('لا توجد إشعارات', 'info');
   }
 
@@ -2574,7 +1432,7 @@ $('deleteAllBtn').addEventListener('click', async () => {
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
 
-    const allIds = allNotifications.map(n => n.id);
+    const allIds = [...allVisibleIds];
     const newDeleted = [...new Set([...deletedIdsSet, ...allIds])];
 
     await setDoc(ref, {
@@ -2585,6 +1443,7 @@ $('deleteAllBtn').addEventListener('click', async () => {
     }, { merge: true });
 
     allNotifications = [];
+    allVisibleIds = [];
     unreadIds.clear();
     notifIdsSet = [];
     readIdsSet = [];
@@ -2630,6 +1489,7 @@ $('modalDeleteBtn').addEventListener('click', async () => {
     }, { merge: true });
 
     allNotifications = allNotifications.filter(n => n.id !== notif.id);
+    allVisibleIds = allVisibleIds.filter(id => id !== notif.id);
     unreadIds.delete(notif.id);
     notifIdsSet = newNotifIds;
     readIdsSet = newReadIds;
@@ -2656,6 +1516,16 @@ document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.add('active');
     renderNotifications();
   });
+});
+
+// ============================================================
+// ➕ عرض المزيد
+// ============================================================
+$('moreBtn').addEventListener('click', async () => {
+  const btn = $('moreBtn');
+  btn.disabled = true;
+  shownLimit += PAGE_SIZE;
+  try { await loadVisible(); saveNotifsCache(); } finally { btn.disabled = false; }
 });
 
 // ============================================================
@@ -2839,8 +1709,28 @@ new MutationObserver(() => {
 // 🚀 Init
 // ============================================================
 async function init() {
-  await loadUserData();
+  const userId = sessionStorage.getItem('meezan_user_id');
+  currentRole = sessionStorage.getItem('meezan_role') || 'student';
+  currentUserId = userId;
 
+  // 1) ارسم بيانات المستخدم فوراً من الجلسة (بدون انتظار الشبكة)
+  try {
+    const cachedUser = JSON.parse(sessionStorage.getItem('meezan_user_data') || 'null');
+    if (cachedUser && typeof cachedUser === 'object') {
+      currentUser = cachedUser;
+      renderUserInfo(cachedUser);
+    }
+  } catch (e) {}
+
+  if (userId) {
+    // 2) ابدأ الإشعارات والمراقبة فوراً بالتوازي
+    startNotificationsListener();
+    startUserMonitoring();
+    return;
+  }
+
+  // لو مفيش userId (دخول بالاسم فقط) → ابحث عن المستخدم أولاً
+  await loadUserData();
   if (currentUserId && currentUser) {
     startNotificationsListener();
     startUserMonitoring();
