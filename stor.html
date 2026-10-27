@@ -428,6 +428,52 @@ $('byOk').onclick = async () => {
   } catch (e) { showErr('byErr', e.message); } finally { btn.disabled = false; }
 };
 
+
+// 🎁 هدايا النجاح التلقائية — تقرأ نتائج الامتحانات والواجبات من قاعدة البيانات وتنزّل الهدية في الرصيد
+const REWARD_SOURCES = [
+  { kind: 'homework', col: 'homework_subs', idKey: 'homeworkId', nameKey: 'homeworkName' },
+  { kind: 'exam',     col: 'exam_subs',     idKey: 'examId',     nameKey: 'examName' },
+];
+const REWARD_SINCE = ''; // اختياري: 'YYYY-MM-DD' لتجاهل النتائج القديمة قبل هذا التاريخ
+const isPassed = (s) => s.submitted && s.corrected && num(s.totalScore) > 0 && num(s.score) / num(s.totalScore) >= 0.5;
+const rewardBusy = new Set();
+
+async function grantReward(kind, s, idKey, nameKey) {
+  const itemId = s[idKey]; if (!itemId) return;
+  const key = kind + '_' + itemId;
+  if (rewardBusy.has(key)) return;
+  rewardBusy.add(key);
+  try {
+    const c = (await getDoc(doc(db, 'settings', 'store_config'))).data() || {};
+    const rw = c.rewards?.[kind];
+    if (!rw?.on || !(num(rw.amount) >= 0.01)) return;
+    const wRef = doc(db, 'wallets', uid), tRef = doc(db, 'wallet_transactions', `rw_${uid}_${kind}_${itemId}`);
+    let granted = false;
+    await runTransaction(db, async (tx) => {
+      granted = false;
+      if ((await tx.get(tRef)).exists()) return; // مرة واحدة لكل واجب/امتحان
+      const ws = await tx.get(wRef), now = new Date().toISOString();
+      const after = r2((ws.exists() ? num(ws.data().balance) : 0) + num(rw.amount));
+      tx.set(wRef, { userId: uid, userName: uName, role, balance: after, updatedAt: now }, { merge: true });
+      tx.set(tRef, { userId: uid, userName: uName, role, type: 'credit', amount: num(rw.amount), balanceAfter: after,
+        label: kind === 'exam' ? 'هدية نجاح امتحان' : 'هدية نجاح واجب', note: s[nameKey] || '',
+        source: 'reward', by: 'system', createdAt: now });
+      granted = true;
+    });
+    if (granted) toast(`🎁 مبروك! تمت إضافة هدية ${kind === 'exam' ? 'الامتحان' : 'الواجب'}: ${money(rw.amount)}`);
+  } catch (e) { console.error('reward error:', e); }
+  finally { rewardBusy.delete(key); }
+}
+if (uid) REWARD_SOURCES.forEach(({ kind, col, idKey, nameKey }) => {
+  onSnapshot(doc(db, col, 'all'), (snap) => {
+    (snap.data()?.items || []).forEach(s => {
+      if (s.userId !== uid || !isPassed(s)) return;
+      if (REWARD_SINCE && String(s.correctedAt || s.submittedAt || '') < REWARD_SINCE) return;
+      grantReward(kind, s, idKey, nameKey);
+    });
+  }, (e) => console.error('reward watch error (' + col + '):', e));
+});
+
 renderWallet(); renderTx(); renderReqs();
 </script>
 </body>
