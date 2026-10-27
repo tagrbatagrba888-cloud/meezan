@@ -2473,10 +2473,14 @@ function getExamStatus(exam) {
   if (access.blockedItems[key] && !isStaleEntry(access.blockedItems[key], exam, sub)) return 'blocked';
 
   // 2) openAccess نشط → opened (أعلى أولوية بعد blocked)
-  if (access.openAccess[key]) {
-    const oa = access.openAccess[key];
-    if (new Date(oa.endAt) > new Date()) return 'opened';
-    return 'closed';
+  // ✅ openAccess المنتهي أو اللي الطالب استخدمه (سلّم بعد بدايته) بيتتجاهل،
+  //    ومبقاش بيرجّع "مغلق" — النتيجة بتظهر من التسليم أو الوقت.
+  const oa = access.openAccess[key];
+  if (oa && oa.endAt && new Date(oa.endAt) > new Date()) {
+    const subAt = (sub && sub.submitted) ? Date.parse(sub.submittedAt || '') : NaN;
+    const oaFrom = Date.parse(oa.startAt || '');
+    const usedAlready = !isNaN(subAt) && !isNaN(oaFrom) && subAt >= oaFrom;
+    if (!usedAlready) return 'opened';
   }
 
   // 3) فيه تسليم
@@ -3618,13 +3622,7 @@ async function doSubmit(reason = 'manual') {
       const accessKey = `exam_${exam.id}`;
       const uaRef = doc(db, 'user_access', userId);
       const uaSnap = await getDoc(uaRef);
-      const uaData = uaSnap.exists() ? uaSnap.data() : {};
-
-      const openAccess = uaData.openAccess || {};
-      const closedItems = uaData.closedItems || {};
-
-      delete openAccess[accessKey];
-      closedItems[accessKey] = {
+      const closedEntry = {
         type: 'exam',
         itemId: exam.id,
         closedAt: new Date().toISOString(),
@@ -3632,11 +3630,19 @@ async function doSubmit(reason = 'manual') {
         autoClosed: true
       };
 
-      await setDoc(uaRef, {
-        openAccess,
-        closedItems,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      // ✅ الحذف الصحيح: setDoc+merge مبيمسحش مفتاح جوه map، فبنستخدم updateDoc + deleteField
+      if (uaSnap.exists()) {
+        await updateDoc(uaRef, {
+          [`openAccess.${accessKey}`]: deleteField(),
+          [`closedItems.${accessKey}`]: closedEntry,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        await setDoc(uaRef, {
+          closedItems: { [accessKey]: closedEntry },
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
 
       console.log('✅ تم غلق الامتحان في user_access');
     } catch (e) {
