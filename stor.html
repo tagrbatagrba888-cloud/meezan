@@ -438,6 +438,16 @@ const REWARD_SINCE = ''; // اختياري: 'YYYY-MM-DD' لتجاهل النتا
 const isPassed = (s) => s.submitted && s.corrected && num(s.totalScore) > 0 && num(s.score) / num(s.totalScore) >= 0.5;
 const rewardBusy = new Set();
 
+// 🔔 رابط سيرفر الإشعارات (نفس الرابط اللي بتستخدمه صفحات الأدمن عند إرسال الإشعارات)
+const PUSH_URL = 'https://vercel-server-nine-tau.vercel.app/api/send';
+function sendRewardPush(txId) {
+  fetch(PUSH_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rewardTxId: txId })
+  }).catch((e) => console.warn('reward push failed:', e));
+}
+
 async function grantReward(kind, s, idKey, nameKey) {
   const itemId = s[idKey]; if (!itemId) return;
   const key = kind + '_' + itemId;
@@ -461,6 +471,7 @@ async function grantReward(kind, s, idKey, nameKey) {
       granted = true;
     });
     if (granted) toast(`🎁 مبروك! تمت إضافة هدية ${kind === 'exam' ? 'الامتحان' : 'الواجب'}: ${money(rw.amount)}`);
+    if (granted) sendRewardPush(tRef.id);
   } catch (e) { console.error('reward error:', e); }
   finally { rewardBusy.delete(key); }
 }

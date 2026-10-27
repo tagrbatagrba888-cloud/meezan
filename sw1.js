@@ -42,18 +42,23 @@ function resolveTarget(u) {
   } catch (e) { return new URL('index.html', self.registration.scope).href; }
 }
 
-// الضغط على الإشعار يفتح الموقع
+// الضغط على الإشعار يفتح الصفحة المطلوبة
+// لو في تاب مفتوح للموقع نحوّله للصفحة (تبقى الجلسة محفوظة)، وإلا نفتح تاب جديد
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = resolveTarget(event.notification.data && event.notification.data.url);
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const c of list) {
-        if ('focus' in c) { c.navigate(url); return c.focus(); }
-      }
-      return clients.openWindow(url);
-    })
-  );
+  event.waitUntil((async () => {
+    const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const origin = new URL(self.registration.scope).origin;
+    const mine = list.filter((c) => c.url.startsWith(origin));
+    for (const c of mine) {
+      try {
+        const nc = await c.navigate(url);
+        if (nc) { await nc.focus(); return; }
+      } catch (e) { /* نجرب اللي بعده */ }
+    }
+    return clients.openWindow(url);
+  })());
 });
 
 self.addEventListener('install', () => self.skipWaiting());
