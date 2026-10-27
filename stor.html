@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B3D2E">
+<title>المتجر والمحفظة | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --primary:#0B3D2E; --primary-light:#145A43; --accent:#C9A961; --accent-light:#E0C888;
+    --bg-page:#F5F1E8; --bg-card:#FFFFFF; --bg-input:#F8FBF9; --text-main:#0B3D2E; --text-sub:#5A6B66; --border:#E0E5E1;
+    --shadow:rgba(11,61,46,.15); --error:#C0392B; --success:#1E7A5A; --warning:#E67E22; --info:#2980B9;
+    --grad:linear-gradient(135deg,#0B3D2E 0%,#145A43 55%,#1E7A5A 100%); --grad-gold:linear-gradient(135deg,#C9A961,#E0C888);
+  }
+  [data-theme="dark"] {
+    --primary:#C9A961; --primary-light:#E0C888; --accent:#C9A961;
+    --bg-page:#0A1612; --bg-card:#11201B; --bg-input:#1A2C25; --text-main:#F5F1E8; --text-sub:#9BAEA6; --border:#1E3A31;
+    --shadow:rgba(0,0,0,.5); --error:#E74C3C; --success:#2ECC71; --warning:#F39C12; --info:#3498DB;
+    --grad:linear-gradient(135deg,#11201B 0%,#173128 55%,#1E3A31 100%);
+  }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Cairo',sans-serif; background:var(--bg-page); color:var(--text-main); min-height:100vh; padding-bottom:calc(86px + env(safe-area-inset-bottom)); transition:background .3s; }
+  button { font-family:inherit; cursor:pointer; border:none; }
+  input,select,textarea { font-family:inherit; }
+
+  .header { background:var(--grad); color:#fff; position:sticky; top:0; z-index:50; border-bottom:3px solid var(--accent); box-shadow:0 6px 22px var(--shadow); padding-top:env(safe-area-inset-top); }
+  .header-in { max-width:900px; margin:0 auto; padding:11px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .hl { display:flex; align-items:center; gap:10px; min-width:0; }
+  .ibtn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,.14); color:#fff; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:15px; flex-shrink:0; transition:.2s; }
+  .ibtn:active { background:var(--accent); color:var(--primary); }
+  .ttl h1 { font-size:17px; font-weight:900; line-height:1.2; } .ttl small { font-size:10px; letter-spacing:2px; opacity:.7; font-weight:700; }
+
+  .wrap { max-width:900px; margin:0 auto; padding:14px; }
+  .tab { display:none; animation:up .3s ease; } .tab.on { display:block; }
+  @keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* Hero wallet */
+  .hero { background:var(--grad); color:#fff; border-radius:24px; padding:22px 20px; border:2px solid var(--accent); position:relative; overflow:hidden; box-shadow:0 14px 36px var(--shadow); }
+  .hero::before { content:''; position:absolute; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle,rgba(201,169,97,.38),transparent 70%); top:-130px; left:-90px; }
+  .hero > * { position:relative; z-index:1; }
+  .hero small { opacity:.78; font-weight:700; font-size:12px; }
+  .bal { font-size:40px; font-weight:900; color:var(--accent-light); line-height:1.25; margin:2px 0 4px; }
+  .bal span { font-size:16px; color:#fff; opacity:.85; margin-right:6px; }
+  .hero-name { font-size:13px; font-weight:800; opacity:.9; display:flex; align-items:center; gap:8px; }
+  .acts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .abtn { padding:13px 10px; border-radius:15px; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; transition:.2s; }
+  .abtn:active { transform:scale(.97); }
+  .abtn.dep { background:var(--grad-gold); color:#0B3D2E; } .abtn.wd { background:rgba(255,255,255,.14); color:#fff; border:1.5px solid rgba(255,255,255,.3); }
+
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0; }
+  .stat { background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:12px 8px; text-align:center; }
+  .stat i { font-size:16px; color:var(--accent); margin-bottom:5px; } .stat b { display:block; font-size:15px; font-weight:900; } .stat small { font-size:10.5px; color:var(--text-sub); font-weight:700; }
+
+  .sec-h { display:flex; align-items:center; justify-content:space-between; margin:18px 2px 10px; }
+  .sec-h h3 { font-size:15px; font-weight:900; display:flex; align-items:center; gap:8px; } .sec-h h3 i { color:var(--accent); }
+  .link { background:none; color:var(--text-sub); font-weight:800; font-size:12px; }
+  .panel { background:var(--bg-card); border:2px solid var(--border); border-radius:20px; padding:6px 14px; }
+  .row { display:flex; align-items:center; gap:11px; padding:12px 0; border-bottom:1px dashed var(--border); }
+  .row:last-child { border-bottom:none; }
+  .ric { width:40px; height:40px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; flex-shrink:0; }
+  .ric.cr { background:var(--success); } .ric.db { background:var(--warning); } .ric.gift { background:var(--grad-gold); color:#0B3D2E; }
+  .rm { flex:1; min-width:0; } .rm b { display:block; font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .rm small { font-size:11px; color:var(--text-sub); font-weight:600; }
+  .amt { font-weight:900; font-size:14px; white-space:nowrap; } .amt.p { color:var(--success); } .amt.n { color:var(--error); }
+  .empty { text-align:center; padding:34px 16px; color:var(--text-sub); font-weight:700; font-size:13px; } .empty i { display:block; font-size:34px; opacity:.4; margin-bottom:8px; }
+
+  .chips { display:flex; gap:8px; overflow-x:auto; padding:2px 0 10px; scrollbar-width:none; } .chips::-webkit-scrollbar { display:none; }
+  .chip { flex:0 0 auto; padding:8px 15px; border-radius:12px; background:var(--bg-card); border:2px solid var(--border); color:var(--text-sub); font-weight:800; font-size:12.5px; }
+  .chip.on { background:var(--primary); color:#fff; border-color:var(--primary); } [data-theme="dark"] .chip.on { color:#0A1612; }
+  .search { width:100%; padding:12px 14px; border-radius:14px; border:2px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:14px; font-weight:600; outline:none; margin-bottom:10px; }
+  .search:focus,.inp:focus { border-color:var(--accent); box-shadow:0 0 0 4px rgba(201,169,97,.18); }
+
+  /* Products */
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media (min-width:640px){ .grid { grid-template-columns:repeat(3,1fr); } }
+  .pc { background:var(--bg-card); border:2px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:.2s; }
+  .pc:active { transform:scale(.98); }
+  .pimg { aspect-ratio:1/.85; background:var(--bg-input); display:flex; align-items:center; justify-content:center; font-size:34px; color:var(--text-sub); position:relative; overflow:hidden; }
+  .pimg img { width:100%; height:100%; object-fit:cover; }
+  .pimg .tg { position:absolute; top:8px; right:8px; }
+  .pb { padding:11px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .pn { font-weight:900; font-size:13.5px; line-height:1.4; } .pd { font-size:11px; color:var(--text-sub); font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .pp { font-size:17px; font-weight:900; color:var(--success); margin-top:auto; padding-top:4px; }
+  .tag { font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:20px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sub); display:inline-flex; align-items:center; gap:4px; }
+  .tag.ok { background:rgba(30,122,90,.14); color:var(--success); border-color:rgba(30,122,90,.4); } .tag.bad { background:rgba(192,57,43,.12); color:var(--error); border-color:rgba(192,57,43,.35); } .tag.wait { background:rgba(230,126,34,.13); color:var(--warning); border-color:rgba(230,126,34,.4); }
+
+  .btn { padding:12px 16px; border-radius:14px; font-weight:900; font-size:13.5px; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:.2s; border:2px solid transparent; }
+  .btn:disabled { opacity:.55; cursor:not-allowed; } .btn:active:not(:disabled) { transform:scale(.97); }
+  .btn-p { background:var(--grad); color:#fff; } [data-theme="dark"] .btn-p { color:var(--text-main); }
+  .btn-g { background:var(--grad-gold); color:#0B3D2E; } .btn-o { background:transparent; color:var(--text-main); border-color:var(--border); }
+  .btn-b { width:100%; } .btn-s { padding:9px 12px; font-size:12px; border-radius:11px; }
+
+  /* Request cards */
+  .rq { background:var(--bg-card); border:2px solid var(--border); border-radius:18px; padding:14px; margin-bottom:10px; }
+  .rq-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+  .note { background:rgba(201,169,97,.13); border-right:4px solid var(--accent); border-radius:10px; padding:8px 11px; font-size:12px; font-weight:600; margin-top:8px; }
+
+  /* Bottom nav */
+  .nav { position:fixed; bottom:0; left:0; right:0; z-index:60; background:var(--bg-card); border-top:2px solid var(--border); display:flex; padding:6px 6px calc(6px + env(safe-area-inset-bottom)); box-shadow:0 -8px 24px var(--shadow); }
+  .nav button { flex:1; background:none; color:var(--text-sub); padding:7px 2px; border-radius:14px; font-weight:800; font-size:11px; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; }
+  .nav button i { font-size:18px; } .nav button.on { color:var(--primary); background:rgba(201,169,97,.16); }
+  .dot { position:absolute; top:3px; right:calc(50% - 20px); min-width:17px; height:17px; border-radius:9px; background:var(--error); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center; padding:0 4px; }
+
+  /* Modal (bottom sheet) */
+  .modal { position:fixed; inset:0; background:rgba(5,15,11,.6); backdrop-filter:blur(5px); z-index:100; display:none; align-items:flex-end; justify-content:center; }
+  .modal.show { display:flex; animation:fade .2s; } @keyframes fade { from{opacity:0} }
+  .sheet { background:var(--bg-card); width:100%; max-width:560px; max-height:92vh; overflow-y:auto; border-radius:26px 26px 0 0; border:2px solid var(--accent); border-bottom:none; animation:sl .3s cubic-bezier(.2,.9,.3,1); padding-bottom:env(safe-area-inset-bottom); }
+  @keyframes sl { from{transform:translateY(60px);opacity:0} }
+  @media (min-width:640px){ .modal { align-items:center; } .sheet { border-radius:26px; border-bottom:2px solid var(--accent); } }
+  .sh-head { padding:16px 18px; background:var(--grad); color:#fff; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:2; }
+  .sh-head h3 { font-size:15.5px; font-weight:900; display:flex; gap:9px; align-items:center; } .sh-head h3 i { color:var(--accent); }
+  .sh-x { width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.15); color:#fff; }
+  .sh-body { padding:16px 18px; } .sh-foot { padding:0 18px 18px; display:flex; gap:10px; } .sh-foot .btn { flex:1; }
+  .field { margin-bottom:13px; } .field label { display:block; font-size:12px; font-weight:800; color:var(--text-sub); margin-bottom:6px; }
+  .inp { width:100%; padding:12px 14px; border-radius:13px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-size:15px; font-weight:700; outline:none; transition:.2s; }
+  .hint { background:rgba(41,128,185,.1); border:1px solid rgba(41,128,185,.3); color:var(--info); border-radius:12px; padding:9px 12px; font-size:12px; font-weight:700; margin-bottom:13px; line-height:1.7; }
+  .err { background:rgba(192,57,43,.1); color:var(--error); border:1px solid rgba(192,57,43,.35); padding:10px 12px; border-radius:12px; font-size:12.5px; font-weight:700; margin-bottom:12px; display:none; }
+  .sum { background:var(--bg-input); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:13px; }
+  .sum div { display:flex; justify-content:space-between; font-size:13px; font-weight:700; padding:4px 0; } .sum span { color:var(--text-sub); } .sum .tot { border-top:1px dashed var(--border); margin-top:5px; padding-top:9px; font-size:16px; font-weight:900; color:var(--success); }
+  .cp { display:flex; gap:8px; } .cp .inp { direction:ltr; text-align:left; text-transform:uppercase; font-family:monospace; letter-spacing:1px; }
+  .rcpt { width:100%; max-height:150px; object-fit:cover; border-radius:12px; margin-top:8px; display:none; border:1px solid var(--border); }
+
+  .toast { position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; transform:translate(-50%,-120px); z-index:200; background:var(--bg-card); border:2px solid var(--border); border-radius:14px; padding:12px 20px; font-weight:800; font-size:13px; box-shadow:0 12px 36px rgba(0,0,0,.3); display:flex; gap:9px; align-items:center; max-width:92vw; transition:.35s; opacity:0; }
+  .toast.show { transform:translate(-50%,0); opacity:1; } .toast.success { border-color:var(--success); } .toast.success i { color:var(--success); } .toast.error { border-color:var(--error); } .toast.error i { color:var(--error); }
+  .sk { height:120px; border-radius:20px; background:linear-gradient(90deg,var(--bg-card),var(--bg-input),var(--bg-card)); background-size:200% 100%; animation:sk 1.2s infinite; } @keyframes sk { to{ background-position:-200% 0 } }
+</style>
+</head>
+<body>
+
+<header class="header"><div class="header-in">
+  <div class="hl"><a href="index.html" class="ibtn" title="الرئيسية"><i class="fas fa-arrow-right"></i></a>
+    <div class="ttl"><h1>المتجر والمحفظة</h1><small>STORE &amp; WALLET</small></div></div>
+  <button class="ibtn" id="themeBtn" title="الوضع"><i class="fas fa-moon" id="themeIc"></i></button>
+</div></header>
+
+<main class="wrap">
+  <!-- المحفظة -->
+  <section class="tab on" id="tab-wallet">
+    <div class="hero">
+      <div class="hero-name"><i class="fas fa-circle-user"></i><span id="uName">—</span></div>
+      <small>رصيدك الحالي</small>
+      <div class="bal"><span>ج.م</span><b id="balV">0</b></div>
+      <div class="acts">
+        <button class="abtn dep" id="openDep"><i class="fas fa-arrow-down-long"></i> إيداع</button>
+        <button class="abtn wd" id="openWd"><i class="fas fa-arrow-up-long"></i> سحب</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><i class="fas fa-gift"></i><b id="stGift">0</b><small>هدايا النجاح</small></div>
+      <div class="stat"><i class="fas fa-bag-shopping"></i><b id="stSpent">0</b><small>مشترياتك</small></div>
+      <div class="stat"><i class="fas fa-hourglass-half"></i><b id="stPend">0</b><small>طلبات معلّقة</small></div>
+    </div>
+    <div class="sec-h"><h3><i class="fas fa-clock-rotate-left"></i> آخر المعاملات</h3><button class="link" data-go="tx">عرض الكل <i class="fas fa-chevron-left"></i></button></div>
+    <div class="panel" id="lastTx"><div class="sk"></div></div>
+  </section>
+
+  <!-- المتجر -->
+  <section class="tab" id="tab-shop">
+    <input class="search" id="shopQ" placeholder="🔍 ابحث عن منتج...">
+    <div class="chips" id="catChips"></div>
+    <div class="grid" id="prodGrid"><div class="sk"></div><div class="sk"></div></div>
+  </section>
+
+  <!-- الطلبات -->
+  <section class="tab" id="tab-req">
+    <div class="chips" id="reqChips">
+      <button class="chip on" data-s="all">الكل</button><button class="chip" data-s="pending">قيد الانتظار</button><button class="chip" data-s="approved">مقبولة</button><button class="chip" data-s="rejected">مرفوضة</button>
+    </div>
+    <div id="reqList"></div>
+  </section>
+
+  <!-- المعاملات -->
+  <section class="tab" id="tab-tx">
+    <div class="chips" id="txChips">
+      <button class="chip on" data-f="all">الكل</button><button class="chip" data-f="credit">إضافة</button><button class="chip" data-f="debit">خصم</button><button class="chip" data-f="reward">هدايا</button><button class="chip" data-f="purchase">مشتريات</button>
+    </div>
+    <div class="panel" id="txList"></div>
+    <div style="text-align:center;margin:14px 0"><button class="btn btn-o" id="txMore" style="display:none"><i class="fas fa-chevron-down"></i> عرض المزيد</button></div>
+  </section>
+</main>
+
+<nav class="nav" id="nav">
+  <button class="on" data-tab="wallet"><i class="fas fa-wallet"></i>المحفظة</button>
+  <button data-tab="shop"><i class="fas fa-store"></i>المتجر</button>
+  <button data-tab="req"><i class="fas fa-money-bill-transfer"></i>طلباتي<span class="dot" id="reqDot">0</span></button>
+  <button data-tab="tx"><i class="fas fa-receipt"></i>المعاملات</button>
+</nav>
+
+<!-- Modal: طلب إيداع/سحب -->
+<div class="modal" id="reqModal"><div class="sheet">
+  <div class="sh-head"><h3 id="rqTitle"><i class="fas fa-arrow-down-long"></i> إيداع</h3><button class="sh-x" data-close="reqModal"><i class="fas fa-times"></i></button></div>
+  <div class="sh-body">
+    <div class="err" id="rqErr"></div>
+    <div class="hint" id="rqHint"></div>
+    <div class="field"><label>المبلغ (ج.م)</label><input class="inp" id="rqAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+    <div class="field"><label>وسيلة <span id="rqMLbl">التحويل</span></label>
+      <select class="inp" id="rqMethod"><option>فودافون كاش</option><option>إنستاباي</option><option>تحويل بنكي</option><option>أخرى</option></select></div>
+    <div class="field"><label id="rqDLbl">بيانات التحويل</label><input class="inp" id="rqDet" maxlength="120" placeholder="رقم الهاتف / الحساب"></div>
+    <div class="field" id="rqRcWrap"><label>صورة إيصال التحويل</label>
+      <button class="btn btn-o btn-b" id="rqPick" type="button"><i class="fas fa-image"></i> اختر صورة</button>
+      <input type="file" id="rqFile" accept="image/*" style="display:none"><img class="rcpt" id="rqPrev" alt=""></div>
+    <div class="field"><label>ملاحظة (اختياري)</label><input class="inp" id="rqNote" maxlength="200"></div>
+  </div>
+  <div class="sh-foot"><button class="btn btn-o" data-close="reqModal">إلغاء</button><button class="btn btn-p" id="rqOk"><i class="fas fa-paper-plane"></i> إرسال الطلب</button></div>
+</div></div>
+
+<!-- Modal: شراء -->
+<div class="modal" id="buyModal"><div class="sheet">
+  <div class="sh-head"><h3><i class="fas fa-bag-shopping"></i> إتمام الشراء</h3><button class="sh-x" data-close="buyModal"><i class="fas fa-times"></i></button></div>
+  <div class="sh-body">
+    <div class="err" id="byErr"></div>
+    <div style="font-weight:900;font-size:16px;margin-bottom:12px" id="byName">—</div>
+    <div class="field"><label>كود الخصم (اختياري)</label><div class="cp"><input class="inp" id="byCode" maxlength="24" placeholder="MZN-XXXX-XXXX"><button class="btn btn-g" id="byApply" type="button">تطبيق</button></div></div>
+    <div class="sum"><div><span>السعر</span><b id="byPrice">0</b></div><div id="byDiscRow" style="display:none"><span>الخصم</span><b id="byDisc" style="color:var(--success)">0</b></div><div><span>رصيدك</span><b id="byBal">0</b></div><div class="tot"><span style="color:inherit">الإجمالي</span><b id="byTot">0</b></div></div>
+  </div>
+  <div class="sh-foot"><button class="btn btn-o" data-close="buyModal">إلغاء</button><button class="btn btn-p" id="byOk"><i class="fas fa-check"></i> تأكيد الشراء</button></div>
+</div></div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastI"></i><span id="toastT"></span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, collection, onSnapshot, setDoc, getDoc, query, where, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0", authDomain: "qanon-c716d.firebaseapp.com", projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app", messagingSenderId: "757756130875", appId: "1:757756130875:web:63c53534c6843e2a29ce1e"
+}));
+const $ = (id) => document.getElementById(id);
+
+// 🔒 الجلسة
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') location.replace('login.html');
+const uid = sessionStorage.getItem('meezan_user_id') || '';
+const role = sessionStorage.getItem('meezan_role') || 'student';
+let uData = {}; try { uData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || {}; } catch (e) {}
+const uName = uData.fullName || uData.username || sessionStorage.getItem('meezan_username') || 'مستخدم';
+$('uName').textContent = uName;
+
+// 🧰 أدوات
+const CUR = 'ج.م';
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const num = (n) => Number(n || 0), r2 = (n) => Math.round(num(n) * 100) / 100;
+const fmt = (n) => num(n).toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+const money = (n) => `${fmt(n)} ${CUR}`;
+const iso = () => new Date().toISOString();
+const newId = (p) => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+const fmtDate = (d) => { try { return new Date(d).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return ''; } };
+const isImg = (s) => typeof s === 'string' && (/^https?:\/\//i.test(s) || /^data:image\//i.test(s));
+const clean = (v) => String(v || '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+const norm = (s) => String(s || '').toLowerCase().replace(/[\u064B-\u065F\u0670]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+let tT;
+function toast(msg, type = 'success') {
+  const t = $('toast'); t.className = 'toast ' + type;
+  $('toastI').className = 'fas ' + (type === 'error' ? 'fa-circle-xmark' : 'fa-check-circle'); $('toastT').textContent = msg;
+  requestAnimationFrame(() => t.classList.add('show')); clearTimeout(tT); tT = setTimeout(() => t.classList.remove('show'), 3400);
+}
+const showErr = (id, m) => { const e = $(id); e.textContent = m; e.style.display = 'block'; }, hideErr = (id) => { $(id).style.display = 'none'; };
+const openM = (id) => $(id).classList.add('show'), closeM = (id) => $(id).classList.remove('show');
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-close]'); if (c) closeM(c.dataset.close); if (e.target.classList.contains('modal')) e.target.classList.remove('show'); });
+
+// 🎨 الثيم + التبويبات
+const applyTheme = (t) => { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('meezan_theme', t); $('themeIc').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; };
+applyTheme(localStorage.getItem('meezan_theme') || 'light');
+$('themeBtn').onclick = () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+function go(t) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 'tab-' + t));
+  document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('on', x.dataset.tab === t));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('nav').onclick = (e) => { const b = e.target.closest('button'); if (b) go(b.dataset.tab); };
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+
+// 📡 البيانات (Real-time)
+let wallet = {}, cfg = {}, products = [], reqs = [], txs = [];
+const bal = () => num(wallet.balance);
+if (uid) {
+  onSnapshot(doc(db, 'wallets', uid), (s) => { wallet = s.exists() ? s.data() : {}; renderWallet(); }, () => toast('تعذّر تحميل المحفظة', 'error'));
+  onSnapshot(query(collection(db, 'wallet_transactions'), where('userId', '==', uid)), (s) => { txs = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderTx(); renderWallet(); }, () => toast('تعذّر تحميل المعاملات', 'error'));
+  onSnapshot(query(collection(db, 'wallet_requests'), where('userId', '==', uid)), (s) => { reqs = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderReqs(); renderWallet(); }, () => {});
+}
+onSnapshot(collection(db, 'store_products'), (s) => { products = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.active !== false).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderShop(); }, () => toast('تعذّر تحميل المنتجات', 'error'));
+onSnapshot(doc(db, 'settings', 'store_config'), (s) => { cfg = s.exists() ? s.data() : {}; }, () => {});
+
+// 💼 المحفظة
+const isReward = (t) => t.source === 'reward', isBuy = (t) => t.source === 'purchase';
+function txRow(t) {
+  const cr = t.type === 'credit', ic = isReward(t) ? 'gift' : isBuy(t) ? 'bag-shopping' : cr ? 'plus' : 'minus';
+  return `<div class="row"><div class="ric ${isReward(t) ? 'gift' : cr ? 'cr' : 'db'}"><i class="fas fa-${ic}"></i></div><div class="rm"><b>${esc(t.label || (cr ? 'إضافة رصيد' : 'خصم رصيد'))}</b><small>${esc(fmtDate(t.createdAt))}${t.note ? ' • ' + esc(t.note) : ''}</small></div><div class="amt ${cr ? 'p' : 'n'}">${cr ? '+' : '−'}${esc(money(t.amount))}</div></div>`;
+}
+const EMPTY = (i, m) => `<div class="empty"><i class="fas fa-${i}"></i>${m}</div>`;
+function renderWallet() {
+  $('balV').textContent = fmt(bal());
+  $('lastTx').innerHTML = txs.length ? txs.slice(0, 5).map(txRow).join('') : EMPTY('receipt', 'لا توجد معاملات بعد');
+  $('stGift').textContent = fmt(txs.filter(isReward).reduce((a, t) => a + num(t.amount), 0));
+  $('stSpent').textContent = fmt(txs.filter(isBuy).reduce((a, t) => a + num(t.amount), 0));
+  const p = reqs.filter(r => r.status === 'pending').length;
+  $('stPend').textContent = p; $('reqDot').textContent = p; $('reqDot').style.display = p ? 'flex' : 'none';
+}
+let tF = 'all', tShown = 30;
+function renderTx() {
+  let l = txs; if (tF === 'credit' || tF === 'debit') l = l.filter(t => t.type === tF); else if (tF === 'reward') l = l.filter(isReward); else if (tF === 'purchase') l = l.filter(isBuy);
+  $('txList').innerHTML = l.length ? l.slice(0, tShown).map(txRow).join('') : EMPTY('receipt', 'لا توجد معاملات');
+  $('txMore').style.display = l.length > tShown ? '' : 'none';
+}
+$('txChips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; tF = b.dataset.f; tShown = 30; document.querySelectorAll('#txChips .chip').forEach(x => x.classList.toggle('on', x === b)); renderTx(); };
+$('txMore').onclick = () => { tShown += 30; renderTx(); };
+
+// 📋 الطلبات
+let rS = 'all';
+function renderReqs() {
+  const l = reqs.filter(r => rS === 'all' || r.status === rS);
+  $('reqList').innerHTML = l.length ? l.map(r => {
+    const dep = r.type === 'deposit';
+    const st = r.status === 'approved' ? '<span class="tag ok"><i class="fas fa-circle-check"></i> مقبول</span>' : r.status === 'rejected' ? '<span class="tag bad"><i class="fas fa-circle-xmark"></i> مرفوض</span>' : '<span class="tag wait"><i class="fas fa-hourglass-half"></i> قيد الانتظار</span>';
+    return `<div class="rq"><div class="rq-top"><b style="font-size:14px"><i class="fas fa-arrow-${dep ? 'down' : 'up'}-long" style="color:${dep ? 'var(--success)' : 'var(--warning)'}"></i> طلب ${dep ? 'إيداع' : 'سحب'}</b>${st}</div>
+      <div class="amt ${dep ? 'p' : 'n'}" style="font-size:22px">${esc(money(r.amount))}</div>
+      <small style="color:var(--text-sub);font-weight:600">${esc(r.method || '')} • ${esc(fmtDate(r.createdAt))}</small>
+      ${r.adminNote ? `<div class="note"><b>الإدارة:</b> ${esc(r.adminNote)}</div>` : ''}</div>`;
+  }).join('') : EMPTY('inbox', 'لا توجد طلبات');
+}
+$('reqChips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; rS = b.dataset.s; document.querySelectorAll('#reqChips .chip').forEach(x => x.classList.toggle('on', x === b)); renderReqs(); };
+
+// ➕ طلب إيداع / سحب
+let rqType = 'deposit', rqImg = '';
+function limitsOf(t) { const L = cfg.limits || {}; return { mn: num(t === 'withdraw' ? L.wMin : L.dMin), mx: num(t === 'withdraw' ? L.wMax : L.dMax) }; }
+function openReq(t) {
+  rqType = t; rqImg = ''; const dep = t === 'deposit', { mn, mx } = limitsOf(t);
+  $('rqTitle').innerHTML = `<i class="fas fa-arrow-${dep ? 'down' : 'up'}-long"></i> طلب ${dep ? 'إيداع' : 'سحب'}`;
+  $('rqMLbl').textContent = dep ? 'التحويل' : 'الاستلام'; $('rqDLbl').textContent = dep ? 'بيانات التحويل (رقم المحوِّل)' : 'رقم/حساب الاستلام';
+  $('rqRcWrap').style.display = dep ? '' : 'none'; $('rqPrev').style.display = 'none'; $('rqFile').value = '';
+  $('rqAmt').value = ''; $('rqDet').value = ''; $('rqNote').value = ''; hideErr('rqErr');
+  const lim = [mn ? 'أقل مبلغ ' + money(mn) : '', mx ? 'أقصى مبلغ ' + money(mx) : ''].filter(Boolean).join(' • ');
+  $('rqHint').innerHTML = (dep ? 'حوّل المبلغ ثم أرفق صورة الإيصال لتتم مراجعته.' : `رصيدك المتاح للسحب: <b>${esc(money(bal()))}</b>`) + (lim ? `<br>${esc(lim)}` : '');
+  openM('reqModal');
+}
+$('openDep').onclick = () => openReq('deposit'); $('openWd').onclick = () => openReq('withdraw');
+$('rqPick').onclick = () => $('rqFile').click();
+function compress(file, side = 900, q = .72) {
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onerror = rej; fr.onload = () => { const im = new Image(); im.onerror = rej; im.onload = () => { const k = Math.min(1, side / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', q)); }; im.src = fr.result; }; fr.readAsDataURL(file); });
+}
+$('rqFile').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { rqImg = await compress(f); $('rqPrev').src = rqImg; $('rqPrev').style.display = 'block'; } catch (er) { toast('تعذّر قراءة الصورة', 'error'); } };
+$('rqOk').onclick = async () => {
+  hideErr('rqErr'); const dep = rqType === 'deposit', amount = r2($('rqAmt').value), det = clean($('rqDet').value), { mn, mx } = limitsOf(rqType);
+  if (!(amount > 0)) return showErr('rqErr', 'أدخل مبلغاً صحيحاً');
+  if (mn && amount < mn) return showErr('rqErr', `أقل مبلغ ${dep ? 'للإيداع' : 'للسحب'} هو ${money(mn)}`);
+  if (mx && amount > mx) return showErr('rqErr', `أقصى مبلغ ${dep ? 'للإيداع' : 'للسحب'} هو ${money(mx)}`);
+  if (!dep && amount > bal()) return showErr('rqErr', 'رصيدك لا يكفي لهذا السحب');
+  if (det.length < 3) return showErr('rqErr', dep ? 'أدخل بيانات التحويل' : 'أدخل رقم أو حساب الاستلام');
+  if (dep && !rqImg) return showErr('rqErr', 'أرفق صورة إيصال التحويل');
+  if (reqs.some(r => r.status === 'pending' && r.type === rqType)) return showErr('rqErr', `لديك طلب ${dep ? 'إيداع' : 'سحب'} قيد الانتظار بالفعل`);
+  const btn = $('rqOk'); btn.disabled = true;
+  try {
+    const id = newId('req');
+    await setDoc(doc(db, 'wallet_requests', id), { id, userId: uid, userName: uName, role, type: rqType, amount, method: $('rqMethod').value, details: det, userNote: clean($('rqNote').value), receiptUrl: dep ? rqImg : '', status: 'pending', adminNote: '', createdAt: iso() });
+    closeM('reqModal'); toast('تم إرسال طلبك — بانتظار مراجعة الإدارة'); go('req');
+  } catch (e) { showErr('rqErr', 'تعذّر الإرسال: ' + e.message); } finally { btn.disabled = false; }
+};
+
+// 🛍️ المتجر
+let cat = 'all';
+function renderShop() {
+  const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
+  $('catChips').innerHTML = cats.length ? ['all', ...cats].map(c => `<button class="chip ${c === cat ? 'on' : ''}" data-c="${esc(c)}">${c === 'all' ? 'الكل' : esc(c)}</button>`).join('') : '';
+  const q = norm($('shopQ').value);
+  const l = products.filter(p => (cat === 'all' || p.category === cat) && (!q || norm(p.name + ' ' + (p.description || '')).includes(q)));
+  $('prodGrid').innerHTML = l.length ? l.map(p => {
+    const out = p.stock != null && num(p.stock) <= 0, low = p.stock != null && num(p.stock) > 0 && num(p.stock) <= 3;
+    return `<div class="pc"><div class="pimg">${isImg(p.image) ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : '<i class="fas fa-image"></i>'}${out ? '<span class="tag bad tg">نفد</span>' : low ? `<span class="tag wait tg">متبقي ${fmt(p.stock)}</span>` : ''}</div>
+      <div class="pb"><div class="pn">${esc(p.name)}</div>${p.description ? `<div class="pd">${esc(p.description)}</div>` : ''}<div class="pp">${esc(money(p.price))}</div>
+      <button class="btn btn-p btn-s" data-buy="${esc(p.id)}" ${out ? 'disabled' : ''}><i class="fas fa-bag-shopping"></i> ${out ? 'غير متاح' : 'شراء'}</button></div></div>`;
+  }).join('') : `<div style="grid-column:1/-1">${EMPTY('box-open', 'لا توجد منتجات')}</div>`;
+}
+$('shopQ').oninput = renderShop;
+$('catChips').onclick = (e) => { const b = e.target.closest('.chip'); if (b) { cat = b.dataset.c; renderShop(); } };
+$('prodGrid').onclick = (e) => { const b = e.target.closest('[data-buy]'); if (b) openBuy(products.find(p => p.id === b.dataset.buy)); };
+
+// 🎟️ الشراء + كود الخصم
+let bP = null, bCode = '', bDisc = 0;
+function calcCoupon(c, p) {
+  if (!c) return { err: 'كود الخصم غير موجود' };
+  if (c.active === false) return { err: 'هذا الكود متوقف' };
+  if (c.expiresAt && new Date(c.expiresAt + 'T23:59:59') < new Date()) return { err: 'انتهت صلاحية الكود' };
+  if (c.usageLimit && num(c.usedCount) >= num(c.usageLimit)) return { err: 'تم استنفاد هذا الكود' };
+  if (!c.allUsers && !(c.userIds || []).includes(uid)) return { err: 'هذا الكود غير مخصص لك' };
+  if (c.usedBy && c.usedBy[uid]) return { err: 'لقد استخدمت هذا الكود من قبل' };
+  if (!c.allProducts && !(c.productIds || []).includes(p.id)) return { err: 'الكود لا ينطبق على هذا المنتج' };
+  let d = c.type === 'percent' ? num(p.price) * num(c.value) / 100 : num(c.value);
+  if (c.type === 'percent' && num(c.maxDiscount) > 0) d = Math.min(d, num(c.maxDiscount));
+  return { disc: r2(Math.min(d, num(p.price))) };
+}
+function buyUI() {
+  const tot = r2(Math.max(0, num(bP.price) - bDisc));
+  $('byPrice').textContent = money(bP.price); $('byDiscRow').style.display = bDisc ? '' : 'none'; $('byDisc').textContent = '− ' + money(bDisc);
+  $('byBal').textContent = money(bal()); $('byTot').textContent = money(tot);
+  $('byOk').disabled = false;
+}
+function openBuy(p) { if (!p) return; bP = p; bCode = ''; bDisc = 0; $('byName').textContent = p.name; $('byCode').value = ''; hideErr('byErr'); buyUI(); openM('buyModal'); }
+$('byApply').onclick = async () => {
+  hideErr('byErr'); const code = clean($('byCode').value).toUpperCase(); if (!code) { bCode = ''; bDisc = 0; return buyUI(); }
+  try { const s = await getDoc(doc(db, 'store_coupons', code)); const r = calcCoupon(s.exists() ? s.data() : null, bP); if (r.err) { bCode = ''; bDisc = 0; buyUI(); return showErr('byErr', r.err); } bCode = code; bDisc = r.disc; buyUI(); toast('تم تطبيق الكود 🎉'); }
+  catch (e) { showErr('byErr', 'تعذّر التحقق من الكود'); }
+};
+$('byOk').onclick = async () => {
+  hideErr('byErr'); const btn = $('byOk'); btn.disabled = true;
+  const pRef = doc(db, 'store_products', bP.id), wRef = doc(db, 'wallets', uid), cRef = bCode ? doc(db, 'store_coupons', bCode) : null;
+  const oRef = doc(db, 'store_orders', newId('ord')), tRef = doc(db, 'wallet_transactions', newId('tx'));
+  try {
+    let after = 0;
+    await runTransaction(db, async (tx) => {
+      const [ps, ws, cs] = await Promise.all([tx.get(pRef), tx.get(wRef), cRef ? tx.get(cRef) : Promise.resolve(null)]);
+      if (!ps.exists() || ps.data().active === false) throw new Error('المنتج لم يعد متاحاً');
+      const p = ps.data(), price = num(p.price);
+      if (p.stock != null && num(p.stock) <= 0) throw new Error('نفد هذا المنتج');
+      let disc = 0; if (cRef) { const r = calcCoupon(cs.exists() ? cs.data() : null, { ...p, id: bP.id }); if (r.err) throw new Error(r.err); disc = r.disc; }
+      const total = r2(Math.max(0, price - disc)), cur = ws.exists() ? num(ws.data().balance) : 0;
+      if (cur < total) throw new Error('رصيدك لا يكفي — اشحن محفظتك أولاً');
+      after = r2(cur - total); const now = iso();
+      tx.set(wRef, { userId: uid, userName: uName, role, balance: after, updatedAt: now }, { merge: true });
+      tx.set(tRef, { userId: uid, userName: uName, role, type: 'debit', amount: total, balanceAfter: after, label: 'شراء من المتجر', note: p.name, source: 'purchase', by: uName, createdAt: now });
+      tx.set(oRef, { id: oRef.id, userId: uid, userName: uName, role, productId: bP.id, productName: p.name, price, discount: disc, total, couponCode: bCode, status: 'new', createdAt: now });
+      if (p.stock != null) tx.update(pRef, { stock: num(p.stock) - 1 });
+      if (cRef) tx.set(cRef, { usedCount: increment(1), usedBy: { [uid]: now } }, { merge: true });
+    });
+    closeM('buyModal'); toast('تمت عملية الشراء بنجاح ✅'); go('wallet');
+  } catch (e) { showErr('byErr', e.message); } finally { btn.disabled = false; }
+};
+
+renderWallet(); renderTx(); renderReqs();
+</script>
+</body>
+</html>
