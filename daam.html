@@ -2231,6 +2231,7 @@ const processedMsgIds = new Set();
 // ===== دعم Gemini (generativelanguage.googleapis.com): صيغة الطلب + ترويسة المفتاح =====
 const isGeminiUrl = (u) => /generativelanguage\.googleapis\.com/i.test(u || '');
 function buildGeminiBody(system, history, userMessage, maxTokens, temperature) {
+  if (history.length && history[history.length - 1].role === 'user' && history[history.length - 1].content === userMessage) history = history.slice(0, -1); // منع تكرار نفس رسالة المستخدم
   const turns = [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.content })), { role: 'user', text: userMessage }];
   const contents = [];
   for (const t of turns) {
