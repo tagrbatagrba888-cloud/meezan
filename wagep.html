@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
-<title>إضافة واجب | MEEZAN</title>
+<title>إدارة الواجبات | MEEZAN</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -937,6 +937,130 @@
     .pw-preview { padding: 12px; gap: 10px; }
     .pw-preview-value { font-size: 17px; letter-spacing: 3px; }
   }
+  /* ============ Main tabs (إضافة / واجباتي / التصحيح) ============ */
+  .main-tabs { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; padding-bottom: 2px; }
+  .main-tab {
+    flex: 1; min-width: max-content;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 16px; border-radius: 14px;
+    border: 2px solid var(--border); background: var(--bg-card); color: var(--text-sub);
+    font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 14px;
+    cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
+  }
+  .main-tab:hover { border-color: var(--primary-lighter); }
+  .main-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; border-color: var(--primary); box-shadow: 0 6px 18px var(--shadow);
+  }
+  [data-theme="dark"] .main-tab.active { color: var(--bg-page); }
+  .tab-count { background: #C9A961; color: #0B3D2E; border-radius: 999px; font-size: 11px; padding: 1px 8px; font-weight: 900; }
+  .tab-count.warn { background: var(--warning); color: #fff; }
+
+  /* ============ Homework cards ============ */
+  .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .hw-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-top: 4px solid var(--success);
+    border-radius: 18px; padding: 18px; box-shadow: 0 4px 16px var(--shadow);
+    display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  }
+  .hw-card.off { border-top-color: var(--text-sub); }
+  .hw-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .hw-name { font-size: 16px; font-weight: 900; color: var(--text-main); line-height: 1.5; word-break: break-word; }
+  .hw-desc { font-size: 12.5px; color: var(--text-sub); line-height: 1.7; word-break: break-word; }
+  .hw-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--text-sub); font-weight: 700; }
+  .hw-meta i { color: var(--accent); margin-left: 4px; }
+  [data-theme="dark"] .hw-meta i { color: var(--primary); }
+  .hw-stats { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.5px; color: var(--text-sub); font-weight: 700; }
+  .hw-stats span { background: var(--bg-input); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+  .hw-stats span.warn { color: var(--warning); border-color: var(--warning); }
+  .hw-stats b { color: var(--text-main); font-weight: 900; }
+  .hw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .progress { height: 8px; border-radius: 999px; background: var(--bg-input); border: 1px solid var(--border); overflow: hidden; }
+  .progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--primary-lighter), var(--success)); border-radius: 999px; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 800; white-space: nowrap; border: 1px solid transparent;
+  }
+  .pill.ok { background: rgba(30,122,90,.12); color: var(--success); border-color: rgba(30,122,90,.35); }
+  .pill.bad { background: rgba(192,57,43,.12); color: var(--error); border-color: rgba(192,57,43,.35); }
+  .pill.warn { background: rgba(230,126,34,.13); color: var(--warning); border-color: rgba(230,126,34,.4); }
+  .pill.info { background: rgba(41,128,185,.12); color: var(--info); border-color: rgba(41,128,185,.35); }
+  .pill.gray { background: var(--bg-input); color: var(--text-sub); border-color: var(--border); }
+
+  .mini-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 14px; border-radius: 11px; border: 2px solid var(--border);
+    background: var(--bg-input); color: var(--text-main);
+    font-family: 'Cairo', sans-serif; font-size: 12.5px; font-weight: 800; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mini-btn:hover { transform: translateY(-2px); border-color: var(--primary-lighter); }
+  .mini-btn.ok { color: var(--success); border-color: var(--success); }
+  .mini-btn.warn { color: var(--warning); border-color: var(--warning); }
+  .mini-btn.info { color: var(--info); border-color: var(--info); }
+  .mini-btn.gold { background: #C9A961; color: #0B3D2E; border-color: #C9A961; }
+  .mini-btn.danger { color: var(--error); border-color: var(--error); }
+
+  .empty-box { text-align: center; padding: 50px 20px; color: var(--text-sub); background: var(--bg-card); border: 2px dashed var(--border); border-radius: 18px; }
+  .empty-box i { font-size: 42px; opacity: .4; display: block; margin-bottom: 12px; }
+
+  /* ============ Students list (manual correction) ============ */
+  .gs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .gs-title { flex: 1; min-width: 160px; }
+  .gs-title h3 { font-size: 17px; font-weight: 900; color: var(--text-main); word-break: break-word; }
+  .gs-title small { color: var(--text-sub); font-weight: 700; font-size: 12px; }
+  #gsList { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .st-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-input);
+  }
+  .st-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .st-info b { font-size: 14px; font-weight: 800; color: var(--text-main); word-break: break-word; }
+
+  /* ============ Grading modal ============ */
+  .modal-box.wide { max-width: 780px; text-align: right; padding: 22px 18px; }
+  .gm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .gm-head h2 { font-size: 18px; font-weight: 900; color: var(--text-main); word-break: break-word; }
+  .gm-head small { color: var(--text-sub); font-weight: 700; font-size: 12px; }
+  .gm-close { width: 38px; height: 38px; border-radius: 11px; border: 2px solid var(--border); background: var(--bg-input); color: var(--text-main); cursor: pointer; flex-shrink: 0; }
+  .gq { border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; background: var(--bg-input); }
+  .gq-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .gq-num { font-weight: 900; color: var(--text-main); font-size: 13.5px; }
+  .gq-max { margin-right: auto; font-size: 12px; color: var(--text-sub); font-weight: 800; }
+  .gq-title { font-size: 14px; font-weight: 700; color: var(--text-main); line-height: 1.8; margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
+  .g-opts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .g-opt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); font-size: 13px; color: var(--text-main); }
+  .g-opt .g-mark { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .g-opt.is-correct { border-color: var(--success); }
+  .g-opt.is-correct .g-mark { background: var(--success); border-color: var(--success); color: #fff; }
+  .g-opt.is-picked { background: rgba(41,128,185,.10); border-color: var(--info); }
+  .g-opt em { margin-right: auto; font-style: normal; font-size: 11px; font-weight: 800; color: var(--info); }
+  .g-answer { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 13.5px; line-height: 1.9; color: var(--text-main); white-space: pre-wrap; word-break: break-word; margin-bottom: 8px; }
+  .g-answer i { color: var(--text-sub); }
+  .g-model { background: rgba(30,122,90,.08); border: 1px dashed var(--success); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; line-height: 1.8; color: var(--text-main); margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
+  .gq-score { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .gq-score label { font-size: 13px; font-weight: 800; color: var(--text-main); }
+  .gq-score .score-input { width: 110px; text-align: center; font-weight: 900; }
+  .gq-score span { font-size: 12.5px; color: var(--text-sub); font-weight: 700; }
+  .gm-total { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px; border-radius: 14px; background: var(--bg-input); border: 2px solid var(--border); margin: 14px 0; font-weight: 800; color: var(--text-main); }
+  .gm-total b { font-size: 20px; font-weight: 900; }
+  .gm-err { display: none; background: rgba(192,57,43,.1); border: 1px solid var(--error); color: var(--error); padding: 10px 12px; border-radius: 12px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .gm-err.show { display: block; }
+
+  /* ============ Results table ============ */
+  .res-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; }
+  .res-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
+  .res-table th, .res-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); color: var(--text-main); }
+  .res-table th { background: var(--bg-input); font-weight: 900; font-size: 12px; color: var(--text-sub); }
+  .res-table tr:last-child td { border-bottom: none; }
+
+  @media (max-width: 800px) {
+    .hw-grid { grid-template-columns: 1fr; }
+    .main-tab { padding: 11px 12px; font-size: 13px; }
+  }
+
 </style>
 </head>
 <body>
@@ -951,8 +1075,8 @@
       <div class="topbar-title">
         <i class="fas fa-file-circle-plus header-icon"></i>
         <div class="topbar-title-text">
-          <h1>إضافة واجب جديد</h1>
-          <small>ADD HOMEWORK</small>
+          <h1>إدارة الواجبات</h1>
+          <small>HOMEWORK MANAGER</small>
         </div>
       </div>
     </div>
@@ -967,6 +1091,20 @@
 
 <!-- ============ Container ============ -->
 <div class="container">
+
+  <div class="main-tabs" id="mainTabs">
+    <button type="button" class="main-tab active" data-view="add"><i class="fas fa-file-circle-plus"></i><span id="addTabLabel">إضافة واجب</span></button>
+    <button type="button" class="main-tab" data-view="list"><i class="fas fa-folder-open"></i><span>واجباتي</span><span class="tab-count" id="listCount">0</span></button>
+    <button type="button" class="main-tab" data-view="grade"><i class="fas fa-clipboard-check"></i><span>التصحيح اليدوي</span><span class="tab-count warn" id="gradeCount" style="display:none">0</span></button>
+  </div>
+
+  <div id="view-add">
+
+  <div class="info-box warning-box" id="editBanner" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <i class="fas fa-pen"></i>
+    <span id="editBannerText" style="flex:1;min-width:200px;"></span>
+    <button type="button" class="mini-btn" id="cancelEditBtn"><i class="fas fa-rotate-left"></i> إلغاء التعديل</button>
+  </div>
 
   <div class="error-box" id="errorBox"></div>
 
@@ -998,7 +1136,7 @@
         <label class="form-label">
           الفرقة المستهدفة <span class="required">*</span>
         </label>
-        <input type="text" class="form-input" id="hwGrade" placeholder="مثال: الصف الثالث الثانوي" maxlength="100">
+        <select class="form-select" id="hwGrade"><option value="">— اختر الفرقة —</option></select>
       </div>
 
       <div class="form-group">
@@ -1012,7 +1150,7 @@
 
     <div class="info-box">
       <i class="fas fa-lightbulb"></i>
-      <span>تأكد أن الفرقة مكتوبة بنفس الصيغة الموجودة في بيانات الطلاب (مثل: "الصف الأول الثانوي" أو "1 ثانوي").</span>
+      <span>اختر الفرقة من القائمة. الواجب يظهر لطلاب هذه الفرقة فقط، ويصلهم إشعار فور النشر.</span>
     </div>
   </div>
 
@@ -1094,7 +1232,7 @@
       <div class="tabs" id="correctionTabs">
         <button type="button" class="tab-btn active" data-corr="auto">
           <i class="fas fa-bolt"></i>
-          <span>تلقائي</span>
+          <span>فوري</span>
         </button>
         <button type="button" class="tab-btn" data-corr="manual">
           <i class="fas fa-clipboard-check"></i>
@@ -1140,6 +1278,36 @@
         <i class="fas fa-pen-fancy" style="color: var(--warning);"></i>
         <span>سؤال مقالي</span>
       </button>
+    </div>
+  </div>
+
+  </div><!-- /view-add -->
+
+  <!-- ============ قسم واجباتي ============ -->
+  <div id="view-list" style="display:none;">
+    <div class="hw-grid" id="listGrid"></div>
+  </div>
+
+  <!-- ============ قسم التصحيح اليدوي ============ -->
+  <div id="view-grade" style="display:none;">
+    <div id="gradeListWrap">
+      <div class="info-box" style="margin-bottom:16px;">
+        <i class="fas fa-circle-info"></i>
+        <span>هنا كل الواجبات اللي محتاجة تصحيح يدوي (واجبات التصحيح اليدوي + أي واجب فيه أسئلة مقالية). اضغط "عرض" لتشوف الطلاب وتصحح لكل طالب.</span>
+      </div>
+      <div class="hw-grid" id="gradeHwGrid"></div>
+    </div>
+
+    <div id="gradeStudentsWrap" style="display:none;">
+      <div class="section">
+        <div class="gs-head">
+          <button type="button" class="mini-btn" data-act="gback"><i class="fas fa-arrow-right"></i> رجوع للواجبات</button>
+          <div class="gs-title"><h3 id="gsTitle">—</h3><small id="gsMeta"></small></div>
+          <button type="button" class="mini-btn gold" id="gsResults" data-act="results" data-id="" style="display:none;"><i class="fas fa-chart-column"></i> عرض النتيجة</button>
+        </div>
+        <input type="text" class="form-input" id="gsSearch" placeholder="🔍 ابحث عن طالب...">
+        <div id="gsList"></div>
+      </div>
     </div>
   </div>
 
@@ -1197,6 +1365,48 @@
   </div>
 </div>
 
+<!-- ============ Modal: Grading ============ -->
+<div class="modal-overlay" id="gradeModal">
+  <div class="modal-box wide">
+    <div class="gm-head">
+      <div><h2 id="gmTitle">تصحيح</h2><small id="gmSub"></small></div>
+      <button type="button" class="gm-close" id="gmClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="gmBody"></div>
+    <div class="gm-total">
+      <span>الإجمالي:</span> <b id="gmScore">0</b> <span>/ <span id="gmMax">0</span></span>
+      <span id="gmPercent">0%</span>
+      <span class="pill gray" id="gmResult">—</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ملاحظة للطالب <span class="hint">اختياري</span></label>
+      <textarea class="form-textarea" id="gmComment" maxlength="500" placeholder="اكتب ملاحظة أو تعليق للطالب..."></textarea>
+    </div>
+    <div class="gm-err" id="gmErr"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-cancel" id="gmCancel"><i class="fas fa-times"></i> <span>إلغاء</span></button>
+      <button type="button" class="btn btn-primary" id="gmSave"><i class="fas fa-check"></i> <span>حفظ التصحيح</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Results ============ -->
+<div class="modal-overlay" id="resultsModal">
+  <div class="modal-box wide">
+    <div class="gm-head">
+      <div><h2 id="rsTitle">النتيجة</h2><small id="rsSub"></small></div>
+      <button type="button" class="gm-close" id="rsClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="res-summary" id="rsSummary"></div>
+    <div class="table-wrap">
+      <table class="res-table">
+        <thead><tr><th>#</th><th>الطالب</th><th>الدرجة</th><th>النسبة</th><th>الحالة</th></tr></thead>
+        <tbody id="rsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ============ Toast ============ -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
@@ -1206,7 +1416,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp
+  getFirestore, doc, collection, onSnapshot, setDoc, getDoc, getDocs, query, where, documentId,
+  writeBatch, runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1405,13 +1616,34 @@ document.querySelectorAll('#correctionTabs .tab-btn').forEach(btn => {
 });
 
 function updateCorrectionInfo() {
+  const essay = questions.some(q => q.type === 'essay');
   if (correctionType === 'auto') {
-    $('correctionInfoText').textContent = 'سيتم تصحيح أسئلة الاختيار المتعدد تلقائياً. الأسئلة المقالية سيتم تصحيحها يدوياً.';
+    $('correctionInfoText').textContent = 'تصحيح فوري: تظهر نتيجة الطالب مباشرة بعد التسليم (متاح فقط لو كل الأسئلة اختيار متعدد).';
     $('correctionInfo').className = 'info-box';
+  } else if (essay) {
+    $('correctionInfoText').textContent = 'الواجب فيه أسئلة مقالية، فالتصحيح يدوي إجباري. هتلاقيه في قسم "التصحيح اليدوي"، وأسئلة الاختيار بتتحسب تلقائياً وتقدر تعدّلها.';
+    $('correctionInfo').className = 'info-box warning-box';
   } else {
-    $('correctionInfoText').textContent = 'سيتم إرسال كل الأسئلة للتصحيح اليدوي من قبل المعلم.';
+    $('correctionInfoText').textContent = 'تصحيح يدوي: هتصحح إجابات كل طالب من قسم "التصحيح اليدوي"، وأسئلة الاختيار بتتحسب تلقائياً وتقدر تعدّلها.';
     $('correctionInfo').className = 'info-box warning-box';
   }
+}
+
+// الأسئلة المقالية تتطلب تصحيح يدوي: نقفل خيار "فوري" لو فيه سؤال مقالي
+function enforceEssayManual() {
+  const essay = questions.some(q => q.type === 'essay');
+  const autoBtn = document.querySelector('#correctionTabs [data-corr="auto"]');
+  if (autoBtn) {
+    autoBtn.disabled = essay;
+    autoBtn.style.opacity = essay ? '0.45' : '1';
+    autoBtn.style.cursor = essay ? 'not-allowed' : 'pointer';
+    autoBtn.title = essay ? 'الأسئلة المقالية تحتاج تصحيح يدوي' : '';
+  }
+  if (essay && correctionType !== 'manual') {
+    correctionType = 'manual';
+    document.querySelectorAll('#correctionTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.corr === 'manual'));
+  }
+  updateCorrectionInfo();
 }
 
 // ============================================================
@@ -1455,6 +1687,7 @@ function renderQuestions() {
     `;
     $('statsBar').style.display = 'none';
     $('questionsBadge').textContent = '0 سؤال';
+    enforceEssayManual();
     return;
   }
 
@@ -1473,6 +1706,7 @@ function renderQuestions() {
   $('statEssay').textContent = essayCount;
   $('statScore').textContent = totalScore;
   $('questionsBadge').textContent = `${questions.length} سؤال`;
+  enforceEssayManual();
 }
 
 function createQuestionCard(q, idx) {
@@ -1667,41 +1901,772 @@ function loadTeacherData() {
     if (teacher) {
       teacherData = teacher;
 
-      // إملأ الفرقة تلقائياً لو فاضية
-      if (!$('hwGrade').value) {
-        if (teacher.grades && Array.isArray(teacher.grades) && teacher.grades.length > 0) {
-          $('hwGrade').value = teacher.grades[0];
-        } else if (teacher.grade) {
-          $('hwGrade').value = teacher.grade;
-        }
-      }
+      // الفرقة الافتراضية للمعلم تتختار من القائمة المنسدلة
+      fillGradeSelect();
     }
   }, (err) => console.log('teacher data error:', err.message));
 }
 
 // ============================================================
-// 🔢 الحصول على ID جديد
+// ⚙️ إعدادات وأدوات جديدة
 // ============================================================
+const PUSH_API = 'https://vercel-server-nine-tau.vercel.app/api/send';
+const PUSH_KEY = 'Meezan2026Secret';
+// الصفحة اللي تفتح عند الضغط على إشعار "واجب جديد" عند الطالب (غيّرها لاسم صفحة الواجبات عندك لو مختلفة)
+const STUDENT_HW_PAGE = 'index.html';
+// هدية المعلم تُصرف فقط لو عدد أسئلة الواجب أكثر من هذا الرقم
+const MIN_Q_FOR_TEACHER_REWARD = 15;
+
+const num = (n) => Number(n || 0);
+const r2 = (n) => Math.round(num(n) * 100) / 100;
+const iso = () => new Date().toISOString();
+const newId = (p) => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+const chunk = (arr, n) => { const o = []; for (let i = 0; i < arr.length; i += n) o.push(arr.slice(i, i + n)); return o; };
+const fmtMoney = (n) => num(n).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
+let uData = {};
+try { uData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || {}; } catch (e) {}
+const teacherName = () => teacherData?.fullName || uData.fullName || userName;
+
+// ============================================================
+// 📲 الإشعارات (نفس منظومة صفحات الأدمن)
+// ============================================================
+async function addNotificationToUsers(userIds, notifId) {
+  const ids = [...new Set(userIds)];
+  const existing = new Map();
+  await Promise.all(chunk(ids, 30).map(async (ch) => {
+    const snap = await getDocs(query(collection(db, 'user_notifications'), where(documentId(), 'in', ch)));
+    snap.forEach(d => existing.set(d.id, d.data()));
+  }));
+  for (const part of chunk(ids, 400)) {
+    const batch = writeBatch(db);
+    part.forEach((id) => {
+      const data = existing.get(id) || {};
+      let notifIds = data.notifIds || [], unread = data.unreadCount || 0;
+      if (!notifIds.includes(notifId)) { notifIds = [notifId, ...notifIds].slice(0, 100); unread++; }
+      batch.set(doc(db, 'user_notifications', id), { userId: id, notifIds, unreadCount: unread, updatedAt: serverTimestamp() }, { merge: true });
+    });
+    await batch.commit();
+  }
+}
+
+async function triggerPush(notifId) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30000);
+  try {
+    const r = await fetch(PUSH_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': PUSH_KEY },
+      body: JSON.stringify({ notifId, resend: false }),
+      signal: ctrl.signal
+    });
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+async function sendNotification({ ids, title, body, url, target = 'custom', targetLabel = '', kind }) {
+  ids = [...new Set((ids || []).filter(Boolean))];
+  if (!ids.length) return null;
+  const notifId = newId('notif');
+  const n = {
+    id: notifId, title, body, type: 'page', url, mediaType: 'page',
+    senderId: userId, senderName: teacherName(), createdAt: iso(),
+    target, targetLabel, recipients: ids
+  };
+  if (kind) n.kind = kind;
+  await setDoc(doc(db, 'notifications', notifId), n);
+  await addNotificationToUsers(ids, notifId);
+  const push = triggerPush(notifId).catch(() => null);
+  return { notifId, count: ids.length, push };
+}
+
+async function studentIdsOfGrade(grade) {
+  const snap = await getDoc(doc(db, 'users', 'all'));
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  return items.filter(u => u.id && u.grade === grade && u.role !== 'teacher').map(u => u.id);
+}
+
+// 📝 إشعار فوري لكل طلاب الفرقة عند نشر واجب
+async function notifyNewHomework(hw) {
+  try {
+    const ids = await studentIdsOfGrade(hw.grade);
+    if (!ids.length) return { count: 0 };
+    const r = await sendNotification({
+      ids,
+      title: '📝 واجب جديد',
+      body: `${hw.teacherName || teacherName()} أضاف واجب "${hw.name}" — ادخل وحله الآن`,
+      url: STUDENT_HW_PAGE,
+      target: 'grade',
+      targetLabel: `فرقة "${hw.grade}" (${ids.length} طالب)`
+    });
+    r.push.then((res) => {
+      if (res && res.ok) showToast(`📲 Push وصل لـ ${res.sent} جهاز`, 'success');
+      else showToast('الإشعار وصل داخل الموقع — تعذّر إرسال Push', 'warning');
+    });
+    return { count: ids.length };
+  } catch (e) {
+    console.error('notify error:', e);
+    showToast('تم الحفظ لكن تعذّر إرسال الإشعارات: ' + e.message, 'warning');
+    return { count: 0, failed: true };
+  }
+}
+
+// ============================================================
+// 🎁 هدية المعلم عند نشر واجب جديد (نفس سعر هدية الواجب في المتجر بالضبط)
+// ============================================================
+async function grantTeacherReward(hw) {
+  try {
+    const c = (await getDoc(doc(db, 'settings', 'store_config'))).data() || {};
+    const rw = c.rewards?.homework;
+    if (!rw?.on || !(num(rw.amount) >= 0.01)) return null; // متوقفة من المتجر = متوقفة للمعلم كمان
+    if ((hw.questions || []).length <= MIN_Q_FOR_TEACHER_REWARD) return null; // لازم أكثر من 15 سؤال
+    const amount = num(rw.amount);
+    const wRef = doc(db, 'wallets', userId);
+    const tRef = doc(db, 'wallet_transactions', `rw_${userId}_hwcreate_${hw.id}`);
+    let granted = false;
+    await runTransaction(db, async (tx) => {
+      granted = false;
+      if ((await tx.get(tRef)).exists()) return; // مرة واحدة لكل واجب
+      const ws = await tx.get(wRef);
+      const now = iso();
+      const after = r2((ws.exists() ? num(ws.data().balance) : 0) + amount);
+      tx.set(wRef, { userId, userName: teacherName(), role: 'teacher', balance: after, updatedAt: now }, { merge: true });
+      tx.set(tRef, {
+        userId, userName: teacherName(), role: 'teacher', type: 'credit', amount, balanceAfter: after,
+        label: 'هدية نشر واجب', note: hw.name || '', source: 'reward', by: 'system', createdAt: now
+      });
+      granted = true;
+    });
+    if (!granted) return null;
+    if (c.notificationsEnabled !== false) {
+      sendNotification({
+        ids: [userId],
+        title: '🎁 مبروك! هدية نشر الواجب',
+        body: `تمت إضافة ${fmtMoney(amount)} إلى محفظتك — ${hw.name}`,
+        url: 'stor.html', target: 'custom', targetLabel: 'محفظة', kind: 'store'
+      }).catch((e) => console.warn('reward notify failed:', e));
+    }
+    return amount;
+  } catch (e) {
+    console.error('teacher reward error:', e);
+    return null;
+  }
+}
+
+// ============================================================
+// 🗃️ تعديل المستندات المشتركة بأمان (Transaction)
+// ============================================================
+async function mutateDocItems(col, fn) {
+  const ref = doc(db, col, 'all');
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const items = snap.exists() ? [...(snap.data().items || [])] : [];
+    const out = fn(items);
+    tx.set(ref, { items: out, updatedAt: serverTimestamp() });
+    return out;
+  });
+}
+const mutateHomeworks = (fn) => mutateDocItems('homeworks', fn);
+const mutateSubs = (fn) => mutateDocItems('homework_subs', fn);
+
 async function getNextHomeworkId() {
   const ref = doc(db, 'counters', 'main');
   try {
-    const snap = await getDoc(ref);
-    let counters = { homeworks: 0 };
-    if (snap.exists()) counters = { ...counters, ...snap.data() };
-    counters.homeworks = (counters.homeworks || 0) + 1;
-    await setDoc(ref, counters, { merge: true });
-    return counters.homeworks;
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      const next = (snap.exists() ? num(snap.data().homeworks) : 0) + 1;
+      tx.set(ref, { homeworks: next }, { merge: true });
+      return next;
+    });
   } catch (e) {
     console.error('counter error:', e);
     return Date.now();
   }
 }
 
+async function generateRandomPasswords(hw) {
+  try {
+    const usersSnap = await getDoc(doc(db, 'users', 'all'));
+    if (!usersSnap.exists()) return;
+    const studentsInGrade = (usersSnap.data().items || []).filter(u => u.grade === hw.grade);
+    const total = totalOf(hw);
+    const now = iso();
+    await mutateSubs((items) => {
+      const out = [...items];
+      for (const st of studentsInGrade) {
+        const password = generateRandomPassword();
+        const idx = out.findIndex(s => String(s.homeworkId) === String(hw.id) && s.userId === st.id);
+        if (idx !== -1) {
+          out[idx] = { ...out[idx], password, updatedAt: now };
+        } else {
+          out.push({
+            homeworkId: hw.id, homeworkName: hw.name, userId: st.id,
+            userName: st.fullName || st.username || '', userGrade: hw.grade, password,
+            answers: {}, submitted: false, corrected: false, score: 0, totalScore: total,
+            correctionType: hw.correctionType, createdAt: now, updatedAt: now
+          });
+        }
+      }
+      return out;
+    });
+  } catch (e) {
+    console.error('random passwords error:', e);
+  }
+}
+
 // ============================================================
-// 💾 Save Homework
+// 📊 بيانات الواجبات / التسليمات / الطلاب / الفرق
+// ============================================================
+let allHomeworks = [];
+let allSubs = [];
+let allStudents = [];
+let gradesList = [];
+let editingId = null;
+let gradingHwId = null;   // الواجب المفتوح في قسم التصحيح
+let gradingCtx = null;    // { hwId, uid } أثناء التصحيح
+let currentView = 'add';
+
+const sameId = (a, b) => String(a) === String(b);
+const myHomeworks = () => allHomeworks
+  .filter(h => h.teacherId === userId)
+  .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+const hasEssayIn = (h) => (h.questions || []).some(q => q.type === 'essay');
+const needsManual = (h) => h.correctionType === 'manual' || hasEssayIn(h);
+const totalOf = (h) => (h.questions || []).reduce((s, q) => s + num(q.score || 1), 0);
+const manualDone = (s) => !!(s.corrected && s.correctedBy);
+const getHw = (id) => allHomeworks.find(h => sameId(h.id, id));
+
+function statsOf(h) {
+  const subs = allSubs.filter(s => sameId(s.homeworkId, h.id));
+  const submitted = subs.filter(s => s.submitted);
+  const pending = needsManual(h) ? submitted.filter(s => !manualDone(s)) : [];
+  const classSize = allStudents.filter(u => u.grade === h.grade).length;
+  return { subs, submitted, pending, classSize };
+}
+
+function listenAll() {
+  onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
+    allHomeworks = snap.exists() ? (snap.data().items || []) : [];
+    refreshViews();
+  }, (err) => console.log('homeworks error:', err.message));
+
+  onSnapshot(doc(db, 'homework_subs', 'all'), (snap) => {
+    allSubs = snap.exists() ? (snap.data().items || []) : [];
+    refreshViews();
+  }, (err) => console.log('subs error:', err.message));
+
+  onSnapshot(doc(db, 'users', 'all'), (snap) => {
+    allStudents = snap.exists() ? (snap.data().items || []).filter(u => u.role !== 'teacher') : [];
+    refreshViews();
+  }, (err) => console.log('users error:', err.message));
+
+  onSnapshot(doc(db, 'users', 'categories'), (snap) => {
+    const items = snap.exists() ? (snap.data().items || []) : [];
+    gradesList = items.map(g => typeof g === 'string' ? g : (g?.name || '')).filter(Boolean);
+    fillGradeSelect();
+  }, (err) => console.log('grades error:', err.message));
+}
+
+// ============================================================
+// 🎓 القائمة المنسدلة للفرق
+// ============================================================
+function defaultGrade() {
+  if (teacherData?.grades && Array.isArray(teacherData.grades) && teacherData.grades.length) return teacherData.grades[0];
+  return teacherData?.grade || '';
+}
+
+function fillGradeSelect(preferValue) {
+  const sel = $('hwGrade');
+  let current = preferValue !== undefined ? preferValue : sel.value;
+  if (!current && !editingId) current = defaultGrade();
+  const set = new Set(gradesList);
+  if (current && !set.has(current) && editingId) set.add(current); // فرقة محفوظة قبل كده ومش في القايمة
+  sel.innerHTML = '<option value="">— اختر الفرقة —</option>' +
+    [...set].map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
+  sel.value = current && set.has(current) ? current : '';
+}
+
+// ============================================================
+// 🧭 التنقل بين الأقسام
+// ============================================================
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  ['add', 'list', 'grade'].forEach(x => { $('view-' + x).style.display = x === v ? 'block' : 'none'; });
+  document.querySelector('.action-bar').style.display = v === 'add' ? 'block' : 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.view !== 'grade') gradingHwId = null;
+  switchView(b.dataset.view);
+  renderGradeSection();
+}));
+
+function refreshViews() {
+  renderMyList();
+  renderGradeSection();
+  updateEditUI();
+}
+
+// ============================================================
+// 📚 قسم "واجباتي"
+// ============================================================
+function hwCardHTML(h) {
+  const st = statsOf(h);
+  const pub = h.status === 'published';
+  const manual = needsManual(h);
+  const canResults = st.submitted.length > 0 && st.pending.length === 0;
+  return `
+  <div class="hw-card ${pub ? '' : 'off'}">
+    <div class="hw-top">
+      <div class="hw-name">${escapeHtml(h.name)}</div>
+      <span class="pill ${pub ? 'ok' : 'gray'}"><i class="fas ${pub ? 'fa-eye' : 'fa-eye-slash'}"></i> ${pub ? 'منشور' : 'غير منشور'}</span>
+    </div>
+    ${h.description ? `<div class="hw-desc">${escapeHtml(h.description)}</div>` : ''}
+    <div class="hw-meta">
+      <span><i class="fas fa-graduation-cap"></i>${escapeHtml(h.grade)}</span>
+      <span><i class="fas fa-list-ol"></i>${(h.questions || []).length} سؤال</span>
+      <span><i class="fas fa-star"></i>${totalOf(h)} درجة</span>
+      <span><i class="fas fa-percent"></i>نجاح ${h.passPercent || 50}%</span>
+      <span><i class="fas ${manual ? 'fa-pen-to-square' : 'fa-bolt'}"></i>${manual ? 'تصحيح يدوي' : 'تصحيح فوري'}</span>
+    </div>
+    <div class="hw-stats">
+      <span><b>${st.submitted.length}</b> / ${st.classSize} سلّموا</span>
+      ${manual ? `<span class="${st.pending.length ? 'warn' : ''}"><b>${st.pending.length}</b> بانتظار التصحيح</span>` : ''}
+    </div>
+    <div class="hw-actions">
+      <button class="mini-btn" data-act="edit" data-id="${escapeAttr(h.id)}"><i class="fas fa-pen"></i> تعديل</button>
+      <button class="mini-btn ${pub ? 'warn' : 'ok'}" data-act="toggle" data-id="${escapeAttr(h.id)}">
+        ${pub ? '<i class="fas fa-eye-slash"></i> إلغاء النشر' : '<i class="fas fa-paper-plane"></i> نشر'}
+      </button>
+      ${manual ? `<button class="mini-btn info" data-act="grade" data-id="${escapeAttr(h.id)}"><i class="fas fa-clipboard-check"></i> تصحيح</button>` : ''}
+      ${canResults ? `<button class="mini-btn gold" data-act="results" data-id="${escapeAttr(h.id)}"><i class="fas fa-chart-column"></i> عرض النتيجة</button>` : ''}
+      <button class="mini-btn danger" data-act="delete" data-id="${escapeAttr(h.id)}"><i class="fas fa-trash-can"></i> حذف</button>
+    </div>
+  </div>`;
+}
+
+function renderMyList() {
+  const list = myHomeworks();
+  $('listCount').textContent = list.length;
+  $('listGrid').innerHTML = list.length
+    ? list.map(hwCardHTML).join('')
+    : `<div class="empty-box" style="grid-column:1/-1"><i class="fas fa-folder-open"></i><div>لا توجد واجبات بعد — أضف أول واجب من تبويب "إضافة واجب"</div></div>`;
+}
+
+// ============================================================
+// ✍️ قسم "التصحيح اليدوي"
+// ============================================================
+function renderGradeSection() {
+  const mine = myHomeworks().filter(needsManual);
+  const totalPending = mine.reduce((s, h) => s + statsOf(h).pending.length, 0);
+  $('gradeCount').textContent = totalPending;
+  $('gradeCount').style.display = totalPending ? '' : 'none';
+
+  if (gradingHwId != null && !mine.some(h => sameId(h.id, gradingHwId))) gradingHwId = null;
+  $('gradeListWrap').style.display = gradingHwId == null ? 'block' : 'none';
+  $('gradeStudentsWrap').style.display = gradingHwId == null ? 'none' : 'block';
+
+  if (gradingHwId == null) {
+    $('gradeHwGrid').innerHTML = mine.length
+      ? mine.map(h => {
+          const st = statsOf(h);
+          const doneCount = st.submitted.length - st.pending.length;
+          const pct = st.submitted.length ? Math.round(doneCount / st.submitted.length * 100) : 0;
+          const finished = st.submitted.length > 0 && st.pending.length === 0;
+          return `
+          <div class="hw-card ${h.status === 'published' ? '' : 'off'}">
+            <div class="hw-top">
+              <div class="hw-name">${escapeHtml(h.name)}</div>
+              <span class="pill ${finished ? 'ok' : (st.pending.length ? 'warn' : 'gray')}">
+                ${finished ? '<i class="fas fa-check"></i> تم التصحيح' : (st.pending.length ? `${st.pending.length} بانتظار التصحيح` : 'لا توجد تسليمات')}
+              </span>
+            </div>
+            <div class="hw-meta">
+              <span><i class="fas fa-graduation-cap"></i>${escapeHtml(h.grade)}</span>
+              <span><i class="fas fa-users"></i>${st.submitted.length} سلّموا من ${st.classSize}</span>
+            </div>
+            <div class="progress"><i style="width:${pct}%"></i></div>
+            <div class="hw-actions">
+              <button class="mini-btn info" data-act="gview" data-id="${escapeAttr(h.id)}"><i class="fas fa-eye"></i> عرض</button>
+              ${finished ? `<button class="mini-btn gold" data-act="results" data-id="${escapeAttr(h.id)}"><i class="fas fa-chart-column"></i> عرض النتيجة</button>` : ''}
+            </div>
+          </div>`;
+        }).join('')
+      : `<div class="empty-box" style="grid-column:1/-1"><i class="fas fa-clipboard-check"></i><div>لا توجد واجبات تحتاج تصحيح يدوي</div></div>`;
+  } else {
+    renderGradeStudents();
+  }
+}
+
+function studentRows(h) {
+  const subsBy = new Map(allSubs.filter(s => sameId(s.homeworkId, h.id)).map(s => [s.userId, s]));
+  const rows = new Map();
+  allStudents.filter(u => u.grade === h.grade).forEach(u => {
+    rows.set(u.id, { id: u.id, name: u.fullName || u.username || '—', sub: subsBy.get(u.id) });
+  });
+  subsBy.forEach((s, uid) => {
+    if (!rows.has(uid)) rows.set(uid, { id: uid, name: s.userName || '—', sub: s });
+  });
+  return [...rows.values()];
+}
+
+const normText = (s) => String(s || '').toLowerCase().replace(/[\u064B-\u065F\u0670]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+
+function renderGradeStudents() {
+  const h = getHw(gradingHwId);
+  if (!h) { gradingHwId = null; renderGradeSection(); return; }
+  const st = statsOf(h);
+  let rows = studentRows(h);
+  $('gsTitle').textContent = h.name;
+  $('gsMeta').textContent = `${h.grade} • ${st.submitted.length} سلّموا من ${rows.length} • ${st.pending.length} بانتظار التصحيح`;
+  const finished = st.submitted.length > 0 && st.pending.length === 0;
+  $('gsResults').style.display = finished ? '' : 'none';
+  $('gsResults').dataset.id = h.id;
+
+  const q = normText($('gsSearch').value);
+  if (q) rows = rows.filter(r => normText(r.name).includes(q));
+  const rank = (r) => !r.sub?.submitted ? 2 : (manualDone(r.sub) ? 1 : 0);
+  rows.sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name), 'ar'));
+
+  const total = totalOf(h);
+  $('gsList').innerHTML = rows.length ? rows.map(r => {
+    const s = r.sub;
+    let statusHTML, actionHTML;
+    if (!s || !s.submitted) {
+      statusHTML = '<span class="pill gray">لم يسلّم</span>';
+      actionHTML = '';
+    } else if (manualDone(s)) {
+      const t = num(s.totalScore) || total;
+      const pass = t > 0 && (num(s.score) / t * 100) >= num(h.passPercent || 50);
+      statusHTML = `<span class="pill ${pass ? 'ok' : 'bad'}">${r2(s.score)} / ${t} • ${pass ? 'ناجح' : 'راسب'}</span>`;
+      actionHTML = `<button class="mini-btn" data-act="gstudent" data-id="${escapeAttr(h.id)}" data-uid="${escapeAttr(r.id)}"><i class="fas fa-pen"></i> تعديل التصحيح</button>`;
+    } else {
+      statusHTML = '<span class="pill warn">بانتظار التصحيح</span>';
+      actionHTML = `<button class="mini-btn info" data-act="gstudent" data-id="${escapeAttr(h.id)}" data-uid="${escapeAttr(r.id)}"><i class="fas fa-clipboard-check"></i> صحّح</button>`;
+    }
+    return `<div class="st-row"><div class="st-info"><b>${escapeHtml(r.name)}</b>${statusHTML}</div>${actionHTML}</div>`;
+  }).join('') : '<div class="empty-box"><i class="fas fa-user-slash"></i><div>لا يوجد طلاب</div></div>';
+}
+$('gsSearch').addEventListener('input', renderGradeStudents);
+
+// ---------- نافذة التصحيح ----------
+const selectedIdx = (ans) => Array.isArray(ans?.selectedIndices) ? ans.selectedIndices
+  : (Array.isArray(ans) ? ans : (Number.isInteger(ans) ? [ans] : []));
+const essayText = (ans) => typeof ans === 'string' ? ans : (ans?.text || '');
+function mcqAutoCorrect(q, ans) {
+  const sel = selectedIdx(ans);
+  const correct = (q.options || []).map((o, i) => o.correct ? i : -1).filter(i => i !== -1);
+  return sel.length === correct.length && sel.every(i => correct.includes(i));
+}
+
+function openGrade(hwId, uid) {
+  const h = getHw(hwId);
+  const sub = allSubs.find(s => sameId(s.homeworkId, hwId) && s.userId === uid);
+  if (!h || !sub || !sub.submitted) return showToast('لا يوجد تسليم لهذا الطالب', 'warning');
+  gradingCtx = { hwId: h.id, uid };
+  $('gmTitle').textContent = 'تصحيح: ' + (sub.userName || 'طالب');
+  $('gmSub').textContent = h.name;
+  $('gmErr').classList.remove('show');
+  $('gmComment').value = sub.teacherComment || '';
+
+  $('gmBody').innerHTML = (h.questions || []).map((q, i) => {
+    const ans = sub.answers ? sub.answers[q.id] : null;
+    const max = num(q.score || 1);
+    const prev = sub.questionScores ? sub.questionScores[q.id] : undefined;
+    let body, tag, def;
+    if (q.type === 'mcq') {
+      const sel = selectedIdx(ans);
+      const ok = mcqAutoCorrect(q, ans);
+      body = `<div class="g-opts">${(q.options || []).map((o, k) => `
+        <div class="g-opt ${o.correct ? 'is-correct' : ''} ${sel.includes(k) ? 'is-picked' : ''}">
+          <span class="g-mark">${o.correct ? '<i class="fas fa-check"></i>' : ''}</span>
+          <span>${escapeHtml(o.text)}</span>
+          ${sel.includes(k) ? '<em>اختيار الطالب</em>' : ''}
+        </div>`).join('')}</div>`;
+      tag = `<span class="pill info">اختيار متعدد</span><span class="pill ${ok ? 'ok' : 'bad'}">${ok ? 'صحيحة' : 'خاطئة'} تلقائياً</span>`;
+      def = prev != null ? prev : (ok ? max : 0);
+    } else {
+      const t = essayText(ans);
+      body = `<div class="g-answer">${t ? escapeHtml(t) : '<i>لم يكتب الطالب إجابة</i>'}</div>` +
+        (q.correctEssayAnswer ? `<div class="g-model"><b>الإجابة النموذجية:</b><br>${escapeHtml(q.correctEssayAnswer)}</div>` : '');
+      tag = '<span class="pill warn">مقالي</span>';
+      def = prev != null ? prev : '';
+    }
+    return `
+    <div class="gq">
+      <div class="gq-head"><span class="gq-num">سؤال ${i + 1}</span>${tag}<span class="gq-max">الدرجة: ${max}</span></div>
+      <div class="gq-title">${escapeHtml(q.title)}</div>
+      ${body}
+      <div class="gq-score">
+        <label>درجة الطالب</label>
+        <input type="number" class="form-input score-input" data-qid="${escapeAttr(q.id)}" data-max="${max}" min="0" max="${max}" step="0.5" value="${def}" placeholder="0 - ${max}">
+        <span>من ${max}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('gmBody').querySelectorAll('.score-input').forEach(inp => inp.addEventListener('input', recalcGrade));
+  recalcGrade();
+  $('gradeModal').classList.add('show');
+}
+
+function recalcGrade() {
+  const h = getHw(gradingCtx?.hwId);
+  if (!h) return;
+  let sum = 0;
+  $('gmBody').querySelectorAll('.score-input').forEach(inp => { sum += num(parseFloat(inp.value)); });
+  const total = totalOf(h);
+  const pct = total ? sum / total * 100 : 0;
+  const pass = pct >= num(h.passPercent || 50);
+  $('gmScore').textContent = r2(sum);
+  $('gmMax').textContent = total;
+  $('gmPercent').textContent = r2(pct) + '%';
+  $('gmResult').className = 'pill ' + (pass ? 'ok' : 'bad');
+  $('gmResult').textContent = pass ? 'ناجح' : 'راسب';
+}
+
+function closeGrade() {
+  $('gradeModal').classList.remove('show');
+  gradingCtx = null;
+}
+$('gmClose').addEventListener('click', closeGrade);
+$('gmCancel').addEventListener('click', closeGrade);
+
+$('gmSave').addEventListener('click', async () => {
+  const h = getHw(gradingCtx?.hwId);
+  const uid = gradingCtx?.uid;
+  if (!h || !uid) return;
+  const err = (m) => { $('gmErr').textContent = m; $('gmErr').classList.add('show'); $('gmErr').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('gmErr').classList.remove('show');
+
+  const questionScores = {};
+  const correction = {};
+  let sum = 0;
+  const inputs = [...$('gmBody').querySelectorAll('.score-input')];
+  for (let i = 0; i < inputs.length; i++) {
+    const inp = inputs[i];
+    const max = num(inp.dataset.max);
+    if (inp.value.trim() === '') return err(`سؤال ${i + 1}: أدخل الدرجة (ولو صفر)`);
+    const v = parseFloat(inp.value);
+    if (isNaN(v) || v < 0 || v > max) return err(`سؤال ${i + 1}: الدرجة لازم تكون بين 0 و ${max}`);
+    questionScores[inp.dataset.qid] = r2(v);
+    correction[inp.dataset.qid] = v === max ? 'correct' : (v === 0 ? 'wrong' : 'partial');
+    sum += v;
+  }
+  const total = totalOf(h);
+  const score = r2(sum);
+  const teacherComment = cleanInput($('gmComment').value);
+
+  const btn = $('gmSave');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+  try {
+    const now = iso();
+    await mutateSubs((items) => {
+      const idx = items.findIndex(s => sameId(s.homeworkId, h.id) && s.userId === uid);
+      if (idx === -1) throw new Error('لم يتم العثور على تسليم الطالب');
+      const out = [...items];
+      out[idx] = {
+        ...items[idx], score, totalScore: total, correction, questionScores, teacherComment,
+        corrected: true, correctedAt: now, correctedBy: userId, correctedByName: teacherName(),
+        correctionType: 'manual', updatedAt: now
+      };
+      return out;
+    });
+    showToast('تم حفظ التصحيح ✅', 'success');
+    closeGrade();
+  } catch (e) {
+    console.error(e);
+    err('تعذّر الحفظ: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+});
+
+// ============================================================
+// 📈 عرض النتيجة لكل الطلاب
+// ============================================================
+function openResults(hwId) {
+  const h = getHw(hwId);
+  if (!h) return;
+  const total = totalOf(h);
+  const pass = num(h.passPercent || 50);
+  const rows = studentRows(h).map(r => {
+    const s = r.sub;
+    if (!s || !s.submitted) return { ...r, state: 'none', score: 0, pct: 0 };
+    if (needsManual(h) && !manualDone(s)) return { ...r, state: 'pending', score: 0, pct: 0 };
+    const t = num(s.totalScore) || total;
+    const pct = t ? num(s.score) / t * 100 : 0;
+    return { ...r, state: pct >= pass ? 'pass' : 'fail', score: num(s.score), pct, t };
+  });
+  const graded = rows.filter(r => r.state === 'pass' || r.state === 'fail');
+  const passed = graded.filter(r => r.state === 'pass').length;
+  const avg = graded.length ? graded.reduce((a, r) => a + r.pct, 0) / graded.length : 0;
+  const order = { pass: 0, fail: 0, pending: 1, none: 2 };
+  rows.sort((a, b) => order[a.state] - order[b.state] || b.pct - a.pct);
+
+  $('rsTitle').textContent = 'نتيجة: ' + h.name;
+  $('rsSub').textContent = `${h.grade} • الدرجة الكلية ${total} • نسبة النجاح ${pass}%`;
+  $('rsSummary').innerHTML = `
+    <span class="pill info"><i class="fas fa-users"></i> ${rows.length} طالب</span>
+    <span class="pill gray">سلّم ${rows.filter(r => r.state !== 'none').length}</span>
+    <span class="pill ok">ناجح ${passed}</span>
+    <span class="pill bad">راسب ${graded.length - passed}</span>
+    <span class="pill warn">متوسط ${r2(avg)}%</span>`;
+  const label = { pass: '<span class="pill ok">ناجح</span>', fail: '<span class="pill bad">راسب</span>', pending: '<span class="pill warn">بانتظار التصحيح</span>', none: '<span class="pill gray">لم يسلّم</span>' };
+  $('rsBody').innerHTML = rows.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><b>${escapeHtml(r.name)}</b></td>
+      <td>${r.state === 'pass' || r.state === 'fail' ? `${r2(r.score)} / ${r.t}` : '—'}</td>
+      <td>${r.state === 'pass' || r.state === 'fail' ? r2(r.pct) + '%' : '—'}</td>
+      <td>${label[r.state]}</td>
+    </tr>`).join('');
+  $('resultsModal').classList.add('show');
+}
+$('rsClose').addEventListener('click', () => $('resultsModal').classList.remove('show'));
+$('resultsModal').addEventListener('click', (e) => { if (e.target === $('resultsModal')) $('resultsModal').classList.remove('show'); });
+
+// ============================================================
+// ✏️ تعديل / 🗑️ حذف / 👁️ نشر وإلغاء نشر
+// ============================================================
+function syncTabs() {
+  document.querySelectorAll('#passwordTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.pw === passwordType));
+  document.querySelectorAll('#correctionTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.corr === correctionType));
+}
+
+function updateEditUI() {
+  const h = editingId != null ? getHw(editingId) : null;
+  const subsCount = h ? statsOf(h).submitted.length : 0;
+  $('editBanner').style.display = h ? 'flex' : 'none';
+  if (h) {
+    $('editBannerText').innerHTML = `أنت تعدّل الواجب "<strong>${escapeHtml(h.name)}</strong>"` +
+      (subsCount ? ` — عليه <strong>${subsCount}</strong> تسليم: الفرقة مقفولة، وتعديل الأسئلة أو الدرجات لا يعيد تصحيح التسليمات القديمة.` : '');
+  }
+  $('hwGrade').disabled = subsCount > 0;
+  $('addTabLabel').textContent = h ? 'تعديل واجب' : 'إضافة واجب';
+  const span = $('saveBtn').querySelector('span');
+  if (span && !$('saveBtn').disabled) span.textContent = h ? 'حفظ التعديلات' : 'حفظ ونشر الواجب';
+}
+
+function startEdit(h) {
+  editingId = h.id;
+  $('hwName').value = h.name || '';
+  $('hwDesc').value = h.description || '';
+  fillGradeSelect(h.grade || '');
+  $('hwPassPercent').value = h.passPercent || 50;
+  passwordType = h.passwordType || 'none';
+  $('manualPassword').value = h.manualPassword || '';
+  correctionType = h.correctionType || 'auto';
+  questions = JSON.parse(JSON.stringify(h.questions || []));
+  syncTabs();
+  updatePasswordUI();
+  renderQuestions();
+  updateEditUI();
+  $('errorBox').classList.remove('show');
+  switchView('add');
+}
+
+$('cancelEditBtn').addEventListener('click', async () => {
+  const ok = await showConfirm({
+    title: 'إلغاء التعديل', message: 'سيتم تجاهل التعديلات اللي عملتها. هل أنت متأكد؟',
+    icon: 'fa-rotate-left', iconType: 'warning', okText: 'نعم، إلغاء التعديل'
+  });
+  if (!ok) return;
+  resetForm();
+  switchView('list');
+});
+
+async function deleteHomework(h) {
+  const submitted = statsOf(h).submitted.length;
+  const ok = await showConfirm({
+    title: 'حذف الواجب',
+    message: `هل تريد حذف الواجب "<strong>${escapeHtml(h.name)}</strong>" نهائياً؟` +
+      (submitted ? `<br><br>⚠️ سيتم أيضاً حذف <strong>${submitted}</strong> تسليم للطلاب ونتائجهم.` : ''),
+    icon: 'fa-trash-can', iconType: 'danger', okText: 'حذف نهائي'
+  });
+  if (!ok) return;
+  try {
+    await mutateHomeworks((items) => {
+      const i = items.findIndex(x => sameId(x.id, h.id) && x.teacherId === userId);
+      if (i === -1) throw new Error('الواجب غير موجود');
+      return items.filter((_, k) => k !== i);
+    });
+    await mutateSubs((items) => items.filter(s => !sameId(s.homeworkId, h.id)));
+    if (editingId != null && sameId(editingId, h.id)) resetForm();
+    showToast('تم حذف الواجب', 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('تعذّر الحذف: ' + e.message, 'error');
+  }
+}
+
+async function togglePublish(h) {
+  const publish = h.status !== 'published';
+  const ok = await showConfirm({
+    title: publish ? 'نشر الواجب' : 'إلغاء نشر الواجب',
+    message: publish
+      ? `سيظهر الواجب "<strong>${escapeHtml(h.name)}</strong>" لطلاب فرقة "<strong>${escapeHtml(h.grade)}</strong>" ويصلهم إشعار فوراً.`
+      : `سيختفي الواجب "<strong>${escapeHtml(h.name)}</strong>" عن الطلاب ولن يتمكنوا من حله. التسليمات السابقة تظل محفوظة.`,
+    icon: publish ? 'fa-paper-plane' : 'fa-eye-slash',
+    iconType: publish ? 'success' : 'warning',
+    okText: publish ? 'نشر' : 'إلغاء النشر'
+  });
+  if (!ok) return;
+  try {
+    const now = iso();
+    const status = publish ? 'published' : 'draft';
+    await mutateHomeworks((items) => {
+      const i = items.findIndex(x => sameId(x.id, h.id) && x.teacherId === userId);
+      if (i === -1) throw new Error('الواجب غير موجود');
+      const out = [...items];
+      out[i] = { ...items[i], status, updatedAt: now };
+      return out;
+    });
+    showToast(publish ? 'تم نشر الواجب ✅' : 'تم إلغاء نشر الواجب', 'success');
+    if (publish) notifyNewHomework({ ...h, status });
+  } catch (e) {
+    console.error(e);
+    showToast('تعذّر التنفيذ: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// 🖱️ أزرار البطاقات (Event Delegation)
+// ============================================================
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act;
+  const h = b.dataset.id !== undefined && b.dataset.id !== '' ? getHw(b.dataset.id) : null;
+  switch (act) {
+    case 'edit': if (h) startEdit(h); break;
+    case 'toggle': if (h) togglePublish(h); break;
+    case 'delete': if (h) deleteHomework(h); break;
+    case 'results': if (h) openResults(h.id); break;
+    case 'grade':
+    case 'gview':
+      if (h) { gradingHwId = h.id; $('gsSearch').value = ''; switchView('grade'); renderGradeSection(); }
+      break;
+    case 'gback': gradingHwId = null; renderGradeSection(); break;
+    case 'gstudent': if (h) openGrade(h.id, b.dataset.uid); break;
+  }
+});
+
+
+// ============================================================
+// 💾 Save Homework (إضافة جديد + تعديل)
 // ============================================================
 $('saveBtn').addEventListener('click', async () => {
   $('errorBox').classList.remove('show');
+
+  const isEdit = editingId != null;
+  const prev = isEdit ? getHw(editingId) : null;
+  if (isEdit && (!prev || prev.teacherId !== userId)) {
+    return showError('هذا الواجب غير موجود أو ليس من واجباتك');
+  }
 
   // ===== Validation =====
   const name = cleanInput($('hwName').value);
@@ -1711,7 +2676,7 @@ $('saveBtn').addEventListener('click', async () => {
 
   if (!name) return showError('الرجاء إدخال اسم الواجب');
   if (name.length < 3) return showError('اسم الواجب قصير جداً');
-  if (!grade) return showError('الرجاء إدخال الفرقة المستهدفة');
+  if (!grade) return showError('الرجاء اختيار الفرقة المستهدفة من القائمة');
   if (passPercent < 1 || passPercent > 100) return showError('نسبة النجاح يجب أن تكون بين 1 و 100');
 
   // كلمة السر
@@ -1746,13 +2711,24 @@ $('saveBtn').addEventListener('click', async () => {
     }
   }
 
+  // الأسئلة المقالية = تصحيح يدوي إجباري
+  if (questions.some(q => q.type === 'essay') && correctionType !== 'manual') {
+    correctionType = 'manual';
+    syncTabs();
+    updateCorrectionInfo();
+  }
+
   // ===== Confirm =====
-  const ok = await showConfirm({
+  const subsCount = isEdit ? statsOf(prev).submitted.length : 0;
+  const ok = await showConfirm(isEdit ? {
+    title: 'حفظ التعديلات',
+    message: `هل تريد حفظ التعديلات على الواجب "<strong>${escapeHtml(name)}</strong>"؟` +
+      (subsCount ? `<br><br>⚠️ عليه <strong>${subsCount}</strong> تسليم، والتعديل لن يعيد تصحيحها.` : ''),
+    icon: 'fa-floppy-disk', iconType: 'success', okText: 'حفظ'
+  } : {
     title: 'نشر الواجب',
-    message: `هل أنت متأكد من نشر الواجب "<strong>${name}</strong>"؟<br><br>سيظهر للطلاب في فرقة "<strong>${grade}</strong>".`,
-    icon: 'fa-paper-plane',
-    iconType: 'success',
-    okText: 'نشر'
+    message: `هل أنت متأكد من نشر الواجب "<strong>${escapeHtml(name)}</strong>"؟<br><br>سيظهر للطلاب في فرقة "<strong>${escapeHtml(grade)}</strong>" ويصلهم إشعار فوراً.`,
+    icon: 'fa-paper-plane', iconType: 'success', okText: 'نشر'
   });
   if (!ok) return;
 
@@ -1774,109 +2750,71 @@ $('saveBtn').addEventListener('click', async () => {
         : { correctEssayAnswer: cleanInput(q.correctEssayAnswer || '') }
       )
     }));
+    const totalScore = cleanedQuestions.reduce((s, q) => s + (q.score || 1), 0);
+    const now = iso();
+    let hw;
 
-    const id = await getNextHomeworkId();
-    const now = new Date().toISOString();
-
-    const homeworkData = {
-      id,
-      name,
-      description,
-      grade,
-      passPercent,
-      passwordType,     // 'none' | 'manual' | 'userCode' | 'random'
-      manualPassword,   // لو manual
-      correctionType,   // 'auto' | 'manual'
-      questions: cleanedQuestions,
-      status: 'published',
-      teacherId: userId,
-      teacherName: teacherData?.fullName || userName,
-      createdAt: now,
-      updatedAt: now
-    };
-
-    // احفظ في homeworks/all
-    const ref = doc(db, 'homeworks', 'all');
-    const snap = await getDoc(ref);
-    let items = snap.exists() ? (snap.data().items || []) : [];
-
-    items.push(homeworkData);
-    await setDoc(ref, { items, updatedAt: serverTimestamp() });
-
-    console.log('✅ Homework saved:', id);
-
-    // ✅ لو random → ولّد كلمات سر لكل طالب في الفرقة
-    if (passwordType === 'random') {
-      try {
-        console.log('🎲 توليد كلمات سر عشوائية لطلاب الفرقة:', grade);
-
-        const usersRef = doc(db, 'users', 'all');
-        const usersSnap = await getDoc(usersRef);
-
-        if (usersSnap.exists()) {
-          const usersList = usersSnap.data().items || [];
-          const studentsInGrade = usersList.filter(u => u.grade === grade);
-
-          console.log(`👥 عدد الطلاب في الفرقة: ${studentsInGrade.length}`);
-
-          // حافظ على قائمة التسليمات
-          const subsRef = doc(db, 'homework_subs', 'all');
-          const subsSnap = await getDoc(subsRef);
-          let subsItems = subsSnap.exists() ? (subsSnap.data().items || []) : [];
-
-          for (const student of studentsInGrade) {
-            const password = generateRandomPassword();
-
-            // أضف أو حدّث في homework_subs/all
-            const idx = subsItems.findIndex(
-              s => s.homeworkId === id && s.userId === student.id
-            );
-
-            const newSubEntry = {
-              homeworkId: id,
-              homeworkName: name,
-              userId: student.id,
-              userName: student.fullName || student.username || '',
-              userGrade: grade,
-              password,             // كلمة السر المخصصة
-              answers: {},
-              submitted: false,
-              corrected: false,
-              score: 0,
-              totalScore: cleanedQuestions.reduce((s, q) => s + (q.score || 1), 0),
-              correctionType,
-              createdAt: now,
-              updatedAt: now
-            };
-
-            if (idx !== -1) {
-              // احتفظ بالإجابات لو موجودة
-              subsItems[idx] = {
-                ...subsItems[idx],
-                password,
-                updatedAt: now
-              };
-            } else {
-              subsItems.push(newSubEntry);
-            }
-          }
-
-          await setDoc(subsRef, { items: subsItems, updatedAt: serverTimestamp() });
-          console.log(`✅ تم توليد ${studentsInGrade.length} كلمة سر`);
-        }
-      } catch (e) {
-        console.error('random passwords error:', e);
-        // ما نوقفش الحفظ لو حصل خطأ هنا
+    if (!isEdit) {
+      let id = await getNextHomeworkId();
+      if (allHomeworks.some(h => sameId(h.id, id))) {
+        id = Math.max(...allHomeworks.map(h => num(h.id)), num(id)) + 1;
       }
+      hw = {
+        id, name, description, grade, passPercent,
+        passwordType,     // 'none' | 'manual' | 'userCode' | 'random'
+        manualPassword,   // لو manual
+        correctionType,   // 'auto' (فوري) | 'manual' (يدوي)
+        questions: cleanedQuestions,
+        status: 'published',
+        teacherId: userId,
+        teacherName: teacherName(),
+        createdAt: now,
+        updatedAt: now
+      };
+      await mutateHomeworks((items) => [...items, hw]);
+      console.log('✅ Homework saved:', id);
+    } else {
+      hw = {
+        ...prev, name, description, grade, passPercent, passwordType, manualPassword,
+        correctionType, questions: cleanedQuestions, updatedAt: now
+      };
+      await mutateHomeworks((items) => {
+        const i = items.findIndex(h => sameId(h.id, prev.id) && h.teacherId === userId);
+        if (i === -1) throw new Error('الواجب لم يعد موجوداً');
+        const out = [...items];
+        out[i] = hw;
+        return out;
+      });
     }
 
-    // ===== Success =====
+    // ✅ لو random → ولّد كلمات سر لكل طالب في الفرقة (عند الإضافة أو أول مرة يتحول لعشوائي)
+    if (passwordType === 'random' && (!isEdit || prev.passwordType !== 'random' || prev.grade !== grade)) {
+      await generateRandomPasswords(hw);
+    }
+
+    // ===== تعديل: خلاص =====
+    if (isEdit) {
+      // لو التعديل خلّى الواجب أكثر من 15 سؤال تنزل الهدية (مرة واحدة لكل واجب)
+      const editReward = hw.status === 'published' ? await grantTeacherReward(hw) : null;
+      showToast(editReward ? `تم حفظ التعديلات ✅ — 🎁 هدية الواجب: ${fmtMoney(editReward)}` : 'تم حفظ التعديلات ✅', 'success');
+      resetForm();
+      switchView('list');
+      return;
+    }
+
+    // ===== إضافة: إشعارات + هدية المعلم =====
+    const notif = await notifyNewHomework(hw);
+    const rewardAmount = await grantTeacherReward(hw);
+    if (rewardAmount) showToast(`🎁 هدية نشر الواجب: ${fmtMoney(rewardAmount)}`, 'success');
+
     $('successMessage').innerHTML = `
-      تم إضافة الواجب بنجاح في فرقة "<strong>${grade}</strong>".<br><br>
+      تم إضافة الواجب بنجاح في فرقة "<strong>${escapeHtml(grade)}</strong>".<br><br>
       عدد الأسئلة: <strong>${cleanedQuestions.length}</strong><br>
-      إجمالي الدرجات: <strong>${cleanedQuestions.reduce((s, q) => s + (q.score || 1), 0)}</strong><br>
+      إجمالي الدرجات: <strong>${totalScore}</strong><br>
       نوع كلمة السر: <strong>${getPasswordLabel(passwordType)}</strong><br>
-      نوع التصحيح: <strong>${correctionType === 'auto' ? 'تلقائي' : 'يدوي'}</strong>
+      نوع التصحيح: <strong>${correctionType === 'auto' ? 'فوري' : 'يدوي'}</strong><br><br>
+      ${notif.count ? `📲 تم إرسال إشعار لـ <strong>${notif.count}</strong> طالب<br>` : (notif.failed ? '' : 'لا يوجد طلاب في هذه الفرقة حالياً لإرسال إشعار لهم<br>')}
+      ${rewardAmount ? `🎁 هدية الواجب: <strong>${fmtMoney(rewardAmount)}</strong> أُضيفت لمحفظتك` : (cleanedQuestions.length <= MIN_Q_FOR_TEACHER_REWARD ? `ℹ️ هدية المعلم تُصرف للواجب اللي فيه أكثر من <strong>${MIN_Q_FOR_TEACHER_REWARD}</strong> سؤال` : '')}
     `;
     $('successModal').classList.add('show');
 
@@ -1886,6 +2824,7 @@ $('saveBtn').addEventListener('click', async () => {
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHTML;
+    updateEditUI();
   }
 });
 
@@ -1920,9 +2859,10 @@ $('successNewBtn').addEventListener('click', () => {
 });
 
 function resetForm() {
+  editingId = null;
   $('hwName').value = '';
   $('hwDesc').value = '';
-  $('hwGrade').value = teacherData?.grades?.[0] || teacherData?.grade || '';
+  fillGradeSelect('');
   $('hwPassPercent').value = 50;
   $('manualPassword').value = '';
   $('randomPreview').textContent = generateRandomPassword();
@@ -1942,12 +2882,27 @@ function resetForm() {
   updateCorrectionInfo();
   renderQuestions();
   $('errorBox').classList.remove('show');
+  updateEditUI();
 }
 
 // ============================================================
 // ❌ Cancel
 // ============================================================
 $('cancelBtn').addEventListener('click', async () => {
+  if (editingId != null) {
+    const okEdit = await showConfirm({
+      title: 'إلغاء التعديل',
+      message: 'سيتم تجاهل التعديلات اللي عملتها. هل أنت متأكد؟',
+      icon: 'fa-rotate-left',
+      iconType: 'warning',
+      okText: 'نعم، إلغاء التعديل'
+    });
+    if (!okEdit) return;
+    resetForm();
+    switchView('list');
+    return;
+  }
+
   const hasContent = $('hwName').value.trim() || questions.length > 0;
 
   if (hasContent) {
@@ -1970,6 +2925,7 @@ $('cancelBtn').addEventListener('click', async () => {
 requestAnimationFrame(() => document.body.classList.add('ready'));
 
 loadTeacherData();
+listenAll();
 updatePasswordUI();
 updateCorrectionInfo();
 renderQuestions();
@@ -1978,6 +2934,7 @@ renderQuestions();
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('confirmModal').classList.contains('show')) closeConfirm(false);
+    else if ($('resultsModal').classList.contains('show')) $('resultsModal').classList.remove('show');
   }
 });
 
