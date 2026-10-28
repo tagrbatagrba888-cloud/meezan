@@ -86,6 +86,14 @@
   .view-body { overflow:auto; border-radius:12px; background:#cfd5d2; padding:10px; }
   [data-theme="dark"] .view-body { background:#06100c; }
 
+
+  .view-body .pv-page { display:block; width:100%; aspect-ratio:794/1123; background:#fff; margin:0 auto 12px; box-shadow:0 8px 28px rgba(0,0,0,.28); position:relative; }
+  .view-body .pv-page canvas { display:block; width:100%; height:100%; }
+  .view-body .pv-page .pv-wait { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#888; font-size:22px; }
+  .view-body .pv-info { text-align:center; font-size:12.5px; font-weight:700; color:#555; margin-bottom:10px; }
+  [data-theme="dark"] .view-body .pv-info { color:#9BAEA6; }
+  .view-actions { display:flex; gap:8px; }
+
 /* ================= PAPER ================= */
   .paper {
     --lh:36px; --fs:24px; --ink:#1b3a9c;
@@ -182,6 +190,7 @@
 <main class="wrap">
   <div class="list-head">
     <h2><i class="fas fa-folder-open"></i> تكليفاتك <span class="count" id="countBadge">0</span></h2>
+    <button class="btn btn-primary" id="dlAllBtn"><i class="fas fa-download"></i> تحميل الكل</button>
     <span class="grade-pill"><i class="fas fa-graduation-cap"></i><span id="gradeText">—</span></span>
   </div>
   <div class="empty-state" id="loadingState">
@@ -199,14 +208,14 @@
 <!-- نافذة الاسم والكود -->
 <div class="overlay hidden" id="dlOverlay">
   <div class="modal">
-    <h3><i class="fas fa-file-pdf"></i> تحميل التكليف PDF</h3>
+    <h3><i class="fas fa-file-pdf" id="dlIcon"></i> <span id="dlHead">تحميل التكليف PDF</span></h3>
     <p class="sub" id="dlSub"></p>
     <label for="dlName">الاسم</label>
     <input class="field" id="dlName" placeholder="اكتب اسمك" autocomplete="off">
     <label for="dlCode">الكود</label>
     <input class="field" id="dlCode" placeholder="اكتب الكود" autocomplete="off" dir="ltr" style="text-align:right">
     <div class="modal-actions">
-      <button class="btn btn-primary" id="dlGo"><i class="fas fa-download"></i> تحميل</button>
+      <button class="btn btn-primary" id="dlGo"><i class="fas fa-download" id="dlGoIcon"></i> <span id="dlGoText">تحميل</span></button>
       <button class="btn btn-ghost" id="dlCancel">إلغاء</button>
     </div>
   </div>
@@ -217,7 +226,10 @@
   <div class="modal view-modal">
     <div class="view-bar">
       <h3 id="viewTitle"></h3>
-      <button class="btn btn-ghost" id="viewClose"><i class="fas fa-xmark"></i> إغلاق</button>
+      <div class="view-actions">
+        <button class="btn btn-primary" id="viewDl"><i class="fas fa-download"></i> تحميل PDF</button>
+        <button class="btn btn-ghost" id="viewClose"><i class="fas fa-xmark"></i> إغلاق</button>
+      </div>
     </div>
     <div class="view-body" id="viewBody"></div>
   </div>
@@ -275,6 +287,7 @@ function toast(text, type='success'){
 /* ---------- الخطوط + رسم الورقة (نفس نسخة الأدمن) ---------- */
 const loadedFonts = {};
 const registeredCustom = new Set();
+const customReady = {};
 function famOf(key){
   if (!key) return 'Cairo';
   if (key.startsWith('custom:')) return 'cf_' + key.slice(7);
@@ -282,7 +295,11 @@ function famOf(key){
 }
 function ensureFont(key){
   if (!key) return Promise.resolve();
-  if (key.startsWith('custom:')) return Promise.resolve();
+  if (key.startsWith('custom:')) {
+    const id = key.slice(7);
+    if (customReady[id]) return customReady[id];
+    return new Promise((res) => { let n = 0; const iv = setInterval(() => { if (customReady[id] || ++n > 30) { clearInterval(iv); res(customReady[id]); } }, 100); });
+  }
   if (loadedFonts[key]) return loadedFonts[key];
   loadedFonts[key] = new Promise((resolve) => {
     const l = document.createElement('link');
@@ -426,7 +443,7 @@ onSnapshot(collection(db, 'customFonts'), (snap) => {
   customFonts.forEach(c => {
     if (registeredCustom.has(c.id)) return;
     registeredCustom.add(c.id);
-    new FontFace('cf_' + c.id, `url(${c.data})`).load().then(ff => document.fonts.add(ff)).catch(() => {});
+    customReady[c.id] = new FontFace('cf_' + c.id, `url(${c.data})`).load().then(ff => document.fonts.add(ff)).catch(() => {});
   });
 }, () => {});
 
@@ -445,8 +462,9 @@ function badge(ic, t){
 }
 function renderList(){
   $('gradeText').textContent = role === 'teacher' ? 'حساب معلم' : (myGrade() || 'غير محدد');
-  const items = visibleAssignments().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const items = sortedItems();
   $('countBadge').textContent = items.length;
+  $('dlAllBtn').classList.toggle('hidden', items.length === 0);
   $('loadingState').classList.toggle('hidden', ready);
   $('emptyList').classList.toggle('hidden', !ready || items.length > 0);
   const box = $('rows'); box.innerHTML = '';
@@ -470,92 +488,126 @@ function renderList(){
 }
 
 /* ============================================================
-   عرض التكليف
+   محرك الرسم المباشر بالكانفاس (بدون html2canvas)
+   كل صفحة ترسم كلماتها فقط → السرعة ثابتة حتى مع عشرات آلاف الكلمات
+   ونفس المحرك يُستخدم في العرض والتحميل، فاللي تشوفه هو اللي يتحمّل
    ============================================================ */
-async function openView(a){
-  $('viewTitle').textContent = a.title || '';
-  const body = $('viewBody'); body.innerHTML = '';
-  $('viewOverlay').classList.remove('hidden');
-  await ensureFont(a.font);
-  body.appendChild(buildPaper({ ...a, ink: a.ink || { c:'#1b3a9c', fx:'ball' } }));
-}
-$('viewClose').onclick = () => $('viewOverlay').classList.add('hidden');
-$('viewOverlay').addEventListener('click', (e) => { if (e.target === $('viewOverlay')) $('viewOverlay').classList.add('hidden'); });
-
-/* ============================================================
-   تحميل PDF: الاسم ← الكود ← الفرقة ← التاريخ ← المادة ثم التكليف
-   ============================================================ */
-let dlTarget = null;
-function openDownload(a){
-  dlTarget = a;
-  $('dlSub').textContent = a.title || '';
-  $('dlName').value = ''; $('dlCode').value = '';
-  $('dlOverlay').classList.remove('hidden');
-  setTimeout(() => $('dlName').focus(), 50);
-}
-$('dlCancel').onclick = () => $('dlOverlay').classList.add('hidden');
-$('dlOverlay').addEventListener('click', (e) => { if (e.target === $('dlOverlay')) $('dlOverlay').classList.add('hidden'); });
-$('dlGo').addEventListener('click', async () => {
-  const name = $('dlName').value.trim(), code = $('dlCode').value.trim();
-  if (!name) { toast('اكتب الاسم أولاً', 'error'); $('dlName').focus(); return; }
-  if (!code) { toast('اكتب الكود أولاً', 'error'); $('dlCode').focus(); return; }
-  const btn = $('dlGo'); btn.disabled = true;
-  try { await makePdf(dlTarget, name, code); $('dlOverlay').classList.add('hidden'); toast('تم تحميل الملف'); }
-  catch (err) { toast(err.message || 'تعذر إنشاء الملف', 'error'); }
-  btn.disabled = false;
-});
-
-const libCache = {};
-function loadScript(src, test){
-  if (test()) return Promise.resolve();
-  if (libCache[src]) return libCache[src];
-  libCache[src] = new Promise((res, rej) => {
-    const s = document.createElement('script'); s.src = src;
-    s.onload = res; s.onerror = () => rej(new Error('تعذر تحميل مكتبة التصدير'));
-    document.head.appendChild(s);
-  });
-  return libCache[src];
-}
-
-/* ============================================================
-   PDF: ورقة حقيقية بالكامل — كل صفحة بسطورها وهوامشها،
-   والبيانات داخل الورقة بنفس خط ولون التكليف ثم يبدأ المحتوى
-   ============================================================ */
-const PAGE_W = 794, PAGE_H = 1123, SCALE = 2;
+const PAGE_W = 794, PAGE_H = 1123;
 const PAPER_START = { white:40, lined:36, notebook:84, foolscap:84, graph:40, yellow:84, aged:50 };
+const FX_SHADOW = { ball:[[.6]], gel:[[1],[.3]], fountain:[[1.4]], pencil:[[1.3],[.3,'#000']], marker:[[1.6]] };
+const tick = () => new Promise(r => setTimeout(r, 0));
+const mctx = document.createElement('canvas').getContext('2d');
 
+function normAssign(a){
+  return { ...a, ink: a.ink || { c:'#1b3a9c', fx:'ball' }, paper: a.paper || 'lined', lh: parseFloat(a.lh) || 36, fs: parseFloat(a.fs) || 24 };
+}
+function headerFor(a, name, code){
+  return [['الاسم', name], ['الكود', code], ['الفرقة', a.grade || myGrade() || '—'], ['التاريخ', todayDMY()], ['المادة', a.subject || '—']];
+}
 function pdfLayout(d){
   const lh = d.lh;
   const pt = d.paper === 'foolscap' ? lh * 2 : lh;
-  return {
-    lh, pt,
-    start: PAPER_START[d.paper] || 46,
-    rows: Math.max(1, Math.floor((PAGE_H - pt - lh) / lh)),
-    rtl: isRtlData(d)
+  return { lh, pt, start: PAPER_START[d.paper] || 46, rows: Math.max(1, Math.floor((PAGE_H - pt - lh) / lh)), rtl: isRtlData(d) };
+}
+function strongDir(t){
+  const m = /[A-Za-z\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/.exec(t);
+  return (m && !/[A-Za-z]/.test(m[0])) ? 'rtl' : 'ltr';
+}
+const fontFam = (d) => `'${famOf(d.font)}', 'Cairo', sans-serif`;
+
+/* تجهيز الخطوط قبل الرسم */
+async function prepFonts(list){
+  await Promise.all(list.map(d => ensureFont(d.font)));
+  const seen = new Set();
+  for (const d of list) {
+    const fam = famOf(d.font);
+    if (seen.has(fam)) continue; seen.add(fam);
+    const sample = Array.from(new Set(((d.content || '') + (d.title || '') + 'أبجد الاسم الكود الفرقة التاريخ المادة0123456789').split(''))).join('');
+    try { await document.fonts.load(`${d.fs}px "${fam}"`, sample); } catch(e){}
+  }
+  try { await document.fonts.ready; } catch(e){}
+}
+
+/* ---------- التخطيط: تحويل النص كله لصفوف (كل صف = سطر واحد في الورقة) ---------- */
+function layoutDoc(d, header){
+  const L = pdfLayout(d);
+  const fam = fontFam(d);
+  const left = L.rtl ? 30 : L.start;
+  const right = PAGE_W - (L.rtl ? L.start : 30);
+  const availW = right - left;
+  const rawFx = d.ink.fx;
+  const jf = (parseFloat(d.jitter) || 0) / 5;
+  const cache = new Map();
+  const measure = (t, mult) => {
+    const k = mult + '|' + t; let w = cache.get(k);
+    if (w === undefined) { mctx.font = `${d.fs * mult}px ${fam}`; w = mctx.measureText(t).width; cache.set(k, w); }
+    return w;
   };
+  mctx.font = `100px ${fam}`;
+  const mt = mctx.measureText('Hg');
+  const asc = (mt.fontBoundingBoxAscent || 80) / 100, desc = (mt.fontBoundingBoxDescent || 20) / 100;
+
+  const rows = [];
+  function addBlock(text, o){
+    const mult = o.mult || 1;
+    const rnd = o.jitter ? mulberry32(o.seed) : null;
+    const spaceW = measure(' ', mult);
+    String(text).split('\n').forEach(line => {
+      if (!line.trim()) { rows.push({ words: [], dir: 'ltr', blank: true }); return; }
+      const dir = strongDir(line);
+      const lineRot = (rnd && jf > 0) ? (rnd() - .5) * .5 * jf : 0;
+      let cur = { words: [], dir, lineRot, shift: 0, end: 0, alpha: o.alpha || 1, underline: !!o.underline, small: mult < 1 };
+      let cx = 0;
+      const commit = () => {
+        if (o.align === 'center') cur.shift = (availW - cur.end) / 2;
+        else if (o.align === 'end') cur.shift = availW - cur.end;
+        rows.push(cur);
+      };
+      const newRow = () => { commit(); cur = { words: [], dir, lineRot, shift: 0, end: 0, alpha: o.alpha || 1, underline: !!o.underline, small: mult < 1 }; cx = 0; };
+      const addWord = (t, w, v) => { cur.words.push({ t, o: cx, w, pct: v.pct, dy: v.dy, rot: v.rot, alpha: v.alpha }); cx += w; cur.end = cx; };
+      line.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { cx += spaceW * part.length; return; }
+        const v = { pct: 100, dy: 0, rot: 0, alpha: 1 };
+        if (rnd && jf > 0) {
+          v.dy = (rnd() - .5) * 2.4 * jf;
+          v.rot = (rnd() - .5) * 2.8 * jf;
+          v.pct = 100 + (rnd() - .5) * 7 * jf;
+          if (rawFx === 'ball' || rawFx === 'pencil' || rawFx === 'gel') v.alpha = 0.86 + rnd() * 0.14;
+        }
+        const w = measure(part, mult) * v.pct / 100;
+        if (w > availW) {                       // كلمة أطول من السطر: تتقطع
+          if (cur.words.length) newRow();
+          let chunk = '';
+          const flush = () => { if (chunk) { addWord(chunk, measure(chunk, mult) * v.pct / 100, v); chunk = ''; } };
+          for (const ch of Array.from(part)) {
+            const t2 = chunk + ch;
+            if (chunk && measure(t2, mult) * v.pct / 100 > availW) { flush(); newRow(); chunk = ch; } else chunk = t2;
+          }
+          flush();
+          return;
+        }
+        if (cx + w > availW + .01 && cur.words.length) newRow();
+        addWord(part, w, v);
+      });
+      commit();
+    });
+  }
+
+  const seed = d.seed || 1;
+  if (header && header.length) {
+    addBlock(header.map(([k, v]) => k + ': ' + v).join('\n'), { seed: seed + 7, jitter: true });
+    rows.push({ words: [], dir: 'ltr', blank: true });
+  }
+  if (d.showDate && d.date) addBlock(fmtDate(d.date), { mult: .82, align: 'end' });
+  if (d.showTitle && d.title) addBlock(d.title, { mult: 1.12, align: 'center', underline: true });
+  if (d.content && d.content.trim()) addBlock(d.content, { seed, jitter: true });
+  else addBlock('ابدأ بكتابة تكليفك وسيظهر هنا بخط اليد...', { seed, jitter: true, alpha: .4 });
+
+  return { d, L, rows, left, right, availW, asc, desc, fam, pages: Math.max(1, Math.ceil(rows.length / L.rows)) };
 }
 
-/* صفحة نص فقط (شفافة): idx = رقم الصفحة، أو null للقياس */
-function makeExportPage(d, header, L, idx){
-  const p = paperBase(d);
-  p.classList.add('export', 'layer');
-  p.style.width = PAGE_W + 'px';
-  p.style.padding = '0';
-  p.style.paddingTop = L.pt + 'px';
-  p.style.paddingInlineStart = L.start + 'px';
-  p.style.paddingInlineEnd = '30px';
-  p.style.minHeight = '0';
-  const t = buildText(d, header);
-  if (idx === null) { p.style.height = 'auto'; p.appendChild(t); return { p, t }; }
-  p.style.height = PAGE_H + 'px';
-  const win = document.createElement('div');
-  win.style.cssText = `position:relative;overflow:hidden;height:${L.rows * L.lh}px;`;
-  t.style.marginTop = (-idx * L.rows * L.lh) + 'px';
-  win.appendChild(t); p.appendChild(win);
-  return { p, t };
-}
-
-/* رسم الورقة (الخلفية + السطور + الهوامش) مباشرة بالكانفاس — لأن html2canvas لا يرسم الـ repeating gradients */
+/* ---------- رسم خلفية الورقة (السطور والهوامش) ---------- */
 function drawPaperBg(ctx, d, L){
   const W = PAGE_W, H = PAGE_H, lh = L.lh, type = d.paper;
   const fill = (c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -580,7 +632,6 @@ function drawPaperBg(ctx, d, L){
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     }
   }
-
   switch (type) {
     case 'lined': hLines('#b6cfe6', 0); break;
     case 'notebook': hLines('#a5c8e8', 0); fill('#e58a8a', vx(62, 2), 0, 2, H); break;
@@ -597,72 +648,217 @@ function drawPaperBg(ctx, d, L){
   }
 }
 
-async function makePdf(a, name, code){
-  await Promise.all([
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => !!window.html2canvas),
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF)),
-    ensureFont(a.font)
-  ]);
-  const d = {
-    ...a,
-    ink: a.ink || { c:'#1b3a9c', fx:'ball' },
-    paper: a.paper || 'lined',
-    lh: parseFloat(a.lh) || 36,
-    fs: parseFloat(a.fs) || 24
-  };
-  const header = [
-    ['الاسم', name],
-    ['الكود', code],
-    ['الفرقة', a.grade || myGrade() || '—'],
-    ['التاريخ', todayDMY()],
-    ['المادة', a.subject || '—']
-  ];
-  const L = pdfLayout(d);
-
-  const host = document.createElement('div');
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${PAGE_W}px;`;
-  document.body.appendChild(host);
-  try {
-    try { await document.fonts.load(`${d.fs}px "${famOf(d.font)}"`, (d.content || d.title || '') + 'أبجد الاسم الكود'); } catch(e){}
-    await document.fonts.ready;
-
-    // قياس الطول الكلي لتحديد عدد الصفحات
-    const m = makeExportPage(d, header, L, null);
-    host.appendChild(m.p);
-    const totalRows = Math.max(1, Math.ceil(m.t.offsetHeight / L.lh - 0.02));
-    host.removeChild(m.p);
-    const pages = Math.max(1, Math.ceil(totalRows / L.rows));
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'pt', 'a4');
-    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
-
-    for (let i = 0; i < pages; i++) {
-      const { p } = makeExportPage(d, header, L, i);
-      host.appendChild(p);
-      const textCv = await window.html2canvas(p, { scale: SCALE, backgroundColor: null, useCORS: true, width: PAGE_W, height: PAGE_H, logging: false });
-      host.removeChild(p);
-
-      const pageCv = document.createElement('canvas');
-      pageCv.width = PAGE_W * SCALE; pageCv.height = PAGE_H * SCALE;
-      const ctx = pageCv.getContext('2d');
-      ctx.scale(SCALE, SCALE);
-      drawPaperBg(ctx, d, L);
-      ctx.drawImage(textCv, 0, 0, PAGE_W, PAGE_H);
-
-      if (i > 0) pdf.addPage();
-      pdf.addImage(pageCv.toDataURL('image/jpeg', .93), 'JPEG', 0, 0, pw, ph);
-      textCv.width = 0; pageCv.width = 0;
+/* ---------- رسم كلمات صفحة واحدة ---------- */
+function drawRows(ctx, lay, pageIdx, scale){
+  const { d, L, rows, left, right, availW, asc, desc, fam } = lay;
+  const fx = d.ink.fx || 'ball';
+  const shadows = FX_SHADOW[fx] || [];
+  const baseAlpha = fx === 'pencil' ? .82 : 1;
+  const ink = d.ink.c;
+  const start = pageIdx * L.rows, end = Math.min(rows.length, start + L.rows);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = ink;
+  for (let r = start; r < end; r++) {
+    const row = rows[r];
+    if (!row.words.length) continue;
+    const y0 = L.pt + (r - start) * L.lh;
+    ctx.save();
+    if (row.lineRot) {
+      const cx = left + availW / 2, cy = y0 + L.lh / 2;
+      ctx.translate(cx, cy); ctx.rotate(row.lineRot * Math.PI / 180); ctx.translate(-cx, -cy);
     }
-    pdf.save((a.title || 'assignment').replace(/[\\/:*?"<>|]/g, '_') + '.pdf');
-  } finally { host.remove(); }
+    ctx.direction = row.dir;
+    const mult = row.mult || 1;
+    let lastSize = 0;
+    for (const w of row.words) {
+      const size = d.fs * (row.underline ? 1.12 : (row.small ? .82 : 1)) * w.pct / 100;
+      if (size !== lastSize) { ctx.font = `${size}px ${fam}`; lastSize = size; }
+      const off = w.o + row.shift;
+      const x = row.dir === 'rtl' ? right - off - w.w : left + off;
+      const base = y0 + (L.lh - (asc + desc) * size) / 2 + asc * size + w.dy;
+      ctx.globalAlpha = baseAlpha * w.alpha * row.alpha;
+      if (w.rot) {
+        const cx = x + w.w / 2, cy = y0 + L.lh / 2 + w.dy;
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(w.rot * Math.PI / 180); ctx.translate(-cx, -cy);
+        paintWord(ctx, w.t, x, base, shadows, ink, scale);
+        ctx.restore();
+      } else paintWord(ctx, w.t, x, base, shadows, ink, scale);
+    }
+    if (row.underline) {
+      const f = row.words[0], l = row.words[row.words.length - 1];
+      const a = f.o + row.shift, b = l.o + l.w + row.shift;
+      const x1 = row.dir === 'rtl' ? right - b : left + a;
+      const size = d.fs * 1.12;
+      const base = y0 + (L.lh - (asc + desc) * size) / 2 + asc * size;
+      ctx.globalAlpha = baseAlpha; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+      ctx.fillRect(x1, base + 5, b - a, 1);
+    }
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+}
+function paintWord(ctx, t, x, y, shadows, ink, scale){
+  if (!shadows.length) { ctx.fillText(t, x, y); return; }
+  for (const s of shadows) {
+    ctx.shadowBlur = s[0] * scale; ctx.shadowColor = s[1] || ink;
+    ctx.fillText(t, x, y);
+  }
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
 }
 
-/* تحميل مسبق لمكتبات التصدير وقت الفراغ عشان التحميل يبقى أسرع */
-(window.requestIdleCallback || ((f) => setTimeout(f, 2500)))(() => {
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => !!window.html2canvas).catch(() => {});
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF)).catch(() => {});
+function renderPage(lay, i, scale){
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(PAGE_W * scale); cv.height = Math.round(PAGE_H * scale);
+  const ctx = cv.getContext('2d');
+  ctx.scale(scale, scale);
+  drawPaperBg(ctx, lay.d, lay.L);
+  drawRows(ctx, lay, i, scale);
+  return cv;
+}
+
+/* ============================================================
+   الاسم والكود: يُطلبان في العرض والتحميل وتحميل الكل
+   ============================================================ */
+let dlMode = 'download', dlTarget = null, working = false;
+const MODES = {
+  view:     { head:'عرض التكليف',        icon:'fa-eye',      go:'عرض',        sub:(a) => (a ? a.title || '' : '') + ' — اكتب اسمك وكودك لتشوف التكليف كما سيظهر في التحميل' },
+  download: { head:'تحميل التكليف PDF',  icon:'fa-file-pdf', go:'تحميل',      sub:(a) => (a ? a.title || '' : '') },
+  all:      { head:'تحميل كل التكليفات', icon:'fa-download', go:'تحميل الكل', sub:() => 'كل التكليفات في ملف PDF واحد، كل تكليف يبدأ في صفحة جديدة' }
+};
+function openAsk(mode, a){
+  dlMode = mode; dlTarget = a || null;
+  const m = MODES[mode];
+  $('dlHead').textContent = m.head;
+  $('dlIcon').className = 'fas ' + m.icon;
+  $('dlGoIcon').className = 'fas ' + m.icon;
+  $('dlGoText').textContent = m.go;
+  $('dlSub').textContent = m.sub(a);
+  $('dlName').value = ''; $('dlCode').value = '';
+  $('dlOverlay').classList.remove('hidden');
+  setTimeout(() => $('dlName').focus(), 50);
+}
+function openDownload(a){ openAsk('download', a); }
+function openView(a){ openAsk('view', a); }
+function sortedItems(){ return visibleAssignments().sort((x, y) => (y.updatedAt || 0) - (x.updatedAt || 0)); }
+
+$('dlAllBtn').onclick = () => { if (sortedItems().length) openAsk('all'); };
+$('dlCancel').onclick = () => { if (!working) $('dlOverlay').classList.add('hidden'); };
+$('dlOverlay').addEventListener('click', (e) => { if (e.target === $('dlOverlay') && !working) $('dlOverlay').classList.add('hidden'); });
+
+$('dlGo').addEventListener('click', async () => {
+  const name = $('dlName').value.trim(), code = $('dlCode').value.trim();
+  if (!name) { toast('اكتب الاسم أولاً', 'error'); $('dlName').focus(); return; }
+  if (!code) { toast('اكتب الكود أولاً', 'error'); $('dlCode').focus(); return; }
+  if (working) return;
+  if (dlMode === 'view') { $('dlOverlay').classList.add('hidden'); openPreview(dlTarget, name, code); return; }
+  const list = dlMode === 'all' ? sortedItems() : [dlTarget];
+  const file = dlMode === 'all' ? 'كل التكليفات' : (dlTarget.title || 'assignment');
+  working = true; $('dlGo').disabled = true; $('dlCancel').disabled = true;
+  const label = MODES[dlMode].go;
+  try {
+    await exportPdf(list, name, code, file, (done, total) => { $('dlGoText').textContent = `جاري التجهيز ${done}/${total}`; });
+    $('dlOverlay').classList.add('hidden'); toast('تم تحميل الملف');
+  } catch (err) { toast(err.message || 'تعذر إنشاء الملف', 'error'); }
+  working = false; $('dlGo').disabled = false; $('dlCancel').disabled = false; $('dlGoText').textContent = label;
 });
+
+/* ============================================================
+   العرض: صفحات الـ PDF نفسها، تُرسم عند الاقتراب منها فقط (فتح فوري حتى لو التكليف ضخم)
+   ============================================================ */
+let pvToken = 0, pvObserver = null, pvCtx = null;
+async function openPreview(a, name, code){
+  const token = ++pvToken;
+  pvCtx = { a, name, code };
+  $('viewTitle').textContent = a.title || '';
+  const body = $('viewBody');
+  body.innerHTML = '<div class="pv-info"><i class="fas fa-spinner fa-spin"></i> جاري التجهيز...</div>';
+  $('viewOverlay').classList.remove('hidden');
+  const d = normAssign(a);
+  await prepFonts([d]);
+  if (token !== pvToken) return;
+  const lay = layoutDoc(d, headerFor(a, name, code));
+  body.innerHTML = '';
+  const info = document.createElement('div'); info.className = 'pv-info';
+  info.textContent = lay.pages + (lay.pages === 1 ? ' صفحة' : ' صفحات') + ' — هكذا سيظهر الملف عند التحميل';
+  body.appendChild(info);
+  if (pvObserver) pvObserver.disconnect();
+  const SC = 1.5;
+  pvObserver = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      if (!en.isIntersecting) return;
+      const el = en.target; pvObserver.unobserve(el);
+      requestAnimationFrame(() => {
+        if (token !== pvToken) return;
+        el.innerHTML = ''; el.appendChild(renderPage(lay, +el.dataset.i, SC));
+      });
+    });
+  }, { root: body, rootMargin: '700px 0px' });
+  for (let i = 0; i < lay.pages; i++) {
+    const pg = document.createElement('div'); pg.className = 'pv-page'; pg.dataset.i = i;
+    pg.innerHTML = '<div class="pv-wait"><i class="fas fa-spinner fa-spin"></i></div>';
+    body.appendChild(pg); pvObserver.observe(pg);
+  }
+}
+function closePreview(){
+  pvToken++; if (pvObserver) { pvObserver.disconnect(); pvObserver = null; }
+  $('viewOverlay').classList.add('hidden'); $('viewBody').innerHTML = '';
+}
+$('viewClose').onclick = closePreview;
+$('viewOverlay').addEventListener('click', (e) => { if (e.target === $('viewOverlay')) closePreview(); });
+$('viewDl').onclick = async () => {
+  if (!pvCtx || working) return;
+  const btn = $('viewDl'); working = true; btn.disabled = true;
+  const old = btn.innerHTML;
+  try {
+    await exportPdf([pvCtx.a], pvCtx.name, pvCtx.code, pvCtx.a.title || 'assignment', (done, total) => { btn.textContent = `${done}/${total}`; });
+    toast('تم تحميل الملف');
+  } catch (err) { toast(err.message || 'تعذر إنشاء الملف', 'error'); }
+  btn.innerHTML = old; btn.disabled = false; working = false;
+};
+
+/* ============================================================
+   إنشاء الـ PDF (تكليف واحد أو الكل في ملف واحد)
+   ============================================================ */
+const libCache = {};
+function loadScript(src, test){
+  if (test()) return Promise.resolve();
+  if (libCache[src]) return libCache[src];
+  libCache[src] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src;
+    s.onload = res; s.onerror = () => { delete libCache[src]; rej(new Error('تعذر تحميل مكتبة التصدير')); };
+    document.head.appendChild(s);
+  });
+  return libCache[src];
+}
+const JSPDF_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const loadJsPdf = () => loadScript(JSPDF_SRC, () => !!(window.jspdf && window.jspdf.jsPDF));
+
+async function exportPdf(list, name, code, fileName, onProgress){
+  await loadJsPdf();
+  const ds = list.map(normAssign);
+  await prepFonts(ds);
+  const lays = ds.map((d, i) => layoutDoc(d, headerFor(list[i], name, code)));
+  const total = lays.reduce((n, l) => n + l.pages, 0);
+  const scale = total <= 20 ? 2 : total <= 60 ? 1.5 : 1.25;
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'pt', 'a4');
+  const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+  let done = 0;
+  if (onProgress) onProgress(0, total);
+  for (const lay of lays) {
+    for (let i = 0; i < lay.pages; i++) {
+      const cv = renderPage(lay, i, scale);
+      if (done > 0) pdf.addPage();
+      pdf.addImage(cv.toDataURL('image/jpeg', .9), 'JPEG', 0, 0, pw, ph);
+      cv.width = 0; done++;
+      if (onProgress) onProgress(done, total);
+      await tick();           // يترك المتصفح يتنفس ويحدّث العداد
+    }
+  }
+  pdf.save(String(fileName || 'assignment').replace(/[\\/:*?"<>|]/g, '_') + '.pdf');
+}
+
+/* تحميل مسبق للمكتبة وقت الفراغ */
+(window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => { loadJsPdf().catch(() => {}); });
 
 renderList();
 </script>
