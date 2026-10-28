@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0B3D2E">
-<title>ميزان | MEEZAN - إنشاء التكاليف</title>
+<title>ميزان | MEEZAN - التكليفات</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -26,123 +26,75 @@
   }
   html,body { font-family:'Cairo',sans-serif; overflow-x:hidden; }
   body { background:var(--bg-page); color:var(--text-main); min-height:100vh; transition:background .4s; }
+  .hidden { display:none !important; }
 
-  /* ===== Topbar ===== */
   .topbar { position:sticky; top:0; z-index:100; background:var(--bg-card); border-bottom:1px solid var(--border); box-shadow:0 4px 20px var(--shadow); }
-  .topbar-inner { max-width:1300px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .topbar-inner { max-width:900px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .topbar-title { font-size:19px; font-weight:900; color:var(--primary); display:flex; align-items:center; gap:10px; min-width:0; }
   [data-theme="dark"] .topbar-title { color:var(--accent); }
   .topbar-title i { color:var(--accent); }
   [data-theme="dark"] .topbar-title i { color:var(--primary); }
   .topbar-actions { display:flex; gap:8px; flex-shrink:0; }
-  .icon-btn { height:42px; min-width:42px; padding:0 14px; border-radius:12px; background:var(--bg-input); border:2px solid var(--border); color:var(--primary); font-family:inherit; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:.25s; text-decoration:none; }
+  .icon-btn { height:42px; width:42px; border-radius:12px; background:var(--bg-input); border:2px solid var(--border); color:var(--primary); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.25s; text-decoration:none; }
   .icon-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-2px); }
   [data-theme="dark"] .icon-btn:hover { color:var(--bg-page); }
-  .icon-btn.sq { padding:0; width:42px; }
 
-  .wrap { max-width:1300px; margin:0 auto; padding:22px 20px 60px; }
-  .hidden { display:none !important; }
+  .wrap { max-width:900px; margin:0 auto; padding:22px 20px 60px; }
+  .list-head { display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .list-head h2 { font-size:20px; font-weight:900; flex:1; display:flex; align-items:center; gap:10px; }
+  .count { background:var(--primary); color:#fff; border-radius:20px; font-size:12.5px; padding:2px 11px; }
+  [data-theme="dark"] .count { color:var(--bg-page); }
+  .grade-pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:800; background:var(--bg-card); border:2px solid var(--border); padding:6px 14px; border-radius:20px; }
+  .grade-pill i { color:var(--accent); }
+  [data-theme="dark"] .grade-pill i { color:var(--primary); }
 
-  /* ===== Buttons ===== */
-  .btn { font-family:inherit; font-size:14.5px; font-weight:800; border:none; border-radius:12px; padding:12px 20px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:.25s; }
+  .rows { display:flex; flex-direction:column; gap:12px; }
+  .row { display:flex; align-items:center; gap:14px; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:14px 16px; box-shadow:0 4px 14px var(--shadow); transition:.25s; }
+  .row:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .row-ic { width:46px; height:46px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:19px; }
+  [data-theme="dark"] .row-ic { color:var(--bg-page); }
+  .row-main { flex:1; min-width:0; }
+  .row-title { font-size:16px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row-meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--text-sub); background:var(--bg-input); border:1px solid var(--border); padding:2px 9px; border-radius:20px; }
+  .row-actions { display:flex; gap:8px; flex-shrink:0; }
+  .btn { font-family:inherit; font-size:14px; font-weight:800; border:none; border-radius:12px; padding:10px 16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:.25s; }
   .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); color:#fff; box-shadow:0 6px 18px var(--shadow); }
   [data-theme="dark"] .btn-primary { color:var(--bg-page); }
-  .btn-primary:hover { transform:translateY(-2px); }
   .btn-ghost { background:var(--bg-input); color:var(--text-main); border:2px solid var(--border); }
   .btn-ghost:hover { border-color:var(--accent); }
-  .btn-danger { background:rgba(192,57,43,.08); color:var(--error); border:2px solid rgba(192,57,43,.3); }
-  .btn-danger:hover { background:var(--error); color:#fff; }
-  .btn-sm { padding:8px 12px; font-size:13px; border-radius:10px; }
-  .btn:disabled { opacity:.6; cursor:wait; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn:disabled { opacity:.6; cursor:wait; transform:none; }
 
-  /* ===== List view ===== */
-  .list-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
-  .list-head h2 { font-size:20px; font-weight:900; flex:1; min-width:160px; display:flex; align-items:center; gap:10px; }
-  .list-head h2 .count { background:var(--primary); color:#fff; border-radius:20px; font-size:12.5px; padding:2px 11px; }
-  [data-theme="dark"] .list-head h2 .count { color:var(--bg-page); }
-  .search-box { position:relative; flex:1; min-width:200px; max-width:340px; }
-  .search-box i { position:absolute; top:50%; right:14px; transform:translateY(-50%); color:var(--text-sub); }
-  .search-box input { width:100%; padding:11px 40px 11px 14px; border-radius:12px; border:2px solid var(--border); background:var(--bg-card); color:var(--text-main); font-family:inherit; font-size:14px; font-weight:600; }
-  .search-box input:focus { outline:none; border-color:var(--accent); }
-
-  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:18px; }
-  .card { background:var(--bg-card); border:2px solid var(--border); border-radius:18px; overflow:hidden; box-shadow:0 4px 14px var(--shadow); display:flex; flex-direction:column; transition:.25s; }
-  .card:hover { border-color:var(--accent); transform:translateY(-4px); }
-  .thumb { position:relative; height:210px; overflow:hidden; background:#ddd; cursor:pointer; }
-  .thumb .paper { position:absolute; top:0; right:0; width:600px; min-height:520px; transform-origin:top right; transform:scale(var(--s,.45)); pointer-events:none; }
-  .card-body { padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px; }
-  .card-title { font-size:16px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .card-meta { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-sub); font-weight:600; flex-wrap:wrap; }
-  .card-meta .dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--border); display:inline-block; }
-  .card-actions { display:flex; gap:6px; flex-wrap:wrap; }
-  .card-actions .btn { flex:1; min-width:0; }
   .empty-state { background:var(--bg-card); border:2px dashed var(--border); border-radius:20px; padding:60px 24px; text-align:center; color:var(--text-sub); }
   .empty-state i { font-size:48px; color:var(--accent); display:block; margin-bottom:14px; opacity:.7; }
   .empty-state h3 { color:var(--text-main); font-weight:800; margin-bottom:6px; }
 
-  /* ===== Editor ===== */
-  .editor-grid { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:22px; align-items:start; }
-  .panel { background:var(--bg-card); border:2px solid var(--border); border-radius:20px; padding:20px; box-shadow:0 4px 14px var(--shadow); }
-  .sec { margin-bottom:24px; }
-  .sec:last-child { margin-bottom:0; }
-  .sec-title { font-size:15.5px; font-weight:900; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
-  .sec-title .num { width:26px; height:26px; border-radius:8px; background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); color:#fff; font-size:13px; display:flex; align-items:center; justify-content:center; }
-  [data-theme="dark"] .sec-title .num { color:var(--bg-page); }
-  .field, textarea.field { width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-family:inherit; font-size:15px; font-weight:600; }
+  /* ===== Modals ===== */
+  .overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal { background:var(--bg-card); border:2px solid var(--border); border-radius:20px; padding:22px; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+  .modal h3 { font-size:17px; font-weight:900; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .modal p.sub { font-size:12.5px; color:var(--text-sub); font-weight:600; margin-bottom:14px; }
+  .modal label { display:block; font-size:13px; font-weight:800; margin:12px 0 6px; }
+  .field { width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); font-family:inherit; font-size:15px; font-weight:600; }
   .field:focus { outline:none; border-color:var(--accent); }
-  textarea.field { min-height:220px; resize:vertical; line-height:1.9; }
+  .modal-actions { display:flex; gap:10px; margin-top:18px; }
+  .modal-actions .btn-primary { flex:1; }
+  .view-modal { max-width:760px; max-height:92vh; display:flex; flex-direction:column; padding:14px; }
+  .view-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .view-bar h3 { margin:0; font-size:15.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .view-body { overflow:auto; border-radius:12px; background:#cfd5d2; padding:10px; }
+  [data-theme="dark"] .view-body { background:#06100c; }
 
-  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .chip { font-family:inherit; font-size:12.5px; font-weight:800; padding:7px 12px; border-radius:20px; border:2px solid var(--border); background:var(--bg-input); color:var(--text-main); cursor:pointer; transition:.2s; }
-  .chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-  [data-theme="dark"] .chip.active { color:var(--bg-page); }
 
-  .font-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; max-height:340px; overflow-y:auto; padding:4px; margin-top:10px; border:2px solid var(--border); border-radius:14px; background:var(--bg-input); }
-  .font-opt { position:relative; text-align:center; padding:10px 8px; border-radius:12px; border:2px solid var(--border); background:var(--bg-card); cursor:pointer; transition:.2s; color:var(--text-main); font-family:inherit; }
-  .font-opt:hover { border-color:var(--accent); }
-  .font-opt.sel { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary) inset; }
-  .font-sample { font-size:22px; line-height:1.5; display:block; min-height:34px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .font-name { font-size:11px; color:var(--text-sub); font-weight:700; display:block; margin-top:2px; }
-  .font-opt .star { position:absolute; top:4px; left:6px; font-size:10px; color:#d4a017; }
-  .font-opt .del { position:absolute; top:4px; right:4px; font-size:11px; color:var(--error); background:none; border:none; cursor:pointer; }
-  .upload-font { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .hint { font-size:12px; color:var(--text-sub); font-weight:600; line-height:1.7; }
+  .view-body .pv-page { display:block; width:100%; aspect-ratio:794/1123; background:#fff; margin:0 auto 12px; box-shadow:0 8px 28px rgba(0,0,0,.28); position:relative; }
+  .view-body .pv-page canvas { display:block; width:100%; height:100%; }
+  .view-body .pv-page .pv-wait { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#888; font-size:22px; }
+  .view-body .pv-info { text-align:center; font-size:12.5px; font-weight:700; color:#555; margin-bottom:10px; }
+  [data-theme="dark"] .view-body .pv-info { color:#9BAEA6; }
+  .view-actions { display:flex; gap:8px; }
 
-  .paper-opts { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; }
-  .paper-opt { border:2px solid var(--border); border-radius:12px; padding:6px; background:var(--bg-input); cursor:pointer; text-align:center; font-family:inherit; color:var(--text-main); transition:.2s; }
-  .paper-opt.sel { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary) inset; }
-  .paper-opt .mini { height:74px; border-radius:6px; overflow:hidden; position:relative; margin-bottom:6px; border:1px solid var(--border); }
-  .paper-opt .mini .paper { position:absolute; inset:0; padding:0 !important; min-height:0 !important; box-shadow:none; --lh:10px !important; }
-  .paper-opt span.lbl { font-size:12px; font-weight:800; }
-
-  .swatches { display:flex; flex-wrap:wrap; gap:8px; }
-  .swatch { width:36px; height:36px; border-radius:50%; border:3px solid var(--bg-card); box-shadow:0 0 0 2px var(--border); cursor:pointer; transition:.2s; position:relative; }
-  .swatch:hover { transform:scale(1.12); }
-  .swatch.sel { box-shadow:0 0 0 3px var(--primary); transform:scale(1.1); }
-  .swatch.sel::after { content:'\f00c'; font-family:'Font Awesome 6 Free'; font-weight:900; color:#fff; font-size:13px; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-shadow:0 0 3px #000; }
-  .ink-row { display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
-  .ink-row input[type=color] { width:44px; height:38px; border:2px solid var(--border); border-radius:10px; background:var(--bg-input); cursor:pointer; padding:2px; }
-  .ink-name { font-weight:800; font-size:13.5px; }
-
-  .sliders { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
-  .slider label { display:flex; justify-content:space-between; font-size:13px; font-weight:800; margin-bottom:6px; }
-  .slider input[type=range] { width:100%; accent-color:var(--primary); }
-  .checks { display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; }
-  .checks label { display:flex; align-items:center; gap:8px; font-weight:700; font-size:13.5px; cursor:pointer; }
-  .checks input { width:18px; height:18px; accent-color:var(--primary); }
-
-  .editor-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; padding-top:18px; border-top:1px solid var(--border); }
-  .editor-actions .btn-primary { flex:1; min-width:140px; }
-
-  .preview-col { position:sticky; top:84px; }
-  .preview-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  .preview-bar h3 { font-size:15.5px; font-weight:900; }
-  .preview-host { border-radius:14px; overflow:auto; max-height:calc(100vh - 190px); background:#cfd5d2; padding:12px; }
-  [data-theme="dark"] .preview-host { background:#06100c; }
-  .mobile-tabs { display:none; margin-bottom:14px; gap:8px; }
-  .mobile-tabs .chip { flex:1; padding:11px; font-size:14px; border-radius:12px; }
-
-  /* ================= PAPER ================= */
+/* ================= PAPER ================= */
   .paper {
     --lh:36px; --fs:24px; --ink:#1b3a9c;
     position:relative; width:100%; min-height:560px;
@@ -154,6 +106,10 @@
   }
   .paper.export { width:794px; min-height:1123px; box-shadow:none; }
   .paper.export .p-text { mix-blend-mode:normal; }
+  .paper.export .w { vertical-align:top; }
+  /* طبقة النص فقط للتصدير: الخلفية والسطور تترسم بالكانفاس */
+  .paper.layer { background:transparent !important; box-shadow:none !important; }
+  .paper.layer .p-lines, .paper.layer .p-margin, .paper.layer .p-hdr { display:none !important; }
   .p-lines,.p-margin,.p-hdr { position:absolute; pointer-events:none; display:none; }
   .p-lines { inset-inline:0; bottom:0; top:0; }
   .p-text { position:relative; z-index:2; font-size:var(--fs); line-height:var(--lh); color:var(--ink); white-space:pre-wrap; word-break:break-word; mix-blend-mode:multiply; }
@@ -196,205 +152,90 @@
 
   .paper-opt .paper[data-paper] { padding:0 !important; }
 
-  #printHost { display:none; }
-  @media print {
-    @page { margin:0; }
-    body > *:not(#printHost) { display:none !important; }
-    #printHost { display:block; }
-    #printHost .paper { width:100%; min-height:100vh; box-shadow:none; mix-blend-mode:normal; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  }
+  
 
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(120px); background:var(--bg-card); color:var(--text-main); padding:13px 22px; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.3); border:1px solid var(--border); font-weight:700; font-size:14px; display:flex; align-items:center; gap:10px; z-index:99999; transition:transform .4s, opacity .3s; opacity:0; max-width:calc(100vw - 32px); }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
   .toast.success { border-color:var(--success); } .toast.success i { color:var(--success); }
   .toast.error { border-color:var(--error); } .toast.error i { color:var(--error); }
 
-  @media (max-width:980px) {
-    .editor-grid { grid-template-columns:1fr; }
-    .preview-col { position:static; }
-    .mobile-tabs { display:flex; }
-    .editor-grid[data-tab="form"] .preview-col { display:none; }
-    .editor-grid[data-tab="preview"] .form-col { display:none; }
-    .preview-host { max-height:none; }
-  }
+  /* ===== تكاليفي الشخصية ===== */
+  .my-head { margin-top:34px; }
+  .row-actions { flex-wrap:wrap; }
+  .btn-del { background:rgba(192,57,43,.08); color:var(--error); border:2px solid rgba(192,57,43,.3); }
+  .btn-del:hover { background:var(--error); color:#fff; border-color:var(--error); }
+  .ed-modal { max-width:560px; max-height:92vh; overflow:auto; }
+  .ed-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .fgroup { font-size:12px; font-weight:800; color:var(--text-sub); margin:12px 0 6px; }
+  .fgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .fopt { text-align:center; padding:10px 6px; border-radius:12px; border:2px solid var(--border); background:var(--bg-input); cursor:pointer; color:var(--text-main); transition:.2s; min-width:0; }
+  .fopt:hover { border-color:var(--accent); }
+  .fopt.sel { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary) inset; }
+  .fopt .fs { display:block; font-size:20px; line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fopt .fn { display:block; font-size:11px; color:var(--text-sub); font-weight:700; }
+  .sws { display:flex; gap:10px; flex-wrap:wrap; }
+  .sw { width:34px; height:34px; border-radius:50%; border:3px solid var(--bg-card); box-shadow:0 0 0 2px var(--border); cursor:pointer; transition:.2s; }
+  .sw.sel { box-shadow:0 0 0 3px var(--primary); transform:scale(1.1); }
+  textarea.field { min-height:200px; resize:vertical; line-height:1.9; }
+  .ck { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
+  .modal .ck label { display:flex; align-items:center; gap:6px; margin:0; font-weight:700; }
+  .ck input { width:18px; height:18px; accent-color:var(--primary); }
+
   @media (max-width:600px) {
     .wrap { padding:16px 12px 50px; }
     .topbar-inner { padding:10px 12px; }
     .topbar-title { font-size:15px; }
-    .icon-btn .txt { display:none; }
-    .icon-btn { padding:0; width:40px; }
-    .panel { padding:14px; border-radius:16px; }
-    .cards { grid-template-columns:1fr; }
+    .row { flex-wrap:wrap; }
+    .row-ic { display:none; }
+    .row-actions { width:100%; }
+    .row-actions .btn { flex:1; }
     .paper { padding-inline-end:16px; }
     .paper[data-paper="notebook"],.paper[data-paper="foolscap"],.paper[data-paper="yellow"] { padding-inline-start:64px; }
     .paper[data-paper="notebook"] .p-margin { inset-inline-start:44px; }
     .paper[data-paper="foolscap"] .p-margin { inset-inline-start:38px; }
     .paper[data-paper="yellow"] .p-margin { inset-inline-start:40px; }
   }
-
-  /* ===== نوافذ العرض والتحميل ===== */
-  .overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
-  .modal { background:var(--bg-card); border:2px solid var(--border); border-radius:20px; padding:22px; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
-  .modal h3 { font-size:17px; font-weight:900; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
-  .modal p.sub { font-size:12.5px; color:var(--text-sub); font-weight:600; margin-bottom:14px; }
-  .modal label { display:block; font-size:13px; font-weight:800; margin:12px 0 6px; }
-  .modal-actions { display:flex; gap:10px; margin-top:18px; }
-  .modal-actions .btn-primary { flex:1; }
-  .view-modal { max-width:760px; max-height:92vh; display:flex; flex-direction:column; padding:14px; }
-  .list-modal { max-width:640px; max-height:90vh; display:flex; flex-direction:column; padding:16px; }
-  .view-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-  .view-bar h3 { margin:0; font-size:15.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .view-actions { display:flex; gap:8px; flex-shrink:0; }
-  .view-body { overflow:auto; border-radius:12px; background:#cfd5d2; padding:10px; }
-  [data-theme="dark"] .view-body { background:#06100c; }
-  .pv-page { display:block; width:100%; aspect-ratio:794/1123; background:#fff; margin:0 auto 12px; box-shadow:0 8px 28px rgba(0,0,0,.28); position:relative; }
-  .pv-page canvas { display:block; width:100%; height:100%; }
-  .pv-page .pv-wait { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#888; font-size:22px; }
-  .pv-info { text-align:center; font-size:12.5px; font-weight:700; color:#555; margin-bottom:10px; }
-  [data-theme="dark"] .pv-info { color:#9BAEA6; }
-  .dl-sum { font-size:13px; font-weight:800; color:var(--text-sub); margin:4px 0 10px; }
-  .dl-rows { overflow:auto; display:flex; flex-direction:column; gap:8px; margin-top:10px; padding:2px; }
-  .dl-row { display:flex; align-items:center; gap:12px; background:var(--bg-input); border:2px solid var(--border); border-radius:14px; padding:10px 12px; }
-  .dl-av { width:38px; height:38px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; }
-  [data-theme="dark"] .dl-av { color:var(--bg-page); }
-  .dl-main { flex:1; min-width:0; }
-  .dl-name { font-weight:800; font-size:14.5px; }
-  .dl-meta { font-size:12px; color:var(--text-sub); font-weight:600; display:flex; gap:10px; flex-wrap:wrap; margin-top:3px; }
-  .dl-cnt { font-size:12px; font-weight:900; background:var(--primary); color:#fff; border-radius:20px; padding:3px 10px; flex-shrink:0; }
-  [data-theme="dark"] .dl-cnt { color:var(--bg-page); }
-  .card-actions.row2 .btn { white-space:nowrap; }
-  .rand-panel { margin-top:12px; }
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="topbar-title"><i class="fas fa-pen-nib"></i><span>إنشاء التكاليف | نسخة الأدمن</span></div>
+    <div class="topbar-title"><i class="fas fa-file-pen"></i><span>جميع التكليفات</span></div>
     <div class="topbar-actions">
-      <button class="icon-btn" id="newBtn"><i class="fas fa-plus"></i><span class="txt">تكليف جديد</span></button>
-      <button class="icon-btn sq" id="themeToggle" title="الوضع الليلي/النهاري"><i class="fas fa-moon" id="themeIcon"></i></button>
-      <a href="index.html" class="icon-btn sq" title="الرئيسية"><i class="fas fa-house"></i></a>
+      <button class="icon-btn" id="themeToggle" title="الوضع الليلي/النهاري"><i class="fas fa-moon" id="themeIcon"></i></button>
+      <a href="index.html" class="icon-btn" title="الرئيسية"><i class="fas fa-house"></i></a>
     </div>
   </div>
 </header>
 
 <main class="wrap">
+  <div class="list-head">
+    <h2><i class="fas fa-folder-open"></i> تكليفاتك <span class="count" id="countBadge">0</span></h2>
+    <button class="btn btn-primary" id="dlAllBtn"><i class="fas fa-download"></i> تحميل الكل</button>
+    <span class="grade-pill"><i class="fas fa-graduation-cap"></i><span id="gradeText">—</span></span>
+  </div>
+  <div class="empty-state" id="loadingState">
+    <i class="fas fa-spinner fa-spin"></i>
+    <h3>جاري التحميل...</h3>
+  </div>
+  <div class="rows" id="rows"></div>
+  <div class="empty-state hidden" id="emptyList">
+    <i class="fas fa-file-pen"></i>
+    <h3>لا توجد تكليفات لفرقتك حالياً</h3>
+    <p>ستظهر هنا فور إضافة تكليف جديد.</p>
+  </div>
 
-  <!-- ================= قائمة التكاليف ================= -->
-  <section id="listView">
-    <div class="list-head">
-      <h2><i class="fas fa-folder-open"></i> تكاليفي <span class="count" id="countBadge">0</span></h2>
-      <select class="field" id="gradeFilter" style="width:auto;min-width:170px;max-width:240px" title="فلترة حسب الفرقة"></select>
-      <div class="search-box"><i class="fas fa-search"></i><input id="searchInput" placeholder="ابحث في التكاليف..."></div>
-    </div>
-    <div class="cards" id="cards"></div>
-    <div class="empty-state hidden" id="emptyList">
-      <i class="fas fa-file-pen"></i>
-      <h3>لا توجد تكاليف بعد</h3>
-      <p>اضغط «تكليف جديد» وابدأ الإنشاء — العدد غير محدود.</p>
-    </div>
-  </section>
-
-  <!-- ================= المحرر ================= -->
-  <section id="editorView" class="hidden">
-    <div class="mobile-tabs" id="mobileTabs">
-      <button class="chip active" data-tab="form"><i class="fas fa-sliders"></i> الإعدادات</button>
-      <button class="chip" data-tab="preview"><i class="fas fa-eye"></i> المعاينة</button>
-    </div>
-
-    <div class="editor-grid" id="editorGrid" data-tab="form">
-      <div class="panel form-col">
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">1</span> اسم التكليف</div>
-          <input class="field" id="fTitle" placeholder="مثال: تكليف الرياضيات - الوحدة الثالثة">
-          <div class="checks">
-            <label><input type="checkbox" id="fShowTitle" checked> إظهار الاسم على الورقة</label>
-            <label><input type="checkbox" id="fShowDate" checked> إظهار التاريخ</label>
-          </div>
-          <div style="margin-top:12px"><input type="date" class="field" id="fDate"></div>
-          <div class="hint" style="margin:14px 0 6px;font-weight:800">اسم المادة</div>
-          <input class="field" id="fSubject" placeholder="مثال: الرياضيات">
-          <div class="hint" style="margin:14px 0 6px;font-weight:800">الفرقة الموجه لها التكليف</div>
-          <select class="field" id="fGrade"></select>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">2</span> الخط</div>
-          <div class="chips" id="fontChips"></div>
-          <input class="field" id="fontSearch" placeholder="ابحث عن خط...">
-          <div class="font-grid" id="fontGrid"></div>
-          <div class="upload-font">
-            <label class="btn btn-ghost btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> رفع خط خاص (خطك أنت)
-              <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
-            </label>
-            <span class="hint">ارفع ملف خط من تصميم خطك اليدوي (حتى 700KB) ليظهر ضمن «خطوطي».</span>
-          </div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num"><i class="fas fa-dice" style="font-size:12px"></i></span> العشوائي</div>
-          <button class="btn btn-ghost" id="randBtn" type="button"><i class="fas fa-shuffle"></i> <span id="randBtnText">زر العشوائي: متوقف</span></button>
-          <div class="hint" style="margin-top:8px">عند التفعيل يظهر لكل مستخدم يعرض أو يحمّل التكليف خط مختلف عن باقي المستخدمين، من الخطوط التي تحددها هنا.</div>
-          <div id="randPanel" class="rand-panel hidden">
-            <div class="chips" id="randChips"></div>
-            <input class="field" id="randSearch" placeholder="ابحث عن خط...">
-            <div class="font-grid" id="randGrid"></div>
-            <div class="hint" id="randCount" style="margin-top:8px;font-weight:800"></div>
-            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-ghost btn-sm" id="randAll" type="button">تحديد كل المعروض</button>
-              <button class="btn btn-ghost btn-sm" id="randNone" type="button">إلغاء التحديد</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">3</span> نوع الورقة</div>
-          <div class="paper-opts" id="paperOpts"></div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">4</span> لون الكتابة</div>
-          <div class="swatches" id="swatches"></div>
-          <div class="ink-row">
-            <input type="color" id="customInk" value="#1b3a9c" title="لون مخصص">
-            <span class="hint">لون مخصص</span>
-            <span class="ink-name" id="inkName"></span>
-          </div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">5</span> شكل الكتابة</div>
-          <div class="sliders">
-            <div class="slider"><label>حجم الخط <b id="vFs">24</b></label><input type="range" id="fFs" min="14" max="48" value="24"></div>
-            <div class="slider"><label>ارتفاع السطر <b id="vLh">36</b></label><input type="range" id="fLh" min="24" max="64" value="36"></div>
-            <div class="slider"><label>واقعية خط اليد <b id="vJ">5</b></label><input type="range" id="fJ" min="0" max="10" value="5"></div>
-          </div>
-          <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" id="reseedBtn"><i class="fas fa-dice"></i> تغيير شكل الكتابة عشوائياً</button></div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-title"><span class="num">6</span> محتوى التكليف</div>
-          <textarea class="field" id="fContent" placeholder="اكتب أو الصق محتوى التكليف هنا..."></textarea>
-        </div>
-
-        <div class="editor-actions">
-          <button class="btn btn-primary" id="saveBtn"><i class="fas fa-floppy-disk"></i> حفظ التكليف</button>
-          <button class="btn btn-ghost" id="pngBtn"><i class="fas fa-image"></i> تحميل صورة</button>
-          <button class="btn btn-ghost" id="printBtn"><i class="fas fa-print"></i> طباعة / PDF</button>
-          <button class="btn btn-ghost" id="cancelBtn"><i class="fas fa-arrow-right"></i> رجوع</button>
-        </div>
-      </div>
-
-      <div class="preview-col">
-        <div class="panel">
-          <div class="preview-bar"><h3><i class="fas fa-eye"></i> المعاينة المباشرة</h3></div>
-          <div class="preview-host"><div id="previewHost"></div></div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <div class="list-head my-head">
+    <h2><i class="fas fa-pen-nib"></i> تكليفاتي الشخصية <span class="count" id="myCount">0</span></h2>
+    <button class="btn btn-primary" id="myNewBtn"><i class="fas fa-plus"></i> إنشاء تكليف</button>
+  </div>
+  <div class="rows" id="myRows"></div>
+  <div class="empty-state hidden" id="myEmpty" style="padding:34px 20px">
+    <i class="fas fa-pen-nib"></i>
+    <h3>لم تنشئ أي تكليف بعد</h3>
+    <p>اضغط «إنشاء تكليف» واكتب تكليفك بخط اليد. لا يراه غيرك.</p>
+  </div>
 </main>
 
 <!-- نافذة الاسم والكود -->
@@ -403,12 +244,48 @@
     <h3><i class="fas fa-file-pdf" id="dlIcon"></i> <span id="dlHead">تحميل التكليف PDF</span></h3>
     <p class="sub" id="dlSub"></p>
     <label for="dlName">الاسم</label>
-    <input class="field" id="dlName" placeholder="اكتب الاسم" autocomplete="off">
+    <input class="field" id="dlName" placeholder="اكتب اسمك" autocomplete="off">
     <label for="dlCode">الكود</label>
     <input class="field" id="dlCode" placeholder="اكتب الكود" autocomplete="off" dir="ltr" style="text-align:right">
     <div class="modal-actions">
       <button class="btn btn-primary" id="dlGo"><i class="fas fa-download" id="dlGoIcon"></i> <span id="dlGoText">تحميل</span></button>
       <button class="btn btn-ghost" id="dlCancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة إنشاء / تعديل تكليفي -->
+<div class="overlay hidden" id="mOverlay">
+  <div class="modal ed-modal">
+    <h3><i class="fas fa-pen-nib"></i> <span id="mEdHead">إنشاء تكليف جديد</span></h3>
+    <p class="sub">هذا التكليف يظهر لك أنت فقط.</p>
+    <div class="ed-grid2">
+      <div><label for="mName">الاسم</label><input class="field" id="mName" placeholder="اكتب اسمك" autocomplete="off"></div>
+      <div><label for="mCode">الكود</label><input class="field" id="mCode" placeholder="اكتب الكود" autocomplete="off" dir="ltr" style="text-align:right"></div>
+    </div>
+    <div class="ed-grid2">
+      <div><label for="mTitle">اسم التكليف</label><input class="field" id="mTitle" placeholder="مثال: تكليف الرياضيات" autocomplete="off"></div>
+      <div><label for="mSubject">المادة</label><input class="field" id="mSubject" placeholder="مثال: الرياضيات" autocomplete="off"></div>
+    </div>
+    <label>الخط</label>
+    <div class="fgroup" style="margin-top:0">عربي بخط اليد</div>
+    <div class="fgrid" id="mFontAr"></div>
+    <div class="fgroup">English handwriting</div>
+    <div class="fgrid" id="mFontEn"></div>
+    <label for="mPaper">نوع الورقة</label>
+    <select class="field" id="mPaper"></select>
+    <label>لون الكتابة</label>
+    <div class="sws" id="mInks"></div>
+    <div class="ck">
+      <label><input type="checkbox" id="mShowTitle" checked> إظهار الاسم على الورقة</label>
+      <label><input type="checkbox" id="mShowDate" checked> إظهار التاريخ</label>
+    </div>
+    <label for="mContent">محتوى التكليف</label>
+    <textarea class="field" id="mContent" placeholder="اكتب أو الصق محتوى التكليف هنا..."></textarea>
+    <div class="modal-actions" style="flex-wrap:wrap">
+      <button class="btn btn-primary" id="mSave"><i class="fas fa-floppy-disk"></i> حفظ</button>
+      <button class="btn btn-ghost" id="mPreview"><i class="fas fa-eye"></i> معاينة</button>
+      <button class="btn btn-ghost" id="mCancel">إلغاء</button>
     </div>
   </div>
 </div>
@@ -419,33 +296,19 @@
     <div class="view-bar">
       <h3 id="viewTitle"></h3>
       <div class="view-actions">
-        <button class="btn btn-primary btn-sm" id="viewDl"><i class="fas fa-download"></i> تحميل PDF</button>
-        <button class="btn btn-ghost btn-sm" id="viewClose"><i class="fas fa-xmark"></i> إغلاق</button>
+        <button class="btn btn-primary" id="viewDl"><i class="fas fa-download"></i> تحميل PDF</button>
+        <button class="btn btn-ghost" id="viewClose"><i class="fas fa-xmark"></i> إغلاق</button>
       </div>
     </div>
     <div class="view-body" id="viewBody"></div>
   </div>
 </div>
 
-<!-- نافذة عرض التحميلات -->
-<div class="overlay hidden" id="dlListOverlay">
-  <div class="modal list-modal">
-    <div class="view-bar">
-      <h3 id="dlListTitle"></h3>
-      <button class="btn btn-ghost btn-sm" id="dlListClose"><i class="fas fa-xmark"></i> إغلاق</button>
-    </div>
-    <div class="dl-sum" id="dlListSum"></div>
-    <input class="field" id="dlListSearch" placeholder="ابحث بالاسم أو الكود...">
-    <div class="dl-rows" id="dlListRows"></div>
-  </div>
-</div>
-
-<div id="printHost"></div>
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon"></i><span id="toastText"></span></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, getDocs, query, where, setDoc, increment, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -457,7 +320,13 @@ const firebaseConfig = {
   measurementId: "G-8FZGTC779Y"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+/* كاش دائم داخل المتصفح (IndexedDB): البيانات تظهر فوراً من الكاش وتتحدث بالخلفية */
+let db;
+try {
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch (e) {
+  db = getFirestore(app);
+}
 const $ = (id) => document.getElementById(id);
 
 /* ---------- حماية الدخول ---------- */
@@ -476,7 +345,6 @@ $('themeToggle').addEventListener('click', () => {
   $('themeIcon').className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 });
 
-/* ---------- Toast ---------- */
 let tt;
 function toast(text, type='success'){
   $('toastText').textContent = text;
@@ -485,67 +353,10 @@ function toast(text, type='success'){
   clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('show'), 2600);
 }
 
-/* ============================================================
-   الخطوط   [الاسم, عائلة جوجل, التصنيف, الأقرب لخط الإنسان]
-   ============================================================ */
-const FONT_DATA = [
-  // عربي - خط يد
-  ['بلاي بن (يد حقيقي)','Playpen Sans Arabic','ar_hand',1],['كاتبة','Katibeh','ar_hand',1],['فايبس','Vibes','ar_hand',1],
-  ['بلاكا','Blaka','ar_hand'],['ليمونادا','Lemonada','ar_hand'],['هارمتان','Harmattan','ar_hand'],['مرحي','Marhey','ar_hand'],
-  ['ميرزا','Mirza','ar_hand'],['قاهري','Qahiri','ar_hand'],['جمهورية','Jomhuria','ar_hand'],['راكاس','Rakkas','ar_hand'],
-  ['لالزار','Lalezar','ar_hand'],['ريم كوفي فن','Reem Kufi Fun','ar_hand'],['بالو بحيرة','Baloo Bhaijaan 2','ar_hand'],
-  ['شانجا','Changa','ar_hand'],['كوفام','Kufam','ar_hand'],['المسيري','El Messiri','ar_hand'],
-  // رقعة / نستعليق
-  ['عارف رقعة','Aref Ruqaa','ruqaa',1],['عارف رقعة حبر','Aref Ruqaa Ink','ruqaa'],['نستعليق','Noto Nastaliq Urdu','ruqaa'],['غلزار','Gulzar','ruqaa'],
-  // نسخ
-  ['أميري','Amiri','naskh'],['شهرزاد','Scheherazade New','naskh'],['لطيف','Lateef','naskh'],['نوتو نسخ','Noto Naskh Arabic','naskh'],
-  ['ماركازي','Markazi Text','naskh'],['رودو','Ruwudu','naskh'],
-  // عربي - كمبيوتر
-  ['القاهرة','Cairo','ar_pc'],['تجوّل','Tajawal','ar_pc'],['المراعي','Almarai','ar_pc'],['IBM بلكس عربي','IBM Plex Sans Arabic','ar_pc'],
-  ['نوتو كوفي','Noto Kufi Arabic','ar_pc'],['ريدكس','Readex Pro','ar_pc'],['مدى','Mada','ar_pc'],['الإسكندرية','Alexandria','ar_pc'],
-  ['ريم كوفي','Reem Kufi','ar_pc'],['زين','Zain','ar_pc'],['روبيك','Rubik','ar_pc'],
-  // إنجليزي - خط يد
-  ['Caveat','Caveat','en_hand',1],['Kalam','Kalam','en_hand',1],['Patrick Hand','Patrick Hand','en_hand',1],['Reenie Beanie','Reenie Beanie','en_hand',1],
-  ['Nanum Pen','Nanum Pen Script','en_hand',1],['Shadows Into Light','Shadows Into Light','en_hand',1],['Shadows Into Light 2','Shadows Into Light Two','en_hand'],
-  ['Covered By Your Grace','Covered By Your Grace','en_hand',1],['Homemade Apple','Homemade Apple','en_hand',1],['Nothing You Could Do','Nothing You Could Do','en_hand',1],
-  ['Zeyada','Zeyada','en_hand',1],['Over the Rainbow','Over the Rainbow','en_hand',1],['Just Another Hand','Just Another Hand','en_hand'],
-  ['Waiting for the Sunrise','Waiting for the Sunrise','en_hand',1],['Mynerve','Mynerve','en_hand',1],['Gaegu','Gaegu','en_hand',1],
-  ['Loved by the King','Loved by the King','en_hand',1],['La Belle Aurore','La Belle Aurore','en_hand',1],['Sue Ellen Francisco','Sue Ellen Francisco','en_hand',1],
-  ['Annie Use Your Telescope','Annie Use Your Telescope','en_hand',1],['Give You Glory','Give You Glory','en_hand',1],['Delicious Handrawing','Delicious Handrawing','en_hand',1],
-  ['Edu SA Beginner','Edu SA Beginner','en_hand',1],['Edu NSW Foundation','Edu NSW ACT Foundation','en_hand',1],
-  ['Indie Flower','Indie Flower','en_hand'],['Gloria Hallelujah','Gloria Hallelujah','en_hand'],['Architects Daughter','Architects Daughter','en_hand'],
-  ['Schoolbell','Schoolbell','en_hand'],['Handlee','Handlee','en_hand'],['Neucha','Neucha','en_hand'],['Swanky and Moo Moo','Swanky and Moo Moo','en_hand'],
-  ['Mansalva','Mansalva','en_hand'],['Gochi Hand','Gochi Hand','en_hand'],['Walter Turncoat','Walter Turncoat','en_hand'],['Coming Soon','Coming Soon','en_hand'],
-  ['Crafty Girls','Crafty Girls','en_hand'],['Rock Salt','Rock Salt','en_hand'],['Permanent Marker','Permanent Marker','en_hand'],['Short Stack','Short Stack','en_hand'],
-  ['Square Peg','Square Peg','en_hand'],['Oooh Baby','Oooh Baby','en_hand'],['Playpen Sans','Playpen Sans','en_hand'],['Shantell Sans','Shantell Sans','en_hand'],
-  ['Yomogi','Yomogi','en_hand'],['Caveat Brush','Caveat Brush','en_hand'],['Rancho','Rancho','en_hand'],
-  // إنجليزي - متصل
-  ['Cedarville Cursive','Cedarville Cursive','en_script',1],['Dancing Script','Dancing Script','en_script'],['Satisfy','Satisfy','en_script'],
-  ['Sacramento','Sacramento','en_script'],['Kristi','Kristi','en_script'],['Marck Script','Marck Script','en_script'],['Cookie','Cookie','en_script'],
-  ['Courgette','Courgette','en_script'],['Pacifico','Pacifico','en_script'],['Herr Von Muellerhoff','Herr Von Muellerhoff','en_script'],
-  ['Mr Dafoe','Mr Dafoe','en_script'],['Great Vibes','Great Vibes','en_script'],['Allura','Allura','en_script'],['Alex Brush','Alex Brush','en_script'],
-  ['Parisienne','Parisienne','en_script'],['Tangerine','Tangerine','en_script'],['Yellowtail','Yellowtail','en_script'],
-  // إنجليزي - كمبيوتر
-  ['Courier Prime (آلة كاتبة)','Courier Prime','en_pc'],['Special Elite (آلة كاتبة)','Special Elite','en_pc'],['Cutive Mono','Cutive Mono','en_pc'],
-  ['Roboto','Roboto','en_pc'],['Open Sans','Open Sans','en_pc'],['Roboto Mono','Roboto Mono','en_pc']
-];
-const FONT_CATS = [
-  ['real','⭐ الأقرب لخط الإنسان'],['all','الكل'],['ar_hand','عربي - خط يد'],['ruqaa','رقعة'],['naskh','نسخ'],
-  ['ar_pc','عربي - كمبيوتر'],['en_hand','إنجليزي - خط يد'],['en_script','إنجليزي - متصل'],['en_pc','إنجليزي - كمبيوتر'],['custom','خطوطي']
-];
-
-let customFonts = [];               // {id,name,data}
+/* ---------- الخطوط + رسم الورقة (نفس نسخة الأدمن) ---------- */
+const loadedFonts = {};
 const registeredCustom = new Set();
 const customReady = {};
-const loadedFonts = {};             // fam -> Promise
-
-function allFonts(){
-  const base = FONT_DATA.map(([name, fam, cat, real]) => ({
-    key: fam, fam, name, cat, real: !!real, lang: cat.startsWith('en') ? 'en' : 'ar'
-  }));
-  const cus = customFonts.map(c => ({ key:'custom:'+c.id, fam:'cf_'+c.id, name:c.name, cat:'custom', real:true, lang:'ar', custom:true, id:c.id }));
-  return [...base, ...cus];
-}
 function famOf(key){
   if (!key) return 'Cairo';
   if (key.startsWith('custom:')) return 'cf_' + key.slice(7);
@@ -569,30 +380,7 @@ function ensureFont(key){
   return loadedFonts[key];
 }
 
-/* ============================================================
-   الأوراق والألوان
-   ============================================================ */
-const PAPERS = [
-  ['white','ورقة بيضاء'],['lined','ورقة مسطرة'],['notebook','ورقة كراسة'],['foolscap','فلوس كاب'],
-  ['graph','كراسة مربعات'],['yellow','ورقة صفراء'],['aged','ورقة قديمة']
-];
-const INKS = [
-  ['قلم جاف أزرق حقيقي','#1b3a9c','ball'],['جاف أزرق فاتح','#2a5bd7','ball'],['جاف أسود','#17171c','ball'],
-  ['جاف أحمر','#c4161c','ball'],['جاف أخضر','#1b7a3a','ball'],['جاف بنفسجي','#5b2a8c','ball'],
-  ['حبر فاونتن أزرق ملكي','#14288a','fountain'],['حبر أزرق كحلي','#1c2951','fountain'],['حبر أسود','#0d0d0d','fountain'],
-  ['حبر بنفسجي','#4b2a7a','fountain'],['حبر أخضر زمردي','#0b5d4b','fountain'],['حبر بني سيبيا','#5d3a1a','fountain'],
-  ['قلم رصاص','#55555a','pencil'],['رصاص فاتح','#8a8a8f','pencil'],['رصاص غامق (2B)','#2e2e33','pencil'],
-  ['جل أزرق سماوي','#1e90ff','gel'],['جل وردي','#ff4f9a','gel'],['جل بنفسجي','#8e44ad','gel'],['جل أخضر ليموني','#7cb518','gel'],['جل برتقالي','#ff8a00','gel'],
-  ['ماركر أسود','#101010','marker'],['ماركر أحمر','#e53935','marker'],['ماركر أزرق','#1565c0','marker'],['ماركر أخضر','#2e7d32','marker'],
-  ['برتقالي','#f57c00','ball'],['أصفر ذهبي','#d4a017','ball'],['بني','#6d4c41','ball'],['بني فاتح','#8d5524','ball'],
-  ['تركواز','#00a8a8','ball'],['سماوي','#00bcd4','ball'],['نيلي','#303f9f','ball'],['أخضر زيتي','#556b2f','ball'],
-  ['أخضر داكن','#1b5e20','ball'],['عنابي','#7b1f3a','ball'],['وردي','#ec407a','ball'],['فوشيا','#c2185b','ball'],
-  ['أحمر داكن','#8b0000','ball'],['تيراكوتا','#c0504d','ball'],['لافندر','#7e57c2','ball'],['رمادي','#666666','ball'],['فضي','#9e9e9e','ball'],['ذهبي','#b8860b','ball']
-];
 
-/* ============================================================
-   عرض خط اليد (الواقعية)
-   ============================================================ */
 function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function hashStr(s){ let h=2166136261; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
 
@@ -624,336 +412,152 @@ function fmtDate(iso){
   const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`;
 }
 
-function buildPaper(d){
+function isRtlData(d){
+  const probe = (d.content || '') + (d.title || '');
+  return /[\u0600-\u06FF]/.test(probe) || !/[A-Za-z]/.test(probe);
+}
+
+function paperBase(d){
   const p = document.createElement('div');
   p.className = 'paper'; p.dataset.paper = d.paper;
-  const probe = (d.content || '') + (d.title || '');
-  p.dir = (/[\u0600-\u06FF]/.test(probe) || !/[A-Za-z]/.test(probe)) ? 'rtl' : 'ltr';
+  p.dir = isRtlData(d) ? 'rtl' : 'ltr';
   p.style.setProperty('--lh', d.lh + 'px');
   p.style.setProperty('--fs', d.fs + 'px');
   p.style.setProperty('--ink', d.ink.c);
   p.style.fontFamily = `'${famOf(d.font)}', 'Cairo', cursive`;
-  ['p-lines','p-margin','p-hdr'].forEach(c => { const x = document.createElement('div'); x.className = c; p.appendChild(x); });
+  return p;
+}
 
+/* النص نفسه (البيانات اختيارية: تُكتب داخل الورقة بنفس الخط واللون) */
+function buildText(d, header){
   const t = document.createElement('div');
   t.className = 'p-text fx-' + (d.ink.fx || 'ball');
   const seed = d.seed || 1;
+  if (header && header.length) {
+    const hb = document.createElement('div');
+    renderText(hb, header.map(([k, v]) => k + ': ' + v).join('\n'), seed + 7, d.jitter, d.ink.fx);
+    t.appendChild(hb);
+    const gap = document.createElement('div'); gap.className = 'p-line'; gap.innerHTML = '&nbsp;'; t.appendChild(gap);
+  }
   if (d.showDate && d.date) { const x = document.createElement('div'); x.className = 'p-date'; x.dir = 'auto'; x.textContent = fmtDate(d.date); t.appendChild(x); }
   if (d.showTitle && d.title) { const x = document.createElement('div'); x.className = 'p-title'; x.dir = 'auto'; x.textContent = d.title; t.appendChild(x); }
   const body = document.createElement('div');
   if (d.content && d.content.trim()) renderText(body, d.content, seed, d.jitter, d.ink.fx);
   else { body.className = 'p-ph'; renderText(body, 'ابدأ بكتابة تكليفك وسيظهر هنا بخط اليد...', seed, d.jitter, d.ink.fx); }
   t.appendChild(body);
-  p.appendChild(t);
+  return t;
+}
+
+function buildPaper(d){
+  const p = paperBase(d);
+  ['p-lines','p-margin','p-hdr'].forEach(c => { const x = document.createElement('div'); x.className = c; p.appendChild(x); });
+  p.appendChild(buildText(d));
   return p;
 }
 
-/* ============================================================
-   الحالة
-   ============================================================ */
-const todayISO = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; };
-function newState(){
-  return { id:null, title:'', content:'', font:'Playpen Sans Arabic', paper:'notebook',
-    ink:{ n:INKS[0][0], c:INKS[0][1], fx:INKS[0][2] }, fs:24, lh:36, jitter:5,
-    showTitle:true, showDate:true, date:todayISO(), seed:Math.floor(Math.random()*1e9), subject:'', grade:'', randomFonts:false, randomList:[] };
-}
-let st = newState();
-let assignments = [];
-let fontCat = 'real';
-
-/* ============================================================
-   واجهة المحرر
-   ============================================================ */
-function renderChips(){
-  $('fontChips').innerHTML = '';
-  FONT_CATS.forEach(([k, label]) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip' + (fontCat === k ? ' active' : ''); b.textContent = label;
-    b.onclick = () => { fontCat = k; renderChips(); renderFontGrid(); };
-    $('fontChips').appendChild(b);
-  });
-}
-function renderFontGrid(){
-  const q = $('fontSearch').value.trim().toLowerCase();
-  const list = allFonts().filter(f =>
-    (fontCat === 'all' || (fontCat === 'real' ? f.real : f.cat === fontCat)) &&
-    (!q || f.name.toLowerCase().includes(q) || f.fam.toLowerCase().includes(q)));
-  const g = $('fontGrid'); g.innerHTML = '';
-  if (!list.length) { g.innerHTML = '<div class="hint" style="padding:14px">لا توجد خطوط مطابقة</div>'; return; }
-  list.forEach(f => {
-    ensureFont(f.key).then(() => {});
-    const b = document.createElement('div');
-    b.className = 'font-opt' + (st.font === f.key ? ' sel' : '');
-    b.setAttribute('role','button'); b.tabIndex = 0;
-    const sample = document.createElement('span');
-    sample.className = 'font-sample';
-    sample.style.fontFamily = `'${f.fam}','Cairo',cursive`;
-    sample.dir = f.lang === 'en' ? 'ltr' : 'rtl';
-    sample.textContent = f.lang === 'en' ? 'Hello Abc 123' : 'أبجد هوز 123';
-    const nm = document.createElement('span'); nm.className = 'font-name'; nm.textContent = f.name;
-    b.appendChild(sample); b.appendChild(nm);
-    if (f.real && !f.custom) { const s = document.createElement('i'); s.className = 'fas fa-star star'; b.appendChild(s); }
-    if (f.custom) {
-      const del = document.createElement('button'); del.className = 'del'; del.innerHTML = '<i class="fas fa-trash"></i>';
-      del.onclick = async (e) => { e.stopPropagation(); if (!confirm('حذف هذا الخط؟')) return; try { await deleteDoc(doc(db,'customFonts',f.id)); toast('تم حذف الخط'); } catch(err){ toast('تعذر الحذف','error'); } };
-      b.appendChild(del);
-    }
-    b.onclick = () => { st.font = f.key; renderFontGrid(); updatePreview(); };
-    g.appendChild(b);
-  });
-}
-function renderPaperOpts(){
-  const box = $('paperOpts'); box.innerHTML = '';
-  PAPERS.forEach(([k, label]) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'paper-opt' + (st.paper === k ? ' sel' : '');
-    const mini = document.createElement('div'); mini.className = 'mini';
-    const p = document.createElement('div'); p.className = 'paper'; p.dataset.paper = k; p.dir = 'rtl';
-    ['p-lines','p-margin','p-hdr'].forEach(c => { const x = document.createElement('div'); x.className = c; p.appendChild(x); });
-    mini.appendChild(p);
-    const lb = document.createElement('span'); lb.className = 'lbl'; lb.textContent = label;
-    b.appendChild(mini); b.appendChild(lb);
-    b.onclick = () => { st.paper = k; renderPaperOpts(); updatePreview(); };
-    box.appendChild(b);
-  });
-}
-function renderSwatches(){
-  const box = $('swatches'); box.innerHTML = '';
-  INKS.forEach(([n, c, fx]) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'swatch' + (st.ink.c.toLowerCase() === c.toLowerCase() && st.ink.fx === fx ? ' sel' : '');
-    b.style.background = c; b.title = n;
-    b.onclick = () => { st.ink = { n, c, fx }; $('customInk').value = c; renderSwatches(); updatePreview(); };
-    box.appendChild(b);
-  });
-  $('inkName').textContent = st.ink.n || '';
-}
-
-let raf = 0;
-function updatePreview(){
-  cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(async () => {
-    await ensureFont(st.font);
-    const host = $('previewHost'); host.innerHTML = '';
-    host.appendChild(buildPaper(st));
-  });
-}
-
-function readForm(){
-  st.title = $('fTitle').value;
-  st.content = $('fContent').value;
-  st.fs = +$('fFs').value; st.lh = +$('fLh').value; st.jitter = +$('fJ').value;
-  st.showTitle = $('fShowTitle').checked; st.showDate = $('fShowDate').checked;
-  st.date = $('fDate').value || '';
-  st.subject = $('fSubject').value.trim();
-  $('vFs').textContent = st.fs; $('vLh').textContent = st.lh; $('vJ').textContent = st.jitter;
-}
-function writeForm(){
-  $('fTitle').value = st.title; $('fContent').value = st.content;
-  $('fFs').value = st.fs; $('fLh').value = st.lh; $('fJ').value = st.jitter;
-  $('fShowTitle').checked = st.showTitle; $('fShowDate').checked = st.showDate;
-  $('fDate').value = st.date || '';
-  $('fSubject').value = st.subject || '';
-  refreshGradeSelects();
-  $('customInk').value = st.ink.c;
-  $('vFs').textContent = st.fs; $('vLh').textContent = st.lh; $('vJ').textContent = st.jitter;
-}
-['fTitle','fContent','fFs','fLh','fJ','fShowTitle','fShowDate','fDate','fSubject'].forEach(id => {
-  $(id).addEventListener('input', () => { readForm(); updatePreview(); });
-  $(id).addEventListener('change', () => { readForm(); updatePreview(); });
-});
-$('customInk').addEventListener('input', (e) => { st.ink = { n:'لون مخصص', c:e.target.value, fx:'ball' }; renderSwatches(); updatePreview(); });
-$('fontSearch').addEventListener('input', renderFontGrid);
-$('reseedBtn').addEventListener('click', () => { st.seed = Math.floor(Math.random()*1e9); updatePreview(); });
-
-$('mobileTabs').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-tab]'); if (!b) return;
-  $('editorGrid').dataset.tab = b.dataset.tab;
-  [...$('mobileTabs').children].forEach(x => x.classList.toggle('active', x === b));
-  if (b.dataset.tab === 'preview') updatePreview();
-});
-
-/* ---------- رفع خط خاص ---------- */
-$('fontFile').addEventListener('change', (e) => {
-  const f = e.target.files[0]; e.target.value = '';
-  if (!f) return;
-  if (f.size > 700 * 1024) { toast('حجم الخط أكبر من 700KB', 'error'); return; }
-  const r = new FileReader();
-  r.onload = async () => {
-    try {
-      const name = f.name.replace(/\.[^.]+$/, '');
-      const ref = await addDoc(collection(db, 'customFonts'), { name, data: r.result, createdAt: Date.now() });
-      st.font = 'custom:' + ref.id; fontCat = 'custom'; renderChips();
-      toast('تم رفع الخط');
-    } catch (err) { toast('تعذر رفع الخط: ' + err.message, 'error'); }
-  };
-  r.readAsDataURL(f);
-});
-
-/* ============================================================
-   فتح/إغلاق المحرر
-   ============================================================ */
-function openEditor(data){
-  st = data ? JSON.parse(JSON.stringify(data)) : newState();
-  if (!st.ink) st.ink = { n:INKS[0][0], c:INKS[0][1], fx:INKS[0][2] };
-  if (!st.seed) st.seed = Math.floor(Math.random()*1e9);
-  if (!Array.isArray(st.randomList)) st.randomList = [];
-  st.randomFonts = !!st.randomFonts;
-  $('listView').classList.add('hidden'); $('editorView').classList.remove('hidden');
-  $('editorGrid').dataset.tab = 'form';
-  [...$('mobileTabs').children].forEach((x, i) => x.classList.toggle('active', i === 0));
-  writeForm(); renderChips(); renderFontGrid(); renderPaperOpts(); renderSwatches(); renderRand(); updatePreview();
-  window.scrollTo({ top: 0 });
-}
-function closeEditor(){
-  $('editorView').classList.add('hidden'); $('listView').classList.remove('hidden');
-  renderList();
-}
-$('newBtn').addEventListener('click', () => openEditor(null));
-$('cancelBtn').addEventListener('click', closeEditor);
-
-/* ============================================================
-   الحفظ / الحذف / النسخ
-   ============================================================ */
-function payload(){
-  readForm();
-  return {
-    title: st.title.trim(), content: st.content, font: st.font, paper: st.paper, ink: st.ink,
-    fs: st.fs, lh: st.lh, jitter: st.jitter, showTitle: st.showTitle, showDate: st.showDate,
-    date: st.date, seed: st.seed, subject: st.subject || '', grade: st.grade || '',
-    randomFonts: !!st.randomFonts, randomList: st.randomFonts ? (st.randomList || []) : [], updatedAt: Date.now()
-  };
-}
-$('saveBtn').addEventListener('click', async () => {
-  const p = payload();
-  if (!p.title) { toast('اكتب اسم التكليف أولاً', 'error'); $('fTitle').focus(); return; }
-  if (p.randomFonts && p.randomList.length < 2) { toast('العشوائي: اختر خطين على الأقل', 'error'); $('randBtn').scrollIntoView({ behavior:'smooth', block:'center' }); return; }
-  const btn = $('saveBtn'); btn.disabled = true;
-  try {
-    if (st.id) { await updateDoc(doc(db, 'assignments', st.id), p); toast('تم حفظ التعديلات'); }
-    else { const ref = await addDoc(collection(db, 'assignments'), { ...p, createdAt: Date.now() }); st.id = ref.id; toast('تم إنشاء التكليف'); }
-    closeEditor();
-  } catch (err) { toast('تعذر الحفظ: ' + err.message, 'error'); }
-  btn.disabled = false;
-});
-async function removeAssignment(a){
-  if (!confirm(`حذف التكليف «${a.title}»؟ لا يمكن التراجع.`)) return;
-  try { await deleteDoc(doc(db, 'assignments', a.id)); toast('تم الحذف'); }
-  catch (err) { toast('تعذر الحذف: ' + err.message, 'error'); }
-}
-async function duplicateAssignment(a){
-  try {
-    const { id, ...rest } = a;
-    await addDoc(collection(db, 'assignments'), { ...rest, title: a.title + ' (نسخة)', seed: Math.floor(Math.random()*1e9), createdAt: Date.now(), updatedAt: Date.now() });
-    toast('تم نسخ التكليف');
-  } catch (err) { toast('تعذر النسخ: ' + err.message, 'error'); }
-}
-
-/* ============================================================
-   التصدير: صورة / طباعة
-   ============================================================ */
-let h2cPromise;
-function loadH2C(){
-  if (window.html2canvas) return Promise.resolve();
-  if (h2cPromise) return h2cPromise;
-  h2cPromise = new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-    s.onload = res; s.onerror = () => rej(new Error('تعذر تحميل مكتبة التصدير'));
-    document.head.appendChild(s);
-  });
-  return h2cPromise;
-}
-async function exportPNG(d){
-  const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;left:-99999px;top:0;';
-  try {
-    await Promise.all([loadH2C(), ensureFont(d.font)]);
-    const p = buildPaper(d); p.classList.add('export');
-    host.appendChild(p); document.body.appendChild(host);
-    try { await document.fonts.load(`${d.fs}px "${famOf(d.font)}"`, d.content || d.title || 'أ'); } catch(e){}
-    await document.fonts.ready;
-    const canvas = await window.html2canvas(p, { scale: 2, backgroundColor: null, useCORS: true });
-    const a = document.createElement('a');
-    a.download = (d.title || 'assignment').replace(/[\\/:*?"<>|]/g, '_') + '.png';
-    a.href = canvas.toDataURL('image/png'); a.click();
-    toast('تم تحميل الصورة');
-  } catch (err) { toast(err.message || 'تعذر التصدير', 'error'); }
-  finally { host.remove(); }
-}
-$('pngBtn').addEventListener('click', () => { readForm(); exportPNG(st); });
-$('printBtn').addEventListener('click', async () => {
-  readForm(); await ensureFont(st.font);
-  const h = $('printHost'); h.innerHTML = ''; h.appendChild(buildPaper(st));
-  try { await document.fonts.ready; } catch(e){}
-  setTimeout(() => window.print(), 150);
-});
 
 
-/* ============================================================
-   زر العشوائي: اختيار الخطوط التي توزَّع على المستخدمين
-   ============================================================ */
-let randCat = 'real';
-function renderRand(){
-  const on = !!st.randomFonts;
-  $('randBtn').classList.toggle('btn-primary', on); $('randBtn').classList.toggle('btn-ghost', !on);
-  $('randBtnText').textContent = on ? 'زر العشوائي: مفعّل' : 'زر العشوائي: متوقف';
-  $('randPanel').classList.toggle('hidden', !on);
-  if (!on) return;
-  $('randChips').innerHTML = '';
-  FONT_CATS.forEach(([k, label]) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip' + (randCat === k ? ' active' : ''); b.textContent = label;
-    b.onclick = () => { randCat = k; renderRand(); };
-    $('randChips').appendChild(b);
-  });
-  const q = $('randSearch').value.trim().toLowerCase();
-  const list = allFonts().filter(f =>
-    (randCat === 'all' || (randCat === 'real' ? f.real : f.cat === randCat)) &&
-    (!q || f.name.toLowerCase().includes(q) || f.fam.toLowerCase().includes(q)));
-  const g = $('randGrid'); g.innerHTML = '';
-  if (!list.length) g.innerHTML = '<div class="hint" style="padding:14px">لا توجد خطوط مطابقة</div>';
-  list.forEach(f => {
-    ensureFont(f.key);
-    const b = document.createElement('div');
-    b.className = 'font-opt' + (st.randomList.includes(f.key) ? ' sel' : '');
-    b.setAttribute('role', 'button'); b.tabIndex = 0;
-    const sample = document.createElement('span'); sample.className = 'font-sample';
-    sample.style.fontFamily = `'${f.fam}','Cairo',cursive`;
-    sample.dir = f.lang === 'en' ? 'ltr' : 'rtl';
-    sample.textContent = f.lang === 'en' ? 'Hello Abc 123' : 'أبجد هوز 123';
-    const nm = document.createElement('span'); nm.className = 'font-name'; nm.textContent = f.name;
-    b.appendChild(sample); b.appendChild(nm);
-    b.onclick = () => {
-      const i = st.randomList.indexOf(f.key);
-      if (i >= 0) st.randomList.splice(i, 1); else st.randomList.push(f.key);
-      renderRand();
-    };
-    g.appendChild(b);
-  });
-  const n = st.randomList.length;
-  $('randCount').textContent = n < 2 ? `المحدد: ${n} — اختر خطين على الأقل` : `المحدد: ${n} خط — كل مستخدم يأخذ خطاً مختلفاً (وإذا زاد عدد المستخدمين عن الخطوط يبدأ التكرار)`;
-  $('randGrid').dataset.keys = list.map(f => f.key).join('\u0001');
-}
-$('randBtn').addEventListener('click', () => { st.randomFonts = !st.randomFonts; renderRand(); });
-$('randSearch').addEventListener('input', renderRand);
-$('randAll').addEventListener('click', () => {
-  ($('randGrid').dataset.keys || '').split('\u0001').filter(Boolean).forEach(k => { if (!st.randomList.includes(k)) st.randomList.push(k); });
-  renderRand();
-});
-$('randNone').addEventListener('click', () => { st.randomList = []; renderRand(); });
-
-/* ============================================================
-   محرك الرسم المباشر (نفس نسخة المستخدم)
-   ============================================================ */
 const todayDMY = () => { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; };
-function isRtlData(d){
-  const probe = (d.content || '') + (d.title || '');
-  return /[\u0600-\u06FF]/.test(probe) || !/[A-Za-z]/.test(probe);
-}
-function myGrade(){ return ''; }
+
 /* ============================================================
-   (الرسم بالكانفاس بدون html2canvas)
+   المستخدم (نفس مسار index.html: users/all → items[] → grade)
+   ============================================================ */
+const role = sessionStorage.getItem('meezan_role') || 'student';
+const sessId = sessionStorage.getItem('meezan_user_id') || '';
+const sessName = (sessionStorage.getItem('meezan_username') || '').trim().toLowerCase();
+let me = null;
+try { const raw = sessionStorage.getItem('meezan_user_data'); if (raw) me = { ...JSON.parse(raw), id: sessId }; } catch(e){}
+let assignments = [];
+let customFonts = [];
+let ready = false;
+
+/* ---------- كاش البيانات (localStorage) لعرض فوري عند كل دخول ---------- */
+const CK = 'meezan_cache_v1:';
+const meKey = sessId || sessName || 'anon';
+function cacheGet(k){ try { const r = localStorage.getItem(CK + k); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function cacheSet(k, v){ try { localStorage.setItem(CK + k, JSON.stringify(v)); } catch(e){} }
+(function(){
+  const cA = cacheGet('assignments');
+  if (Array.isArray(cA)) { assignments = cA; ready = true; }
+  const cG = cacheGet('grade:' + meKey);
+  if (cG && cG.grade) me = { ...(me || {}), grade: cG.grade };
+})();
+setTimeout(() => { if (!ready) { ready = true; renderList(); } }, 6000);
+
+function myGrade(){ return String((me && me.grade) || '').trim(); }
+
+function findMe(items){
+  let u = null;
+  if (sessId) u = items.find(x => x.id === sessId);
+  if (!u && sessName) u = items.find(x => String(x.username || '').toLowerCase() === sessName);
+  return u || null;
+}
+onSnapshot(doc(db, role === 'teacher' ? 'teachers' : 'users', 'all'), (snap) => {
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  const u = findMe(items);
+  if (u) { me = u; if (u.grade) cacheSet('grade:' + meKey, { grade: String(u.grade) }); }
+  renderList();
+}, () => {});
+
+onSnapshot(collection(db, 'assignments'), (snap) => {
+  if (snap.metadata.fromCache && snap.empty && !ready) return;
+  assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  ready = true;
+  if (!(snap.metadata.fromCache && snap.empty)) cacheSet('assignments', assignments);
+  renderList();
+}, (err) => { ready = true; renderList(); if (!assignments.length) toast('تعذر تحميل التكليفات: ' + err.message, 'error'); });
+
+onSnapshot(collection(db, 'customFonts'), (snap) => {
+  customFonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  customFonts.forEach(c => {
+    if (registeredCustom.has(c.id)) return;
+    registeredCustom.add(c.id);
+    customReady[c.id] = new FontFace('cf_' + c.id, `url(${c.data})`).load().then(ff => document.fonts.add(ff)).catch(() => {});
+  });
+}, () => {});
+
+/* ============================================================
+   القائمة — تظهر فقط تكليفات فرقة المستخدم (+ الموجهة للجميع)
+   ============================================================ */
+function visibleAssignments(){
+  if (role === 'teacher') return assignments;
+  const g = myGrade();
+  return assignments.filter(a => { const ag = String(a.grade || '').trim(); return !ag || (g && ag === g); });
+}
+function badge(ic, t){
+  const s = document.createElement('span'); s.className = 'badge';
+  const i = document.createElement('i'); i.className = 'fas ' + ic;
+  s.appendChild(i); s.appendChild(document.createTextNode(t)); return s;
+}
+function renderList(){
+  $('gradeText').textContent = role === 'teacher' ? 'حساب معلم' : (myGrade() || 'غير محدد');
+  const items = sortedItems();
+  $('countBadge').textContent = items.length;
+  $('dlAllBtn').classList.toggle('hidden', items.length === 0);
+  $('loadingState').classList.toggle('hidden', ready);
+  $('emptyList').classList.toggle('hidden', !ready || items.length > 0);
+  const box = $('rows'); box.innerHTML = '';
+  items.forEach(a => {
+    const row = document.createElement('div'); row.className = 'row';
+    const ic = document.createElement('div'); ic.className = 'row-ic'; ic.innerHTML = '<i class="fas fa-file-lines"></i>';
+    const main = document.createElement('div'); main.className = 'row-main';
+    const t = document.createElement('div'); t.className = 'row-title'; t.textContent = a.title || 'بدون اسم';
+    const meta = document.createElement('div'); meta.className = 'row-meta';
+    if (a.subject) meta.appendChild(badge('fa-book', a.subject));
+    meta.appendChild(badge('fa-graduation-cap', a.grade || 'كل الفرق'));
+    if (a.date) meta.appendChild(badge('fa-calendar', fmtDate(a.date)));
+    main.appendChild(t); main.appendChild(meta);
+    const acts = document.createElement('div'); acts.className = 'row-actions';
+    const v = document.createElement('button'); v.className = 'btn btn-primary'; v.innerHTML = '<i class="fas fa-eye"></i> عرض'; v.onclick = () => openView(a);
+    const d = document.createElement('button'); d.className = 'btn btn-ghost'; d.innerHTML = '<i class="fas fa-file-pdf"></i> تحميل PDF'; d.onclick = () => openDownload(a);
+    acts.appendChild(v); acts.appendChild(d);
+    row.appendChild(ic); row.appendChild(main); row.appendChild(acts);
+    box.appendChild(row);
+  });
+}
+
+/* ============================================================
+   محرك الرسم المباشر بالكانفاس (بدون html2canvas)
    كل صفحة ترسم كلماتها فقط → السرعة ثابتة حتى مع عشرات آلاف الكلمات
    ونفس المحرك يُستخدم في العرض والتحميل، فاللي تشوفه هو اللي يتحمّل
    ============================================================ */
@@ -1180,40 +784,98 @@ function renderPage(lay, i, scale){
   return cv;
 }
 
+
 /* ============================================================
-   الاسم والكود (للعرض والتحميل) + العرض + التحميل — نفس نسخة المستخدم
+   العشوائي: كل مستخدم يأخذ خطاً مختلفاً (يُحفظ له فيظل ثابتاً في العرض والتحميل)
+   + تسجيل التحميلات ليراها الأدمن
+   ============================================================ */
+const userKey = String(sessId || sessName || 'anon').replace(/[\/\s]/g, '_');
+const claimCache = {};
+const userInfo = () => ({ userId: sessId || '', username: String((me && me.username) || sessName || '') });
+async function resolveFont(a){
+  const list = Array.isArray(a.randomList) ? a.randomList : [];
+  if (!a.randomFonts || !list.length) return a;
+  const id = a.id + '__' + userKey;
+  if (claimCache[id] && list.includes(claimCache[id])) return { ...a, font: claimCache[id] };
+  try {
+    const snaps = await getDocs(query(collection(db, 'taklifDownloads'), where('assignmentId', '==', a.id)));
+    let mine = null; const used = {};
+    snaps.forEach(sn => {
+      const x = sn.data(); if (!x.font) return;
+      if (sn.id === id) mine = x.font; else used[x.font] = (used[x.font] || 0) + 1;
+    });
+    if (mine && list.includes(mine)) { claimCache[id] = mine; return { ...a, font: mine }; }
+    const min = Math.min(...list.map(f => used[f] || 0));
+    const cands = list.filter(f => (used[f] || 0) === min);
+    const pick = cands[hashStr(userKey + a.id) % cands.length];
+    await setDoc(doc(db, 'taklifDownloads', id), { assignmentId: a.id, title: a.title || '', userKey, ...userInfo(), font: pick }, { merge: true });
+    claimCache[id] = pick;
+    return { ...a, font: pick };
+  } catch (e) {
+    return { ...a, font: list[hashStr(userKey + a.id) % list.length] };
+  }
+}
+async function recordDownloads(list, name, code){
+  for (const a of list) {
+    if (a.personal) continue;
+    try {
+      await setDoc(doc(db, 'taklifDownloads', a.id + '__' + userKey), {
+        assignmentId: a.id, title: a.title || '', userKey, ...userInfo(), name, code,
+        grade: String(a.grade || myGrade() || ''), count: increment(1), lastAt: Date.now()
+      }, { merge: true });
+    } catch (e) {}
+  }
+}
+
+/* ============================================================
+   الاسم والكود: يُطلبان في العرض والتحميل وتحميل الكل
    ============================================================ */
 let dlMode = 'download', dlTarget = null, working = false;
 const MODES = {
-  view:     { head:'عرض التكليف',       icon:'fa-eye',      go:'عرض',   sub:(a) => (a.title || '') + ' — اكتب اسماً وكوداً لتشوف التكليف كما سيظهر للمستخدم عند التحميل' },
-  download: { head:'تحميل التكليف PDF', icon:'fa-file-pdf', go:'تحميل', sub:(a) => a.title || '' }
+  view:     { head:'عرض التكليف',        icon:'fa-eye',      go:'عرض',        sub:(a) => (a ? a.title || '' : '') + ' — اكتب اسمك وكودك لتشوف التكليف كما سيظهر في التحميل' },
+  download: { head:'تحميل التكليف PDF',  icon:'fa-file-pdf', go:'تحميل',      sub:(a) => (a ? a.title || '' : '') },
+  all:      { head:'تحميل كل التكليفات', icon:'fa-download', go:'تحميل الكل', sub:() => 'كل التكليفات في ملف PDF واحد، كل تكليف يبدأ في صفحة جديدة' }
 };
 function openAsk(mode, a){
-  dlMode = mode; dlTarget = a;
+  dlMode = mode; dlTarget = a || null;
   const m = MODES[mode];
-  $('dlHead').textContent = m.head; $('dlIcon').className = 'fas ' + m.icon;
-  $('dlGoIcon').className = 'fas ' + m.icon; $('dlGoText').textContent = m.go;
+  $('dlHead').textContent = m.head;
+  $('dlIcon').className = 'fas ' + m.icon;
+  $('dlGoIcon').className = 'fas ' + m.icon;
+  $('dlGoText').textContent = m.go;
   $('dlSub').textContent = m.sub(a);
   $('dlName').value = ''; $('dlCode').value = '';
   $('dlOverlay').classList.remove('hidden');
   setTimeout(() => $('dlName').focus(), 50);
 }
+function openDownload(a){ openAsk('download', a); }
+function openView(a){ openAsk('view', a); }
+function sortedItems(){ return visibleAssignments().sort((x, y) => (y.updatedAt || 0) - (x.updatedAt || 0)); }
+
+$('dlAllBtn').onclick = () => { if (sortedItems().length) openAsk('all'); };
 $('dlCancel').onclick = () => { if (!working) $('dlOverlay').classList.add('hidden'); };
 $('dlOverlay').addEventListener('click', (e) => { if (e.target === $('dlOverlay') && !working) $('dlOverlay').classList.add('hidden'); });
+
 $('dlGo').addEventListener('click', async () => {
   const name = $('dlName').value.trim(), code = $('dlCode').value.trim();
   if (!name) { toast('اكتب الاسم أولاً', 'error'); $('dlName').focus(); return; }
   if (!code) { toast('اكتب الكود أولاً', 'error'); $('dlCode').focus(); return; }
   if (working) return;
   if (dlMode === 'view') { $('dlOverlay').classList.add('hidden'); openPreview(dlTarget, name, code); return; }
+  const list = dlMode === 'all' ? sortedItems() : [dlTarget];
+  const file = dlMode === 'all' ? 'كل التكليفات' : (dlTarget.title || 'assignment');
   working = true; $('dlGo').disabled = true; $('dlCancel').disabled = true;
+  const label = MODES[dlMode].go;
   try {
-    await exportPdf([dlTarget], name, code, dlTarget.title || 'assignment', (done, total) => { $('dlGoText').textContent = `جاري التجهيز ${done}/${total}`; });
+    await exportPdf(list, name, code, file, (done, total) => { $('dlGoText').textContent = `جاري التجهيز ${done}/${total}`; });
     $('dlOverlay').classList.add('hidden'); toast('تم تحميل الملف');
   } catch (err) { toast(err.message || 'تعذر إنشاء الملف', 'error'); }
-  working = false; $('dlGo').disabled = false; $('dlCancel').disabled = false; $('dlGoText').textContent = MODES[dlMode].go;
+  working = false; $('dlGo').disabled = false; $('dlCancel').disabled = false; $('dlGoText').textContent = label;
 });
 
+/* ============================================================
+   العرض: صفحات الـ PDF نفسها، تُرسم عند الاقتراب منها فقط (فتح فوري حتى لو التكليف ضخم)
+   ============================================================ */
 let pvToken = 0, pvObserver = null, pvCtx = null;
 async function openPreview(a, name, code){
   const token = ++pvToken;
@@ -1222,13 +884,16 @@ async function openPreview(a, name, code){
   const body = $('viewBody');
   body.innerHTML = '<div class="pv-info"><i class="fas fa-spinner fa-spin"></i> جاري التجهيز...</div>';
   $('viewOverlay').classList.remove('hidden');
+  a = await resolveFont(a);
+  if (token !== pvToken) return;
+  pvCtx.a = a;
   const d = normAssign(a);
   await prepFonts([d]);
   if (token !== pvToken) return;
   const lay = layoutDoc(d, headerFor(a, name, code));
   body.innerHTML = '';
   const info = document.createElement('div'); info.className = 'pv-info';
-  info.textContent = lay.pages + (lay.pages === 1 ? ' صفحة' : ' صفحات') + ' — هكذا سيظهر الملف عند التحميل' + (a.randomFonts ? ' (العشوائي مفعّل: كل مستخدم يظهر له خط مختلف، وهنا يظهر الخط الأساسي)' : '');
+  info.textContent = lay.pages + (lay.pages === 1 ? ' صفحة' : ' صفحات') + ' — هكذا سيظهر الملف عند التحميل';
   body.appendChild(info);
   if (pvObserver) pvObserver.disconnect();
   const SC = 1.5;
@@ -1265,6 +930,9 @@ $('viewDl').onclick = async () => {
   btn.innerHTML = old; btn.disabled = false; working = false;
 };
 
+/* ============================================================
+   إنشاء الـ PDF (تكليف واحد أو الكل في ملف واحد)
+   ============================================================ */
 const libCache = {};
 function loadScript(src, test){
   if (test()) return Promise.resolve();
@@ -1276,9 +944,13 @@ function loadScript(src, test){
   });
   return libCache[src];
 }
-const loadJsPdf = () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF));
+const JSPDF_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const loadJsPdf = () => loadScript(JSPDF_SRC, () => !!(window.jspdf && window.jspdf.jsPDF));
+
 async function exportPdf(list, name, code, fileName, onProgress){
   await loadJsPdf();
+  const orig = list;
+  list = await Promise.all(list.map(resolveFont));
   const ds = list.map(normAssign);
   await prepFonts(ds);
   const lays = ds.map((d, i) => layoutDoc(d, headerFor(list[i], name, code)));
@@ -1296,186 +968,166 @@ async function exportPdf(list, name, code, fileName, onProgress){
       pdf.addImage(cv.toDataURL('image/jpeg', .9), 'JPEG', 0, 0, pw, ph);
       cv.width = 0; done++;
       if (onProgress) onProgress(done, total);
-      await tick();
+      await tick();           // يترك المتصفح يتنفس ويحدّث العداد
     }
   }
   pdf.save(String(fileName || 'assignment').replace(/[\\/:*?"<>|]/g, '_') + '.pdf');
+  recordDownloads(orig, name, code);
 }
+
+/* تحميل مسبق للمكتبة وقت الفراغ */
 (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => { loadJsPdf().catch(() => {}); });
 
+
 /* ============================================================
-   إحصاءات التحميل (يكتبها المستخدمون في taklifDownloads)
+   تكاليفي الشخصية: ينشئها المستخدم بنفسه ولا يراها غيره
+   (الخطوط المرفوعة من الأدمن لا تظهر هنا — ثلاثة عربية وثلاثة إنجليزية فقط)
    ============================================================ */
-let downloads = [];
-let dlListAid = null;
-function dlRecords(aid){ return downloads.filter(x => x.assignmentId === aid && (x.count || 0) > 0).sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0)); }
-function dlStats(aid){ const r = dlRecords(aid); return { users: r.length, total: r.reduce((n, x) => n + (x.count || 0), 0) }; }
-function renderDlList(){
-  if (!dlListAid) return;
-  const a = assignments.find(x => x.id === dlListAid);
-  $('dlListTitle').textContent = 'تحميلات: ' + (a ? a.title : '');
-  const all = dlRecords(dlListAid);
-  const q = $('dlListSearch').value.trim().toLowerCase();
-  const rows = all.filter(x => !q || String(x.name || '').toLowerCase().includes(q) || String(x.code || '').toLowerCase().includes(q) || String(x.username || '').toLowerCase().includes(q));
-  const st2 = dlStats(dlListAid);
-  $('dlListSum').textContent = `${st2.users} مستخدم • ${st2.total} تحميل`;
-  const box = $('dlListRows'); box.innerHTML = '';
-  if (!rows.length) { box.innerHTML = '<div class="empty-state" style="padding:30px 16px"><i class="fas fa-download"></i><h3>' + (all.length ? 'لا توجد نتائج' : 'لم يحمّل أحد هذا التكليف بعد') + '</h3></div>'; return; }
-  rows.forEach(x => {
-    const row = document.createElement('div'); row.className = 'dl-row';
-    const av = document.createElement('div'); av.className = 'dl-av'; av.innerHTML = '<i class="fas fa-user"></i>';
-    const main = document.createElement('div'); main.className = 'dl-main';
-    const nm = document.createElement('div'); nm.className = 'dl-name'; nm.textContent = x.name || x.username || 'مستخدم';
-    const meta = document.createElement('div'); meta.className = 'dl-meta';
-    const add = (ic, t) => { if (!t) return; const sp = document.createElement('span'); sp.innerHTML = `<i class="fas ${ic}"></i> `; sp.appendChild(document.createTextNode(t)); meta.appendChild(sp); };
-    add('fa-hashtag', x.code);
-    add('fa-graduation-cap', x.grade);
-    if (x.username && x.username !== x.name) add('fa-at', x.username);
-    if (x.lastAt) add('fa-clock', new Date(x.lastAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }));
-    if (x.font) add('fa-font', (allFonts().find(f => f.key === x.font) || { name: x.font }).name);
-    main.appendChild(nm); main.appendChild(meta);
-    const c = document.createElement('div'); c.className = 'dl-cnt'; c.textContent = (x.count || 0) + '×';
-    row.appendChild(av); row.appendChild(main); row.appendChild(c);
+const MY_FONTS = {
+  ar: [['بلاي بن', 'Playpen Sans Arabic'], ['كاتبة', 'Katibeh'], ['عارف رقعة', 'Aref Ruqaa']],
+  en: [['Caveat', 'Caveat'], ['Kalam', 'Kalam'], ['Patrick Hand', 'Patrick Hand']]
+};
+const MY_PAPERS = [['white','ورقة بيضاء'],['lined','ورقة مسطرة'],['notebook','ورقة كراسة'],['foolscap','فلوس كاب'],['graph','كراسة مربعات'],['yellow','ورقة صفراء'],['aged','ورقة قديمة']];
+const MY_INKS = [['أزرق','#1b3a9c','ball'],['أسود','#17171c','ball'],['أحمر','#c4161c','ball'],['أخضر','#1b7a3a','ball'],['بنفسجي','#5b2a8c','ball'],['رصاص','#55555a','pencil']];
+const myFontName = (k) => { const f = [...MY_FONTS.ar, ...MY_FONTS.en].find(x => x[1] === k); return f ? f[0] : k; };
+const localISO = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; };
+let myAssignments = [];
+let ed = null;
+
+onSnapshot(query(collection(db, 'userAssignments'), where('ownerKey', '==', userKey)), (snap) => {
+  myAssignments = snap.docs.map(d => ({ id: d.id, ...d.data(), personal: true }));
+  renderMine();
+}, () => {});
+
+function renderMine(){
+  const items = myAssignments.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  $('myCount').textContent = items.length;
+  $('myEmpty').classList.toggle('hidden', items.length > 0);
+  const box = $('myRows'); box.innerHTML = '';
+  items.forEach(a => {
+    const row = document.createElement('div'); row.className = 'row';
+    const ic = document.createElement('div'); ic.className = 'row-ic'; ic.innerHTML = '<i class="fas fa-pen-nib"></i>';
+    const main = document.createElement('div'); main.className = 'row-main';
+    const t = document.createElement('div'); t.className = 'row-title'; t.textContent = a.title || 'بدون اسم';
+    const meta = document.createElement('div'); meta.className = 'row-meta';
+    if (a.subject) meta.appendChild(badge('fa-book', a.subject));
+    if (a.date) meta.appendChild(badge('fa-calendar', fmtDate(a.date)));
+    meta.appendChild(badge('fa-font', myFontName(a.font)));
+    main.appendChild(t); main.appendChild(meta);
+    const acts = document.createElement('div'); acts.className = 'row-actions';
+    const mk = (cls, icon, text, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.innerHTML = `<i class="fas ${icon}"></i> ${text}`; b.onclick = () => fn(b); acts.appendChild(b); };
+    mk('btn-primary', 'fa-eye', 'عرض', () => openPreview(a, a.ownerName || '', a.ownerCode || ''));
+    mk('btn-ghost', 'fa-file-pdf', 'PDF', (b) => mineDownload(a, b));
+    mk('btn-ghost', 'fa-pen', 'تعديل', () => openMine(a));
+    mk('btn-del', 'fa-trash', 'حذف', () => removeMine(a));
+    row.appendChild(ic); row.appendChild(main); row.appendChild(acts);
     box.appendChild(row);
   });
 }
-function openDlList(a){
-  dlListAid = a.id; $('dlListSearch').value = '';
-  $('dlListOverlay').classList.remove('hidden'); renderDlList();
+
+async function mineDownload(a, btn){
+  if (working) return;
+  working = true; btn.disabled = true; const old = btn.innerHTML;
+  try {
+    await exportPdf([a], a.ownerName || '', a.ownerCode || '', a.title || 'assignment', (d, t) => { btn.textContent = `${d}/${t}`; });
+    toast('تم تحميل الملف');
+  } catch (err) { toast(err.message || 'تعذر إنشاء الملف', 'error'); }
+  btn.innerHTML = old; btn.disabled = false; working = false;
 }
-function closeDlList(){ dlListAid = null; $('dlListOverlay').classList.add('hidden'); }
-$('dlListClose').onclick = closeDlList;
-$('dlListOverlay').addEventListener('click', (e) => { if (e.target === $('dlListOverlay')) closeDlList(); });
-$('dlListSearch').addEventListener('input', renderDlList);
-onSnapshot(collection(db, 'taklifDownloads'), (snap) => {
-  downloads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (!$('listView').classList.contains('hidden')) renderList();
-  renderDlList();
-}, () => {});
+async function removeMine(a){
+  if (!confirm(`حذف التكليف «${a.title}»؟ لا يمكن التراجع.`)) return;
+  try { await deleteDoc(doc(db, 'userAssignments', a.id)); toast('تم الحذف'); }
+  catch (err) { toast('تعذر الحذف: ' + err.message, 'error'); }
+}
 
-/* ============================================================
-   القائمة
-   ============================================================ */
-function renderList(){
-  const q = $('searchInput').value.trim().toLowerCase();
-  const items = assignments
-    .filter(a => !q || (a.title || '').toLowerCase().includes(q) || (a.content || '').toLowerCase().includes(q) || (a.subject || '').toLowerCase().includes(q))
-    .filter(a => { const gf = $('gradeFilter').value; if (!gf || gf === '__all') return true; if (gf === '__none') return !a.grade; return a.grade === gf; })
-    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  $('countBadge').textContent = assignments.length;
-  const box = $('cards'); box.innerHTML = '';
-  $('emptyList').classList.toggle('hidden', items.length > 0);
-  items.forEach(a => {
-    const card = document.createElement('div'); card.className = 'card';
-
-    const th = document.createElement('div'); th.className = 'thumb';
-    th.onclick = () => openEditor(a);
-    card.appendChild(th);
-    ensureFont(a.font).then(() => {
-      const p = buildPaper({ ...a, content: (a.content || '').slice(0, 700), ink: a.ink || { c:'#1b3a9c', fx:'ball' } });
-      th.appendChild(p);
-      p.style.setProperty('--s', (th.clientWidth / 600).toFixed(3));
+/* ---------- المحرر ---------- */
+function renderEdFonts(){
+  [['ar', 'mFontAr'], ['en', 'mFontEn']].forEach(([lang, id]) => {
+    const g = $(id); g.innerHTML = '';
+    MY_FONTS[lang].forEach(([name, key]) => {
+      ensureFont(key);
+      const b = document.createElement('div'); b.className = 'fopt' + (ed.font === key ? ' sel' : '');
+      b.setAttribute('role', 'button'); b.tabIndex = 0;
+      const sm = document.createElement('span'); sm.className = 'fs'; sm.style.fontFamily = `'${key}','Cairo',cursive`;
+      sm.dir = lang === 'en' ? 'ltr' : 'rtl'; sm.textContent = lang === 'en' ? 'Hello Abc' : 'أبجد هوز';
+      const nm = document.createElement('span'); nm.className = 'fn'; nm.textContent = name;
+      b.appendChild(sm); b.appendChild(nm);
+      b.onclick = () => { ed.font = key; renderEdFonts(); };
+      g.appendChild(b);
     });
-
-    const body = document.createElement('div'); body.className = 'card-body';
-    const t = document.createElement('div'); t.className = 'card-title'; t.textContent = a.title || 'بدون اسم'; body.appendChild(t);
-    const meta = document.createElement('div'); meta.className = 'card-meta';
-    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = (a.ink && a.ink.c) || '#1b3a9c';
-    const paperName = (PAPERS.find(x => x[0] === a.paper) || [, ''])[1];
-    const fontName = (allFonts().find(f => f.key === a.font) || { name: a.font }).name;
-    const txt = document.createElement('span'); txt.textContent = `${paperName} • ${fontName}`;
-    meta.appendChild(dot); meta.appendChild(txt); body.appendChild(meta);
-    const m2 = document.createElement('div'); m2.className = 'card-meta';
-    const badge = (ic, t) => { const s = document.createElement('span'); s.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:var(--bg-input);border:1px solid var(--border);padding:2px 9px;border-radius:20px;font-weight:700'; const i = document.createElement('i'); i.className = 'fas ' + ic; s.appendChild(i); s.appendChild(document.createTextNode(t)); return s; };
-    m2.appendChild(badge('fa-graduation-cap', a.grade || 'كل الفرق'));
-    if (a.subject) m2.appendChild(badge('fa-book', a.subject));
-    const ds2 = dlStats(a.id);
-    m2.appendChild(badge('fa-download', ds2.total + ' تحميل'));
-    if (a.randomFonts) m2.appendChild(badge('fa-shuffle', 'عشوائي (' + ((a.randomList || []).length) + ' خط)'));
-    body.appendChild(m2);
-
-    const acts = document.createElement('div'); acts.className = 'card-actions';
-    const mk = (cls, icon, title, fn) => { const b = document.createElement('button'); b.className = 'btn btn-sm ' + cls; b.innerHTML = `<i class="fas ${icon}"></i>`; b.title = title; b.onclick = fn; acts.appendChild(b); };
-    mk('btn-primary', 'fa-pen', 'تعديل', () => openEditor(a));
-    mk('btn-ghost', 'fa-copy', 'نسخ', () => duplicateAssignment(a));
-    mk('btn-ghost', 'fa-image', 'تحميل صورة', () => exportPNG({ ...a, ink: a.ink || { c:'#1b3a9c', fx:'ball' } }));
-    mk('btn-danger', 'fa-trash', 'حذف', () => removeAssignment(a));
-    body.appendChild(acts);
-    const acts2 = document.createElement('div'); acts2.className = 'card-actions row2';
-    const mk2 = (cls, icon, text, fn) => { const b = document.createElement('button'); b.className = 'btn btn-sm ' + cls; b.innerHTML = `<i class="fas ${icon}"></i> ${text}`; b.onclick = fn; acts2.appendChild(b); return b; };
-    mk2('btn-primary', 'fa-eye', 'عرض', () => openAsk('view', a));
-    mk2('btn-ghost', 'fa-file-pdf', 'تحميل PDF', () => openAsk('download', a));
-    body.appendChild(acts2);
-    const acts3 = document.createElement('div'); acts3.className = 'card-actions';
-    const lb = document.createElement('button'); lb.className = 'btn btn-sm btn-ghost';
-    lb.innerHTML = `<i class="fas fa-users"></i> عرض التحميلات (${ds2.users})`;
-    lb.onclick = () => openDlList(a);
-    acts3.appendChild(lb); body.appendChild(acts3);
-    card.appendChild(body);
-    box.appendChild(card);
   });
 }
-$('searchInput').addEventListener('input', renderList);
-window.addEventListener('resize', () => { document.querySelectorAll('.thumb').forEach(th => { const p = th.firstChild; if (p) p.style.setProperty('--s', (th.clientWidth / 600).toFixed(3)); }); });
-
-/* ============================================================
-   Firestore مباشر
-   ============================================================ */
-onSnapshot(collection(db, 'assignments'), (snap) => {
-  assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  refreshGradeSelects();
-  if (!$('listView').classList.contains('hidden')) renderList();
-}, (err) => { toast('تعذر تحميل التكاليف: ' + err.message, 'error'); });
-
-onSnapshot(collection(db, 'customFonts'), (snap) => {
-  customFonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  customFonts.forEach(c => {
-    if (registeredCustom.has(c.id)) return;
-    registeredCustom.add(c.id);
-    customReady[c.id] = new FontFace('cf_' + c.id, `url(${c.data})`).load()
-      .then(ff => { document.fonts.add(ff); if (!$('editorView').classList.contains('hidden')) { renderFontGrid(); updatePreview(); } else renderList(); })
-      .catch(() => {});
+function renderEdInks(){
+  const g = $('mInks'); g.innerHTML = '';
+  MY_INKS.forEach(([n, c, fx]) => {
+    const b = document.createElement('div'); b.className = 'sw' + (ed.ink.c === c ? ' sel' : '');
+    b.style.background = c; b.title = n; b.setAttribute('role', 'button'); b.tabIndex = 0;
+    b.onclick = () => { ed.ink = { n, c, fx }; renderEdInks(); };
+    g.appendChild(b);
   });
-  if (!$('editorView').classList.contains('hidden')) renderFontGrid();
-}, () => {});
-
-/* ============================================================
-   الفرق (تُجلب من حسابات الطلاب + ما أضفته يدوياً)
-   ============================================================ */
-let userGrades = new Set();
-const extraGrades = new Set();
-function gradeList(){
-  const s = new Set([...userGrades, ...extraGrades]);
-  assignments.forEach(a => { if (a.grade) s.add(a.grade); });
-  if (st && st.grade) s.add(st.grade);
-  return [...s].sort((a, b) => a.localeCompare(b, 'ar'));
 }
-function refreshGradeSelects(){
-  const list = gradeList();
-  const mk = (sel, items, val) => {
-    sel.innerHTML = '';
-    items.forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); });
-    sel.value = items.some(x => x[0] === val) ? val : items[0][0];
+function openMine(a){
+  ed = a
+    ? { id: a.id, font: a.font, paper: a.paper || 'lined', ink: a.ink || { n: MY_INKS[0][0], c: MY_INKS[0][1], fx: MY_INKS[0][2] }, date: a.date || localISO(), seed: a.seed || Math.floor(Math.random() * 1e9) }
+    : { id: null, font: MY_FONTS.ar[0][1], paper: 'lined', ink: { n: MY_INKS[0][0], c: MY_INKS[0][1], fx: MY_INKS[0][2] }, date: localISO(), seed: Math.floor(Math.random() * 1e9) };
+  const sel = $('mPaper');
+  if (!sel.options.length) MY_PAPERS.forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); });
+  sel.value = ed.paper;
+  let ln = '', lc = '';
+  try { ln = localStorage.getItem('meezan_my_name') || ''; lc = localStorage.getItem('meezan_my_code') || ''; } catch (e) {}
+  $('mName').value = a ? (a.ownerName || '') : ln;
+  $('mCode').value = a ? (a.ownerCode || '') : lc;
+  $('mTitle').value = a ? (a.title || '') : '';
+  $('mSubject').value = a ? (a.subject || '') : '';
+  $('mContent').value = a ? (a.content || '') : '';
+  $('mShowTitle').checked = a ? a.showTitle !== false : true;
+  $('mShowDate').checked = a ? a.showDate !== false : true;
+  $('mEdHead').textContent = a ? 'تعديل التكليف' : 'إنشاء تكليف جديد';
+  renderEdFonts(); renderEdInks();
+  $('mOverlay').classList.remove('hidden');
+  setTimeout(() => $('mName').focus(), 50);
+}
+function readMine(){
+  return {
+    ...ed, ownerName: $('mName').value.trim(), ownerCode: $('mCode').value.trim(),
+    title: $('mTitle').value.trim(), subject: $('mSubject').value.trim(), content: $('mContent').value,
+    paper: $('mPaper').value, showTitle: $('mShowTitle').checked, showDate: $('mShowDate').checked,
+    fs: 24, lh: 36, jitter: 5, grade: myGrade()
   };
-  mk($('fGrade'), [['', 'كل الفرق (موجه للجميع)'], ...list.map(g => [g, g]), ['__new', '➕ إضافة فرقة جديدة...']], st.grade || '');
-  mk($('gradeFilter'), [['__all', 'كل الفرق'], ...list.map(g => [g, g]), ['__none', 'موجه لكل الفرق']], $('gradeFilter').value || '__all');
 }
-$('fGrade').addEventListener('change', () => {
-  const v = $('fGrade').value;
-  if (v === '__new') {
-    const n = (prompt('اكتب اسم الفرقة الجديدة (مطابق تماماً لما في حسابات الطلاب):') || '').trim();
-    st.grade = n; if (n) extraGrades.add(n);
-    refreshGradeSelects();
-  } else { st.grade = v; }
-});
-$('gradeFilter').addEventListener('change', renderList);
-onSnapshot(doc(db, 'users', 'all'), (snap) => {
-  const items = snap.exists() ? (snap.data().items || []) : [];
-  userGrades = new Set(items.map(u => String(u.grade || '').trim()).filter(Boolean));
-  refreshGradeSelects();
-}, () => {});
+function checkMine(d, needAll){
+  if (!d.ownerName) { toast('اكتب الاسم أولاً', 'error'); $('mName').focus(); return false; }
+  if (!d.ownerCode) { toast('اكتب الكود أولاً', 'error'); $('mCode').focus(); return false; }
+  if (needAll && !d.title) { toast('اكتب اسم التكليف أولاً', 'error'); $('mTitle').focus(); return false; }
+  if (needAll && !d.content.trim()) { toast('اكتب محتوى التكليف أولاً', 'error'); $('mContent').focus(); return false; }
+  return true;
+}
+$('myNewBtn').onclick = () => openMine(null);
+$('mCancel').onclick = () => $('mOverlay').classList.add('hidden');
+$('mOverlay').addEventListener('click', (e) => { if (e.target === $('mOverlay')) $('mOverlay').classList.add('hidden'); });
+$('mPreview').onclick = () => {
+  const d = readMine(); if (!checkMine(d, false)) return;
+  openPreview({ ...d, id: d.id || 'draft', personal: true }, d.ownerName, d.ownerCode);
+};
+$('mSave').onclick = async () => {
+  const d = readMine(); if (!checkMine(d, true)) return;
+  const p = {
+    ownerKey: userKey, ownerId: sessId || '', ownerUsername: String((me && me.username) || sessName || ''),
+    ownerName: d.ownerName, ownerCode: d.ownerCode, title: d.title, subject: d.subject, content: d.content,
+    font: d.font, paper: d.paper, ink: d.ink, fs: d.fs, lh: d.lh, jitter: d.jitter,
+    showTitle: d.showTitle, showDate: d.showDate, date: d.date, seed: d.seed, grade: d.grade, updatedAt: Date.now()
+  };
+  const btn = $('mSave'); btn.disabled = true;
+  try {
+    if (d.id) await updateDoc(doc(db, 'userAssignments', d.id), p);
+    else await addDoc(collection(db, 'userAssignments'), { ...p, createdAt: Date.now() });
+    try { localStorage.setItem('meezan_my_name', d.ownerName); localStorage.setItem('meezan_my_code', d.ownerCode); } catch (e) {}
+    $('mOverlay').classList.add('hidden'); toast(d.id ? 'تم حفظ التعديلات' : 'تم إنشاء التكليف');
+  } catch (err) { toast('تعذر الحفظ: ' + err.message, 'error'); }
+  btn.disabled = false;
+};
+renderMine();
 
-refreshGradeSelects();
 renderList();
 </script>
 </body>
