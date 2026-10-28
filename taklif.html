@@ -98,6 +98,10 @@
   }
   .paper.export { width:794px; min-height:1123px; box-shadow:none; }
   .paper.export .p-text { mix-blend-mode:normal; }
+  .paper.export .w { vertical-align:top; }
+  /* طبقة النص فقط للتصدير: الخلفية والسطور تترسم بالكانفاس */
+  .paper.layer { background:transparent !important; box-shadow:none !important; }
+  .paper.layer .p-lines, .paper.layer .p-margin, .paper.layer .p-hdr { display:none !important; }
   .p-lines,.p-margin,.p-hdr { position:absolute; pointer-events:none; display:none; }
   .p-lines { inset-inline:0; bottom:0; top:0; }
   .p-text { position:relative; z-index:2; font-size:var(--fs); line-height:var(--lh); color:var(--ink); white-space:pre-wrap; word-break:break-word; mix-blend-mode:multiply; }
@@ -180,6 +184,10 @@
     <h2><i class="fas fa-folder-open"></i> تكليفاتك <span class="count" id="countBadge">0</span></h2>
     <span class="grade-pill"><i class="fas fa-graduation-cap"></i><span id="gradeText">—</span></span>
   </div>
+  <div class="empty-state" id="loadingState">
+    <i class="fas fa-spinner fa-spin"></i>
+    <h3>جاري التحميل...</h3>
+  </div>
   <div class="rows" id="rows"></div>
   <div class="empty-state hidden" id="emptyList">
     <i class="fas fa-file-pen"></i>
@@ -219,7 +227,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -231,7 +239,13 @@ const firebaseConfig = {
   measurementId: "G-8FZGTC779Y"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+/* كاش دائم داخل المتصفح (IndexedDB): البيانات تظهر فوراً من الكاش وتتحدث بالخلفية */
+let db;
+try {
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch (e) {
+  db = getFirestore(app);
+}
 const $ = (id) => document.getElementById(id);
 
 /* ---------- حماية الدخول ---------- */
@@ -312,27 +326,46 @@ function fmtDate(iso){
   const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`;
 }
 
-function buildPaper(d){
+function isRtlData(d){
+  const probe = (d.content || '') + (d.title || '');
+  return /[\u0600-\u06FF]/.test(probe) || !/[A-Za-z]/.test(probe);
+}
+
+function paperBase(d){
   const p = document.createElement('div');
   p.className = 'paper'; p.dataset.paper = d.paper;
-  const probe = (d.content || '') + (d.title || '');
-  p.dir = (/[\u0600-\u06FF]/.test(probe) || !/[A-Za-z]/.test(probe)) ? 'rtl' : 'ltr';
+  p.dir = isRtlData(d) ? 'rtl' : 'ltr';
   p.style.setProperty('--lh', d.lh + 'px');
   p.style.setProperty('--fs', d.fs + 'px');
   p.style.setProperty('--ink', d.ink.c);
   p.style.fontFamily = `'${famOf(d.font)}', 'Cairo', cursive`;
-  ['p-lines','p-margin','p-hdr'].forEach(c => { const x = document.createElement('div'); x.className = c; p.appendChild(x); });
+  return p;
+}
 
+/* النص نفسه (البيانات اختيارية: تُكتب داخل الورقة بنفس الخط واللون) */
+function buildText(d, header){
   const t = document.createElement('div');
   t.className = 'p-text fx-' + (d.ink.fx || 'ball');
   const seed = d.seed || 1;
+  if (header && header.length) {
+    const hb = document.createElement('div');
+    renderText(hb, header.map(([k, v]) => k + ': ' + v).join('\n'), seed + 7, d.jitter, d.ink.fx);
+    t.appendChild(hb);
+    const gap = document.createElement('div'); gap.className = 'p-line'; gap.innerHTML = '&nbsp;'; t.appendChild(gap);
+  }
   if (d.showDate && d.date) { const x = document.createElement('div'); x.className = 'p-date'; x.dir = 'auto'; x.textContent = fmtDate(d.date); t.appendChild(x); }
   if (d.showTitle && d.title) { const x = document.createElement('div'); x.className = 'p-title'; x.dir = 'auto'; x.textContent = d.title; t.appendChild(x); }
   const body = document.createElement('div');
   if (d.content && d.content.trim()) renderText(body, d.content, seed, d.jitter, d.ink.fx);
   else { body.className = 'p-ph'; renderText(body, 'ابدأ بكتابة تكليفك وسيظهر هنا بخط اليد...', seed, d.jitter, d.ink.fx); }
   t.appendChild(body);
-  p.appendChild(t);
+  return t;
+}
+
+function buildPaper(d){
+  const p = paperBase(d);
+  ['p-lines','p-margin','p-hdr'].forEach(c => { const x = document.createElement('div'); x.className = c; p.appendChild(x); });
+  p.appendChild(buildText(d));
   return p;
 }
 
@@ -350,6 +383,20 @@ let me = null;
 try { const raw = sessionStorage.getItem('meezan_user_data'); if (raw) me = { ...JSON.parse(raw), id: sessId }; } catch(e){}
 let assignments = [];
 let customFonts = [];
+let ready = false;
+
+/* ---------- كاش البيانات (localStorage) لعرض فوري عند كل دخول ---------- */
+const CK = 'meezan_cache_v1:';
+const meKey = sessId || sessName || 'anon';
+function cacheGet(k){ try { const r = localStorage.getItem(CK + k); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function cacheSet(k, v){ try { localStorage.setItem(CK + k, JSON.stringify(v)); } catch(e){} }
+(function(){
+  const cA = cacheGet('assignments');
+  if (Array.isArray(cA)) { assignments = cA; ready = true; }
+  const cG = cacheGet('grade:' + meKey);
+  if (cG && cG.grade) me = { ...(me || {}), grade: cG.grade };
+})();
+setTimeout(() => { if (!ready) { ready = true; renderList(); } }, 6000);
 
 function myGrade(){ return String((me && me.grade) || '').trim(); }
 
@@ -362,14 +409,17 @@ function findMe(items){
 onSnapshot(doc(db, role === 'teacher' ? 'teachers' : 'users', 'all'), (snap) => {
   const items = snap.exists() ? (snap.data().items || []) : [];
   const u = findMe(items);
-  if (u) me = u;
+  if (u) { me = u; if (u.grade) cacheSet('grade:' + meKey, { grade: String(u.grade) }); }
   renderList();
 }, () => {});
 
 onSnapshot(collection(db, 'assignments'), (snap) => {
+  if (snap.metadata.fromCache && snap.empty && !ready) return;
   assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  ready = true;
+  if (!(snap.metadata.fromCache && snap.empty)) cacheSet('assignments', assignments);
   renderList();
-}, (err) => toast('تعذر تحميل التكليفات: ' + err.message, 'error'));
+}, (err) => { ready = true; renderList(); if (!assignments.length) toast('تعذر تحميل التكليفات: ' + err.message, 'error'); });
 
 onSnapshot(collection(db, 'customFonts'), (snap) => {
   customFonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -397,7 +447,8 @@ function renderList(){
   $('gradeText').textContent = role === 'teacher' ? 'حساب معلم' : (myGrade() || 'غير محدد');
   const items = visibleAssignments().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('countBadge').textContent = items.length;
-  $('emptyList').classList.toggle('hidden', items.length > 0);
+  $('loadingState').classList.toggle('hidden', ready);
+  $('emptyList').classList.toggle('hidden', !ready || items.length > 0);
   const box = $('rows'); box.innerHTML = '';
   items.forEach(a => {
     const row = document.createElement('div'); row.className = 'row';
@@ -466,57 +517,152 @@ function loadScript(src, test){
   return libCache[src];
 }
 
+/* ============================================================
+   PDF: ورقة حقيقية بالكامل — كل صفحة بسطورها وهوامشها،
+   والبيانات داخل الورقة بنفس خط ولون التكليف ثم يبدأ المحتوى
+   ============================================================ */
+const PAGE_W = 794, PAGE_H = 1123, SCALE = 2;
+const PAPER_START = { white:40, lined:36, notebook:84, foolscap:84, graph:40, yellow:84, aged:50 };
+
+function pdfLayout(d){
+  const lh = d.lh;
+  const pt = d.paper === 'foolscap' ? lh * 2 : lh;
+  return {
+    lh, pt,
+    start: PAPER_START[d.paper] || 46,
+    rows: Math.max(1, Math.floor((PAGE_H - pt - lh) / lh)),
+    rtl: isRtlData(d)
+  };
+}
+
+/* صفحة نص فقط (شفافة): idx = رقم الصفحة، أو null للقياس */
+function makeExportPage(d, header, L, idx){
+  const p = paperBase(d);
+  p.classList.add('export', 'layer');
+  p.style.width = PAGE_W + 'px';
+  p.style.padding = '0';
+  p.style.paddingTop = L.pt + 'px';
+  p.style.paddingInlineStart = L.start + 'px';
+  p.style.paddingInlineEnd = '30px';
+  p.style.minHeight = '0';
+  const t = buildText(d, header);
+  if (idx === null) { p.style.height = 'auto'; p.appendChild(t); return { p, t }; }
+  p.style.height = PAGE_H + 'px';
+  const win = document.createElement('div');
+  win.style.cssText = `position:relative;overflow:hidden;height:${L.rows * L.lh}px;`;
+  t.style.marginTop = (-idx * L.rows * L.lh) + 'px';
+  win.appendChild(t); p.appendChild(win);
+  return { p, t };
+}
+
+/* رسم الورقة (الخلفية + السطور + الهوامش) مباشرة بالكانفاس — لأن html2canvas لا يرسم الـ repeating gradients */
+function drawPaperBg(ctx, d, L){
+  const W = PAGE_W, H = PAGE_H, lh = L.lh, type = d.paper;
+  const fill = (c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+  const hLines = (c, from) => { for (let y = from + lh - 1; y < H; y += lh) fill(c, 0, y, W, 1); };
+  const vx = (off, w) => L.rtl ? W - off - w : off;
+  const redDouble = (off) => { const x = vx(off, 6); fill('#d9534f', x, 0, 1, H); fill('#d9534f', x + 5, 0, 1, H); };
+
+  if (type === 'yellow') fill('#fff3a8', 0, 0, W, H);
+  else if (type === 'notebook') fill('#fffefb', 0, 0, W, H);
+  else if (type === 'aged') {
+    const rx = W * Math.SQRT1_2, ry = H * Math.SQRT1_2;
+    ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(rx, ry);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    g.addColorStop(0.4, '#f6ead0'); g.addColorStop(1, '#e3cf9f');
+    ctx.fillStyle = g; ctx.fillRect(-W / 2 / rx, -H / 2 / ry, W / rx, H / ry);
+    ctx.restore();
+  } else {
+    fill('#fff', 0, 0, W, H);
+    if (type === 'white') {
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#fff'); g.addColorStop(1, '#fbfbfa');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  switch (type) {
+    case 'lined': hLines('#b6cfe6', 0); break;
+    case 'notebook': hLines('#a5c8e8', 0); fill('#e58a8a', vx(62, 2), 0, 2, H); break;
+    case 'foolscap':
+      hLines('#b4c3d6', lh * 2);
+      fill('#d9534f', 0, lh * 2 - 6, W, 1); fill('#d9534f', 0, lh * 2 - 1, W, 1);
+      redDouble(56); break;
+    case 'graph':
+      hLines('#a9cdb4', 0);
+      for (let x = lh - 1; x < W; x += lh) fill('#a9cdb4', x, 0, 1, H);
+      break;
+    case 'yellow': hLines('#7fa6cf', 0); redDouble(58); break;
+    case 'aged': hLines('rgba(139,105,60,.35)', 0); break;
+  }
+}
+
 async function makePdf(a, name, code){
   await Promise.all([
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => !!window.html2canvas),
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF)),
     ensureFont(a.font)
   ]);
-  const data = { ...a, ink: a.ink || { c:'#1b3a9c', fx:'ball' } };
-  const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;left:-99999px;top:0;width:794px;background:#fff;direction:rtl;font-family:Cairo,sans-serif;color:#0B3D2E;';
-  const head = document.createElement('div');
-  head.style.cssText = 'padding:40px 48px 18px;border-bottom:3px solid #C9A961;background:#fff;';
-  const lines = [
+  const d = {
+    ...a,
+    ink: a.ink || { c:'#1b3a9c', fx:'ball' },
+    paper: a.paper || 'lined',
+    lh: parseFloat(a.lh) || 36,
+    fs: parseFloat(a.fs) || 24
+  };
+  const header = [
     ['الاسم', name],
     ['الكود', code],
     ['الفرقة', a.grade || myGrade() || '—'],
     ['التاريخ', todayDMY()],
     ['المادة', a.subject || '—']
   ];
-  lines.forEach(([k, v]) => {
-    const r = document.createElement('div');
-    r.style.cssText = 'font-size:19px;font-weight:800;line-height:2.1;';
-    const kk = document.createElement('span'); kk.textContent = k + ': '; kk.style.color = '#5A6B66';
-    const vv = document.createElement('span'); vv.textContent = v; vv.dir = 'auto';
-    r.appendChild(kk); r.appendChild(vv); head.appendChild(r);
-  });
-  host.appendChild(head);
-  const p = buildPaper(data); p.classList.add('export'); p.style.minHeight = '700px';
-  host.appendChild(p);
+  const L = pdfLayout(d);
+
+  const host = document.createElement('div');
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${PAGE_W}px;`;
   document.body.appendChild(host);
   try {
-    try { await document.fonts.load(`${data.fs}px "${famOf(data.font)}"`, data.content || data.title || 'أ'); await document.fonts.load('800 19px Cairo', 'أ'); } catch(e){}
+    try { await document.fonts.load(`${d.fs}px "${famOf(d.font)}"`, (d.content || d.title || '') + 'أبجد الاسم الكود'); } catch(e){}
     await document.fonts.ready;
-    const canvas = await window.html2canvas(host, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+
+    // قياس الطول الكلي لتحديد عدد الصفحات
+    const m = makeExportPage(d, header, L, null);
+    host.appendChild(m.p);
+    const totalRows = Math.max(1, Math.ceil(m.t.offsetHeight / L.lh - 0.02));
+    host.removeChild(m.p);
+    const pages = Math.max(1, Math.ceil(totalRows / L.rows));
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'pt', 'a4');
     const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
-    const ratio = pw / canvas.width;
-    const sliceH = Math.floor(ph / ratio);
-    let y = 0, first = true;
-    while (y < canvas.height) {
-      const h = Math.min(sliceH, canvas.height - y);
-      const part = document.createElement('canvas'); part.width = canvas.width; part.height = h;
-      const ctx = part.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, part.width, h);
-      ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-      if (!first) pdf.addPage();
-      pdf.addImage(part.toDataURL('image/jpeg', .92), 'JPEG', 0, 0, pw, h * ratio);
-      first = false; y += h;
+
+    for (let i = 0; i < pages; i++) {
+      const { p } = makeExportPage(d, header, L, i);
+      host.appendChild(p);
+      const textCv = await window.html2canvas(p, { scale: SCALE, backgroundColor: null, useCORS: true, width: PAGE_W, height: PAGE_H, logging: false });
+      host.removeChild(p);
+
+      const pageCv = document.createElement('canvas');
+      pageCv.width = PAGE_W * SCALE; pageCv.height = PAGE_H * SCALE;
+      const ctx = pageCv.getContext('2d');
+      ctx.scale(SCALE, SCALE);
+      drawPaperBg(ctx, d, L);
+      ctx.drawImage(textCv, 0, 0, PAGE_W, PAGE_H);
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(pageCv.toDataURL('image/jpeg', .93), 'JPEG', 0, 0, pw, ph);
+      textCv.width = 0; pageCv.width = 0;
     }
     pdf.save((a.title || 'assignment').replace(/[\\/:*?"<>|]/g, '_') + '.pdf');
   } finally { host.remove(); }
 }
+
+/* تحميل مسبق لمكتبات التصدير وقت الفراغ عشان التحميل يبقى أسرع */
+(window.requestIdleCallback || ((f) => setTimeout(f, 2500)))(() => {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => !!window.html2canvas).catch(() => {});
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF)).catch(() => {});
+});
 
 renderList();
 </script>
