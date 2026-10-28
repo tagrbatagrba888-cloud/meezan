@@ -9,7 +9,7 @@
 (function () {
   try {
     var ss = window.sessionStorage, ls = window.localStorage;
-    var P = 'meezan_', K = 'meezan_persist_v1', TTL = 10 * 24 * 60 * 60 * 1000;
+    var P = 'meezan_', K = 'meezan_persist_v1', TTL = 3650 * 24 * 60 * 60 * 1000;
     var rec = null;
     try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
     if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true')) { ls.removeItem(K); rec = null; }
@@ -29,7 +29,7 @@
     proto.setItem = function (k, v) { _s.call(this, k, v); if (this === ss && String(k).indexOf(P) === 0) save(k === 'meezan_logged_in'); };
     proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
     proto.clear = function () { _c.call(this); if (this === ss) save(false); };
-    save(false);
+    save(true); // تجديد الجلسة مع كل فتح للتطبيق
 
     // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
     if (/login(\.html)?$/i.test(location.pathname) && ss.getItem('meezan_logged_in') === 'true') { location.replace('index.html'); }
@@ -2051,7 +2051,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, deleteDoc, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
@@ -3259,6 +3259,28 @@ $('blockLogoutBtn').addEventListener('click', forceLogout);
 // ============================================================
 // 📡 مراقبة حالة المستخدم Real-time
 // ============================================================
+let deletedCheckRunning = false;
+async function confirmDeletedFromServer(collectionName, userId, sName) {
+  if (deletedCheckRunning) return;
+  deletedCheckRunning = true;
+  try {
+    for (let i = 0; i < 2; i++) {
+      if (i > 0) await new Promise(r => setTimeout(r, 4000));
+      const s = await getDocFromServer(doc(db, collectionName, 'all'));
+      const arr = s.exists() ? (s.data().items || []) : [];
+      if (!s.exists() || arr.length === 0) return; // قراءة غير موثوقة → لا تخرج
+      const found = arr.find(u => u.id === userId) ||
+                    (sName ? arr.find(u => (u.username || '').toLowerCase() === sName) : null);
+      if (found) return; // الحساب موجود → لا خروج
+    }
+    if (deletedCheckRunning) showBlockScreen('deleted', null); // مؤكد مرتين: حذف فعلي
+  } catch (e) {
+    // خطأ شبكة/صلاحيات: لا تخرج المستخدم
+  } finally {
+    // يبقى true بعد الحذف المؤكد لمنع التكرار
+  }
+}
+
 let userMonitoringStarted = false;
 function startUserMonitoring() {
   if (!currentUserId || userMonitoringStarted) return;
@@ -3270,19 +3292,37 @@ function startUserMonitoring() {
   onSnapshot(doc(db, collectionName, 'all'), (snap) => {
     if (!snap.exists()) return;
 
+    // بيانات قادمة من الكاش المحلي لا يُبنى عليها أي قرار خروج
+    const fromCache = !!(snap.metadata && snap.metadata.fromCache);
     const items = snap.data().items || [];
-    const user = items.find(u => u.id === userId);
+    const sName = (sessionStorage.getItem('meezan_username') || '').toLowerCase();
+    const user = items.find(u => u.id === userId) ||
+                 (sName ? items.find(u => (u.username || '').toLowerCase() === sName) : null);
 
     if (!user) {
-      showBlockScreen('deleted', null);
+      // حذف فعلي فقط: لازم يتأكد من السيرفر مرتين، وليس من لقطة مؤقتة أو ناقصة
+      if (!fromCache && items.length > 0) confirmDeletedFromServer(collectionName, userId, sName);
       return;
     }
+    deletedCheckRunning = false;
 
-    // 🚫 أي تعطيل = تسجيل خروج فوري (ولا يعود إلا بتسجيل دخول جديد)
-    if (user.isDisabled === true) { forceLogoutDisabled(); return; }
-    const loginAt = Number(sessionStorage.getItem('meezan_login_at') || 0);
+    // 🚫 تعطيل بأمر الأدمن فقط (ولو كان له مدة وانتهت فلا خروج)
+    if (!fromCache && user.isDisabled === true) {
+      const until = user.disableUntil ? new Date(user.disableUntil).getTime() : 0;
+      const expired = until && !isNaN(until) && until <= Date.now();
+      if (!expired) { forceLogoutDisabled(); return; }
+    }
+
+    // 🚪 أمر "إخراج الجميع/المستخدم" من الأدمن: يُنفّذ فقط لو كان أمراً جديداً بعد دخولك
     const forceAt = user.forceLogoutAt ? new Date(user.forceLogoutAt).getTime() : 0;
-    if (forceAt && forceAt > loginAt) { forceLogoutDisabled(); return; }
+    if (!isNaN(forceAt)) {
+      const seenRaw = sessionStorage.getItem('meezan_force_seen');
+      if (seenRaw === null) {
+        sessionStorage.setItem('meezan_force_seen', String(forceAt));   // أوامر قديمة قبل دخولك: تُتجاهل
+      } else if (!fromCache && forceAt > Number(seenRaw)) {
+        forceLogoutDisabled(); return;
+      }
+    }
 
     // 📍 العنوان إجباري
     if (!hasFullAddress(user)) showAddressGate(user, role); else hideAddressGate();
