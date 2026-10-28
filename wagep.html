@@ -1131,21 +1131,11 @@
       <textarea class="form-textarea" id="hwDesc" placeholder="وصف مختصر للواجب..." maxlength="500"></textarea>
     </div>
 
-    <div class="form-row-2">
-      <div class="form-group">
-        <label class="form-label">
-          الفرقة المستهدفة <span class="required">*</span>
-        </label>
-        <select class="form-select" id="hwGrade"><option value="">— اختر الفرقة —</option></select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          نسبة النجاح
-          <span class="hint">افتراضي 50%</span>
-        </label>
-        <input type="number" class="form-input" id="hwPassPercent" min="1" max="100" value="50">
-      </div>
+    <div class="form-group">
+      <label class="form-label">
+        الفرقة المستهدفة <span class="required">*</span>
+      </label>
+      <select class="form-select" id="hwGrade"><option value="">— اختر الفرقة —</option></select>
     </div>
 
     <div class="info-box">
@@ -2146,6 +2136,7 @@ function statsOf(h) {
 function listenAll() {
   onSnapshot(doc(db, 'homeworks', 'all'), (snap) => {
     allHomeworks = snap.exists() ? (snap.data().items || []) : [];
+    if (editingId != null && !getHw(editingId)) editingId = null;
     refreshViews();
   }, (err) => console.log('homeworks error:', err.message));
 
@@ -2177,12 +2168,14 @@ function defaultGrade() {
 function fillGradeSelect(preferValue) {
   const sel = $('hwGrade');
   let current = preferValue !== undefined ? preferValue : sel.value;
+  if (preferValue === undefined && !current && draftGrade) current = draftGrade;
   if (!current && !editingId) current = defaultGrade();
   const set = new Set(gradesList);
   if (current && !set.has(current) && editingId) set.add(current); // فرقة محفوظة قبل كده ومش في القايمة
   sel.innerHTML = '<option value="">— اختر الفرقة —</option>' +
     [...set].map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
   sel.value = current && set.has(current) ? current : '';
+  if (draftGrade && sel.value === draftGrade) draftGrade = '';
 }
 
 // ============================================================
@@ -2226,7 +2219,6 @@ function hwCardHTML(h) {
       <span><i class="fas fa-graduation-cap"></i>${escapeHtml(h.grade)}</span>
       <span><i class="fas fa-list-ol"></i>${(h.questions || []).length} سؤال</span>
       <span><i class="fas fa-star"></i>${totalOf(h)} درجة</span>
-      <span><i class="fas fa-percent"></i>نجاح ${h.passPercent || 50}%</span>
       <span><i class="fas ${manual ? 'fa-pen-to-square' : 'fa-bolt'}"></i>${manual ? 'تصحيح يدوي' : 'تصحيح فوري'}</span>
     </div>
     <div class="hw-stats">
@@ -2556,7 +2548,6 @@ function startEdit(h) {
   $('hwName').value = h.name || '';
   $('hwDesc').value = h.description || '';
   fillGradeSelect(h.grade || '');
-  $('hwPassPercent').value = h.passPercent || 50;
   passwordType = h.passwordType || 'none';
   $('manualPassword').value = h.manualPassword || '';
   correctionType = h.correctionType || 'auto';
@@ -2672,12 +2663,11 @@ $('saveBtn').addEventListener('click', async () => {
   const name = cleanInput($('hwName').value);
   const description = cleanInput($('hwDesc').value);
   const grade = cleanInput($('hwGrade').value);
-  const passPercent = parseInt($('hwPassPercent').value) || 50;
+  const passPercent = (prev && prev.passPercent) || 50; // ثابت داخلياً (الخانة محذوفة)
 
   if (!name) return showError('الرجاء إدخال اسم الواجب');
   if (name.length < 3) return showError('اسم الواجب قصير جداً');
   if (!grade) return showError('الرجاء اختيار الفرقة المستهدفة من القائمة');
-  if (passPercent < 1 || passPercent > 100) return showError('نسبة النجاح يجب أن تكون بين 1 و 100');
 
   // كلمة السر
   let manualPassword = '';
@@ -2772,6 +2762,7 @@ $('saveBtn').addEventListener('click', async () => {
         updatedAt: now
       };
       await mutateHomeworks((items) => [...items, hw]);
+      clearDraft();
       console.log('✅ Homework saved:', id);
     } else {
       hw = {
@@ -2785,6 +2776,7 @@ $('saveBtn').addEventListener('click', async () => {
         out[i] = hw;
         return out;
       });
+      clearDraft();
     }
 
     // ✅ لو random → ولّد كلمات سر لكل طالب في الفرقة (عند الإضافة أو أول مرة يتحول لعشوائي)
@@ -2859,11 +2851,12 @@ $('successNewBtn').addEventListener('click', () => {
 });
 
 function resetForm() {
+  clearDraft();
+  draftGrade = '';
   editingId = null;
   $('hwName').value = '';
   $('hwDesc').value = '';
   fillGradeSelect('');
-  $('hwPassPercent').value = 50;
   $('manualPassword').value = '';
   $('randomPreview').textContent = generateRandomPassword();
 
@@ -2919,6 +2912,80 @@ $('cancelBtn').addEventListener('click', async () => {
   window.location.href = 'index.html';
 });
 
+
+// ============================================================
+// 💾 حفظ تلقائي صامت للمسودة (بدون أي إشعار)
+// ============================================================
+let draftGrade = '';
+let draftReady = false;
+let draftTimer = null;
+const DRAFT_KEY = 'meezan_hw_draft_' + userId;
+
+function saveDraftNow() {
+  if (!draftReady) return;
+  try {
+    clearTimeout(draftTimer);
+    const d = {
+      editingId,
+      name: $('hwName').value,
+      desc: $('hwDesc').value,
+      grade: $('hwGrade').value || draftGrade || '',
+      passwordType,
+      manualPassword: $('manualPassword').value,
+      correctionType,
+      questions
+    };
+    const empty = !d.name.trim() && !d.desc.trim() && !d.manualPassword.trim() && questions.length === 0;
+    if (empty && editingId == null) localStorage.removeItem(DRAFT_KEY);
+    else localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  } catch (e) {}
+}
+function scheduleDraftSave() {
+  if (!draftReady) return;
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(saveDraftNow, 250);
+}
+function clearDraft() {
+  try { clearTimeout(draftTimer); localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || typeof d !== 'object') return;
+    $('hwName').value = d.name || '';
+    $('hwDesc').value = d.desc || '';
+    draftGrade = d.grade || '';
+    editingId = d.editingId != null ? d.editingId : null;
+    passwordType = d.passwordType || 'none';
+    $('manualPassword').value = d.manualPassword || '';
+    correctionType = d.correctionType || 'auto';
+    questions = Array.isArray(d.questions) ? d.questions : [];
+    syncTabs();
+    fillGradeSelect();
+    updatePasswordUI();
+    renderQuestions();
+    updateEditUI();
+  } catch (e) {}
+}
+
+// أي كتابة/تغيير/ضغط داخل قسم الإضافة يحفظ تلقائياً
+['input', 'change', 'click'].forEach(ev => {
+  document.addEventListener(ev, (e) => {
+    if (e.target && e.target.closest && e.target.closest('#view-add')) scheduleDraftSave();
+  }, true);
+});
+// أي إعادة رسم للأسئلة (إضافة/حذف سؤال أو خيار...) تحفظ
+{
+  const _renderQuestions = renderQuestions;
+  renderQuestions = function () { _renderQuestions(); scheduleDraftSave(); };
+}
+// حفظ فوري قبل تحديث الصفحة أو إغلاقها
+window.addEventListener('pagehide', saveDraftNow);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraftNow(); });
+window.addEventListener('beforeunload', saveDraftNow);
+
 // ============================================================
 // 🚀 Init
 // ============================================================
@@ -2929,6 +2996,8 @@ listenAll();
 updatePasswordUI();
 updateCorrectionInfo();
 renderQuestions();
+restoreDraft();
+draftReady = true;
 
 // زر Escape يغلق المودالات
 document.addEventListener('keydown', (e) => {
