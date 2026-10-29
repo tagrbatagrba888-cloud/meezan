@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#0B3D2E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ميزان | مصنع خط اليد</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -9,17 +11,17 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
-:root{--bg:#F5F1E8;--sf:#fff;--tx:#0B3D2E;--mt:#5A6B66;--bd:#E0E5E1;--ac:#0B3D2E;--ac2:#E6EFE9;--ac-tx:#fff;--dg:#C0392B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-[data-theme="dark"]{--bg:#0A1612;--sf:#11201B;--tx:#F5F1E8;--mt:#9BAEA6;--bd:#1E3A31;--ac:#C9A961;--ac2:#1A2C25;--ac-tx:#0A1612;--dg:#E74C3C;color-scheme:dark}
+:root{--bg:#F5F1E8;--sf:#fff;--tx:#0B3D2E;--mt:#5A6B66;--bd:#E0E5E1;--ac:#0B3D2E;--ac2:#E6EFE9;--ac-tx:#fff;--dg:#C0392B;--ok:#1E7A5A;--pg:linear-gradient(135deg,#0B3D2E,#1E7A5A);--sh:rgba(11,61,46,.2);color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[data-theme="dark"]{--bg:#0A1612;--sf:#11201B;--tx:#F5F1E8;--mt:#9BAEA6;--bd:#1E3A31;--ac:#C9A961;--ac2:#1A2C25;--ac-tx:#0A1612;--dg:#E74C3C;--ok:#2ECC71;--pg:linear-gradient(135deg,#C9A961,#F0DBA8);--sh:rgba(0,0,0,.5);color-scheme:dark}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Cairo,"Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--bd);padding:10px 14px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
 h1{font-size:18px;margin:0 0 8px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-button,select,input[type=text]{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 12px}
+button,select,input[type=text]{font:inherit;font-weight:700;color:var(--tx);background:var(--sf);border:2px solid var(--bd);border-radius:12px;padding:9px 14px;transition:.2s}input[type=text]:focus,select:focus{outline:none;border-color:var(--ac)}
 button{cursor:pointer}button:hover{border-color:var(--ac)}
-.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac);font-weight:600}
+.pri{background:var(--pg);color:var(--ac-tx);border-color:transparent;font-weight:800;box-shadow:0 6px 18px var(--sh)}
 .dg{color:var(--dg)}select{flex:1;min-width:140px}
 main{max-width:900px;margin:0 auto;padding:14px}
 .bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden;margin:6px 0 12px}.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .3s}
@@ -31,15 +33,17 @@ main{max-width:900px;margin:0 auto;padding:14px}
 .cv.l{box-shadow:inset 5px 0 0 var(--ac)}.cv.r{box-shadow:inset -5px 0 0 var(--ac)}.cv.l.r{box-shadow:inset 5px 0 0 var(--ac),inset -5px 0 0 var(--ac)}#forms .on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:600}
 .hint{color:var(--mt);font-size:13px;margin:10px 0}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:12px}.ov.show{display:flex}
-.md{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:92vh;overflow:auto}
+.md{background:var(--sf);border:2px solid var(--bd);border-radius:20px;padding:22px;width:100%;max-width:420px;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .md h2{margin:0 0 10px;font-size:17px}
 .cv{position:relative;width:100%;max-width:340px;aspect-ratio:1;margin:0 auto;border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:#fff;touch-action:none}
 canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 .gl{position:absolute;inset-inline:0;height:0;border-top:1px dashed #9ab;pointer-events:none}.gl b{position:absolute;inset-inline-start:3px;top:-14px;font:10px sans-serif;color:#789;font-weight:400}
 .tools{margin:10px 0}.tools label{font-size:13px;color:var(--mt)}
 .pv{margin:10px 0;padding:14px;background:#fff;color:#000;border:2px solid var(--ac);border-radius:12px;min-height:150px;max-height:50vh;font-size:80px;line-height:1.5;word-break:break-word;overflow:auto;-webkit-font-smoothing:antialiased}#dlov .md{max-width:620px}#dlov label input{vertical-align:middle}
-.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:20px;z-index:30;display:none}
+.toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(140px);background:var(--sf);color:var(--tx);padding:14px 22px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.3);border:2px solid var(--bd);font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;z-index:99999;transition:transform .4s ease,opacity .3s;opacity:0;max-width:calc(100vw - 32px)}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}.toast.success{border-color:var(--ok)}.toast.success i{color:var(--ok)}.toast.error{border-color:var(--dg)}.toast.error i{color:var(--dg)}
 .dl{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));margin-top:16px;width:100%;padding:12px}
+.lims{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:7px 12px;border-radius:12px;background:var(--ac2);color:var(--ac);border:2px solid var(--bd)}.chip.full{color:var(--dg);border-color:var(--dg)}
+.md h2{font-weight:900}#dgov{z-index:40}
 </style>
 </head>
 <body>
@@ -47,7 +51,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
   <h1>✍️ مصنع خط اليد</h1>
   <div class="row">
     <select id="proj" aria-label="المشروع"></select>
-    <button id="np">+ مشروع</button><button id="rn">تسمية</button><button id="dp" class="dg">حذف</button>
+    <button id="np">+ مشروع</button><button id="rn">تسمية</button><button id="dp" class="dg">حذف</button><span class="lims" id="lims"></span>
   </div>
 </header>
 <main>
@@ -88,7 +92,12 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
   <div class="pv" id="pvbox" dir="auto">…</div>
   <div class="row"><button id="dlc">إغلاق</button><span style="flex:1"></span><button class="pri" id="dlgo">تنزيل .ttf</button></div>
 </div></div>
-<div class="toast" id="toast"></div>
+<div class="ov" id="dgov"><div class="md">
+  <h2 id="dgt"></h2><p class="hint" id="dgm" style="margin:0 0 10px"></p>
+  <input type="text" id="dgi" style="width:100%" maxlength="40" autocomplete="off">
+  <div class="row" style="margin-top:14px"><button class="pri" id="dgok" style="flex:1"></button><button id="dgno">إلغاء</button></div>
+</div></div>
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="ticon"></i><span id="ttext"></span></div>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -127,7 +136,14 @@ let P=[],cur,tab='عربي أساسي',form='',ch=null,stack=[],eraser=false,src
 const cv=$('#c'),cx=cv.getContext('2d',{willReadFrequently:true});
 const uid=()=>Math.random().toString(36).slice(2,9);
 const proj=()=>P.find(p=>p.id===cur);
-function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2800)}
+function toast(m,type){const t=$('#toast'),er=type?type==='error':/^(تعذر|وصلت|اكتب|خطأ|لا يوجد|الخط غير)/.test(m);
+ $('#ttext').textContent=m;$('#ticon').className=er?'fas fa-times-circle':'fas fa-check-circle';t.className='toast show '+(er?'error':'success');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)}
+function ask(o){return new Promise(res=>{const ov=$('#dgov'),i=$('#dgi');$('#dgt').textContent=o.title;$('#dgm').textContent=o.msg||'';$('#dgm').style.display=o.msg?'':'none';
+ i.style.display=o.input?'':'none';i.value=o.value||'';i.placeholder=o.label||'';const ok=$('#dgok');ok.textContent=o.ok||'تأكيد';ok.className=o.danger?'':'pri';if(o.danger)ok.style.cssText='flex:1;color:var(--dg);border-color:var(--dg)';else ok.style.cssText='flex:1';
+ ov.classList.add('show');if(o.input)setTimeout(()=>{i.focus();i.select()},40);
+ const done=v=>{ov.classList.remove('show');ok.onclick=$('#dgno').onclick=ov.onclick=i.onkeydown=null;res(v)};
+ ok.onclick=()=>done(o.input?(i.value.trim()||null):true);$('#dgno').onclick=()=>done(null);ov.onclick=e=>{if(e.target===ov)done(null)};
+ i.onkeydown=e=>{if(e.key==='Enter')ok.click();if(e.key==='Escape')done(null)}})}
 function load(){try{P=JSON.parse(localStorage.getItem(HP)||'[]');cur=localStorage.getItem(HC)}catch(e){P=[]}
  if(!P.length)P=[{id:uid(),name:'مشروعي الأول',g:{}}];if(!P.find(p=>p.id===cur))cur=P[0].id}
 function save(){try{localStorage.setItem(HP,JSON.stringify(P));localStorage.setItem(HC,cur)}catch(e){toast('تعذر الحفظ: المساحة ممتلئة')}}
@@ -182,9 +198,9 @@ $('#tabs').onclick=e=>{const t=e.target.dataset.t;if(t){tab=t;form='';render()}}
 $('#forms').onclick=e=>{const f=e.target.dataset.f;if(f!==undefined){form=f;render()}};
 $('#grid').onclick=e=>{const b=e.target.closest('.cell');if(b)openEd(b.dataset.c)};
 $('#proj').onchange=e=>{cur=e.target.value;save();render()};
-$('#np').onclick=async()=>{const n=prompt('اسم المشروع الجديد');if(!n)return;if(!await room())return;const p={id:uid(),name:n.trim(),g:{}};P.push(p);cur=p.id;save();render()};
-$('#rn').onclick=()=>{const n=prompt('الاسم الجديد',proj().name);if(!n)return;proj().name=n.trim();save();render();sync(proj())};
-$('#dp').onclick=()=>{if(!confirm('حذف المشروع "'+proj().name+'" من جهازك؟'))return;P=P.filter(p=>p.id!==cur);load();save();render()};
+$('#np').onclick=async()=>{const n=await ask({title:'مشروع خط جديد',label:'اسم المشروع',input:1,ok:'إنشاء'});if(!n)return;if(!await room())return;const p={id:uid(),name:n.trim(),g:{}};P.push(p);cur=p.id;save();render()};
+$('#rn').onclick=async()=>{const n=await ask({title:'تسمية المشروع',label:'الاسم الجديد',value:proj().name,input:1,ok:'حفظ'});if(!n)return;proj().name=n.trim();save();render();sync(proj())};
+$('#dp').onclick=async()=>{if(!await ask({title:'حذف المشروع',msg:'سيُحذف مشروع «'+proj().name+'» من جهازك.'+(proj().fid?' الخط المحفوظ يبقى محسوباً في حدّك ولا يحذفه إلا الأدمن.':''),ok:'حذف',danger:1}))return;P=P.filter(p=>p.id!==cur);load();save();render()};
 
 /* ---------- editor ---------- */
 function blank(){cx.fillStyle='#fff';cx.fillRect(0,0,N,N)}
@@ -361,7 +377,14 @@ $('#nm').oninput=()=>{NORM=+$('#nm').value;clearTimeout(tm);tm=setTimeout(refres
 $('#psz').oninput=()=>$('#pvbox').style.fontSize=$('#psz').value+'px';
 $('#gw').oninput=()=>{GROW=+$('#gw').value;clearTimeout(tm);tm=setTimeout(refresh,300)};
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#ptxt').value=b.dataset.p;$('#pvbox').textContent=b.dataset.p});
-load();render();boot();
+let LM={},FL=[];
+const _rd=render;render=function(){_rd();drawLims()};
+function drawLims(){const p=proj();if(!p)return;const mf=LM.maxFonts|0,md=LM.maxDownloads|0,f=p.fid?FL.find(x=>x.id===p.fid):null,dn=f?f.downloads||0:0;
+ const chip=(ic,t,full)=>`<span class="chip${full?' full':''}"><i class="fas ${ic}"></i>${t}</span>`;
+ $('#lims').innerHTML=chip('fa-layer-group',mf>0?`حد الخطوط: ${FL.length} من ${mf}`:'حد الخطوط: بدون حد',mf>0&&FL.length>=mf)+chip('fa-download',md>0?`حد التحميل: ${dn} من ${md}`:'حد التحميل: بدون حد',md>0&&dn>=md)}
+db.collection(COL.lim).doc('limits').onSnapshot(x=>{LM=x.data()||{};drawLims()},()=>{});
+db.collection(COL.fonts).where('ownerKey','==',UKEY).onSnapshot(x=>{FL=x.docs.map(d=>({id:d.id,...d.data()}));drawLims()},()=>{});
+load();render();
 </script>
 </body>
 </html>
