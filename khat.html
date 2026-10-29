@@ -51,7 +51,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
   <h1>✍️ مصنع خط اليد</h1>
   <div class="row">
     <select id="proj" aria-label="المشروع"></select>
-    <button id="np">+ مشروع</button><button id="rn">تسمية</button><button id="dp" class="dg">حذف</button><span class="lims" id="lims"></span>
+    <button id="np">+ مشروع</button><button id="rn">تسمية</button><button id="dp" class="dg">حذف</button><button id="ex">تصدير</button><button id="im">استيراد</button><input type="file" id="fim" accept=".json,application/json" hidden><span class="lims" id="lims"></span>
   </div>
 </header>
 <main>
@@ -71,7 +71,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
   <p class="hint" id="edhint" style="margin:8px 0 0"></p>
   <div class="tools row">
     <label>سمك القلم <input type="range" id="sz" min="3" max="30" value="12"></label>
-    <button id="er">ممحاة</button><button id="un">تراجع</button><button id="cl">مسح</button>
+    <button id="er">ممحاة</button><button id="un">تراجع</button><button id="rd">إعادة</button><button id="cl">مسح</button>
   </div>
   <div class="tools row">
     <button id="up">🖼 رفع صورة</button><button id="cam">📷 تصوير</button>
@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
   <p class="hint" id="dlinfo" style="margin-top:0"></p>
   <input type="text" id="fname" placeholder="اسم الخط (مثال: MyHand)" style="width:100%" maxlength="40">
   <input type="text" id="ptxt" style="width:100%;margin-top:8px" value="بسم الله الرحمن الرحيم لا Hello ١٢٣">
-  <div class="row" style="margin-top:8px"><label class="hint" style="margin:0">حجم المعاينة <input type="range" id="psz" min="24" max="180" value="80"></label><label class="hint" style="margin:0">سماكة الخط <input type="range" id="gw" min="0" max="24" value="6"></label><label class="hint" style="margin:0">توحيد الحجم <input type="range" id="nm" min="0" max="100" value="40"></label></div>
+  <div class="row" style="margin-top:8px"><label class="hint" style="margin:0">حجم المعاينة <input type="range" id="psz" min="24" max="180" value="80"></label><label class="hint" style="margin:0">سماكة الخط <input type="range" id="gw" min="0" max="24" value="6"></label><label class="hint" style="margin:0">توحيد الحجم <input type="range" id="nm" min="0" max="100" value="100"></label></div>
   <div class="row" style="margin-top:6px"><button data-p="ابتثجحخدذرزسشصضطظعغفقكلمنهوي">الحروف</button><button data-p="بسم الله الرحمن الرحيم">كلمات</button><button data-p="لا لأ لإ لآ الله">لام ألف</button><button data-p="ABC abc xyz 123">English</button><button data-p="٠١٢٣٤٥٦٧٨٩ 0123456789">أرقام</button></div>
   <div class="pv" id="pvbox" dir="auto">…</div>
   <div class="row"><button id="dlc">إغلاق</button><span style="flex:1"></span><button class="pri" id="dlgo">تنزيل .ttf</button></div>
@@ -204,7 +204,8 @@ $('#dp').onclick=async()=>{if(!await ask({title:'حذف المشروع',msg:'س�
 
 /* ---------- editor ---------- */
 function blank(){cx.fillStyle='#fff';cx.fillRect(0,0,N,N)}
-function snap(){stack.push(cx.getImageData(0,0,N,N));if(stack.length>25)stack.shift()}
+let redo=[],mid;
+function snap(){stack.push(cx.getImageData(0,0,N,N));if(stack.length>40)stack.shift();redo=[]}
 function openEd(k){
  ch=k;const f=k.split('|')[1]||'';$('#edch').textContent=disp(k);$('#edhint').textContent=HINT[f]||'';
  $('#cv').classList.toggle('l',f==='i'||f==='m');$('#cv').classList.toggle('r',f==='f'||f==='m');
@@ -214,13 +215,17 @@ function openEd(k){
 }
 function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*N/r.width,(e.clientY-r.top)*N/r.height]}
 let drawing=false,last;
-cv.onpointerdown=e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);snap();drawing=true;last=pos(e);dot(last)};
-cv.onpointermove=e=>{if(!drawing)return;const p=pos(e);cx.strokeStyle=eraser?'#fff':'#000';cx.lineWidth=+$('#sz').value*(eraser?1.8:1);cx.lineCap=cx.lineJoin='round';cx.beginPath();cx.moveTo(...last);cx.lineTo(...p);cx.stroke();last=p};
-cv.onpointerup=cv.onpointercancel=()=>drawing=false;
+const wd=ev=>+$('#sz').value*(eraser?1.8:1)*(ev.pointerType==='pen'&&ev.pressure?(.4+ev.pressure*1.2):1);
+cv.onpointerdown=e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();cv.setPointerCapture(e.pointerId);snap();drawing=true;last=mid=pos(e);dot(last)};
+cv.onpointermove=e=>{if(!drawing)return;e.preventDefault();const L=e.getCoalescedEvents?e.getCoalescedEvents():[];
+ for(const ev of L.length?L:[e]){const p=pos(ev),m=[(last[0]+p[0])/2,(last[1]+p[1])/2];cx.strokeStyle=eraser?'#fff':'#000';cx.lineWidth=wd(ev);cx.lineCap=cx.lineJoin='round';
+  cx.beginPath();cx.moveTo(mid[0],mid[1]);cx.quadraticCurveTo(last[0],last[1],m[0],m[1]);cx.stroke();mid=m;last=p}};
+cv.onpointerup=cv.onpointercancel=()=>{if(drawing){cx.strokeStyle=eraser?'#fff':'#000';cx.lineWidth=+$('#sz').value*(eraser?1.8:1);cx.lineCap='round';cx.beginPath();cx.moveTo(mid[0],mid[1]);cx.lineTo(last[0],last[1]);cx.stroke()}drawing=false};
 function dot(p){cx.fillStyle=eraser?'#fff':'#000';cx.beginPath();cx.arc(p[0],p[1],$('#sz').value*(eraser?.9:.5),0,7);cx.fill()}
 $('#er').onclick=e=>{eraser=!eraser;e.target.style.background=eraser?'var(--ac2)':''};
-$('#un').onclick=()=>{const s=stack.pop();if(s)cx.putImageData(s,0,0)};
-$('#cl').onclick=()=>{snap();blank()};
+$('#un').onclick=()=>{const s=stack.pop();if(s){redo.push(cx.getImageData(0,0,N,N));cx.putImageData(s,0,0)}};
+$('#rd').onclick=()=>{const s=redo.pop();if(s){stack.push(cx.getImageData(0,0,N,N));cx.putImageData(s,0,0)}};
+$('#cl').onclick=()=>{if(ink()>=20&&!confirm('مسح الحرف بالكامل؟ (يمكنك التراجع)'))return;snap();blank()};
 $('#up').onclick=()=>$('#f1').click();$('#cam').onclick=()=>$('#f2').click();
 [$('#f1'),$('#f2')].forEach(f=>f.onchange=()=>{const file=f.files[0];if(!file)return;const i=new Image();i.onload=()=>{srcImg=i;$('#thw').style.display='block';snap();renderImg()};i.src=URL.createObjectURL(file);f.value=''});
 function renderImg(){
@@ -239,7 +244,7 @@ $('#ca').onclick=()=>$('#edov').classList.remove('show');
 $('#nx').onclick=()=>step(1);$('#pv').onclick=()=>step(-1);
 
 /* ---------- font building ---------- */
-let GROW=6,TH=14,NORM=40;const BEAR={'':[50,50],i:[-6,50],m:[-6,-6],f:[50,-6]};
+let GROW=6,TH=14,NORM=100;const BEAR={'':[50,50],i:[-24,50],m:[-24,-24],f:[50,-24]};
 function loadImg(u){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u})}
 async function trace(u){
  const M=N*2,i=await loadImg(u),k=document.createElement('canvas');k.width=k.height=M;const x=k.getContext('2d',{willReadFrequently:true});
@@ -250,22 +255,22 @@ async function trace(u){
   for(const[k2,y0]of act)if(!c.has(k2)){const[s,e]=k2.split(',').map(Number);rs.push([s/2,e/2,y0/2,y/2]);act.delete(k2)}
   for(const k2 of c)if(!act.has(k2))act.set(k2,y)}
  if(!rs.length)return null;
- const lab=new Uint8Array(M*M),st=new Int32Array(M*M);let bn=0,bh=0;
+ const lab=new Uint8Array(M*M),st=new Int32Array(M*M);let bn=0,bh=0,blo=0,bhi=0;
  for(let y0=0;y0<M;y0++)for(let x0=0;x0<M;x0++){const i0=y0*M+x0;if(lab[i0]||!on(x0,y0))continue;let sp=0,n=0,lo=y0,hi=y0;st[sp++]=i0;lab[i0]=1;
   while(sp){const p=st[--sp],py=(p/M)|0,qx=p-py*M;n++;if(py<lo)lo=py;if(py>hi)hi=py;
    if(qx>0&&!lab[p-1]&&on(qx-1,py)){lab[p-1]=1;st[sp++]=p-1}
    if(qx<M-1&&!lab[p+1]&&on(qx+1,py)){lab[p+1]=1;st[sp++]=p+1}
    if(py>0&&!lab[p-M]&&on(qx,py-1)){lab[p-M]=1;st[sp++]=p-M}
    if(py<M-1&&!lab[p+M]&&on(qx,py+1)){lab[p+M]=1;st[sp++]=p+M}}
-  if(n>bn){bn=n;bh=(hi-lo+1)/2}}
+  if(n>bn){bn=n;bh=(hi-lo+1)/2;blo=lo;bhi=hi}}
  const col=(y,x0,x1)=>{for(let q=x0;q<x1;q++)if(on(q,y))return 1;return 0};
  const band=(x0,x1)=>{x0=Math.max(0,x0);x1=Math.min(M,x1);let best=null;
   for(let y=0;y<M;){if(!col(y,x0,x1)){y++;continue}let y1=y;while(y1<M&&col(y1,x0,x1))y1++;const c=(y+y1)/4;if(!best||Math.abs(c-BASE)<Math.abs(best.c-BASE))best={y0:y/2,y1:y1/2,c};y=y1}
   return best&&Math.abs(best.c-BASE)<=26&&best.y1-best.y0<=40?best:null};
- return{rs,minX:minX/2,maxX:maxX/2,L:band(minX,minX+8),R:band(maxX-8,maxX),bh};
+ return{rs,minX:minX/2,maxX:maxX/2,L:band(minX,minX+8),R:band(maxX-8,maxX),bh,bot:(bhi+1)/2};
 }
 function mkGlyph(name,cp,t,f){
- const k=t.k||1,[lb,rb]=BEAR[f],path=new opentype.Path(),X=x=>t.minX+(x-t.minX)*k,Y=y=>BASE-(BASE-y)*k,mx=X(t.maxX),gr=GROW+Math.max(0,(1-k)*TH*S/2);
+ const k=t.k||1,[lb,rb]=BEAR[f],path=new opentype.Path(),X=x=>t.minX+(x-t.minX)*k,Y=y=>BASE-(BASE-y)*k+(t.dy||0),mx=X(t.maxX),gr=GROW+Math.max(0,(1-k)*TH*S/2);
  const px=x=>Math.round((x-t.minX)*S+lb),
  rc=(xa,xb,ya,yb)=>{const x1=px(xa)-gr,x2=px(xb)+gr,tp=Math.round((BASE-ya)*S)+1+gr,bt=Math.round((BASE-yb)*S)-1-gr;path.moveTo(x1,bt);path.lineTo(x2,bt);path.lineTo(x2,tp);path.lineTo(x1,tp);path.close()};
  for(const[s,e,y0,y1]of t.rs)rc(X(s),X(e),Y(y0),Y(y1));
@@ -293,8 +298,9 @@ async function buildFont(name){
  const ths=Object.values(T).filter(Boolean).flatMap(t=>[t.L,t.R]).filter(Boolean).map(b=>b.y1-b.y0).filter(v=>v<=30).sort((a,b)=>a-b);
  TH=ths.length?Math.min(28,Math.max(6,ths[ths.length>>1])):14;
  const cl={};for(const k of Object.keys(T)){if(!T[k])continue;const c=cls(k);if(c)(cl[c]=cl[c]||[]).push(k)}
- for(const c in cl){if(cl[c].length<3)continue;const hs=cl[c].map(k=>T[k].bh).sort((a,b)=>a-b),med=hs[hs.length>>1];
-  for(const k of cl[c]){const t=T[k];t.k=Math.min(1.33,Math.max(.75,1+(med/t.bh-1)*NORM/100))}}
+ const md=a=>{a=a.slice().sort((x,y)=>x-y);return a[a.length>>1]};
+ for(const c in cl){if(cl[c].length<2)continue;const mh=md(cl[c].map(k=>T[k].bh)),mb=md(cl[c].map(k=>T[k].bot)),w=NORM/100;
+  for(const k of cl[c]){const t=T[k];t.k=Math.min(2.2,Math.max(.5,1+(mh/t.bh-1)*w));t.dy=(mb-(BASE-(BASE-t.bot)*t.k))*w}}
  const gl=[new opentype.Glyph({name:'.notdef',unicode:0,advanceWidth:500,path:new opentype.Path()}),
   new opentype.Glyph({name:'space',unicode:32,advanceWidth:300,path:new opentype.Path()})],idx={},sub={i:[],m:[],f:[]},lig={i:[],m:[]};
  const add=(nm,cp,t,f)=>{idx[nm]=gl.length;gl.push(mkGlyph(nm,cp,t,f))};
@@ -384,6 +390,16 @@ function drawLims(){const p=proj();if(!p)return;const mf=LM.maxFonts|0,md=LM.max
  $('#lims').innerHTML=chip('fa-layer-group',mf>0?`حد الخطوط: ${FL.length} من ${mf}`:'حد الخطوط: بدون حد',mf>0&&FL.length>=mf)+chip('fa-download',md>0?`حد التحميل: ${dn} من ${md}`:'حد التحميل: بدون حد',md>0&&dn>=md)}
 db.collection(COL.lim).doc('limits').onSnapshot(x=>{LM=x.data()||{};drawLims()},()=>{});
 db.collection(COL.fonts).where('ownerKey','==',UKEY).onSnapshot(x=>{FL=x.docs.map(d=>({id:d.id,...d.data()}));drawLims()},()=>{});
+$('#ex').onclick=()=>{const p=proj(),u=URL.createObjectURL(new Blob([JSON.stringify({app:'khotot',v:1,name:p.name,g:p.g})],{type:'application/json'})),a=document.createElement('a');
+ a.href=u;a.download=(p.name.replace(/[^\w\-]+/g,'_')||'project')+'.khotot.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);toast('تم تصدير المشروع')};
+$('#im').onclick=()=>$('#fim').click();
+$('#fim').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const d=JSON.parse(await f.text());if(d.app!=='khotot'||d.v!==1||typeof d.name!=='string'||!d.g||typeof d.g!=='object')throw Error('ملف غير صالح');
+  const g={};let bad=0;for(const[k,u]of Object.entries(d.g)){if(ALL.has(k)&&typeof u==='string'&&u.length<400000&&/^data:image\/png;base64,[A-Za-z0-9+\/=]+$/.test(u))g[k]=u;else bad++}
+  if(!Object.keys(g).length)throw Error('لا توجد رسومات صالحة');
+  if(!confirm(`استيراد "${d.name.slice(0,40)}" (${Object.keys(g).length} شكل${bad?`، وتجاهل ${bad} غير صالح`:''}) كمشروع جديد؟ لن يتم استبدال مشاريعك الحالية.`))return;
+  const p={id:uid(),name:d.name.slice(0,40)||'مستورد',g};P.push(p);cur=p.id;save();render();toast('تم الاستيراد')}
+ catch(err){toast('فشل الاستيراد: '+err.message)}};
 load();render();
 </script>
 </body>
