@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ميزان | مصنع خط اليد</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F5F1E8;--sf:#fff;--tx:#0B3D2E;--mt:#5A6B66;--bd:#E0E5E1;--ac:#0B3D2E;--ac2:#E6EFE9;--ac-tx:#fff;--dg:#C0392B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[data-theme="dark"]{--bg:#0A1612;--sf:#11201B;--tx:#F5F1E8;--mt:#9BAEA6;--bd:#1E3A31;--ac:#C9A961;--ac2:#1A2C25;--ac-tx:#0A1612;--dg:#E74C3C;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Cairo,"Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--bd);padding:10px 14px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+h1{font-size:18px;margin:0 0 8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select,input[type=text]{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 12px}
+button{cursor:pointer}button:hover{border-color:var(--ac)}
+.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac);font-weight:600}
+.dg{color:var(--dg)}select{flex:1;min-width:140px}
+main{max-width:900px;margin:0 auto;padding:14px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden;margin:6px 0 12px}.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .3s}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}.tabs button{white-space:nowrap}.tabs .on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.cell{aspect-ratio:1;padding:2px;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:12px;overflow:hidden}
+.cell img{width:100%;height:100%;object-fit:contain;border-radius:8px;background:#fff}
+.cell.done{border-color:var(--ac)}
+.cv.l{box-shadow:inset 5px 0 0 var(--ac)}.cv.r{box-shadow:inset -5px 0 0 var(--ac)}.cv.l.r{box-shadow:inset 5px 0 0 var(--ac),inset -5px 0 0 var(--ac)}#forms .on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:600}
+.hint{color:var(--mt);font-size:13px;margin:10px 0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:12px}.ov.show{display:flex}
+.md{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:92vh;overflow:auto}
+.md h2{margin:0 0 10px;font-size:17px}
+.cv{position:relative;width:100%;max-width:340px;aspect-ratio:1;margin:0 auto;border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:#fff;touch-action:none}
+canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.gl{position:absolute;inset-inline:0;height:0;border-top:1px dashed #9ab;pointer-events:none}.gl b{position:absolute;inset-inline-start:3px;top:-14px;font:10px sans-serif;color:#789;font-weight:400}
+.tools{margin:10px 0}.tools label{font-size:13px;color:var(--mt)}
+.pv{margin:10px 0;padding:14px;background:#fff;color:#000;border:2px solid var(--ac);border-radius:12px;min-height:150px;max-height:50vh;font-size:80px;line-height:1.5;word-break:break-word;overflow:auto;-webkit-font-smoothing:antialiased}#dlov .md{max-width:620px}#dlov label input{vertical-align:middle}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:20px;z-index:30;display:none}
+.dl{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));margin-top:16px;width:100%;padding:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>✍️ مصنع خط اليد</h1>
+  <div class="row">
+    <select id="proj" aria-label="المشروع"></select>
+    <button id="np">+ مشروع</button><button id="rn">تسمية</button><button id="dp" class="dg">حذف</button>
+  </div>
+</header>
+<main>
+  <div class="row" style="justify-content:space-between"><span id="prog" class="hint" style="margin:0"></span></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="tabs" id="forms"></div>
+  <div class="grid" id="grid"></div>
+  <p class="hint">اختر المجموعة ثم الشكل (منفصل / أول / وسط / آخر الكلمة) واضغط على الحرف لتكتبه أو ترفع صورته أو تصوّره. الربط بين الحروف يتم تلقائياً داخل الخط. لا يشترط إكمال كل شيء؛ الأشكال الناقصة تُستبدل بالشكل المنفصل.</p>
+  <button class="pri dl" id="dl">⬇ تنزيل الخط</button>
+</main>
+
+<div class="ov" id="edov"><div class="md">
+  <h2>الحرف: <span id="edch" style="font-size:26px"></span></h2>
+  <div class="cv" id="cv"><canvas id="c" width="240" height="240"></canvas>
+    <div class="gl" style="top:20%"><b>الارتفاع</b></div><div class="gl" style="top:50%"><b>منتصف</b></div><div class="gl" style="top:80%;border-color:#c55"><b>خط الأساس</b></div></div>
+  <p class="hint" id="edhint" style="margin:8px 0 0"></p>
+  <div class="tools row">
+    <label>سمك القلم <input type="range" id="sz" min="3" max="30" value="12"></label>
+    <button id="er">ممحاة</button><button id="un">تراجع</button><button id="cl">مسح</button>
+  </div>
+  <div class="tools row">
+    <button id="up">🖼 رفع صورة</button><button id="cam">📷 تصوير</button>
+    <input type="file" id="f1" accept="image/*" hidden><input type="file" id="f2" accept="image/*" capture="environment" hidden>
+  </div>
+  <div class="tools" id="thw" style="display:none"><label>حساسية الصورة <input type="range" id="th" min="60" max="210" value="140"></label></div>
+  <div class="row"><button id="pv">→ السابق</button><button id="nx">التالي ←</button><span style="flex:1"></span>
+    <button id="ca">إلغاء</button><button class="pri" id="sv">حفظ</button></div>
+</div></div>
+
+<div class="ov" id="dlov"><div class="md">
+  <h2>تنزيل الخط</h2>
+  <p class="hint" id="dlinfo" style="margin-top:0"></p>
+  <input type="text" id="fname" placeholder="اسم الخط (مثال: MyHand)" style="width:100%" maxlength="40">
+  <input type="text" id="ptxt" style="width:100%;margin-top:8px" value="بسم الله الرحمن الرحيم لا Hello ١٢٣">
+  <div class="row" style="margin-top:8px"><label class="hint" style="margin:0">حجم المعاينة <input type="range" id="psz" min="24" max="180" value="80"></label><label class="hint" style="margin:0">سماكة الخط <input type="range" id="gw" min="0" max="24" value="6"></label><label class="hint" style="margin:0">توحيد الحجم <input type="range" id="nm" min="0" max="100" value="40"></label></div>
+  <div class="row" style="margin-top:6px"><button data-p="ابتثجحخدذرزسشصضطظعغفقكلمنهوي">الحروف</button><button data-p="بسم الله الرحمن الرحيم">كلمات</button><button data-p="لا لأ لإ لآ الله">لام ألف</button><button data-p="ABC abc xyz 123">English</button><button data-p="٠١٢٣٤٥٦٧٨٩ 0123456789">أرقام</button></div>
+  <div class="pv" id="pvbox" dir="auto">…</div>
+  <div class="row"><button id="dlc">إغلاق</button><span style="flex:1"></span><button class="pri" id="dlgo">تنزيل .ttf</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+/* ===== ميزان: الدخول + Firebase + الحدود ===== */
+if(sessionStorage.getItem('meezan_logged_in')!=='true')location.replace('login.html');
+document.documentElement.setAttribute('data-theme',localStorage.getItem('meezan_theme')||'light');
+firebase.initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
+const db=firebase.firestore(),TS=()=>firebase.firestore.FieldValue.serverTimestamp();
+const COL={fonts:'userFonts',glyphs:'userFontGlyphs',lim:'settings'};
+const sessId=sessionStorage.getItem('meezan_user_id')||'',sessName=(sessionStorage.getItem('meezan_username')||'').trim().toLowerCase();let ME=null;try{const r=sessionStorage.getItem('meezan_user_data');if(r)ME=JSON.parse(r)}catch(e){}
+const UKEY=String(sessId||sessName||'anon').replace(/[\/\s]/g,'_'),UNAME=String((ME&&(ME.name||ME.username))||sessName),UCODE=String((ME&&(ME.code||ME.userCode))||localStorage.getItem('meezan_my_code')||''),UID=UKEY,HP='hf_p_'+UID,HC='hf_c_'+UID;
+const D='بتثجحخسشصضطظعغفقكلمنهيئى',R='اأإآدذرزوؤة';
+const XD='پٹټٿٻچڃڄڇڤڨکڭڠگڳڱیېێہھښځڅڼڵ',XR='ڈڊډڍڌڎڑړڕږژۆۇۈۉۋۅۍےۓںۀۃٱ';
+const LA=['لا','لأ','لإ','لآ'],AL={'لا':'ا','لأ':'أ','لإ':'إ','لآ':'آ'};
+const SD=new Set([...D+XD]),SR=new Set([...R+XR]),ARS=new Set([...D+XD+R+XR+'ء']);
+const jt=c=>SD.has(c)?'D':SR.has(c)?'R':'U';
+const GR={
+ 'عربي أساسي':{c:[...'ابتثجحخدذرزسشصضطظعغفقكلمنهويءآأإؤئةى'],ar:1},
+ 'لام ألف':{c:LA,ar:1,la:1},
+ 'عربي ممتد (فارسي/أردو/كردي/بشتو…)':{c:[...XD+XR],ar:1},
+ 'أرقام وعلامات':{c:[...'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹،؛؟٪٫٬']},
+ 'A–Z':{c:[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']},
+ 'a–z':{c:[...'abcdefghijklmnopqrstuvwxyz']},
+ '0–9':{c:[...'0123456789']},
+ 'رموز':{c:[...'.,:;!?\'"-_()[]{}/\\@#$%&*+=<>|~^`«»']}
+};
+const FM=[['','منفصل'],['i','أول الكلمة'],['m','وسط الكلمة'],['f','آخر الكلمة']];
+const fmOf=g=>g.la?[FM[0],FM[3]]:g.ar?FM:[];
+function slots(t=tab,f=form){const g=GR[t];if(!g.ar)return g.c.slice();
+ return g.c.filter(c=>g.la||!f||f==='f'&&jt(c)!=='U'||(f==='i'||f==='m')&&jt(c)==='D').map(c=>c+(f?'|'+f:''))}
+const ALL=new Set();for(const t in GR)for(const[f]of fmOf(GR[t]).length?fmOf(GR[t]):[['']])slots(t,f).forEach(k=>ALL.add(k));
+const disp=k=>{const[c,f]=k.split('|');return f==='i'?c+'\u200D':f==='m'?'\u200D'+c+'\u200D':f==='f'?'\u200D'+c:c};
+const HINT={i:'الحرف في أول الكلمة: مدّ الخط حتى يلمس الحافة اليسرى (حيث يتصل بالحرف التالي) عند خط الأساس.',f:'الحرف في آخر الكلمة: مدّ الخط حتى يلمس الحافة اليمنى (حيث يتصل بالحرف السابق) عند خط الأساس.',m:'الحرف في وسط الكلمة: مدّ الخط ليلمس الحافتين اليمنى واليسرى عند خط الأساس.'};
+const N=240,BASE=192,S=1000/N;
+let P=[],cur,tab='عربي أساسي',form='',ch=null,stack=[],eraser=false,srcImg=null,fontBuf=null;
+const cv=$('#c'),cx=cv.getContext('2d',{willReadFrequently:true});
+const uid=()=>Math.random().toString(36).slice(2,9);
+const proj=()=>P.find(p=>p.id===cur);
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2800)}
+function load(){try{P=JSON.parse(localStorage.getItem(HP)||'[]');cur=localStorage.getItem(HC)}catch(e){P=[]}
+ if(!P.length)P=[{id:uid(),name:'مشروعي الأول',g:{}}];if(!P.find(p=>p.id===cur))cur=P[0].id}
+function save(){try{localStorage.setItem(HP,JSON.stringify(P));localStorage.setItem(HC,cur)}catch(e){toast('تعذر الحفظ: المساحة ممتلئة')}}
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+/* ---------- المزامنة والحدود (Firestore) ---------- */
+const limits=async()=>{try{return(await db.collection(COL.lim).doc('limits').get()).data()||{}}catch(e){return{}}};
+const filled=p=>Object.keys(p.g).length>0;
+async function room(){const l=await limits();if(!(l.maxFonts>0))return true;
+ try{const c=(await db.collection(COL.fonts).where('ownerKey','==',UKEY).get()).size+P.filter(x=>!x.fid&&filled(x)).length;
+  if(c>=l.maxFonts){toast('وصلت للحد الأقصى لعدد الخطوط ('+l.maxFonts+')');return false}return true}
+ catch(e){toast('تعذر الاتصال: '+e.message);return false}}
+async function ensureFid(p){if(p.fid)return true;
+ try{const l=await limits(),c=(await db.collection(COL.fonts).where('ownerKey','==',UKEY).get()).size;
+  if(l.maxFonts>0&&c>=l.maxFonts){toast('وصلت للحد الأقصى لعدد الخطوط ('+l.maxFonts+')');return false}
+  const r=db.collection(COL.fonts).doc();await r.set({name:p.name,ownerKey:UKEY,userName:UNAME,userCode:UCODE,downloads:0,createdAt:Date.now(),updatedAt:Date.now()});p.fid=r.id;save();return true}
+ catch(e){toast('تعذر الاتصال: '+e.message);return false}}
+const timers={};let tt;
+function sync(p){clearTimeout(timers[p.id]);if(!p.fid&&!filled(p))return;
+ timers[p.id]=setTimeout(async()=>{try{if(!await ensureFid(p))return;
+  await db.collection(COL.fonts).doc(p.fid).set({name:p.name,updatedAt:Date.now()},{merge:true});
+  await db.collection(COL.glyphs).doc(p.fid).set({g:p.g})}catch(e){toast('تعذرت المزامنة: '+e.message)}},1200)}
+async function pushTtf(p){if(!p.fid||!fontBuf)return;const u=new Uint8Array(fontBuf);let s='';
+ for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+ await db.collection(COL.fonts).doc(p.fid).set({ttf:btoa(s),updatedAt:Date.now()},{merge:true})}
+async function takeDownload(){const p=proj();if(p.adminEdit)return true;
+ try{if(!await ensureFid(p))return false;
+  await db.collection(COL.glyphs).doc(p.fid).set({g:p.g});await pushTtf(p);
+  const l=await limits(),ref=db.collection(COL.fonts).doc(p.fid);
+  return await db.runTransaction(async t=>{const d=(await t.get(ref)).data()||{},n=d.downloads||0;
+   if(l.maxDownloads>0&&n>=l.maxDownloads){toast('وصلت للحد الأقصى لتحميل هذا الخط ('+l.maxDownloads+')');return false}
+   t.update(ref,{downloads:n+1});return true})}
+ catch(e){toast('تعذر التحقق من حد التحميل: '+e.message);return false}}
+async function boot(){const q=new URLSearchParams(location.search),id=q.get('edit');if(!id||q.get('admin')!=='1')return;
+ try{const[m,g]=await Promise.all([db.collection(COL.fonts).doc(id).get(),db.collection(COL.glyphs).doc(id).get()]);
+  if(!m.exists)return toast('الخط غير موجود');
+  let p=P.find(x=>x.fid===id&&x.adminEdit);if(!p){p={id:uid(),name:m.data().name,g:{},fid:id,adminEdit:true};P.push(p)}
+  p.g=(g.data()||{}).g||{};cur=p.id;save();render();toast('تعديل خط "'+p.name+'" للمستخدم '+(m.data().userName||''))}
+ catch(e){toast('تعذر فتح الخط: '+e.message)}}
+
+function render(){
+ $('#proj').innerHTML=P.map(p=>`<option value="${p.id}" ${p.id===cur?'selected':''}>${esc(p.name)}</option>`).join('');
+ const p=proj(),n=Object.keys(p.g).filter(k=>ALL.has(k)).length;
+ $('#prog').textContent=`تم ${n} من ${ALL.size} شكل`;$('#bar').style.width=(n/ALL.size*100)+'%';
+ const g=GR[tab],fs=fmOf(g);if(!fs.some(x=>x[0]===form))form='';
+ $('#tabs').innerHTML=Object.keys(GR).map(k=>`<button data-t="${esc(k)}" class="${k===tab?'on':''}">${esc(k)}</button>`).join('');
+ $('#forms').style.display=fs.length?'flex':'none';
+ $('#forms').innerHTML=fs.map(([f,l])=>`<button data-f="${f}" class="${f===form?'on':''}">${l}</button>`).join('');
+ $('#grid').innerHTML=slots().map(k=>`<button class="cell ${p.g[k]?'done':''}" data-c="${esc(k)}">${p.g[k]?`<img src="${p.g[k]}" alt="">`:esc(disp(k))}</button>`).join('');
+}
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(t){tab=t;form='';render()}};
+$('#forms').onclick=e=>{const f=e.target.dataset.f;if(f!==undefined){form=f;render()}};
+$('#grid').onclick=e=>{const b=e.target.closest('.cell');if(b)openEd(b.dataset.c)};
+$('#proj').onchange=e=>{cur=e.target.value;save();render()};
+$('#np').onclick=async()=>{const n=prompt('اسم المشروع الجديد');if(!n)return;if(!await room())return;const p={id:uid(),name:n.trim(),g:{}};P.push(p);cur=p.id;save();render()};
+$('#rn').onclick=()=>{const n=prompt('الاسم الجديد',proj().name);if(!n)return;proj().name=n.trim();save();render();sync(proj())};
+$('#dp').onclick=()=>{if(!confirm('حذف المشروع "'+proj().name+'" من جهازك؟'))return;P=P.filter(p=>p.id!==cur);load();save();render()};
+
+/* ---------- editor ---------- */
+function blank(){cx.fillStyle='#fff';cx.fillRect(0,0,N,N)}
+function snap(){stack.push(cx.getImageData(0,0,N,N));if(stack.length>25)stack.shift()}
+function openEd(k){
+ ch=k;const f=k.split('|')[1]||'';$('#edch').textContent=disp(k);$('#edhint').textContent=HINT[f]||'';
+ $('#cv').classList.toggle('l',f==='i'||f==='m');$('#cv').classList.toggle('r',f==='f'||f==='m');
+ srcImg=null;$('#thw').style.display='none';stack=[];blank();
+ const u=proj().g[k];if(u){const i=new Image();i.onload=()=>cx.drawImage(i,0,0,N,N);i.src=u}
+ $('#edov').classList.add('show');
+}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*N/r.width,(e.clientY-r.top)*N/r.height]}
+let drawing=false,last;
+cv.onpointerdown=e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);snap();drawing=true;last=pos(e);dot(last)};
+cv.onpointermove=e=>{if(!drawing)return;const p=pos(e);cx.strokeStyle=eraser?'#fff':'#000';cx.lineWidth=+$('#sz').value*(eraser?1.8:1);cx.lineCap=cx.lineJoin='round';cx.beginPath();cx.moveTo(...last);cx.lineTo(...p);cx.stroke();last=p};
+cv.onpointerup=cv.onpointercancel=()=>drawing=false;
+function dot(p){cx.fillStyle=eraser?'#fff':'#000';cx.beginPath();cx.arc(p[0],p[1],$('#sz').value*(eraser?.9:.5),0,7);cx.fill()}
+$('#er').onclick=e=>{eraser=!eraser;e.target.style.background=eraser?'var(--ac2)':''};
+$('#un').onclick=()=>{const s=stack.pop();if(s)cx.putImageData(s,0,0)};
+$('#cl').onclick=()=>{snap();blank()};
+$('#up').onclick=()=>$('#f1').click();$('#cam').onclick=()=>$('#f2').click();
+[$('#f1'),$('#f2')].forEach(f=>f.onchange=()=>{const file=f.files[0];if(!file)return;const i=new Image();i.onload=()=>{srcImg=i;$('#thw').style.display='block';snap();renderImg()};i.src=URL.createObjectURL(file);f.value=''});
+function renderImg(){
+ blank();const m=14,r=Math.min((N-2*m)/srcImg.width,(N-2*m)/srcImg.height),w=srcImg.width*r,h=srcImg.height*r;
+ cx.drawImage(srcImg,(N-w)/2,(N-h)/2,w,h);
+ const d=cx.getImageData(0,0,N,N),a=d.data,t=+$('#th').value;
+ for(let i=0;i<a.length;i+=4){const v=(a[i]*.3+a[i+1]*.59+a[i+2]*.11)<t?0:255;a[i]=a[i+1]=a[i+2]=v;a[i+3]=255}
+ cx.putImageData(d,0,0);
+}
+$('#th').oninput=()=>srcImg&&renderImg();
+function ink(){const a=cx.getImageData(0,0,N,N).data;let n=0;for(let i=0;i<a.length;i+=4)if(a[i]<128)n++;return n}
+function commit(){const p=proj();if(ink()<20)delete p.g[ch];else p.g[ch]=cv.toDataURL('image/png');save();render();sync(p)}
+function step(d){const all=slots(),i=all.indexOf(ch)+d;if(i<0||i>=all.length)return toast('نهاية هذه القائمة');commit();openEd(all[i])}
+$('#sv').onclick=()=>{commit();$('#edov').classList.remove('show');toast('تم الحفظ')};
+$('#ca').onclick=()=>$('#edov').classList.remove('show');
+$('#nx').onclick=()=>step(1);$('#pv').onclick=()=>step(-1);
+
+/* ---------- font building ---------- */
+let GROW=6,TH=14,NORM=40;const BEAR={'':[50,50],i:[-6,50],m:[-6,-6],f:[50,-6]};
+function loadImg(u){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u})}
+async function trace(u){
+ const M=N*2,i=await loadImg(u),k=document.createElement('canvas');k.width=k.height=M;const x=k.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,M,M);x.imageSmoothingQuality='high';x.drawImage(i,0,0,M,M);
+ const a=x.getImageData(0,0,M,M).data,on=(q,y)=>a[(y*M+q)*4]<128,act=new Map(),rs=[];let minX=M,maxX=-1;
+ for(let y=0;y<=M;y++){const c=new Set();
+  if(y<M){let s=-1;for(let xx=0;xx<=M;xx++){const o=xx<M&&on(xx,y);if(o&&s<0)s=xx;if(!o&&s>=0){c.add(s+','+xx);minX=Math.min(minX,s);maxX=Math.max(maxX,xx);s=-1}}}
+  for(const[k2,y0]of act)if(!c.has(k2)){const[s,e]=k2.split(',').map(Number);rs.push([s/2,e/2,y0/2,y/2]);act.delete(k2)}
+  for(const k2 of c)if(!act.has(k2))act.set(k2,y)}
+ if(!rs.length)return null;
+ const lab=new Uint8Array(M*M),st=new Int32Array(M*M);let bn=0,bh=0;
+ for(let y0=0;y0<M;y0++)for(let x0=0;x0<M;x0++){const i0=y0*M+x0;if(lab[i0]||!on(x0,y0))continue;let sp=0,n=0,lo=y0,hi=y0;st[sp++]=i0;lab[i0]=1;
+  while(sp){const p=st[--sp],py=(p/M)|0,qx=p-py*M;n++;if(py<lo)lo=py;if(py>hi)hi=py;
+   if(qx>0&&!lab[p-1]&&on(qx-1,py)){lab[p-1]=1;st[sp++]=p-1}
+   if(qx<M-1&&!lab[p+1]&&on(qx+1,py)){lab[p+1]=1;st[sp++]=p+1}
+   if(py>0&&!lab[p-M]&&on(qx,py-1)){lab[p-M]=1;st[sp++]=p-M}
+   if(py<M-1&&!lab[p+M]&&on(qx,py+1)){lab[p+M]=1;st[sp++]=p+M}}
+  if(n>bn){bn=n;bh=(hi-lo+1)/2}}
+ const col=(y,x0,x1)=>{for(let q=x0;q<x1;q++)if(on(q,y))return 1;return 0};
+ const band=(x0,x1)=>{x0=Math.max(0,x0);x1=Math.min(M,x1);let best=null;
+  for(let y=0;y<M;){if(!col(y,x0,x1)){y++;continue}let y1=y;while(y1<M&&col(y1,x0,x1))y1++;const c=(y+y1)/4;if(!best||Math.abs(c-BASE)<Math.abs(best.c-BASE))best={y0:y/2,y1:y1/2,c};y=y1}
+  return best&&Math.abs(best.c-BASE)<=26&&best.y1-best.y0<=40?best:null};
+ return{rs,minX:minX/2,maxX:maxX/2,L:band(minX,minX+8),R:band(maxX-8,maxX),bh};
+}
+function mkGlyph(name,cp,t,f){
+ const k=t.k||1,[lb,rb]=BEAR[f],path=new opentype.Path(),X=x=>t.minX+(x-t.minX)*k,Y=y=>BASE-(BASE-y)*k,mx=X(t.maxX),gr=GROW+Math.max(0,(1-k)*TH*S/2);
+ const px=x=>Math.round((x-t.minX)*S+lb),
+ rc=(xa,xb,ya,yb)=>{const x1=px(xa)-gr,x2=px(xb)+gr,tp=Math.round((BASE-ya)*S)+1+gr,bt=Math.round((BASE-yb)*S)-1-gr;path.moveTo(x1,bt);path.lineTo(x2,bt);path.lineTo(x2,tp);path.lineTo(x1,tp);path.close()};
+ for(const[s,e,y0,y1]of t.rs)rc(X(s),X(e),Y(y0),Y(y1));
+ const bs=BASE-TH/2,be=BASE+TH/2;
+ /* وصلة تتبع سمك القلم الأصلي: تمتد من أقرب خط مرسوم عند خط الأساس إلى الحافة فقط، بدون أي شريط إضافي */
+ const near=sd=>{let b=null;for(const[s,e,y0,y1]of t.rs){if(Y(y1)<bs-4||Y(y0)>be+4)continue;const v=sd<0?X(s):X(e);if(b===null||(sd<0?v<b[0]:v>b[0]))b=[v,Y(y0),Y(y1)]}return b};
+ const LIM=26;
+ if(f==='i'||f==='m'){const B=t.L;
+  if(B)rc(t.minX,t.minX+6,Y(B.y0),Y(B.y1));
+  else{const h=near(-1);if(h&&h[0]-t.minX<=LIM)rc(t.minX,h[0]+3,h[1],h[2])}}
+ if(f==='f'||f==='m'){const B=t.R;
+  if(B)rc(mx-6,mx,Y(B.y0),Y(B.y1));
+  else{const h=near(1);if(h&&mx-h[0]<=LIM)rc(h[0]-3,mx,h[1],h[2])}}
+ return new opentype.Glyph({name,unicode:cp,advanceWidth:Math.max(50,Math.round((mx-t.minX)*S+lb+rb)),path});
+}
+const hex=c=>[...c].map(x=>x.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')).join('_');
+const SUF={i:'init',m:'medi',f:'fina'};
+const AT='اأإآٱلكطظ',AD='جحخچعغقصضيىرزژوؤ';
+function cls(k){const c=k.split('|')[0];if(LA.includes(c))return'LA';
+ if(ARS.has(c))return AT.includes(c)?'AT':AD.includes(c)?'AD':'AS';
+ if(/^[A-Z0-9]$/.test(c))return'U';if('bdfhklt'.includes(c))return'la';if('gjpqy'.includes(c))return'ld';if(/^[a-z]$/.test(c))return'lx';
+ if('٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.includes(c))return'ad';return null}
+async function buildFont(name){
+ const g=proj().g,T={};for(const[k,u]of Object.entries(g))T[k]=await trace(u);
+ const ths=Object.values(T).filter(Boolean).flatMap(t=>[t.L,t.R]).filter(Boolean).map(b=>b.y1-b.y0).filter(v=>v<=30).sort((a,b)=>a-b);
+ TH=ths.length?Math.min(28,Math.max(6,ths[ths.length>>1])):14;
+ const cl={};for(const k of Object.keys(T)){if(!T[k])continue;const c=cls(k);if(c)(cl[c]=cl[c]||[]).push(k)}
+ for(const c in cl){if(cl[c].length<3)continue;const hs=cl[c].map(k=>T[k].bh).sort((a,b)=>a-b),med=hs[hs.length>>1];
+  for(const k of cl[c]){const t=T[k];t.k=Math.min(1.33,Math.max(.75,1+(med/t.bh-1)*NORM/100))}}
+ const gl=[new opentype.Glyph({name:'.notdef',unicode:0,advanceWidth:500,path:new opentype.Path()}),
+  new opentype.Glyph({name:'space',unicode:32,advanceWidth:300,path:new opentype.Path()})],idx={},sub={i:[],m:[],f:[]},lig={i:[],m:[]};
+ const add=(nm,cp,t,f)=>{idx[nm]=gl.length;gl.push(mkGlyph(nm,cp,t,f))};
+ const nm=(c,f)=>'u'+hex(c)+(f?'.'+SUF[f]:'');
+ for(const k of Object.keys(g)){if(k.includes('|')||LA.includes(k)||ARS.has(k)||!T[k])continue;add(nm(k),k.codePointAt(0),T[k],'')}
+ for(const c of ARS){
+  const base=T[c]||T[c+'|f']||T[c+'|i']||T[c+'|m'];if(!base)continue;
+  add(nm(c),c.codePointAt(0),base,'');const j=jt(c);
+  for(const f of j==='D'?['i','m','f']:j==='R'?['f']:[]){const tt=T[c+'|'+f];add(nm(c,f),undefined,tt||base,f);sub[f].push([idx[nm(c)],idx[nm(c,f)]])}
+ }
+ for(const L of LA){
+  const t=T[L]||T[L+'|f'],t2=T[L+'|f']||T[L],a=nm(AL[L],'f'),li=nm('ل','i'),lm=nm('ل','m');
+  if(!t||idx[a]==null||idx[li]==null)continue;
+  add(nm(L),undefined,t,'');add(nm(L,'f'),undefined,t2,'f');
+  lig.i.push({first:idx[li],comp:idx[a],lig:idx[nm(L)]});lig.m.push({first:idx[lm],comp:idx[a],lig:idx[nm(L,'f')]});
+ }
+ const font=new opentype.Font({familyName:name,styleName:'Regular',unitsPerEm:1000,ascender:800,descender:-200,glyphs:gl});
+ return{font,count:gl.length-2,gsub:makeGsub(sub,[...lig.i,...lig.m])};
+}
+/* GSUB: fina/init/medi (single) + rlig (lam-alef) */
+function makeGsub(sub,L){
+ const u16=a=>a.flatMap(v=>[(v>>8)&255,v&255]),tg=s=>[...s].map(c=>c.charCodeAt(0));
+ const cov=gs=>u16([1,gs.length,...gs]);
+ const single=ps=>{ps=ps.slice().sort((a,b)=>a[0]-b[0]);return[...u16([2,6+2*ps.length,ps.length,...ps.map(p=>p[1])]),...cov(ps.map(p=>p[0]))]};
+ const ligSub=()=>{const fs=[...new Set(L.map(l=>l.first))].sort((a,b)=>a-b);
+  const sets=fs.map(f=>{const ls=L.filter(l=>l.first===f).map(l=>u16([l.lig,2,l.comp]));let o=2+2*ls.length;const os=ls.map(b=>{const r=o;o+=b.length;return r});return[...u16([ls.length,...os]),...ls.flat()]});
+  const cb=cov(fs);let o=6+2*sets.length+cb.length;const so=sets.map(b=>{const r=o;o+=b.length;return r});
+  return[...u16([1,6+2*sets.length,sets.length,...so]),...cb,...sets.flat()]};
+ const lk=[[1,single(sub.f)],[1,single(sub.i)],[1,single(sub.m)],[4,ligSub()]].map(([t,s])=>[...u16([t,0,1,8]),...s]);
+ let o=2+2*lk.length;const lo=lk.map(b=>{const r=o;o+=b.length;return r});
+ const lookups=[...u16([lk.length,...lo]),...lk.flat()];
+ const feats=['fina','init','medi','rlig'];
+ const fl=[...u16([4]),...feats.flatMap((f,i)=>[...tg(f),...u16([26+6*i])]),...feats.flatMap((f,i)=>u16([0,1,i]))];
+ const sl=[...u16([2]),...tg('DFLT'),...u16([14]),...tg('arab'),...u16([14]),...u16([4,0]),...u16([0,0xFFFF,4,0,1,2,3])];
+ const so=10,fo=so+sl.length,lo2=fo+fl.length;
+ return new Uint8Array([...u16([1,0,so,fo,lo2]),...sl,...fl,...lookups]);
+}
+const sum=(a,o,l)=>{let s=0;for(let i=0;i<l;i+=4)s=(s+(((a[o+i]<<24)|(a[o+i+1]<<16)|(a[o+i+2]<<8)|a[o+i+3])>>>0))>>>0;return s};
+function addTable(buf,tag,data){
+ const dv=new DataView(buf),n=dv.getUint16(4),tabs=[];
+ for(let i=0;i<n;i++){const o=12+16*i,t=String.fromCharCode(...new Uint8Array(buf,o,4));if(t!==tag)tabs.push([t,new Uint8Array(buf.slice(dv.getUint32(o+8),dv.getUint32(o+8)+dv.getUint32(o+12)))])}
+ tabs.push([tag,data]);tabs.sort((a,b)=>a[0]<b[0]?-1:1);
+ const m=tabs.length,pad=l=>(l+3)&~3;let off=12+16*m;const total=tabs.reduce((s,t)=>s+pad(t[1].length),off);
+ const out=new Uint8Array(total),ov=new DataView(out.buffer);out.set(new Uint8Array(buf,0,4));
+ let e=0;while((2<<e)<=m)e++;const sr=(1<<e)*16;ov.setUint16(4,m);ov.setUint16(6,sr);ov.setUint16(8,e);ov.setUint16(10,m*16-sr);
+ let ho=0;
+ tabs.forEach((t,i)=>{const o=12+16*i;[...t[0]].forEach((c,j)=>out[o+j]=c.charCodeAt(0));
+  if(t[0]==='head')t[1].fill(0,8,12);out.set(t[1],off);if(t[0]==='head')ho=off;
+  ov.setUint32(o+4,sum(out,off,pad(t[1].length)));ov.setUint32(o+8,off);ov.setUint32(o+12,t[1].length);off+=pad(t[1].length)});
+ ov.setUint32(ho+8,(0xB1B0AFBA-sum(out,0,total))>>>0);
+ return out.buffer;
+}
+async function refresh(){
+ const name=($('#fname').value.trim()||'MyHandwriting').replace(/[^\w\- ]/g,'')||'MyHandwriting';
+ try{
+  const{font,count,gsub}=await buildFont(name);fontBuf=addTable(font.toArrayBuffer(),'GSUB',gsub);
+  {const p=proj();clearTimeout(tt);tt=setTimeout(()=>pushTtf(p).catch(()=>{}),3000)}
+  $('#dlinfo').textContent=`يحتوي الخط على ${count} شكل من مشروع "${proj().name}" مع الربط التلقائي للحروف العربية ولام-ألف.`;
+  const ff=new FontFace('hfpv'+Date.now(),fontBuf.slice(0));await ff.load();document.fonts.add(ff);
+  $('#pvbox').style.fontFamily=`"${ff.family}",sans-serif`;$('#pvbox').textContent=$('#ptxt').value;
+ }catch(e){$('#dlinfo').textContent='تعذر بناء الخط: '+e.message}
+}
+$('#dl').onclick=async()=>{
+ if(!Object.keys(proj().g).length)return toast('اكتب شكلاً واحداً على الأقل أولاً');
+ $('#fname').value=$('#fname').value||proj().name.replace(/[^\w\- ]/g,'').trim();
+ $('#dlov').classList.add('show');$('#dlinfo').textContent='جارٍ بناء الخط…';await refresh();
+};
+let tm;$('#fname').oninput=()=>{clearTimeout(tm);tm=setTimeout(refresh,400)};
+$('#ptxt').oninput=()=>{$('#pvbox').textContent=$('#ptxt').value};
+$('#dlc').onclick=()=>$('#dlov').classList.remove('show');
+$('#dlgo').onclick=async()=>{
+ const name=($('#fname').value.trim()||'MyHandwriting').replace(/[^\w\- ]/g,'')||'MyHandwriting';
+ await refresh();
+ if(!await takeDownload())return;
+ try{const blob=new Blob([fontBuf],{type:'font/ttf'}),url=URL.createObjectURL(blob),l=document.createElement('a');
+  l.href=url;l.download=name.replace(/\s+/g,'-')+'.ttf';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('تم التنزيل ✓')}
+ catch(e){toast('تعذر التنزيل: '+e.message)}
+};
+$('#nm').oninput=()=>{NORM=+$('#nm').value;clearTimeout(tm);tm=setTimeout(refresh,300)};
+$('#psz').oninput=()=>$('#pvbox').style.fontSize=$('#psz').value+'px';
+$('#gw').oninput=()=>{GROW=+$('#gw').value;clearTimeout(tm);tm=setTimeout(refresh,300)};
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#ptxt').value=b.dataset.p;$('#pvbox').textContent=b.dataset.p});
+load();render();boot();
+</script>
+</body>
+</html>

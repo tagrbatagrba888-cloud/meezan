@@ -236,6 +236,18 @@
     <h3>لم تنشئ أي تكليف بعد</h3>
     <p>اضغط «إنشاء تكليف» واكتب تكليفك بخط اليد. لا يراه غيرك.</p>
   </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:28px 0 8px">
+    <h2 style="font-size:18px;font-weight:800;margin:0"><i class="fas fa-font"></i> خطوطي <span class="count" id="fCount">0</span></h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="khat.html"><i class="fas fa-pen-nib"></i> أنشئ خطاً بيدك</a>
+      <button class="btn btn-ghost" id="fUp"><i class="fas fa-upload"></i> رفع خط</button>
+      <input type="file" id="fFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+    </div>
+  </div>
+  <p class="sub" id="fLim" style="margin:0 0 10px"></p>
+  <div id="fList" style="display:grid;gap:10px"></div>
+  <p class="sub" id="fEmpty">لا توجد خطوط بعد. الخط الذي تنشئه أو ترفعه يُحفظ تلقائياً ويظهر هنا وعند الأدمن.</p>
 </main>
 
 <!-- نافذة الاسم والكود -->
@@ -272,6 +284,9 @@
     <div class="fgrid" id="mFontAr"></div>
     <div class="fgroup">English handwriting</div>
     <div class="fgrid" id="mFontEn"></div>
+    <div class="fgroup">خطوطي (التي أنشأتها أو رفعتها)</div>
+    <div class="fgrid" id="mFontMine"></div>
+    <p class="sub" id="mFontMineEmpty" style="margin:6px 0 0">لا توجد لديك خطوط بعد. أنشئ خطاً أو ارفع خطاً من قسم «خطوطي».</p>
     <label for="mPaper">نوع الورقة</label>
     <select class="field" id="mPaper"></select>
     <label>لون الكتابة</label>
@@ -308,7 +323,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, getDocs, query, where, setDoc, increment, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, getDocs, query, where, setDoc, increment, addDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -357,9 +372,11 @@ function toast(text, type='success'){
 const loadedFonts = {};
 const registeredCustom = new Set();
 const customReady = {};
+const ufReady = {};
 function famOf(key){
   if (!key) return 'Cairo';
   if (key.startsWith('custom:')) return 'cf_' + key.slice(7);
+  if (key.startsWith('uf:')) return 'uf_' + key.slice(3);
   return key;
 }
 function ensureFont(key){
@@ -368,6 +385,11 @@ function ensureFont(key){
     const id = key.slice(7);
     if (customReady[id]) return customReady[id];
     return new Promise((res) => { let n = 0; const iv = setInterval(() => { if (customReady[id] || ++n > 30) { clearInterval(iv); res(customReady[id]); } }, 100); });
+  }
+  if (key.startsWith('uf:')) {
+    const id = key.slice(3);
+    if (ufReady[id]) return ufReady[id];
+    return new Promise((res) => { let n = 0; const iv = setInterval(() => { if (ufReady[id] || ++n > 30) { clearInterval(iv); res(ufReady[id]); } }, 100); });
   }
   if (loadedFonts[key]) return loadedFonts[key];
   loadedFonts[key] = new Promise((resolve) => {
@@ -989,7 +1011,8 @@ const MY_FONTS = {
 };
 const MY_PAPERS = [['white','ورقة بيضاء'],['lined','ورقة مسطرة'],['notebook','ورقة كراسة'],['foolscap','فلوس كاب'],['graph','كراسة مربعات'],['yellow','ورقة صفراء'],['aged','ورقة قديمة']];
 const MY_INKS = [['أزرق','#1b3a9c','ball'],['أسود','#17171c','ball'],['أحمر','#c4161c','ball'],['أخضر','#1b7a3a','ball'],['بنفسجي','#5b2a8c','ball'],['رصاص','#55555a','pencil']];
-const myFontName = (k) => { const f = [...MY_FONTS.ar, ...MY_FONTS.en].find(x => x[1] === k); return f ? f[0] : k; };
+const myFontName = (k) => { if (String(k).startsWith('uf:')) { const u = myFonts.find(x => x.id === k.slice(3)); return u ? u.name : 'خط محذوف'; }
+  const f = [...MY_FONTS.ar, ...MY_FONTS.en].find(x => x[1] === k); return f ? f[0] : k; };
 const localISO = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; };
 let myAssignments = [];
 let ed = null;
@@ -1102,7 +1125,7 @@ function checkMine(d, needAll){
   if (needAll && !d.content.trim()) { toast('اكتب محتوى التكليف أولاً', 'error'); $('mContent').focus(); return false; }
   return true;
 }
-$('myNewBtn').onclick = () => openMine(null);
+$('myNewBtn').onclick = () => { const m = LIM.maxAssignments | 0; if (m > 0 && myAssignments.length >= m) return toast(`وصلت للحد الأقصى لعدد التكليفات (${m})`, 'error'); openMine(null); };
 $('mCancel').onclick = () => $('mOverlay').classList.add('hidden');
 $('mOverlay').addEventListener('click', (e) => { if (e.target === $('mOverlay')) $('mOverlay').classList.add('hidden'); });
 $('mPreview').onclick = () => {
@@ -1120,12 +1143,100 @@ $('mSave').onclick = async () => {
   const btn = $('mSave'); btn.disabled = true;
   try {
     if (d.id) await updateDoc(doc(db, 'userAssignments', d.id), p);
-    else await addDoc(collection(db, 'userAssignments'), { ...p, createdAt: Date.now() });
+    else {
+      const mx = LIM.maxAssignments | 0;
+      if (mx > 0 && (await getDocs(query(collection(db, 'userAssignments'), where('ownerKey', '==', userKey)))).size >= mx) { toast(`وصلت للحد الأقصى لعدد التكليفات (${mx})`, 'error'); btn.disabled = false; return; }
+      await addDoc(collection(db, 'userAssignments'), { ...p, createdAt: Date.now() });
+    }
     try { localStorage.setItem('meezan_my_name', d.ownerName); localStorage.setItem('meezan_my_code', d.ownerCode); } catch (e) {}
     $('mOverlay').classList.add('hidden'); toast(d.id ? 'تم حفظ التعديلات' : 'تم إنشاء التكليف');
   } catch (err) { toast('تعذر الحفظ: ' + err.message, 'error'); }
   btn.disabled = false;
 };
+/* ============================================================
+   خطوطي: ما أنشأه المستخدم من مصنع الخط أو رفعه — يُحفظ تلقائياً ويظهر عند الأدمن
+   الحدود (من الأدمن): settings/limits → maxFonts / maxDownloads / maxAssignments
+   ============================================================ */
+let myFonts = [], LIM = {};
+const fOwner = () => ({ ownerKey: userKey, userName: String((me && (me.name || me.username)) || sessName), userCode: String((me && (me.code || me.userCode)) || localStorage.getItem('meezan_my_code') || '') });
+const freshLim = async () => { try { return (await getDoc(doc(db, 'settings', 'limits'))).data() || {}; } catch (e) { return LIM; } };
+const toB64 = (buf) => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return btoa(s); };
+const fromB64 = (b) => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+const fontsCount = async () => (await getDocs(query(collection(db, 'userFonts'), where('ownerKey', '==', userKey)))).size;
+onSnapshot(doc(db, 'settings', 'limits'), (s) => { LIM = s.data() || {}; renderFonts(); }, () => {});
+onSnapshot(query(collection(db, 'userFonts'), where('ownerKey', '==', userKey)), (snap) => {
+  myFonts = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  myFonts.forEach(f => {
+    if (!f.ttf || ufReady[f.id]) return;
+    ufReady[f.id] = new FontFace('uf_' + f.id, fromB64(f.ttf).buffer).load().then(ff => { document.fonts.add(ff); renderFonts(); }).catch(() => {});
+  });
+  renderFonts(); renderMine();
+}, () => {});
+function el(tag, css, text) { const e = document.createElement(tag); if (css) e.style.cssText = css; if (text != null) e.textContent = text; return e; }
+function renderFonts(){
+  const box = $('fList'); if (!box) return;
+  $('fCount').textContent = myFonts.length; $('fEmpty').classList.toggle('hidden', myFonts.length > 0); box.innerHTML = '';
+  const mf = LIM.maxFonts | 0, md = LIM.maxDownloads | 0;
+  $('fLim').textContent = (mf > 0 ? `الحد الأقصى للخطوط: ${myFonts.length} / ${mf}` : '') + (mf > 0 && md > 0 ? ' · ' : '') + (md > 0 ? `الحد الأقصى لتحميل الخط الواحد: ${md} مرات` : '');
+  myFonts.forEach(f => {
+    const c = el('div', 'background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:14px');
+    const top = el('div', 'display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center');
+    top.appendChild(el('b', 'font-size:15px', f.name));
+    top.appendChild(el('span', 'font-size:12px;color:var(--text-sub);font-weight:700', (f.uploaded ? 'مرفوع' : 'من مصنع الخط') + ' · تحميلات: ' + (f.downloads || 0) + (md > 0 ? ' / ' + md : '')));
+    const pv = el('div', "margin:10px 0;padding:10px;border-radius:12px;background:#fff;color:#000;min-height:56px;font-size:30px;line-height:1.5;overflow:auto;font-family:'uf_" + f.id + "','Cairo',sans-serif", f.ttf ? 'بسم الله الرحمن الرحيم Hello' : 'لم يُبنَ ملف الخط بعد — افتح مصنع الخط واضغط «تنزيل الخط» مرة.');
+    pv.dir = 'auto'; if (!f.ttf) pv.style.fontSize = '13px';
+    const inp = document.createElement('input'); inp.className = 'field'; inp.placeholder = 'اكتب أي كلمة لمعاينتها'; inp.value = '';
+    inp.oninput = () => { pv.textContent = inp.value || 'بسم الله الرحمن الرحيم Hello'; };
+    const row = el('div', 'display:flex;gap:8px;flex-wrap:wrap;margin-top:10px');
+    const dl = document.createElement('button'); dl.className = 'btn btn-primary'; dl.innerHTML = '<i class="fas fa-download"></i> تحميل الخط'; dl.onclick = () => downloadFont(f, dl);
+    row.appendChild(dl);
+    c.append(top, pv, inp, row); box.appendChild(c);
+  });
+  renderMineFonts();
+}
+async function downloadFont(f, btn){
+  if (!f.ttf) return toast('لم يُبنَ ملف هذا الخط بعد', 'error');
+  btn.disabled = true;
+  try {
+    const ref = doc(db, 'userFonts', f.id), cur = (await getDoc(ref)).data() || {}, l = await freshLim(), n = cur.downloads || 0;
+    if ((l.maxDownloads | 0) > 0 && n >= (l.maxDownloads | 0)) { toast(`وصلت للحد الأقصى لتحميل هذا الخط (${l.maxDownloads})`, 'error'); btn.disabled = false; return; }
+    await updateDoc(ref, { downloads: increment(1) });
+    const u = URL.createObjectURL(new Blob([fromB64(cur.ttf || f.ttf)], { type: 'font/' + (f.ext || 'ttf') })), a = document.createElement('a');
+    a.href = u; a.download = String(f.name || 'font').replace(/\s+/g, '-') + '.' + (f.ext || 'ttf'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+    toast('تم تحميل الخط');
+  } catch (err) { toast('تعذر التحميل: ' + err.message, 'error'); }
+  btn.disabled = false;
+}
+$('fUp').onclick = () => $('fFile').click();
+$('fFile').onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['ttf', 'otf', 'woff', 'woff2'].includes(ext)) return toast('الصيغة غير مدعومة (ttf / otf / woff / woff2)', 'error');
+  if (file.size > 700 * 1024) return toast('حجم الخط كبير، الحد الأقصى 700 ك.ب', 'error');
+  try {
+    const l = await freshLim(), mx = l.maxFonts | 0;
+    if (mx > 0 && (await fontsCount()) >= mx) return toast(`وصلت للحد الأقصى لعدد الخطوط (${mx})`, 'error');
+    const buf = await file.arrayBuffer();
+    try { await new FontFace('chk', buf.slice(0)).load(); } catch (_) { return toast('ملف الخط غير صالح', 'error'); }
+    const name = (prompt('اسم الخط', file.name.replace(/\.[^.]+$/, '')) || '').trim(); if (!name) return;
+    await addDoc(collection(db, 'userFonts'), { ...fOwner(), name: name.slice(0, 40), uploaded: true, ext, ttf: toB64(buf), downloads: 0, createdAt: Date.now(), updatedAt: Date.now() });
+    toast('تم رفع الخط وحفظه');
+  } catch (err) { toast('تعذر الرفع: ' + err.message, 'error'); }
+};
+function renderMineFonts(){
+  const g = $('mFontMine'); if (!g) return;
+  g.innerHTML = ''; $('mFontMineEmpty').classList.toggle('hidden', myFonts.length > 0);
+  myFonts.filter(f => f.ttf).forEach(f => {
+    const key = 'uf:' + f.id;
+    const b = document.createElement('div'); b.className = 'fopt' + (ed && ed.font === key ? ' sel' : ''); b.setAttribute('role', 'button'); b.tabIndex = 0;
+    const sm = document.createElement('span'); sm.className = 'fs'; sm.style.fontFamily = `'uf_${f.id}','Cairo',cursive`; sm.dir = 'auto'; sm.textContent = 'أبجد Abc';
+    const nm = document.createElement('span'); nm.className = 'fn'; nm.textContent = f.name;
+    b.append(sm, nm); b.onclick = () => { ed.font = key; renderEdFonts(); }; g.appendChild(b);
+  });
+}
+const _red = renderEdFonts; renderEdFonts = function(){ _red(); renderMineFonts(); };
+renderFonts();
+
 renderMine();
 
 renderList();
