@@ -44,6 +44,8 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 .dl{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));margin-top:16px;width:100%;padding:12px}
 .lims{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:7px 12px;border-radius:12px;background:var(--ac2);color:var(--ac);border:2px solid var(--bd)}.chip.full{color:var(--dg);border-color:var(--dg)}
 .md h2{font-weight:900}#dgov{z-index:40}
+#gd{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
+.gdt{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700}.gdt input{accent-color:var(--ac);width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -66,11 +68,13 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 
 <div class="ov" id="edov"><div class="md">
   <h2>الحرف: <span id="edch" style="font-size:26px"></span></h2>
-  <div class="cv" id="cv"><canvas id="c" width="240" height="240"></canvas>
+  <div class="cv" id="cv"><canvas id="c" width="240" height="240"></canvas><canvas id="gd" width="240" height="240" aria-hidden="true"></canvas>
     <div class="gl" style="top:20%"><b>الارتفاع</b></div><div class="gl" style="top:50%"><b>منتصف</b></div><div class="gl" style="top:80%;border-color:#c55"><b>خط الأساس</b></div></div>
   <p class="hint" id="edhint" style="margin:8px 0 0"></p>
+  <p class="hint" style="margin:2px 0 0">الشكل الأخضر الباهت يوضّح المكان والحجم الصحيحين للحرف؛ اكتب فوقه (لا يظهر في الخط النهائي). الشريط على الجانب يوضح مكان اللمس للاتصال بالحرف المجاور.</p>
   <div class="tools row">
     <label>سمك القلم <input type="range" id="sz" min="3" max="30" value="12"></label>
+    <label class="gdt"><input type="checkbox" id="gdon" checked> توضيح شفاف</label>
     <button id="er">ممحاة</button><button id="un">تراجع</button><button id="rd">إعادة</button><button id="cl">مسح</button>
   </div>
   <div class="tools row">
@@ -132,11 +136,12 @@ const ALL=new Set();for(const t in GR)for(const[f]of fmOf(GR[t]).length?fmOf(GR[
 const disp=k=>{const[c,f]=k.split('|');return f==='i'?c+'\u200D':f==='m'?'\u200D'+c+'\u200D':f==='f'?'\u200D'+c:c};
 const HINT={i:'الحرف في أول الكلمة: مدّ الخط حتى يلمس الحافة اليسرى (حيث يتصل بالحرف التالي) عند خط الأساس.',f:'الحرف في آخر الكلمة: مدّ الخط حتى يلمس الحافة اليمنى (حيث يتصل بالحرف السابق) عند خط الأساس.',m:'الحرف في وسط الكلمة: مدّ الخط ليلمس الحافتين اليمنى واليسرى عند خط الأساس.'};
 const N=240,BASE=192,S=1000/N;
+let LM={},FL=[];
 let P=[],cur,tab='عربي أساسي',form='',ch=null,stack=[],eraser=false,srcImg=null,fontBuf=null;
 const cv=$('#c'),cx=cv.getContext('2d',{willReadFrequently:true});
 const uid=()=>Math.random().toString(36).slice(2,9);
 const proj=()=>P.find(p=>p.id===cur);
-function toast(m,type){const t=$('#toast'),er=type?type==='error':/^(تعذر|وصلت|اكتب|خطأ|لا يوجد|الخط غير)/.test(m);
+function toast(m,type){const t=$('#toast'),er=type?type==='error':/^(تعذر|تعذرت|وصلت|اكتب|خطأ|لا يوجد|الخط غير|فشل|لم يتم)/.test(m);
  $('#ttext').textContent=m;$('#ticon').className=er?'fas fa-times-circle':'fas fa-check-circle';t.className='toast show '+(er?'error':'success');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)}
 function ask(o){return new Promise(res=>{const ov=$('#dgov'),i=$('#dgi');$('#dgt').textContent=o.title;$('#dgm').textContent=o.msg||'';$('#dgm').style.display=o.msg?'':'none';
  i.style.display=o.input?'':'none';i.value=o.value||'';i.placeholder=o.label||'';const ok=$('#dgok');ok.textContent=o.ok||'تأكيد';ok.className=o.danger?'':'pri';if(o.danger)ok.style.cssText='flex:1;color:var(--dg);border-color:var(--dg)';else ok.style.cssText='flex:1';
@@ -193,6 +198,7 @@ function render(){
  $('#forms').style.display=fs.length?'flex':'none';
  $('#forms').innerHTML=fs.map(([f,l])=>`<button data-f="${f}" class="${f===form?'on':''}">${l}</button>`).join('');
  $('#grid').innerHTML=slots().map(k=>`<button class="cell ${p.g[k]?'done':''}" data-c="${esc(k)}">${p.g[k]?`<img src="${p.g[k]}" alt="">`:esc(disp(k))}</button>`).join('');
+ drawLims();
 }
 $('#tabs').onclick=e=>{const t=e.target.dataset.t;if(t){tab=t;form='';render()}};
 $('#forms').onclick=e=>{const f=e.target.dataset.f;if(f!==undefined){form=f;render()}};
@@ -209,10 +215,32 @@ function snap(){stack.push(cx.getImageData(0,0,N,N));if(stack.length>40)stack.sh
 function openEd(k){
  ch=k;const f=k.split('|')[1]||'';$('#edch').textContent=disp(k);$('#edhint').textContent=HINT[f]||'';
  $('#cv').classList.toggle('l',f==='i'||f==='m');$('#cv').classList.toggle('r',f==='f'||f==='m');
- srcImg=null;$('#thw').style.display='none';stack=[];blank();
+ srcImg=null;$('#thw').style.display='none';stack=[];blank();drawGuide(k);
  const u=proj().g[k];if(u){const i=new Image();i.onload=()=>cx.drawImage(i,0,0,N,N);i.src=u}
  $('#edov').classList.add('show');
 }
+/* ---------- التوضيح الشفاف: شكل الحرف الصحيح بمكانه وحجمه فوق مربع الرسم (طبقة عرض فقط، لا تُحفظ ولا تدخل في الخط) ---------- */
+const gx=$('#gd').getContext('2d'),GFAM='Cairo,"Segoe UI",Tahoma,"Noto Naskh Arabic",sans-serif';
+try{$('#gdon').checked=localStorage.getItem('hf_guide')!=='0'}catch(e){}
+function drawGuide(k){
+ gx.clearRect(0,0,N,N);if(!k||!$('#gdon').checked)return;
+ const[c,f='']=k.split('|'),ar=/[\u0600-\u06FF]/.test(c),t=disp(k);
+ let fs=140;const setFont=()=>{gx.font='700 '+fs+'px '+GFAM;gx.direction=ar?'rtl':'ltr';gx.textAlign='left';gx.textBaseline='alphabetic'};
+ setFont();let m=gx.measureText(t),w=m.actualBoundingBoxLeft+m.actualBoundingBoxRight;
+ if(w>N-70){fs=Math.floor(fs*(N-70)/w);setFont();m=gx.measureText(t);w=m.actualBoundingBoxLeft+m.actualBoundingBoxRight}
+ const left=(N-w)/2,right=left+w,by=BASE-7,th=12;
+ gx.fillStyle='#0B8A5F';
+ /* شريط الاتصال عند خط الأساس + علامة الحافة التي يجب أن يلمسها الخط */
+ gx.globalAlpha=.2;
+ if(f==='i'||f==='m'){gx.fillRect(0,by-th/2,left+2,th)}
+ if(f==='f'||f==='m'){gx.fillRect(right-2,by-th/2,N-right+2,th)}
+ gx.globalAlpha=.55;
+ if(f==='i'||f==='m')gx.fillRect(0,by-th,4,th*2);
+ if(f==='f'||f==='m')gx.fillRect(N-4,by-th,4,th*2);
+ gx.globalAlpha=.26;gx.fillText(t,left+m.actualBoundingBoxLeft,BASE);gx.globalAlpha=1;
+}
+$('#gdon').onchange=()=>{try{localStorage.setItem('hf_guide',$('#gdon').checked?'1':'0')}catch(e){}drawGuide(ch)};
+if(document.fonts&&document.fonts.load)document.fonts.load('700 100px Cairo','ابت').then(()=>{if($('#edov').classList.contains('show'))drawGuide(ch)}).catch(()=>{});
 function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*N/r.width,(e.clientY-r.top)*N/r.height]}
 let drawing=false,last;
 const wd=ev=>+$('#sz').value*(eraser?1.8:1)*(ev.pointerType==='pen'&&ev.pressure?(.4+ev.pressure*1.2):1);
@@ -225,7 +253,7 @@ function dot(p){cx.fillStyle=eraser?'#fff':'#000';cx.beginPath();cx.arc(p[0],p[1
 $('#er').onclick=e=>{eraser=!eraser;e.target.style.background=eraser?'var(--ac2)':''};
 $('#un').onclick=()=>{const s=stack.pop();if(s){redo.push(cx.getImageData(0,0,N,N));cx.putImageData(s,0,0)}};
 $('#rd').onclick=()=>{const s=redo.pop();if(s){stack.push(cx.getImageData(0,0,N,N));cx.putImageData(s,0,0)}};
-$('#cl').onclick=()=>{if(ink()>=20&&!confirm('مسح الحرف بالكامل؟ (يمكنك التراجع)'))return;snap();blank()};
+$('#cl').onclick=async()=>{if(ink()>=20&&!await ask({title:'مسح الحرف',msg:'سيُمسح الرسم الحالي بالكامل (يمكنك التراجع بعدها).',ok:'مسح',danger:1}))return;snap();blank()};
 $('#up').onclick=()=>$('#f1').click();$('#cam').onclick=()=>$('#f2').click();
 [$('#f1'),$('#f2')].forEach(f=>f.onchange=()=>{const file=f.files[0];if(!file)return;const i=new Image();i.onload=()=>{srcImg=i;$('#thw').style.display='block';snap();renderImg()};i.src=URL.createObjectURL(file);f.value=''});
 function renderImg(){
@@ -246,46 +274,115 @@ $('#nx').onclick=()=>step(1);$('#pv').onclick=()=>step(-1);
 /* ---------- font building ---------- */
 let GROW=6,TH=14,NORM=100;const BEAR={'':[50,50],i:[-24,50],m:[-24,-24],f:[50,-24]};
 function loadImg(u){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u})}
-async function trace(u){
- const M=N*2,i=await loadImg(u),k=document.createElement('canvas');k.width=k.height=M;const x=k.getContext('2d',{willReadFrequently:true});
- x.fillStyle='#fff';x.fillRect(0,0,M,M);x.imageSmoothingQuality='high';x.drawImage(i,0,0,M,M);
- const a=x.getImageData(0,0,M,M).data,on=(q,y)=>a[(y*M+q)*4]<128,act=new Map(),rs=[];let minX=M,maxX=-1;
- for(let y=0;y<=M;y++){const c=new Set();
-  if(y<M){let s=-1;for(let xx=0;xx<=M;xx++){const o=xx<M&&on(xx,y);if(o&&s<0)s=xx;if(!o&&s>=0){c.add(s+','+xx);minX=Math.min(minX,s);maxX=Math.max(maxX,xx);s=-1}}}
-  for(const[k2,y0]of act)if(!c.has(k2)){const[s,e]=k2.split(',').map(Number);rs.push([s/2,e/2,y0/2,y/2]);act.delete(k2)}
-  for(const k2 of c)if(!act.has(k2))act.set(k2,y)}
- if(!rs.length)return null;
- const lab=new Uint8Array(M*M),st=new Int32Array(M*M);let bn=0,bh=0,blo=0,bhi=0;
- for(let y0=0;y0<M;y0++)for(let x0=0;x0<M;x0++){const i0=y0*M+x0;if(lab[i0]||!on(x0,y0))continue;let sp=0,n=0,lo=y0,hi=y0;st[sp++]=i0;lab[i0]=1;
-  while(sp){const p=st[--sp],py=(p/M)|0,qx=p-py*M;n++;if(py<lo)lo=py;if(py>hi)hi=py;
-   if(qx>0&&!lab[p-1]&&on(qx-1,py)){lab[p-1]=1;st[sp++]=p-1}
-   if(qx<M-1&&!lab[p+1]&&on(qx+1,py)){lab[p+1]=1;st[sp++]=p+1}
-   if(py>0&&!lab[p-M]&&on(qx,py-1)){lab[p-M]=1;st[sp++]=p-M}
-   if(py<M-1&&!lab[p+M]&&on(qx,py+1)){lab[p+M]=1;st[sp++]=p+M}}
-  if(n>bn){bn=n;bh=(hi-lo+1)/2;blo=lo;bhi=hi}}
- const col=(y,x0,x1)=>{for(let q=x0;q<x1;q++)if(on(q,y))return 1;return 0};
- const band=(x0,x1)=>{x0=Math.max(0,x0);x1=Math.min(M,x1);let best=null;
-  for(let y=0;y<M;){if(!col(y,x0,x1)){y++;continue}let y1=y;while(y1<M&&col(y1,x0,x1))y1++;const c=(y+y1)/4;if(!best||Math.abs(c-BASE)<Math.abs(best.c-BASE))best={y0:y/2,y1:y1/2,c};y=y1}
-  return best&&Math.abs(best.c-BASE)<=26&&best.y1-best.y0<=40?best:null};
- return{rs,minX:minX/2,maxX:maxX/2,L:band(minX,minX+8),R:band(maxX-8,maxX),bh,bot:(bhi+1)/2};
+/* ===== محرّك التتبع: رسم بكسلي ← قناع حبر ← مسارات منحنية ناعمة ===== */
+const MM=N*2; /* دقة التتبع: ضعف دقة لوحة الرسم */
+/* قناع الحبر مع تحويل هندسي اختياري (تكبير k حول خط الأساس، إزاحة رأسية dy، تثبيت أفقي عند ax) */
+async function inkMask(u,k=1,dy=0,ax=0){
+ const img=await loadImg(u),c=document.createElement('canvas');c.width=c.height=MM;
+ const x=c.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,MM,MM);x.imageSmoothingQuality='high';
+ x.setTransform(k,0,0,k,ax*2*(1-k),BASE*2*(1-k)+dy*2);x.drawImage(img,0,0,MM,MM);
+ const a=x.getImageData(0,0,MM,MM).data,mk=new Uint8Array(MM*MM);
+ for(let j=0;j<mk.length;j++)mk[j]=a[j*4]<128?1:0;
+ return mk;
 }
+/* توسيع (r>0) أو تضييق (r<0) دائري للحبر؛ الحبر الملامس لحافة اللوحة لا يتآكل منها فتبقى الوصلات متصلة */
+function morph(mk,r){
+ const M=MM,grow=(src,dst,rr)=>{const offs=[];for(let dy=-rr;dy<=rr;dy++)offs.push([dy,Math.floor(Math.sqrt(rr*rr-dy*dy+.01))]);
+  for(let y=0;y<M;y++)for(let q=0;q<M;q++){if(!src[y*M+q])continue;
+   if(q>0&&q<M-1&&y>0&&y<M-1&&src[y*M+q-1]&&src[y*M+q+1]&&src[(y-1)*M+q]&&src[(y+1)*M+q])continue;
+   for(const[dy,w]of offs){const yy=y+dy;if(yy<0||yy>=M)continue;const b=yy*M,x1=Math.min(M-1,q+w);for(let xx=Math.max(0,q-w);xx<=x1;xx++)dst[b+xx]=1}}};
+ if(r>0){const out=mk.slice();grow(mk,out,r);return out}
+ const inv=new Uint8Array(mk.length);for(let i=0;i<inv.length;i++)inv[i]=mk[i]^1;
+ const d=inv.slice();grow(inv,d,-r);for(let i=0;i<d.length;i++)d[i]^=1;return d;
+}
+/* أقرب شريط حبر إلى خط الأساس عند طرف معيّن (نطاق أعمدة x0..x1) = ما يصل الحرف بجاره */
+function bandOf(mk,x0,x1){const M=MM;x0=Math.max(0,x0);x1=Math.min(M,x1);
+ const col=y=>{for(let q=x0;q<x1;q++)if(mk[y*M+q])return 1;return 0};let best=null;
+ for(let y=0;y<M;){if(!col(y)){y++;continue}let y1=y;while(y1<M&&col(y1))y1++;const c=(y+y1)/4;
+  if(!best||Math.abs(c-BASE)<Math.abs(best.c-BASE))best={y0:y/2,y1:y1/2,c};y=y1}
+ return best&&Math.abs(best.c-BASE)<=26&&best.y1-best.y0<=40?best:null;
+}
+/* حدود الحبر (بكسلات التتبع): minX وmaxX (حصري) وminY وmaxY (حصري) */
+function inkBox(mk){const M=MM;let minX=M,maxX=-1,minY=M,maxY=-1;
+ for(let y=0;y<M;y++)for(let q=0;q<M;q++)if(mk[y*M+q]){if(q<minX)minX=q;if(q>maxX)maxX=q;if(y<minY)minY=y;if(y>maxY)maxY=y}
+ return maxX<0?null:{minX,maxX:maxX+1,minY,maxY:maxY+1};
+}
+/* قياس شكل كما رسمه المستخدم (قبل أي تحويل): الحدود، ارتفاع/قاع أكبر مكوّن، وشريطا الطرفين */
+function measure(mk){
+ const M=MM,bx=inkBox(mk);if(!bx)return null;
+ const lab=new Uint8Array(M*M),st=new Int32Array(M*M);let bn=0,bh=0,bhi=0;
+ for(let y0=0;y0<M;y0++)for(let x0=0;x0<M;x0++){const i0=y0*M+x0;if(lab[i0]||!mk[i0])continue;let sp=0,n=0,lo=y0,hi=y0;st[sp++]=i0;lab[i0]=1;
+  while(sp){const p=st[--sp],py=(p/M)|0,qx=p-py*M;n++;if(py<lo)lo=py;if(py>hi)hi=py;
+   if(qx>0&&!lab[p-1]&&mk[p-1]){lab[p-1]=1;st[sp++]=p-1}
+   if(qx<M-1&&!lab[p+1]&&mk[p+1]){lab[p+1]=1;st[sp++]=p+1}
+   if(py>0&&!lab[p-M]&&mk[p-M]){lab[p-M]=1;st[sp++]=p-M}
+   if(py<M-1&&!lab[p+M]&&mk[p+M]){lab[p+M]=1;st[sp++]=p+M}}
+  if(n>bn){bn=n;bh=(hi-lo+1)/2;bhi=hi}}
+ return{minX:bx.minX/2,maxX:bx.maxX/2,minY:bx.minY/2,maxY:bx.maxY/2,bh,bot:(bhi+1)/2,L:bandOf(mk,bx.minX,bx.minX+8),R:bandOf(mk,bx.maxX-8,bx.maxX)};
+}
+/* حدود الحبر كمسارات مغلقة: تتبّع حواف البكسلات ثم تنعيم (متوسط متحرك) ثم تبسيط (RDP)؛ نقاط الحافة تبقى ثابتة كي يلمس الخط الحافة تماماً */
+function contoursOf(mk){
+ const M=MM,on=(q,y)=>q>=0&&q<M&&y>=0&&y<M&&mk[y*M+q]===1,E=new Set(),key=(x,y)=>x+','+y;
+ const edge=(ax,ay,bx,by)=>{const a=key(ax,ay),b=key(bx,by),rev=b+'>'+a;if(E.has(rev))E.delete(rev);else E.add(a+'>'+b)};
+ for(let y=0;y<M;y++)for(let x=0;x<M;x++)if(on(x,y)){
+  if(!on(x,y-1))edge(x,y,x+1,y);
+  if(!on(x+1,y))edge(x+1,y,x+1,y+1);
+  if(!on(x,y+1))edge(x+1,y+1,x,y+1);
+  if(!on(x-1,y))edge(x,y+1,x,y)}
+ const out=new Map();for(const e of E){const z=e.split('>');if(!out.has(z[0]))out.set(z[0],[]);out.get(z[0]).push(z[1])}
+ const rdp=(arr,eps)=>{const keep=new Uint8Array(arr.length);keep[0]=keep[arr.length-1]=1;const stk=[[0,arr.length-1]];
+  while(stk.length){const[i0,i1]=stk.pop();let md=0,mi=-1;const A=arr[i0],B=arr[i1],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1e-9;
+   for(let j=i0+1;j<i1;j++){const d=Math.abs((arr[j][0]-A[0])*dy-(arr[j][1]-A[1])*dx)/L;if(d>md){md=d;mi=j}}
+   if(md>eps&&mi>0){keep[mi]=1;stk.push([i0,mi],[mi,i1])}}
+  return arr.filter((_,j)=>keep[j])};
+ const res=[];
+ while(E.size){const first=E.values().next().value,parts=first.split('>'),start=parts[0];let b=parts[1];const pts=[start];E.delete(first);let guard=0;
+  while(b!==start&&guard++<M*M*4){pts.push(b);let next=null;for(const q of out.get(b)||[]){const cand=b+'>'+q;if(E.has(cand)){next=q;E.delete(cand);break}}
+   if(next===null)break;b=next}
+  if(pts.length<8||b!==start)continue;
+  const dense=pts.map(v=>v.split(',').map(Number)),n=dense.length;let cur2=dense;
+  for(let it=0;it<3;it++){const nx=new Array(n);
+   for(let j=0;j<n;j++){const d0=dense[j];if(d0[0]<=0||d0[0]>=M||d0[1]<=0||d0[1]>=M){nx[j]=d0;continue}
+    let sx=0,sy=0;for(let d=-2;d<=2;d++){const q=cur2[(j+d+n)%n];sx+=q[0];sy+=q[1]}nx[j]=[sx/5,sy/5]}
+   cur2=nx}
+  let far=0,fd=0;for(let j=1;j<n;j++){const d=Math.hypot(cur2[j][0]-cur2[0][0],cur2[j][1]-cur2[0][1]);if(d>fd){fd=d;far=j}}
+  const h1=rdp(cur2.slice(0,far+1),.12),h2=rdp(cur2.slice(far).concat([cur2[0]]),.12),poly=h1.concat(h2.slice(1,-1)).map(q=>[q[0]/2,q[1]/2]);
+  if(poly.length>=3)res.push(poly)}
+ return res;
+}
+/* أقرب حبر لخط الأساس عند كل طرف (عندما لا يصل الحرف إلى الحافة): يُستخدم لرسم وصلة تسدّ المسافة */
+function nearEnds(mk){const M=MM,lo=Math.max(0,Math.floor((BASE-TH/2-4)*2)),hi=Math.min(M-1,Math.ceil((BASE+TH/2+4)*2)),rows=[];
+ for(let y=lo;y<=hi;y++){let f=-1,l=-1;for(let q=0;q<M;q++)if(mk[y*M+q]){if(f<0)f=q;l=q}if(f>=0)rows.push({y,f,l})}
+ if(!rows.length)return{};
+ const hl=Math.min(...rows.map(r=>r.f)),hr=Math.max(...rows.map(r=>r.l)),
+ L=rows.filter(r=>r.f<=hl+2),R=rows.filter(r=>r.l>=hr-2),
+ mk2=(rs,x)=>{const y0=Math.min(...rs.map(r=>r.y)),y1=Math.max(...rs.map(r=>r.y))+1;return y1-y0<=80?{x:x/2,y0:y0/2,y1:y1/2}:null};
+ return{nL:mk2(L,hl),nR:mk2(R,hr+1)};
+}
+/* تحويل قناع الحبر (بعد التوسيع/التضييق r) إلى بيانات الحرف النهائية بإحداثيات لوحة الرسم */
+function vectorize(mk0,r){
+ const mk=r?morph(mk0,r):mk0,bx=inkBox(mk);if(!bx)return null;
+ return{contours:contoursOf(mk),minX:bx.minX/2,maxX:bx.maxX/2,L:bandOf(mk,bx.minX,bx.minX+8),R:bandOf(mk,bx.maxX-8,bx.maxX),...nearEnds(mk)};
+}
+/* بناء شكل الحرف في الخط: المسارات كما رسمتها + وصلة مسطّحة بنفس سماكة الخط وارتفاعه عند الطرف تسدّ الشقوق فقط */
 function mkGlyph(name,cp,t,f){
- const k=t.k||1,[lb,rb]=BEAR[f],path=new opentype.Path(),X=x=>t.minX+(x-t.minX)*k,Y=y=>BASE-(BASE-y)*k+(t.dy||0),mx=X(t.maxX),gr=GROW+Math.max(0,(1-k)*TH*S/2);
- const px=x=>Math.round((x-t.minX)*S+lb),
- rc=(xa,xb,ya,yb)=>{const x1=px(xa)-gr,x2=px(xb)+gr,tp=Math.round((BASE-ya)*S)+1+gr,bt=Math.round((BASE-yb)*S)-1-gr;path.moveTo(x1,bt);path.lineTo(x2,bt);path.lineTo(x2,tp);path.lineTo(x1,tp);path.close()};
- for(const[s,e,y0,y1]of t.rs)rc(X(s),X(e),Y(y0),Y(y1));
- const bs=BASE-TH/2,be=BASE+TH/2;
- /* وصلة تتبع سمك القلم الأصلي: تمتد من أقرب خط مرسوم عند خط الأساس إلى الحافة فقط، بدون أي شريط إضافي */
- const near=sd=>{let b=null;for(const[s,e,y0,y1]of t.rs){if(Y(y1)<bs-4||Y(y0)>be+4)continue;const v=sd<0?X(s):X(e);if(b===null||(sd<0?v<b[0]:v>b[0]))b=[v,Y(y0),Y(y1)]}return b};
- const LIM=26;
- if(f==='i'||f==='m'){const B=t.L;
-  if(B)rc(t.minX,t.minX+6,Y(B.y0),Y(B.y1));
-  else{const h=near(-1);if(h&&h[0]-t.minX<=LIM)rc(t.minX,h[0]+3,h[1],h[2])}}
- if(f==='f'||f==='m'){const B=t.R;
-  if(B)rc(mx-6,mx,Y(B.y0),Y(B.y1));
-  else{const h=near(1);if(h&&mx-h[0]<=LIM)rc(h[0]-3,mx,h[1],h[2])}}
+ const[lb,rb]=BEAR[f],path=new opentype.Path(),px=x=>Math.round((x-t.minX)*S+lb),py=y=>Math.round((BASE-y)*S),mx=t.maxX,LIM=26;
+ let osgn=0;
+ for(const c of t.contours){
+  path.moveTo(px(c[0][0]),py(c[0][1]));for(let j=1;j<c.length;j++)path.lineTo(px(c[j][0]),py(c[j][1]));path.close();
+  let ar=0;for(let j=0;j<c.length;j++){const q=c[(j+1)%c.length];ar+=c[j][0]*q[1]-q[0]*c[j][1]}
+  if(Math.abs(ar)>Math.abs(osgn))osgn=ar}
+ /* اتجاه الوصلة يجب أن يطابق اتجاه المسار الخارجي للحرف وإلا ألغى الاتجاهان بعضهما وظهر شق أبيض (المحور الرأسي معكوس بين اللوحة والخط) */
+ const rect=(x1,x2,y0,y1)=>{const a=[[x1,py(y1)],[x2,py(y1)],[x2,py(y0)],[x1,py(y0)]];let ar=0;for(let i=0;i<4;i++){const q=a[(i+1)%4];ar+=a[i][0]*q[1]-q[0]*a[i][1]}
+  if((ar>0)===(osgn>0))a.reverse();path.moveTo(a[0][0],a[0][1]);for(let i=1;i<4;i++)path.lineTo(a[i][0],a[i][1]);path.close()};
+ if(f==='i'||f==='m'){const B=t.L||(t.nL&&t.nL.x-t.minX<=LIM?t.nL:null);
+  if(B)rect(px(t.minX)-6,px(t.L?t.minX+3:B.x+3),B.y0,B.y1)}
+ if(f==='f'||f==='m'){const B=t.R||(t.nR&&mx-t.nR.x<=LIM?t.nR:null);
+  if(B)rect(px(t.R?mx-3:B.x-3),px(mx)+6,B.y0,B.y1)}
  return new opentype.Glyph({name,unicode:cp,advanceWidth:Math.max(50,Math.round((mx-t.minX)*S+lb+rb)),path});
 }
+
 const hex=c=>[...c].map(x=>x.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')).join('_');
 const SUF={i:'init',m:'medi',f:'fina'};
 const AT='اأإآٱلكطظ',AD='جحخچعغقصضيىرزژوؤ';
@@ -294,13 +391,25 @@ function cls(k){const c=k.split('|')[0];if(LA.includes(c))return'LA';
  if(/^[A-Z0-9]$/.test(c))return'U';if('bdfhklt'.includes(c))return'la';if('gjpqy'.includes(c))return'ld';if(/^[a-z]$/.test(c))return'lx';
  if('٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.includes(c))return'ad';return null}
 async function buildFont(name){
- const g=proj().g,T={};for(const[k,u]of Object.entries(g))T[k]=await trace(u);
- const ths=Object.values(T).filter(Boolean).flatMap(t=>[t.L,t.R]).filter(Boolean).map(b=>b.y1-b.y0).filter(v=>v<=30).sort((a,b)=>a-b);
+ const g=proj().g,M0={},T={};
+ /* 1) قياس كل شكل كما رسمه المستخدم */
+ for(const[k,u]of Object.entries(g)){const mk=await inkMask(u);M0[k]=mk?measure(mk):null}
+ const ths=Object.values(M0).filter(Boolean).flatMap(t=>[t.L,t.R]).filter(Boolean).map(b=>b.y1-b.y0).filter(v=>v<=30).sort((a,b)=>a-b);
  TH=ths.length?Math.min(28,Math.max(6,ths[ths.length>>1])):14;
- const cl={};for(const k of Object.keys(T)){if(!T[k])continue;const c=cls(k);if(c)(cl[c]=cl[c]||[]).push(k)}
- const md=a=>{a=a.slice().sort((x,y)=>x-y);return a[a.length>>1]};
- for(const c in cl){if(cl[c].length<2)continue;const mh=md(cl[c].map(k=>T[k].bh)),mb=md(cl[c].map(k=>T[k].bot)),w=NORM/100;
-  for(const k of cl[c]){const t=T[k];t.k=Math.min(2.2,Math.max(.5,1+(mh/t.bh-1)*w));t.dy=(mb-(BASE-(BASE-t.bot)*t.k))*w}}
+ /* 2) توحيد الحجم داخل كل فئة (طول/قاع الحرف) بحسب شريط «توحيد الحجم» */
+ const cl={};for(const k of Object.keys(M0)){if(!M0[k])continue;const c=cls(k);if(c)(cl[c]=cl[c]||[]).push(k)}
+ const md=a=>{a=a.slice().sort((x,y)=>x-y);return a[a.length>>1]},prm={};
+ for(const c in cl){if(cl[c].length<2)continue;const mh=md(cl[c].map(k=>M0[k].bh)),mb=md(cl[c].map(k=>M0[k].bot)),w=NORM/100;
+  for(const k of cl[c]){const t=M0[k],dyf=kk=>(mb-(BASE-(BASE-t.bot)*kk))*w;let kk=Math.min(2.2,Math.max(.5,1+(mh/t.bh-1)*w)),dy=dyf(kk);
+   /* لا نكبّر حرفاً حتى يخرج من لوحته فيُقصّ */
+   if(t.maxX>t.minX)kk=Math.min(kk,(N-t.minX)/(t.maxX-t.minX));
+   if(t.minY<BASE)kk=Math.min(kk,(BASE+dy)/(BASE-t.minY));
+   if(t.maxY>BASE)kk=Math.min(kk,(N-BASE-dy)/(t.maxY-BASE));
+   kk=Math.max(.5,kk);prm[k]={k:kk,dy:dyf(kk)}}}
+ /* 3) تتبّع نهائي: سماكة الخط موحّدة (توسيع/تضييق) بعد التحجيم */
+ for(const k of Object.keys(M0)){const m=M0[k];if(!m){T[k]=null;continue}
+  const p=prm[k]||{k:1,dy:0},r=Math.max(-Math.round(TH*.7),Math.round(TH*(1-p.k)+2*GROW/S));
+  T[k]=vectorize(await inkMask(g[k],p.k,p.dy,m.minX),r)}
  const gl=[new opentype.Glyph({name:'.notdef',unicode:0,advanceWidth:500,path:new opentype.Path()}),
   new opentype.Glyph({name:'space',unicode:32,advanceWidth:300,path:new opentype.Path()})],idx={},sub={i:[],m:[],f:[]},lig={i:[],m:[]};
  const add=(nm,cp,t,f)=>{idx[nm]=gl.length;gl.push(mkGlyph(nm,cp,t,f))};
@@ -320,6 +429,7 @@ async function buildFont(name){
  const font=new opentype.Font({familyName:name,styleName:'Regular',unitsPerEm:1000,ascender:800,descender:-200,glyphs:gl});
  return{font,count:gl.length-2,gsub:makeGsub(sub,[...lig.i,...lig.m])};
 }
+
 /* GSUB: fina/init/medi (single) + rlig (lam-alef) */
 function makeGsub(sub,L){
  const u16=a=>a.flatMap(v=>[(v>>8)&255,v&255]),tg=s=>[...s].map(c=>c.charCodeAt(0));
@@ -329,12 +439,14 @@ function makeGsub(sub,L){
   const sets=fs.map(f=>{const ls=L.filter(l=>l.first===f).map(l=>u16([l.lig,2,l.comp]));let o=2+2*ls.length;const os=ls.map(b=>{const r=o;o+=b.length;return r});return[...u16([ls.length,...os]),...ls.flat()]});
   const cb=cov(fs);let o=6+2*sets.length+cb.length;const so=sets.map(b=>{const r=o;o+=b.length;return r});
   return[...u16([1,6+2*sets.length,sets.length,...so]),...cb,...sets.flat()]};
- const lk=[[1,single(sub.f)],[1,single(sub.i)],[1,single(sub.m)],[4,ligSub()]].map(([t,s])=>[...u16([t,0,1,8]),...s]);
+ /* نبني فقط الـ lookups غير الفارغة: قائمة فارغة تجعل المتصفح يرفض جدول GSUB كله فتظهر كل الحروف منفصلة */
+ const defs=[['fina',1,sub.f.length?single(sub.f):null],['init',1,sub.i.length?single(sub.i):null],['medi',1,sub.m.length?single(sub.m):null],['rlig',4,L.length?ligSub():null]].filter(d=>d[2]);
+ const lk=defs.map(([f,t,x])=>[...u16([t,0,1,8]),...x]);
  let o=2+2*lk.length;const lo=lk.map(b=>{const r=o;o+=b.length;return r});
  const lookups=[...u16([lk.length,...lo]),...lk.flat()];
- const feats=['fina','init','medi','rlig'];
- const fl=[...u16([4]),...feats.flatMap((f,i)=>[...tg(f),...u16([26+6*i])]),...feats.flatMap((f,i)=>u16([0,1,i]))];
- const sl=[...u16([2]),...tg('DFLT'),...u16([14]),...tg('arab'),...u16([14]),...u16([4,0]),...u16([0,0xFFFF,4,0,1,2,3])];
+ const feats=defs.map(d=>d[0]),nf=feats.length;
+ const fl=[...u16([nf]),...feats.flatMap((f,i)=>[...tg(f),...u16([2+6*nf+6*i])]),...feats.flatMap((f,i)=>u16([0,1,i]))];
+ const sl=[...u16([2]),...tg('DFLT'),...u16([14]),...tg('arab'),...u16([14]),...u16([4,0]),...u16([0,0xFFFF,nf,...feats.map((f,i)=>i)])];
  const so=10,fo=so+sl.length,lo2=fo+fl.length;
  return new Uint8Array([...u16([1,0,so,fo,lo2]),...sl,...fl,...lookups]);
 }
@@ -354,14 +466,15 @@ function addTable(buf,tag,data){
  return out.buffer;
 }
 async function refresh(){
+ fontBuf=null;
  const name=($('#fname').value.trim()||'MyHandwriting').replace(/[^\w\- ]/g,'')||'MyHandwriting';
  try{
   const{font,count,gsub}=await buildFont(name);fontBuf=addTable(font.toArrayBuffer(),'GSUB',gsub);
   {const p=proj();clearTimeout(tt);tt=setTimeout(()=>pushTtf(p).catch(()=>{}),3000)}
   $('#dlinfo').textContent=`يحتوي الخط على ${count} شكل من مشروع "${proj().name}" مع الربط التلقائي للحروف العربية ولام-ألف.`;
   const ff=new FontFace('hfpv'+Date.now(),fontBuf.slice(0));await ff.load();document.fonts.add(ff);
-  $('#pvbox').style.fontFamily=`"${ff.family}",sans-serif`;$('#pvbox').textContent=$('#ptxt').value;
- }catch(e){$('#dlinfo').textContent='تعذر بناء الخط: '+e.message}
+  $('#pvbox').style.fontFamily=`"${ff.family}",sans-serif`;$('#pvbox').textContent=$('#ptxt').value;return true;
+ }catch(e){fontBuf=null;$('#dlinfo').textContent='تعذر بناء الخط: '+e.message;return false}
 }
 $('#dl').onclick=async()=>{
  if(!Object.keys(proj().g).length)return toast('اكتب شكلاً واحداً على الأقل أولاً');
@@ -373,7 +486,7 @@ $('#ptxt').oninput=()=>{$('#pvbox').textContent=$('#ptxt').value};
 $('#dlc').onclick=()=>$('#dlov').classList.remove('show');
 $('#dlgo').onclick=async()=>{
  const name=($('#fname').value.trim()||'MyHandwriting').replace(/[^\w\- ]/g,'')||'MyHandwriting';
- await refresh();
+ if(!await refresh()||!fontBuf)return toast('تعذر إنشاء الخط؛ راجع الرسالة أعلى المعاينة');
  if(!await takeDownload())return;
  try{const blob=new Blob([fontBuf],{type:'font/ttf'}),url=URL.createObjectURL(blob),l=document.createElement('a');
   l.href=url;l.download=name.replace(/\s+/g,'-')+'.ttf';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('تم التنزيل ✓')}
@@ -383,8 +496,6 @@ $('#nm').oninput=()=>{NORM=+$('#nm').value;clearTimeout(tm);tm=setTimeout(refres
 $('#psz').oninput=()=>$('#pvbox').style.fontSize=$('#psz').value+'px';
 $('#gw').oninput=()=>{GROW=+$('#gw').value;clearTimeout(tm);tm=setTimeout(refresh,300)};
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#ptxt').value=b.dataset.p;$('#pvbox').textContent=b.dataset.p});
-let LM={},FL=[];
-const _rd=render;render=function(){_rd();drawLims()};
 function drawLims(){const p=proj();if(!p)return;const mf=LM.maxFonts|0,md=LM.maxDownloads|0,f=p.fid?FL.find(x=>x.id===p.fid):null,dn=f?f.downloads||0:0;
  const chip=(ic,t,full)=>`<span class="chip${full?' full':''}"><i class="fas ${ic}"></i>${t}</span>`;
  $('#lims').innerHTML=chip('fa-layer-group',mf>0?`حد الخطوط: ${FL.length} من ${mf}`:'حد الخطوط: بدون حد',mf>0&&FL.length>=mf)+chip('fa-download',md>0?`حد التحميل: ${dn} من ${md}`:'حد التحميل: بدون حد',md>0&&dn>=md)}
@@ -397,7 +508,7 @@ $('#fim').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)r
  try{const d=JSON.parse(await f.text());if(d.app!=='khotot'||d.v!==1||typeof d.name!=='string'||!d.g||typeof d.g!=='object')throw Error('ملف غير صالح');
   const g={};let bad=0;for(const[k,u]of Object.entries(d.g)){if(ALL.has(k)&&typeof u==='string'&&u.length<400000&&/^data:image\/png;base64,[A-Za-z0-9+\/=]+$/.test(u))g[k]=u;else bad++}
   if(!Object.keys(g).length)throw Error('لا توجد رسومات صالحة');
-  if(!confirm(`استيراد "${d.name.slice(0,40)}" (${Object.keys(g).length} شكل${bad?`، وتجاهل ${bad} غير صالح`:''}) كمشروع جديد؟ لن يتم استبدال مشاريعك الحالية.`))return;
+  if(!await ask({title:'استيراد مشروع',msg:`استيراد «${d.name.slice(0,40)}» (${Object.keys(g).length} شكل${bad?`، وتجاهل ${bad} غير صالح`:''}) كمشروع جديد؟ لن يتم استبدال مشاريعك الحالية.`,ok:'استيراد'}))return;
   const p={id:uid(),name:d.name.slice(0,40)||'مستورد',g};P.push(p);cur=p.id;save();render();toast('تم الاستيراد')}
  catch(err){toast('فشل الاستيراد: '+err.message)}};
 load();render();
