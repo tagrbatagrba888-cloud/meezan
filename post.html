@@ -350,6 +350,9 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .poll-opt-row{display:flex;gap:6px;margin-bottom:6px}
 .sfsw{display:inline-block;width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent}.sfsw.on{border-color:var(--gold)}
 
+.stvx{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lvx.shk{animation:lvshk .55s}@keyframes lvshk{0%,100%{transform:translate(0)}20%{transform:translate(-9px,4px)}40%{transform:translate(9px,-4px)}60%{transform:translate(-6px,-3px)}80%{transform:translate(6px,3px)}}
+.lvx .lvfly.lion .ic{font-size:150px}.lvx .lvfly.lion img{width:160px;height:160px}
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -445,6 +448,44 @@ const SND = {like:[[784,.09],[1175,.15]], react:[[660,.08],[880,.08],[1320,.15]]
 function snd(k){ if (localStorage.getItem('meezan_snd') === '0') return;
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); let t = AC.currentTime;
     (SND[k]||[]).forEach(([f,d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.2,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+d); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d+.03); t += d*.8; }); } catch(e){} }
+
+/* ============ 🔊 مؤثرات البث والهدايا (مولَّدة بالكود — بدون ملفات) ============ */
+const SFX = (() => {
+  const on = () => localStorage.getItem('meezan_snd') !== '0';
+  const ctx = () => { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
+  const env = (g, t, a, d, pk) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(pk, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + d); };
+  const tone = (c, type, f1, f2, t, d, pk = .2) => { const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f1, t); if (f2 && f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + d); env(g, t, Math.min(.02, d/4), d, pk); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + .05); };
+  const noise = (c, t, d, f1, f2, q, pk = .25, type = 'bandpass') => { const n = Math.ceil(c.sampleRate * d), b = c.createBuffer(1, n, c.sampleRate), x = b.getChannelData(0); for (let i = 0; i < n; i++) x[i] = Math.random()*2 - 1;
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + d); env(g, t, Math.min(.06, d/3), d, pk); s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + d + .05); };
+  const lfoGain = (c, o, rate, depth, t, d) => { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = rate; lg.gain.value = depth; l.connect(lg); lg.connect(o); l.start(t); l.stop(t + d + .05); };
+  const K = {
+    lion(c, t){ const o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(75, t); o.frequency.linearRampToValueAtTime(155, t + .3); o.frequency.exponentialRampToValueAtTime(52, t + 1.8);
+      lp.type = 'lowpass'; lp.Q.value = 5; lp.frequency.setValueAtTime(450, t); lp.frequency.linearRampToValueAtTime(1500, t + .3); lp.frequency.exponentialRampToValueAtTime(280, t + 1.8);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.38, t + .1); g.gain.setValueAtTime(.38, t + .9); g.gain.exponentialRampToValueAtTime(.0001, t + 1.9);
+      lfoGain(c, g.gain, 26, .14, t, 1.9); o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 2);
+      noise(c, t, 1.6, 500, 140, .9, .22); },
+    elephant(c, t){ const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(260, t); o.frequency.exponentialRampToValueAtTime(620, t + .35); o.frequency.exponentialRampToValueAtTime(380, t + 1.1);
+      f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.4; env(g, t, .06, 1.2, .3); lfoGain(c, o.frequency, 18, 22, t, 1.2); o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 1.3); },
+    eagle(c, t){ [0, .38].forEach(k => { tone(c, 'sawtooth', 2700, 1500, t + k, .32, .14); noise(c, t + k, .3, 4000, 2500, 3, .06); }); },
+    rocket(c, t){ noise(c, t, 1.5, 180, 3200, .7, .35, 'lowpass'); tone(c, 'sawtooth', 90, 900, t, 1.4, .1); },
+    car(c, t){ const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(55, t); o.frequency.exponentialRampToValueAtTime(210, t + .9); o.frequency.exponentialRampToValueAtTime(90, t + 1.3);
+      f.type = 'lowpass'; f.frequency.value = 900; env(g, t, .08, 1.3, .22); lfoGain(c, o.frequency, 24, 12, t, 1.3); o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 1.4); },
+    heart(c, t){ [0, .2].forEach(k => tone(c, 'sine', 110, 55, t + k, .18, .45)); [1046, 1568].forEach((f, i) => tone(c, 'sine', f, f, t + .45 + i*.1, .35, .12)); },
+    crown(c, t){ [523, 659, 784, 1047].forEach((f, i) => tone(c, 'triangle', f, f, t + i*.1, .3, .17)); [523, 659, 784, 1047].forEach(f => tone(c, 'triangle', f, f, t + .46, .8, .1)); },
+    gem(c, t){ [2093, 2637, 3136].forEach((f, i) => tone(c, 'sine', f, f, t + i*.07, .6, .1)); tone(c, 'sine', 1568, 1568, t, .8, .12); },
+    gift(c, t){ [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(c, 'triangle', f, f, t + i*.08, .28, .13)); },
+    pop(c, t){ tone(c, 'sine', 620, 980, t, .09, .05); },
+    ping(c, t){ tone(c, 'sine', 880, 880, t, .18, .1); tone(c, 'sine', 1320, 1320, t + .1, .28, .1); },
+    end(c, t){ tone(c, 'sine', 660, 660, t, .22, .12); tone(c, 'sine', 440, 440, t + .18, .45, .12); }
+  };
+  const kind = (name, icon) => { const x = String((name||'') + ' ' + (icon||'')).toLowerCase().replace(/[أإآ]/g, 'ا');
+    if (/اسد|ليث|🦁|🐯|lion/.test(x)) return 'lion'; if (/فيل|🐘|elephant/.test(x)) return 'elephant'; if (/نسر|صقر|عقاب|🦅|eagle|falcon/.test(x)) return 'eagle';
+    if (/صاروخ|🚀|rocket/.test(x)) return 'rocket'; if (/سيار|🏎|🚗|🚘|car/.test(x)) return 'car'; if (/قلب|حب|❤|💖|💝|💗|heart|love/.test(x)) return 'heart';
+    if (/تاج|ملك|👑|crown|king/.test(x)) return 'crown'; if (/الماس|ماس|💎|ذهب|💰|🪙|gem|diamond|gold/.test(x)) return 'gem'; return 'gift'; };
+  const play = k => { if (!on() || !K[k]) return; try { const c = ctx(); K[k](c, c.currentTime + .02); } catch(_){} };
+  return { play, kind, gift: (name, icon, price) => { let k = kind(name, icon); if (k === 'gift' && Number(price) >= 100) k = 'crown'; play(k); return k; } };
+})();
 
 /* ============ 👥 المستخدمون والمتابعة ============ */
 const uName = id => { if (id === ADMIN) return ADMIN_NAME; const u = S.users[id] || (id === uid ? me : null);
@@ -692,16 +733,26 @@ function feedItems(){
   if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
   if (ps.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(ps.length-show.length)})</button>`});
   return items; }
+function morphBar(wrap, html){
+  const t = document.createElement('div'); t.innerHTML = html.trim(); const nb = t.firstElementChild, ob = wrap.firstElementChild;
+  const ex = new Map([...ob.children].map(c => [c.dataset.k, c])); let prev = null;
+  [...nb.children].forEach(n => { const k = n.dataset.k, h = n.outerHTML; let el = ex.get(k);
+    if (el && el._h === h) ex.delete(k);
+    else { n._h = h; if (el){ el.replaceWith(n); ex.delete(k); } el = n; }
+    const want = prev ? prev.nextElementSibling : ob.firstElementChild; if (want !== el) ob.insertBefore(el, want); prev = el; });
+  ex.forEach(e => e.remove()); }
 function patch(R, items){
   const ex = new Map([...R.children].map(e => [e.dataset.k, e])); let prev = null;
   items.forEach(it => { let el = ex.get(it.key);
-    if (el && el._h === it.html) ex.delete(it.key);
-    else { const t = document.createElement('div'); t.innerHTML = it.html.trim(); const n = t.firstElementChild; n.dataset.k = it.key; n._h = it.html; if (el){ el.replaceWith(n); ex.delete(it.key); } el = n; }
+    if (el && it.key === 'stories' && el.firstElementChild && el.firstElementChild.classList.contains('stbar')){ if (el._h !== it.html){ morphBar(el, it.html); el._h = it.html; } ex.delete(it.key); }
+    else if (el && el._h === it.html) ex.delete(it.key);
+    else { const t = document.createElement('div'); t.innerHTML = it.html.trim(); const n = t.firstElementChild; n.dataset.k = it.key; n._h = it.html; if (it.key === 'stories' && n.firstElementChild) [...n.firstElementChild.children].forEach(c => c._h = c.outerHTML); if (el){ el.replaceWith(n); ex.delete(it.key); } el = n; }
     const want = prev ? prev.nextElementSibling : R.firstElementChild; if (want !== el) R.insertBefore(el, want); prev = el; });
   ex.forEach(e => e.remove()); }
 let rt;
 const draw = () => { clearTimeout(rt); rt = setTimeout(paint, 50); };
 function paint(){
+  if (document.querySelector('.lvx')) return;
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
   patch(R, feedItems()); observe(); tickAgo();
   { const np = $('newPill'); if (np){ const n = S.one ? 0 : (S.pendingNew||0); np.hidden = !n; if (n) np.innerHTML = `<i class="fas fa-arrow-up"></i> ${ar(n)} ${n===1?'منشور جديد':'منشورات جديدة'}`; } }
@@ -1119,7 +1170,9 @@ onSnapshot(collection(db,'user_social'), () => backfill());
 
 /* ---------- 🔎 البحث + التبويبات ---------- */
 const norm = s => String(s||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
-const searchOk = p => { const q = norm(S.q).trim(); if (!q) return true; const a = authorOf(p), hay = norm([p.text, a.name, CMAP[p.category]?.name, p.sharedPost?.text].join(' ')); return q.split(/\s+/).every(w => hay.includes(w)); };
+const searchOk = p => { const q = norm(S.q).replace(/@/g,'').trim(); if (!q) return true; const a = authorOf(p), u = S.users[p.authorId] || {}, so = S.soc[p.authorId] || {}, em = String(u.email||'').split('@')[0],
+  hay = norm([p.text, a.name, p.authorName, u.fullName, u.full_name, u.name, u.displayName, u.username, u.userName, u.user_name, u.handle, u.nickname, so.username, so.fullName, em, CMAP[p.category]?.name, p.sharedPost?.text, p.sharedPost?.authorName].join(' ')), flat = hay.replace(/\s+/g,'');
+  return q.split(/\s+/).every(w => hay.includes(w)) || flat.includes(q.replace(/\s+/g,'')); };
 const liveNow = () => S.lives.filter(liveOn);
 const topBar = () => { const ln = liveNow().length, T = (k,ic,t) => `<button class="${S.tab===k?'on':''}" data-a="tab" data-t="${k}"><i class="fas ${ic}"></i>${t}${k==='live'&&ln?'<span class="dot"></span>':''}</button>`;
   const items = [{key:'tabs', html:`<div class="tabs">${T('posts','fa-newspaper','المنشورات')}${T('live','fa-tower-broadcast','البث المباشر')}${T('polls','fa-square-poll-vertical','الاستطلاعات')}</div>`}];
@@ -1145,14 +1198,20 @@ const stThumb = st => { const m = st.media?.[0];
   if (st.type==='audio') return '<i class="fas fa-microphone-lines"></i>';
   return esc((st.text||'').slice(0,50)); };
 const storiesBar = () => { const gs = storyGroups();
-  return `<div class="stbar"><button class="stcd mk" data-a="stNew"><div class="top">${avatar(uAvatar(S.users[uid]||me), uName(uid), 'av44')}</div><span class="plus"><i class="fas fa-plus"></i></span><b>إنشاء حالة</b></button>${gs.map(g => `<button class="stcd" data-a="stOpen" data-k="${esc(g.key)}"><div class="pvw" style="${stBg(g.last)}">${stThumb(g.last)}</div><span class="ring ${g.unseen?'new':''}">${avatar(g.author.avatar, g.author.name, 'av34', g.author.official)}</span><b>${g.key===uid?'حالتك':esc(g.author.name)}</b></button>`).join('')}</div>`; };
+  return `<div class="stbar"><button class="stcd mk" data-a="stNew" data-k="__mk"><div class="top">${avatar(uAvatar(S.users[uid]||me), uName(uid), 'av44')}</div><span class="plus"><i class="fas fa-plus"></i></span><b>إنشاء حالة</b></button>${gs.map(g => `<button class="stcd" data-a="stOpen" data-k="${esc(g.key)}"><div class="pvw" style="${stBg(g.last)}">${stThumb(g.last)}</div><span class="ring ${g.unseen?'new':''}">${avatar(g.author.avatar, g.author.name, 'av34', g.author.official)}</span><b>${g.key===uid?'حالتك':esc(g.author.name)}</b></button>`).join('')}</div>`; };
 
 function openStories(key){
   const gs = storyGroups(), g0 = gs.findIndex(g => g.key === key); if (g0 < 0) return;
-  let gi = g0, si = Math.max(0, gs[g0].list.findIndex(s => !stSeen(s))), tm = null, closed = false;
+  let held = false, cur = null, hTm = null, noClickUntil = 0, gi = g0, si = Math.max(0, gs[g0].list.findIndex(s => !stSeen(s))), tm = null, closed = false;
   const ov = document.createElement('div'); ov.className = 'stvx'; document.body.appendChild(ov); document.body.style.overflow = 'hidden';
   const stop = () => { clearTimeout(tm); tm = null; };
-  const close = () => { if (closed) return; closed = true; stop(); document.removeEventListener('keydown', onKey); ov.remove(); if (!modals.length) document.body.style.overflow = ''; draw(); };
+  const pause = () => { if (held || closed || !cur) return; held = true; clearTimeout(tm); tm = null;
+    if (cur.M) cur.M.pause();
+    else { cur.remain = Math.max(0, cur.remain - (Date.now() - cur.at)); cur.bar.style.transition = 'none'; cur.bar.style.width = ((1 - cur.remain/cur.total)*100)+'%'; } };
+  const resume = () => { if (!held || closed || !cur) return; held = false;
+    if (cur.M){ cur.M.play().catch(() => {}); tm = setTimeout(next, 95000); }
+    else { cur.at = Date.now(); void cur.bar.offsetWidth; cur.bar.style.transition = `width ${cur.remain}ms linear`; cur.bar.style.width = '100%'; tm = setTimeout(next, cur.remain); } };
+  const close = () => { if (closed) return; closed = true; stop(); clearTimeout(hTm); document.removeEventListener('keydown', onKey); ov.remove(); if (!modals.length) document.body.style.overflow = ''; draw(); };
   const next = () => { if (si < gs[gi].list.length-1){ si++; show(); } else if (gi < gs.length-1){ gi++; si = 0; show(); } else close(); };
   const prev = () => { if (si > 0){ si--; show(); } else if (gi > 0){ gi--; si = gs[gi].list.length-1; show(); } else show(); };
   const onKey = e => { if (e.key==='Escape') close(); else if (e.key==='ArrowLeft') next(); else if (e.key==='ArrowRight') prev(); };
@@ -1171,12 +1230,16 @@ function openStories(key){
       <div class="stbody" style="${stBg(st)}">${body}${st.type!=='text'&&st.text?`<div class="cap">${esc(st.text)}</div>`:''}</div>
       <button class="stnav l" data-s="next" aria-label="التالي"></button><button class="stnav r" data-s="prev" aria-label="السابق"></button>
       <div class="stft" id="stFt">${foot(st)}</div>`; tickAgo();
-    const bar = ov.querySelector('#stb'+si), M = ov.querySelector('#stM');
-    if (M){ M.onended = next; M.ontimeupdate = () => { if (M.duration) bar.style.width = (M.currentTime/M.duration*100)+'%'; }; M.onerror = () => { tm = setTimeout(next, 4000); }; tm = setTimeout(next, 95000); }
-    else { requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transition = 'width 6s linear'; bar.style.width = '100%'; })); tm = setTimeout(next, 6000); }
+    const bar = ov.querySelector('#stb'+si), M = ov.querySelector('#stM'); held = false; cur = {bar, M, total:6000, remain:6000, at:Date.now()};
+    if (M){ M.onended = next; M.ontimeupdate = () => { if (M.duration) bar.style.width = (M.currentTime/M.duration*100)+'%'; }; M.onerror = () => { if (!held) tm = setTimeout(next, 4000); }; tm = setTimeout(next, 95000); }
+    else { requestAnimationFrame(() => requestAnimationFrame(() => { if (held || cur.bar !== bar) return; cur.at = Date.now(); bar.style.transition = 'width 6s linear'; bar.style.width = '100%'; })); tm = setTimeout(next, 6000); }
     if (!mine && !st.vby?.[fk(uid)] && !seenLocal()[st.id]){ const sl = seenLocal(); sl[st.id] = 1; const ks = Object.keys(sl); if (ks.length > 400) delete sl[ks[0]]; localStorage.setItem('meezan_st_seen', JSON.stringify(sl));
       updateDoc(doc(db,'stories',st.id),{viewsCount:increment(1), ['vby.'+fk(uid)]:true}).catch(() => {}); } }
-  ov.addEventListener('click', async e => { const b = e.target.closest('[data-s]'); if (!b) return; const [k, v] = b.dataset.s.split(':'), st = gs[gi].list[si];
+  ov.addEventListener('pointerdown', e => { if (e.target.closest('.stbtn,.stft,.sthd,audio')) return; clearTimeout(hTm); hTm = setTimeout(() => { hTm = null; pause(); }, 140); });
+  const rel = () => { clearTimeout(hTm); hTm = null; if (held){ resume(); noClickUntil = Date.now() + 350; } };
+  ['pointerup','pointercancel','pointerleave'].forEach(n => ov.addEventListener(n, rel));
+  ov.addEventListener('contextmenu', e => e.preventDefault());
+  ov.addEventListener('click', async e => { if (Date.now() < noClickUntil) return; const b = e.target.closest('[data-s]'); if (!b) return; const [k, v] = b.dataset.s.split(':'), st = gs[gi].list[si];
     if (k==='close') close(); else if (k==='next') next(); else if (k==='prev') prev();
     else if (k==='react'){ const cur = st.reactions?.[uid]; try { await updateDoc(doc(db,'stories',st.id),{[`reactions.${uid}`]: cur===v ? deleteField() : v}); st.reactions = {...(st.reactions||{})}; if (cur===v) delete st.reactions[uid]; else { st.reactions[uid] = v; snd('react'); notify(st.authorId,'تفاعل جديد',`${uName(uid)} تفاعل ${RMAP[v].emoji} مع حالتك`,{url:LIST}); } ov.querySelector('#stFt').innerHTML = foot(st); } catch(_){ toast('تعذر التفاعل','error'); } }
     else if (k==='del'){ stop(); const ok = await dialog({title:'حذف الحالة', body:'سيتم حذف حالتك نهائياً.', confirm:'حذف', danger:true}); if (!ok){ show(); return; }
@@ -1270,19 +1333,28 @@ async function liveView(id){
     <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button></div>
     <div class="lvcm" id="lvCm"></div><div class="lvrp" id="lvRp"></div>
     <div class="lvbar"><div class="lvin"><input id="lvCi" placeholder="اكتب تعليقاً…" maxlength="300"><button id="lvCs" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div><div class="lvsh" id="lvSh"></div>`;
-  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden'; if (live) SFX.play('ping');
   const $$ = s => ov.querySelector(s), v = $$('#lrV'), ST = $$('#lrS'), B = $$('#lrB'), feed = $$('#lvCm'), sh = $$('#lvSh');
-  const closeAll = () => { if (dead) return; dead = true; clearInterval(iv); unsub?.(); unsubC?.(); giftsCb = null; document.removeEventListener('keydown', onKey); if (objUrl) URL.revokeObjectURL(objUrl); v.pause(); ov.remove(); if (!modals.length) document.body.style.overflow = ''; };
+  const closeAll = () => { if (dead) return; dead = true; clearInterval(iv); unsub?.(); unsubC?.(); giftsCb = null; document.removeEventListener('keydown', onKey); if (objUrl) URL.revokeObjectURL(objUrl); v.pause(); ov.remove(); draw(); if (!modals.length) document.body.style.overflow = ''; };
   const onKey = e => { if (e.key==='Escape' && !modals.length){ if (sh.style.display==='flex') sh.style.display = 'none'; else closeAll(); } };
   document.addEventListener('keydown', onKey); $$('#lvX').onclick = closeAll;
-  const msgHtml = m => { if (m.type==='gift') return `<div class="lvm gift"><span class="gic">${giftIco({img:m.giftImg, icon:m.giftIcon})}</span><span><b>${esc(m.name||'مستخدم')}</b> أرسل <b>${esc(m.giftName||'هدية')}</b>${m.price?` · ${ar(m.price)} ج.م`:''}</span></div>`;
-    return `<div class="lvm">${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span style="flex:1;min-width:0">${m.replyTo?`<small class="lvrq">↪ رد على ${esc(m.replyTo.name||'')}</small><br>`:''}<b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span><span class="lva"><button data-lv="reply:${m.id}" title="رد"><i class="fas fa-reply"></i></button>${m.uid===uid?`<button data-lv="del:${m.id}" title="حذف"><i class="fas fa-trash"></i></button>`:''}</span></div>`; };
-  const fly = m => { const el = document.createElement('div'); el.className = 'lvfly'; el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.name||'مستخدم')} أرسل ${esc(m.giftName||'هدية')}</div>`; ov.appendChild(el); setTimeout(() => el.remove(), 2900); };
-  unsubC = onSnapshot(query(collection(db,'live_comments'), where('sid','==',id)), s => { const fresh = []; s.docChanges().forEach(c => { if (c.type==='added') fresh.push(c.doc.id); });
+  const msgHtml = m => { if (m.type==='gift') return `<div class="lvm gift" data-mid="${m.id}"><span class="gic">${giftIco({img:m.giftImg, icon:m.giftIcon})}</span><span><b>${esc(m.name||'مستخدم')}</b> أرسل <b>${esc(m.giftName||'هدية')}</b>${m.price?` · ${ar(m.price)} ج.م`:''}</span></div>`;
+    return `<div class="lvm" data-mid="${m.id}">${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span style="flex:1;min-width:0">${m.replyTo?`<small class="lvrq">↪ رد على ${esc(m.replyTo.name||'')}</small><br>`:''}<b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span><span class="lva"><button data-lv="reply:${m.id}" title="رد"><i class="fas fa-reply"></i></button>${m.uid===uid?`<button data-lv="del:${m.id}" title="حذف"><i class="fas fa-trash"></i></button>`:''}</span></div>`; };
+  const fly = m => { const k = SFX.kind(m.giftName, m.giftIcon), el = document.createElement('div'); el.className = 'lvfly' + (k==='lion' ? ' lion' : ''); el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.name||'مستخدم')} أرسل ${esc(m.giftName||'هدية')}</div>`; ov.appendChild(el); setTimeout(() => el.remove(), 2900);
+    if (k==='lion'){ ov.classList.add('shk'); setTimeout(() => ov.classList.remove('shk'), 600); } };
+  const effect = m => { fly(m); SFX.gift(m.giftName, m.giftIcon, m.price); };
+  const shown = new Set();
+  unsubC = onSnapshot(query(collection(db,'live_comments'), where('sid','==',id)), s => { const fresh = [], gone = [];
+    s.docChanges().forEach(c => { if (c.type==='added') fresh.push(c.doc.id); else if (c.type==='removed') gone.push(c.doc.id); });
+    if (!first && !fresh.length && !gone.length) return;
     msgs = s.docs.map(dd).sort((x,y) => (tms(x.createdAt)||Date.now()) - (tms(y.createdAt)||Date.now()));
     const sum = msgs.reduce((a,m) => a + (m.type==='gift' ? Number(m.price)||0 : 0), 0), chip = $$('#lvTot'); chip.style.display = sum ? 'inline-block' : 'none'; chip.textContent = '🎁 '+ar(sum)+' ج.م';
-    feed.innerHTML = msgs.slice(-80).map(msgHtml).join('') || ''; feed.scrollTop = feed.scrollHeight;
-    if (!first) msgs.filter(m => m.type==='gift' && fresh.includes(m.id) && Date.now() - (tms(m.createdAt)||Date.now()) < 60000).forEach(fly); first = false; }, () => {});
+    if (first || gone.length){ const last = msgs.slice(-80); feed.innerHTML = last.map(msgHtml).join(''); shown.clear(); last.forEach(m => shown.add(m.id)); }
+    else { const add = msgs.filter(m => !shown.has(m.id)); if (add.length){ feed.insertAdjacentHTML('beforeend', add.map(msgHtml).join('')); add.forEach(m => shown.add(m.id)); while (feed.children.length > 80) feed.firstElementChild.remove(); } }
+    feed.scrollTop = feed.scrollHeight;
+    if (!first){ const nw = msgs.filter(m => fresh.includes(m.id) && m.uid !== uid && Date.now() - (tms(m.createdAt)||Date.now()) < 60000), gf = nw.filter(m => m.type==='gift');
+      if (gf.length) gf.slice(-4).forEach(effect); else if (nw.length) SFX.play('pop'); }
+    first = false; }, () => {});
   const setReply = m => { replyTo = m ? {id:m.id, name:m.name||''} : null; const rp = $$('#lvRp'); rp.style.display = m ? 'flex' : 'none'; rp.innerHTML = m ? `<span>↪ رد على <b>${esc(m.name||'')}</b></span><button data-lv="cancel"><i class="fas fa-xmark"></i></button>` : ''; if (m) $$('#lvCi').focus(); };
   feed.addEventListener('click', async e => { const b = e.target.closest('[data-lv]'); if (!b) return; const [k, cid] = b.dataset.lv.split(':'), m = msgs.find(x => x.id === cid);
     if (k==='reply' && m) setReply(m);
@@ -1302,7 +1374,7 @@ async function liveView(id){
     if (a==='close'){ sh.style.display = 'none'; return; }
     const g = S.gifts.find(x => x.id === gid); if (!g || gbusy) return; const price = Number(g.price)||0; if (!(price > 0)) return;
     if (!uid) return toast('سجّل الدخول أولاً','error'); if (S.wal < price) return needCharge();
-    gbusy = true;
+    gbusy = true; effect({giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', name:uName(uid), price}); sh.style.display = 'none';
     try { await debit(price, `هدية بث مباشر: ${g.name}`, 'live_gift', {liveId:id, giftId:g.id});
       await addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), type:'gift', giftId:g.id, giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', price, createdAt:serverTimestamp()});
       snd('react'); toast(`تم إرسال هدية «${g.name}» وخصم ${ar(price)} ج.م`); sh.style.display = 'none'; }
@@ -1317,15 +1389,24 @@ async function liveView(id){
     } catch(e){ console.error(e); ST.textContent = 'تعذر تحميل البث'; } };
   if (!live) return load(false);
   const mt = window.MediaSource ? (MediaSource.isTypeSupported(full) ? full : MediaSource.isTypeSupported(base) ? base : '') : '';
-  const watchEnd = onEnd => { iv = setInterval(() => { const L = S.lives.find(x => x.id===id); if (L && !liveOn(L)){ clearInterval(iv); B.className = 'lvt'; B.textContent = 'انتهى البث'; ST.textContent = 'انتهى البث'; onEnd(); } }, 1500); };
+  const watchEnd = onEnd => { iv = setInterval(() => { const L = S.lives.find(x => x.id===id); if (L && !liveOn(L)){ clearInterval(iv); B.className = 'lvt'; B.textContent = 'انتهى البث'; ST.textContent = 'انتهى البث'; SFX.play('end'); onEnd(); } }, 1500); };
   if (!mt){ ST.textContent = 'مشاهدة مباشرة — يتحدّث الفيديو تلقائياً كل بضع ثوانٍ'; await load(false); iv = setInterval(() => load(true), 8000); return; }
   const mse = new MediaSource(); objUrl = URL.createObjectURL(mse); v.src = objUrl;
   const got = new Map(); let nxt = 0, busy = false, sb = null, started = false, ended = false;
+  const appendBuf = buf => new Promise((res, rej) => { const ok = () => { sb.removeEventListener('error', er); res(); }, er = e => { sb.removeEventListener('updateend', ok); rej(e); };
+    sb.addEventListener('updateend', ok, {once:true}); sb.addEventListener('error', er, {once:true});
+    try { sb.appendBuffer(buf); } catch(e){ sb.removeEventListener('updateend', ok); sb.removeEventListener('error', er); rej(e); } });
+  const trimBuf = () => new Promise(res => { try { if (!v.buffered.length || sb.updating) return res(); const s0 = v.buffered.start(0), to = v.currentTime - 20; if (to - s0 < 20) return res();
+    sb.addEventListener('updateend', () => res(), {once:true}); sb.remove(s0, to); } catch(_){ res(); } });
   const pump = async () => { if (busy || !sb || dead) return; busy = true;
-    try { while (got.has(nxt) && !dead){ const d = got.get(nxt); got.delete(nxt); nxt++; const buf = await b64Blob(d,'').arrayBuffer();
-        await new Promise((res, rej) => { sb.addEventListener('updateend', res, {once:true}); sb.addEventListener('error', rej, {once:true}); sb.appendBuffer(buf); });
-        if (v.buffered.length){ const e = v.buffered.end(v.buffered.length-1);
-          if (!started){ started = true; v.currentTime = Math.max(v.buffered.start(0), e-1.5); v.play().catch(() => {}); } else if (e - v.currentTime > 8) v.currentTime = e - 1.5; } }
+    try { while (got.has(nxt) && !dead){ const parts = []; let size = 0;
+        while (got.has(nxt) && (!parts.length || size < 1.2e6)){ const d = got.get(nxt); got.delete(nxt); nxt++; size += d.length; parts.push(b64Blob(d,'')); }
+        await appendBuf(await new Blob(parts).arrayBuffer());
+        if (v.buffered.length){ const e = v.buffered.end(v.buffered.length-1), lag = e - v.currentTime;
+          if (!started){ started = true; v.currentTime = Math.max(v.buffered.start(0), e - 1); v.play().catch(() => {}); }
+          else if (lag > 4){ v.currentTime = e - 1; v.playbackRate = 1; }
+          else v.playbackRate = lag > 2 ? 1.12 : 1; }
+        if (v.currentTime > 45) await trimBuf(); }
     } catch(e){ console.error(e); }
     busy = false; if (got.has(nxt)) pump(); else if (ended && mse.readyState === 'open'){ try { mse.endOfStream(); } catch(_){} } };
   mse.addEventListener('sourceopen', () => { if (sb) return;
