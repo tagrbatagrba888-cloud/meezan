@@ -638,7 +638,7 @@ async function notify(to, title, body, {postId=null, url=null}={}){ if (!to || t
   try { await setDoc(doc(db,'notifications',id),{id,title,body,type:link?'page':'none',url:link,kind:'posts',mediaType:link?'page':'none',senderId:uid,senderName:uName(uid),createdAt:now,target:'custom',targetLabel:'المنشورات',recipients:[to]});
     const s = await getDoc(doc(db,'user_notifications',to)), d = s.exists() ? s.data() : {}; let n = d.notifIds||[], u = d.unreadCount||0; if (!n.includes(id)){ n = [id,...n].slice(0,100); u++; }
     await setDoc(doc(db,'user_notifications',to),{userId:to,notifIds:n,unreadCount:u,updatedAt:serverTimestamp()},{merge:true});
-    fetch('https://vercel-server-nine-tau.vercel.app/api/send',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Meezan2026Secret'},body:JSON.stringify({notifId:id,resend:false})}).catch(() => {}); } catch(e){} }
+    fetch('https://vercel-server-nine-tau.vercel.app/api/send',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Meezan2026Secret'},body:JSON.stringify({notifId:id,resend:false})}).catch(() => {}); } catch(e){ console.error('notify failed', e); } }
 
 /* ============ 💰 المحفظة ============ */
 async function debit(amt, label, source, extra={}){ const w = doc(db,'wallets',uid), tr = doc(db,'wallet_transactions','tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
@@ -755,9 +755,13 @@ function card(p){
     ${open?commentsBlock(p):''}
   </article>`;
 }
-function commentsBlock(p){ const list = S.comments[p.id];
+const pgRows = p => { const real = (S.cgifts[p.id]||[]).filter(x => !x.cid), tmp = (S.pgtmp[p.id]||[]);
+  return real.concat(tmp).sort((x,y) => (tms(x.createdAt)||Date.now()) - (tms(y.createdAt)||Date.now())); };
+const giftRow = x => { const a = authorOf({authorId:x.from}), to = authorOf({authorId:x.to});
+  return `<div class="cm" data-d="0">${avatarLink(a,'av34')}<div class="cm-body"><div class="cm-bub" style="background:linear-gradient(135deg,rgba(201,169,97,.28),rgba(201,169,97,.08));border:1px solid var(--gold)"><div class="cm-name">${nameLink(a)}${badge(a)}</div><div class="cm-text"><span class="cgi">${giftIco({img:x.giftImg,icon:x.giftIcon})}<b>×${ar(x.qty||1)}</b></span> أرسل <b>${esc(x.giftName||'هدية')}</b> هدية إلى <b>${esc(to.name)}</b></div></div><div class="cm-acts"><span>${ago(x.createdAt)}</span></div></div></div>`; };
+function commentsBlock(p){ const list = S.comments[p.id], gr = pgRows(p);
   const shown = (list||[]).filter(c => !c.hidden || c.authorId === uid);
-  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':shown.length?threadOrder(shown).map(({c,d}) => commentHtml(p,c,d)).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
+  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':(shown.length||gr.length)?threadOrder(shown).map(({c,d}) => commentHtml(p,c,d)).join('')+gr.map(giftRow).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
 function threadOrder(list){ const byId = new Map(list.map(c => [c.id,c])), kids = new Map(), roots = [];
   list.forEach(c => { if (c.parentId && byId.has(c.parentId)){ if (!kids.has(c.parentId)) kids.set(c.parentId,[]); kids.get(c.parentId).push(c); } else roots.push(c); });
   const out = [], walk = (c,d) => { out.push({c,d}); (kids.get(c.id)||[]).forEach(k => walk(k,d+1)); }; roots.forEach(c => walk(c,0)); return out; }
@@ -1235,7 +1239,7 @@ async function loadLiveBlob(id, type){
 
 const giftIco = g => g.img ? `<img src="${esc(g.img)}" alt="">` : `<span class="ic">${esc(g.icon||'🎁')}</span>`;
 let giftsCb = null, walCb = null;
-S.cgifts = {};
+S.cgifts = {}; S.pgtmp = {};
 const r2 = n => Math.round(n*100)/100;
 const needChargeG = async () => { if (await dialog({title:'رصيد المحفظة لا يكفي', body:'رصيدك الحالي لا يكفي لإرسال هذه الهدية — اشحن المحفظة أولاً.', confirm:'شحن المحفظة'})) location.href = 'stor.html'; };
 /* طابور الإرسال: الضغط السريع لا يضيع — الإرسالات المتتالية لنفس الهدية تُدمج في إرسال واحد */
@@ -1617,13 +1621,16 @@ Object.assign(H, {
     const a = authorOf(p); if (a.official || !p.authorId || p.authorId === uid) return toast('لا يمكن إرسال هدية لهذا المنشور','error');
     giftSheet({title:`هدية لـ ${a.name}`, sub:`<i class="fas fa-circle-info"></i> يحصل <b>${esc(a.name)}</b> على <b>٥٠٪</b> من قيمة الهدية — وتظهر في تعليقات المنشور`, split:true, onSend:(g, qty, total) => {
       SFX.gift(g.name, g.icon, g.price); giftPop({giftImg:g.img||'', giftIcon:g.icon||'', text:`${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`});
-      /* تظهر فوراً في التعليقات (نسخة مؤقتة) ثم تحل محلها النسخة الحقيقية */
-      openComments(pid); S.comments[pid] = [...(S.comments[pid]||[]), {id:'tmp_'+Date.now()+Math.random().toString(36).slice(2,5), pending:true, authorId:uid, authorName:uName(uid), text:'', createdAt:new Date(), gift:{id:g.id, name:g.name, icon:g.icon||'', img:g.img||'', qty, total, to:p.authorId, toName:a.name}}]; draw();
+      /* تظهر فوراً في التعليقات (صف مؤقت) ثم يحل محلها الصف الحقيقي */
+      const tid = 'tmp_'+Date.now()+Math.random().toString(36).slice(2,5); (S.pgtmp[pid] = S.pgtmp[pid]||[]).push({id:tid, from:uid, to:p.authorId, giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', qty, createdAt:new Date()});
+      openComments(pid); draw();
       gqAdd({key:`p:${pid}:${g.id}`, g, qty, total, run: async (q, tt) => { let half;
-        try { half = await transferGift(p.authorId, g, q, tt, p, ''); } catch(err){ S.comments[pid] = (S.comments[pid]||[]).filter(c => !c.pending); draw(); throw err; }
-        try { await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text:'', hidden:false, createdAt:serverTimestamp(), gift:{id:g.id, name:g.name, icon:g.icon||'', img:g.img||'', qty:q, total:tt, to:p.authorId, toName:a.name}});
-          updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {}); } catch(e2){ console.error(e2); S.comments[pid] = (S.comments[pid]||[]).filter(c => !c.pending); draw(); }
-        track(p,'comment'); notify(p.authorId, 'هدية جديدة', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} على منشورك — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid}); toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
+        try { half = await transferGift(p.authorId, g, q, tt, p, ''); }
+        finally { setTimeout(() => { S.pgtmp[pid] = []; draw(); }, 1200); }
+        track(p,'comment');
+        const snip = (p.text||'').trim().slice(0,40);
+        await notify(p.authorId, 'هدية جديدة 🎁', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} على منشورك${snip?` «${snip}${(p.text||'').length>40?'…':''}»`:''} — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid});
+        toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
   tab:t => { S.tab = t.dataset.t; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); },
   sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
   stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
