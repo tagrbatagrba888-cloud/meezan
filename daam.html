@@ -2435,6 +2435,7 @@ async function callOneProvider(P, userMessage, userData) {
   list = list.filter((x, i) => i === 0 || JSON.stringify(x) !== JSON.stringify(list[i - 1]));
   const timeoutMs = Math.max(parseInt(botSettings.apiTimeout) || 30, gem ? 45 : 30) * 1000;
   let lastFail = { ok: false, reason: 'network', kind: 'transient' };
+  let skipped = false;
 
   for (let i = 0; i < list.length; i++) {
     const a = list[i];
@@ -2451,6 +2452,7 @@ async function callOneProvider(P, userMessage, userData) {
         const c = mzClassify(res.status, bt);
         lastFail = { ok: false, reason: 'http_' + res.status, kind: c.kind, retryMs: c.retryMs, detail: String(bt).slice(0, 300) };
         if (c.kind === 'tools_unsupported' && i < list.length - 1) { if (!list[i + 1].tools) mzToolsOk = false; continue; }
+        if (a.tools && (res.status === 429 || res.status === 403)) { let j = i + 1; while (j < list.length && list[j].tools) j++; if (j < list.length) { skipped = true; i = j - 1; continue; } }
         return lastFail;
       }
       const data = await res.json();
@@ -2475,6 +2477,7 @@ async function callOneProvider(P, userMessage, userData) {
         return lastFail;
       }
       if (data.candidates) replyText += mzSources(data);
+      if (skipped && !a.tools) mzToolsOk = false;
       return { ok: true, text: String(replyText).trim() };
     } catch (e) {
       clearTimeout(timer);
