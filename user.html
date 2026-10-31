@@ -6,6 +6,8 @@
 <link rel="icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
    هنا بنحفظ نسخة في localStorage ونرجّعها لو التبويب فاضي. (تسجيل الخروج لازم يمسح meezan_persist) */
@@ -97,6 +99,7 @@ a{color:inherit}
 .cacts{display:flex;gap:12px;align-items:center;margin-top:3px}.cacts button{background:none;border:0;font-family:inherit;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer}.cacts button:hover{color:var(--p2);text-decoration:underline}
 .rp-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 12px;border-radius:12px;background:var(--in);border:1px solid var(--bd);font-size:12.5px;font-weight:700;color:var(--sub)}
 .rp-bar b{color:var(--tx)}.rp-bar button{margin-right:auto;width:26px;height:26px;border-radius:50%;border:0;background:none;color:var(--sub);cursor:pointer}
+.vb[hidden],.av-vb[hidden]{display:none}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--card);color:var(--tx);border:2px solid var(--bd);padding:12px 20px;border-radius:14px;font-weight:800;font-size:13.5px;box-shadow:0 12px 40px rgba(0,0,0,.3);opacity:0;transition:.35s;z-index:999;max-width:calc(100vw - 32px)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}.toast.error{border-color:var(--err)}
 </style>
@@ -128,11 +131,19 @@ const safeUrl=u=>/^https?:\/\//i.test(u||'')||/^fs(m|av):/.test(u||'')?u:'';
 let tT; const toast=(t,type='ok')=>{const e=$('toast');e.textContent=t;e.className='toast show '+(type==='error'?'error':'');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),2600)};
 
 /* صور/وسائط مخزنة داخل Firestore (fsav: / fsm:) */
+/* كاش وسائط مشترك مع صفحة المنشورات (IndexedDB) */
+const IDB=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open('meezan_posts_cache',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('media');};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}}).catch(()=>null));
+ return{get:(st,k)=>open().then(d=>d?new Promise(res=>{try{const q=d.transaction(st).objectStore(st).get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(undefined);}catch(e){res(undefined);}}):undefined),
+ set:(st,k,v)=>open().then(d=>{if(d)try{d.transaction(st,'readwrite').objectStore(st).put(v,k);}catch(e){}})};})();
 const cache=new Map();
 const mLoad=p=>{ if(cache.has(p))return cache.get(p);
-  const a=p.split(':'), m=a[0]==='fsm', n=+(m?a[2]:a[4])||1;
-  const r=Promise.all(Array.from({length:n},(_,i)=>getDoc(m?doc(db,'post_media',`${a[1]}_${i}`):doc(db,a[1],`avatar_${a[2]}_${a[3]}_${i}`)).then(s=>s.exists()?s.data().data:null)))
-   .then(async x=>{ if(x.some(v=>v==null))return ''; const d=x.join(''); try{return URL.createObjectURL(await (await fetch(d)).blob())}catch(e){return d} }).catch(()=>'');
+  const r=(async()=>{
+    const hit=await IDB.get('media','m:'+p); if(hit&&(hit.b||hit.d))return hit.b?URL.createObjectURL(hit.b):hit.d;
+    const a=p.split(':'), m=a[0]==='fsm', n=+(m?a[2]:a[4])||1;
+    const x=await Promise.all(Array.from({length:n},(_,i)=>getDoc(m?doc(db,'post_media',`${a[1]}_${i}`):doc(db,a[1],`avatar_${a[2]}_${a[3]}_${i}`)).then(s=>s.exists()?s.data().data:null)));
+    if(x.some(v=>v==null))return ''; const d=x.join(''); let blob=null; try{blob=await (await fetch(d)).blob();}catch(e){}
+    IDB.set('media','m:'+p,blob?{b:blob,t:Date.now()}:{d,t:Date.now()}); return blob?URL.createObjectURL(blob):d;
+  })().catch(()=>'').then(u=>{if(!u)cache.delete(p);return u;});
   cache.set(p,r); return r; };
 const fix=el=>{const s=el.getAttribute('src')||'';if(!/^fs(m|av):/.test(s)||el._b===s)return;el._b=s;el.removeAttribute('src');mLoad(s).then(d=>{if(d)el.src=d;});};
 const SEL='img[src^="fsav:"],img[src^="fsm:"],video[src^="fsm:"],audio[src^="fsm:"]';
@@ -143,14 +154,19 @@ const RM=Object.fromEntries(REACTIONS.map(r=>[r.id,r]));
 
 let U=null, soc={}, mySoc={}, posts=[], exc=null, comments={}, replyTo={}, open=new Set(), unsub={}, drafts={}, sending=new Set(), limit=10;
 
+let excStarted=false;
+function startExc(){ if(excStarted)return; excStarted=true; calcExcellence(); }
+const PK='meezan_uv:'+id; let svT;
+function saveP(){ clearTimeout(svT); svT=setTimeout(()=>{ try{ if(!U)return;
+  const pubU={id:U.id,fullName:U.fullName,username:U.username,grade:U.grade,avatarUrl:(String(U.avatarUrl||'').startsWith('data:')?'':U.avatarUrl),_role:U._role,_teacher:U._teacher,_official:U._official};
+  localStorage.setItem(PK,JSON.stringify({U:pubU,soc:{verified:!!soc.verified,followersCount:soc.followersCount||0,followingCount:soc.followingCount||0},posts:posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).slice(0,30),exc,t:Date.now()})); }catch(e){} },500); }
+const sig=u=>u?[u.fullName,u.username,u.avatarUrl,u.grade,u._role].join('|'):'';
+function setU(u){ const changed=sig(u)!==sig(U); U=u; if(changed||!$('stats'))draw(); if(!U._teacher)startExc(); saveP(); }
 async function load(){
   if(id===ADMIN){ draw(); return; }
-  for(const c of ['users','teachers']){
-    const s=await getDoc(doc(db,c,'all')); const u=(s.exists()?s.data().items||[]:[]).find(x=>String(x.id)===id);
-    if(u){U={...u,_role:c==='teachers'?'معلم':'طالب',_teacher:c==='teachers'};break;}
-  }
-  draw();
-  if(U&&!U._teacher) calcExcellence();
+  let done=0, found=false;
+  const fin=u=>{ if(u&&!found){found=true;setU(u);} if(++done===2&&!found&&!U)draw(); };
+  ['users','teachers'].forEach(c=>getDoc(doc(db,c,'all')).then(s=>{ const u=(s.exists()?s.data().items||[]:[]).find(x=>String(x.id)===id); fin(u?{...u,_role:c==='teachers'?'معلم':'طالب',_teacher:c==='teachers'}:null); }).catch(()=>fin(null)));
 }
 
 /* نسبة التفوق (نفس معادلة الملف الشخصي) */
@@ -164,7 +180,7 @@ async function calcExcellence(){
     const cEx=es.filter(s=>String(s.userId)===id&&s.submitted===true&&exIds.has(s.examId)).length;
     const cHw=hs.filter(s=>String(s.userId)===id&&s.submitted===true&&hwIds.has(s.homeworkId)).length;
     const total=aEx.length+aHw.length, rate=total?Math.round((cEx+cHw)/total*100):0;
-    exc={rate,total}; drawExc();
+    exc={rate,total}; drawExc(); saveP();
   }catch(e){ console.log('excellence',e.message); }
 }
 const excText=(r,t)=>!t?'لا توجد امتحانات أو واجبات متاحة لفرقته':r===0?'لم يبدأ بعد':r<30?'يحتاج إلى مزيد من الجهد':r<50?'بداية جيدة':r<70?'أداء جيد':r<85?'أداء ممتاز':r<100?'ممتاز — اقترب من الكمال':'🎉 تفوق كامل';
@@ -182,8 +198,8 @@ function draw(){
   if(id===ADMIN)U={fullName:'ميزان',avatarUrl:LOGO,_role:'حساب المنصة الرسمي',_official:true};
   if(!U){R.innerHTML='<div class="empty">المستخدم غير موجود</div>';return;}
   const name=U.fullName||U.username||'مستخدم', ver=U._official||soc.verified, officialAcc=!!U._official;
-  R.innerHTML=`<div class="card"><div class="hero"><span class="avw"><span class="av"><b>${esc(name.charAt(0))}</b>${U.avatarUrl?`<img src="${esc(U.avatarUrl)}" alt="">`:''}</span>${ver?'<span class="av-vb" title="حساب موثّق"><i class="fas fa-circle-check"></i></span>':''}</span>
-    <h2>${esc(name)}${ver?'<i class="fas fa-circle-check vb"></i>':''}</h2>
+  R.innerHTML=`<div class="card"><div class="hero"><span class="avw"><span class="av"><b>${esc(name.charAt(0))}</b>${U.avatarUrl?`<img src="${esc(U.avatarUrl)}" alt="">`:''}</span><span class="av-vb" id="avVb" title="حساب موثّق" ${ver?'':'hidden'}><i class="fas fa-circle-check"></i></span></span>
+    <h2>${esc(name)}<i class="fas fa-circle-check vb" id="vbName" title="حساب موثّق" ${ver?'':'hidden'}></i></h2>
     <div><span class="tg"><i class="fas fa-user"></i>${esc(U._role)}</span>${U.grade&&!U._teacher?`<span class="tg"><i class="fas fa-users-rectangle"></i>${esc(U.grade)}</span>`:''}</div>
     ${officialAcc?'':`<div class="hero-act" id="heroAct"></div>`}</div>
     <div class="stats" id="stats"></div>
@@ -194,6 +210,7 @@ function draw(){
 }
 function drawStats(){
   const s=$('stats'); if(!s)return;
+  { const v=id===ADMIN||!!soc.verified, a=$('avVb'), b=$('vbName'); if(a)a.hidden=!v; if(b)b.hidden=!v; }
   const n=pubPosts().length, off=id===ADMIN;
   s.style.gridTemplateColumns=off?'1fr':'repeat(3,1fr)';
   s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?'':`<div><b>${ar(Math.max(0,soc.followersCount||0))}</b><span>متابِع</span></div><div><b>${ar(Math.max(0,soc.followingCount||0))}</b><span>يتابع</span></div>`}`;
@@ -314,10 +331,11 @@ document.addEventListener('click',async e=>{
 });
 
 if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div>';}else if(id!==me){
+  try{ const c=JSON.parse(localStorage.getItem(PK)||'null'); if(c&&c.U){ U=c.U; soc=c.soc||{}; posts=c.posts||[]; exc=c.exc||null; draw(); if(!U._teacher&&!U._official)startExc(); } }catch(e){}
   load();
-  onSnapshot(doc(db,'user_social',id),s=>{soc=s.exists()?s.data():{};drawStats();if(U)drawPosts();},()=>{});
+  onSnapshot(doc(db,'user_social',id),s=>{soc=s.exists()?s.data():{};drawStats();if(U)drawPosts();saveP();},()=>{});
   onSnapshot(doc(db,'user_social',me),s=>{mySoc=s.exists()?s.data():{};drawFollow();},()=>{});
-  onSnapshot(query(collection(db,'posts'),where('authorId','==',id)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));drawStats();drawPosts();},()=>{});
+  onSnapshot(query(collection(db,'posts'),where('authorId','==',id)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));drawStats();drawPosts();saveP();},()=>{});
 }
 </script>
 </body>

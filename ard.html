@@ -278,6 +278,8 @@ body.one .shared img{max-height:420px}
 .rp-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:12px;background:var(--bg-input);border:1px solid var(--border);font-size:12.5px;font-weight:700;color:var(--text-sub)}
 .rp-bar b{color:var(--text-main)}.rp-bar button{margin-right:auto;width:26px;height:26px;border-radius:50%;color:var(--text-sub)}.rp-bar button:hover{background:var(--border)}
 </style>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
    هنا بنحفظ نسخة في localStorage ونرجّعها لو التبويب فاضي. (تسجيل الخروج لازم يمسح meezan_persist) */
@@ -597,7 +599,7 @@ const trigger = () => { const c = S.cfg, ban = banned();
 const emptyBox = (ic, t, d='') => `<div class="empty"><i class="fas ${ic}"></i><div style="font-size:16px;color:var(--text-main)">${t}</div>${d?`<div style="font-size:13px;margin-top:6px">${d}</div>`:''}</div>`;
 function feedItems(){
   if (S.one){ const p = P(S.one);
-    return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
+    return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : !S.loaded.posts ? {key:'sk1',html:'<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
   if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'sk1',html:sk},{key:'sk2',html:sk}]; }
   const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
   if (!S.order){ S.order = rankIds(org); S.orderAt = Date.now(); }
@@ -800,7 +802,7 @@ async function sendComment(pid){ if (!uid) return loginPrompt();
   finally { S.sending.delete(pid); } }
 function openComments(pid){
   S.open.add(pid);
-  if (!S.unsub[pid]) S.unsub[pid] = onSnapshot(query(collection(db,'posts',pid,'comments'), orderBy('createdAt','asc')), s => { S.comments[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); draw(); }, e => { console.error('comments',e); if (S.comments[pid]===undefined) S.comments[pid] = []; draw(); });
+  if (!S.unsub[pid]) S.unsub[pid] = onSnapshot(query(collection(db,'posts',pid,'comments'), orderBy('createdAt','asc')), s => { S.comments[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); S.comments[pid].forEach(c => watchSoc(c.authorId)); draw(); saveOne(); }, e => { console.error('comments',e); if (S.comments[pid]===undefined) S.comments[pid] = []; draw(); });
   draw(); }
 async function setReaction(p, type){ const cur = p.reactions?.[uid]; await updateDoc(doc(db,'posts',p.id),{[`reactions.${uid}`]: cur===type ? deleteField() : type}); return cur===type ? null : type; }
 async function toggleFollow(target, pid){
@@ -889,10 +891,27 @@ async function loadCache(){ if (S.one) return; const raw = await IDB.get('kv','f
   } catch(e){} }
 const ok = p => (p.status||'published') === 'published' || p.authorId === uid;
 loadCache();
+/* ============ ⚡ فتح المنشور فوراً من الكاش ثم التحديث من الشبكة ============ */
+const ONE_KEY = S.one ? 'one:'+S.one+':'+uid : '';
+const SAFE_U = ['id','fullName','name','displayName','username','avatarUrl','avatar','photoURL','photo','image','grade'];
+const socW = new Set(); let oct;
+function watchSoc(id){ if (!S.one || !id || id === ADMIN || socW.has(id)) return; socW.add(id);
+  onSnapshot(doc(db,'user_social',id), s => { S.soc[id] = s.exists() ? s.data() : {}; S.live.soc = true; S.loaded.soc = true; draw(); saveOne(); }, () => {}); }
+function saveOne(){ if (!S.one) return; clearTimeout(oct); oct = setTimeout(() => { try { const p = S.posts[0]; if (!p) return;
+  const cm = S.comments[S.one]||[], ids = new Set([p.authorId, uid, ...cm.map(c => c.authorId)]), users = {}, soc = {};
+  ids.forEach(i => { const u = S.users[i]; if (u){ users[i] = {}; SAFE_U.forEach(k => { if (u[k] != null && !(typeof u[k]==='string' && u[k].startsWith('data:') && u[k].length > 20000)) users[i][k] = u[k]; }); } if (S.soc[i]) soc[i] = {verified:!!S.soc[i].verified, followersCount:S.soc[i].followersCount||0}; });
+  IDB.set('kv', ONE_KEY, JSON.stringify(J({v:1, t:Date.now(), post:p, comments:cm, users, soc, cfg:{allowComments:S.cfg.allowComments, allowCommentMedia:S.cfg.allowCommentMedia, allowAudio:S.cfg.allowAudio}}))); } catch(e){} }, 600); }
+async function loadOne(){ if (!S.one) return; const raw = await IDB.get('kv', ONE_KEY); if (!raw || S.live.one) return;
+  try { const c = JSON.parse(raw); if (!c || c.v !== 1 || !c.post || c.post.id !== S.one) return;
+    S.users = {...c.users, ...S.users}; if (!S.live.soc) S.soc = {...c.soc, ...S.soc}; S.loaded.soc = true; if (!S.live.cfg) S.cfg = c.cfg||{};
+    S.posts = ok(c.post) ? [c.post] : []; S.loaded.posts = true; if (S.comments[S.one] === undefined) S.comments[S.one] = c.comments||[]; S.open.add(S.one); paint();
+  } catch(e){} }
+loadOne();
+
 const mapDocs = s => s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})}));
-onSnapshot(doc(db,'users','all'), s => { S.live.users = true; const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); saveCache(); });
-onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : []).forEach(u => S.users[u.id] = u); draw(); });
-onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
+onSnapshot(doc(db,'users','all'), s => { S.live.users = true; const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); saveCache(); saveOne(); });
+onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : []).forEach(u => S.users[u.id] = u); draw(); saveOne(); });
+if (S.one){ S.loaded.soc = true; watchSoc(uid); } else onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
 onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; draw(); });
 if (uid){
   onSnapshot(doc(db,'wallets',uid), s => { S.wal = s.exists() ? Number(s.data().balance||0) : 0; $('bal').textContent = ar(S.wal); });
@@ -900,8 +919,8 @@ if (uid){
   /* إعلاناتي: تُجلب دائماً حتى لو كان المنشور خارج آخر 100 منشور */
   onSnapshot(query(collection(db,'posts'), where('authorId','==',uid), where('isAd','==',true)), s => { S.myAdP = mapDocs(s); rebuild(); if (S.one) updAdCnt(); }, () => {});
 }
-if (S.one){ document.title = 'ميزان | منشور';
-  onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; S.loaded.posts = true; if (S.posts.length) document.title = 'ميزان | ' + ((p.text||'منشور').replace(/\s+/g,' ').slice(0,40)); if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
+if (S.one){ document.title = 'ميزان | منشور'; openComments(S.one);
+  onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; S.loaded.posts = true; S.live.one = true; if (p) watchSoc(p.authorId); saveOne(); if (S.posts.length) document.title = 'ميزان | ' + ((p.text||'منشور').replace(/\s+/g,' ').slice(0,40)); if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
 } else {
   onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { if (!S.live.posts) S.order = null; S.live.posts = true; S.feed = mapDocs(s); rebuild(); }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
   /* كل الإعلانات المفعّلة (حتى القديمة) تُعرض للمستخدمين الآخرين ضمن الخلاصة */
