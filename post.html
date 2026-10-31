@@ -261,6 +261,9 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .adrow .m{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;color:var(--text-sub);font-weight:700;flex-wrap:wrap}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media(max-width:560px){.tb-title{font-size:16px}.tb-logo{width:38px;height:38px}.ib{width:38px;height:38px}.wal{padding:7px 10px;font-size:12.5px}.tb-in{gap:6px}}
+.newpill{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:150;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;border-radius:30px;padding:9px 18px;font-weight:900;font-size:13.5px;box-shadow:0 10px 28px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;animation:pop .25s var(--ease)}
+.newpill[hidden]{display:none}
+[data-theme="dark"] .newpill{color:#0A1612}
 </style>
 </head>
 <body>
@@ -284,6 +287,7 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 </div></header>
 
 <div class="col" id="root"></div>
+<button id="newPill" class="newpill" data-a="refreshFeed" hidden></button>
 <div id="jobs" aria-live="polite"></div>
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIc"></i><span id="toastTx"></span></div>
 <input type="file" id="cmFile" accept="image/*" hidden>
@@ -295,12 +299,13 @@ const db = getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMY
 const $ = id => document.getElementById(id);
 
 /* ============ 🔒 الحماية ============ */
+{ const q = new URLSearchParams(location.search).get('id'); if (q) location.replace('ard.html?id='+encodeURIComponent(q)); }
 if (sessionStorage.getItem('meezan_logged_in') !== 'true') location.replace('login.html');
 const uid = sessionStorage.getItem('meezan_user_id') || '', role = sessionStorage.getItem('meezan_role') || 'student';
 let me = {}; try { me = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || {}; } catch (e) {}
 
 /* ============ ⚙️ الثوابت (نفس نسخة الأدمن) ============ */
-const ADMIN = 'meezan', ADMIN_NAME = 'ميزان', LOGO = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', PROFILE = 'user.html', OWN = 'sora.html', SELF = 'post.html';
+const ADMIN = 'meezan', ADMIN_NAME = 'ميزان', LOGO = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', PROFILE = 'user.html', OWN = 'sora.html', SELF = 'ard.html', LIST = 'post.html';
 const DEF_PRICE = {views1000:50, click:2, follow:5, verify:100}, DEF_LIM = {image:10, video:20, audio:5};
 const CATS = [
   {id:'general',name:'عام',icon:'fa-globe'},{id:'edu',name:'تعليم',icon:'fa-graduation-cap'},{id:'fun',name:'ترفيه',icon:'fa-face-laugh'},
@@ -434,16 +439,32 @@ async function credit(amt, label, source){ const w = doc(db,'wallets',uid), tr =
     tx.set(tr,{userId:uid,userName:uName(uid),role:rl,type:'credit',amount:amt,balanceAfter:nb,label,note:'',source,by:uName(uid),createdAt:now}); }); }
 
 /* ============ 🧠 تتبّع الاهتمامات وترتيب الخلاصة (نفس خوارزمية الأدمن) ============ */
-const W = {view:1, react:3, comment:5, share:6}; const pend = {ints:{}, types:{}, dirty:false};
-function track(p, kind='view'){ if (!uid || !p) return; const w = W[kind]||1, c = p.category||'general', t = mediaType(p); pend.ints[c] = (pend.ints[c]||0)+w; pend.types[t] = (pend.types[t]||0)+w; pend.dirty = true; }
-async function flush(){ if (!pend.dirty || !uid) return; const i = {}, t = {}; Object.entries(pend.ints).forEach(([k,v]) => i[k] = increment(v)); Object.entries(pend.types).forEach(([k,v]) => t[k] = increment(v));
-  pend.ints = {}; pend.types = {}; pend.dirty = false; try { await setDoc(doc(db,'user_social',uid),{interests:i,interestTypes:t},{merge:true}); } catch(e){} }
+const W = {view:1, react:3, comment:5, share:6}; const pend = {ints:{}, types:{}, auth:{}, dirty:false};
+function track(p, kind='view'){ if (!uid || !p) return; const w = W[kind]||1, c = p.category||'general', t = mediaType(p), a = fk(p.authorId||'');
+  pend.ints[c] = (pend.ints[c]||0)+w; pend.types[t] = (pend.types[t]||0)+w; if (a && p.authorId !== uid) pend.auth[a] = (pend.auth[a]||0)+w; pend.dirty = true; }
+async function flush(){ if (!pend.dirty || !uid) return; const i = {}, t = {}, a = {}; Object.entries(pend.ints).forEach(([k,v]) => i[k] = increment(v)); Object.entries(pend.types).forEach(([k,v]) => t[k] = increment(v)); Object.entries(pend.auth).forEach(([k,v]) => a[k] = increment(v));
+  pend.ints = {}; pend.types = {}; pend.auth = {}; pend.dirty = false; try { await setDoc(doc(db,'user_social',uid),{interests:i,interestTypes:t,authorInterests:a},{merge:true}); } catch(e){} }
 setInterval(flush, 20000); addEventListener('pagehide', flush); document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
-function rankIds(posts){ const u = S.soc[uid]||{}, ints = u.interests||{}, types = u.interestTypes||{};
-  const tot = Object.values(ints).reduce((a,b) => a+b,0)||1, ttot = Object.values(types).reduce((a,b) => a+b,0)||1, now = Date.now();
-  return posts.map(p => { const age = (now-(tsd(p.createdAt)?.getTime()||now))/36e5, eng = Object.keys(p.reactions||{}).length + 2*(p.commentsCount||0) + 3*(p.sharesCount||0);
-    const s = 40*Math.exp(-age/48) + 8*Math.log1p(eng) + 60*((ints[p.category||'general']||0)/tot) + 18*((types[mediaType(p)]||0)/ttot) + (isOff(p)?12:0) + (p.pinned?15:0); return {p,s}; })
-    .sort((a,b) => b.s-a.s).map(x => x.p.id); }
+
+/* المنشورات التي شاهدها المستخدم فعلاً (تنزل للأسفل في الخلاصة التالية) */
+const seenMap = (() => { try { return JSON.parse(localStorage.getItem('meezan_seen')||'{}') || {}; } catch(e){ return {}; } })();
+function markSeen(id){ seenMap[id] = Date.now(); const ks = Object.keys(seenMap); if (ks.length > 600) ks.sort((a,b) => seenMap[a]-seenMap[b]).slice(0, ks.length-500).forEach(k => delete seenMap[k]); try { localStorage.setItem('meezan_seen', JSON.stringify(seenMap)); } catch(e){} }
+
+/* ترتيب الخلاصة (مثل فيسبوك): المتابَعون ← الأكثر مشاهدة/تفاعلاً ← الاهتمامات ← الأحدث، وغير المشاهَد قبل المشاهَد، مع لمسة عشوائية تتغير مع كل تحديث */
+function rankIds(posts){ const u = S.soc[uid]||{}, ints = u.interests||{}, types = u.interestTypes||{}, auth = u.authorInterests||{}, fol = u.following||{};
+  const tot = Object.values(ints).reduce((a,b) => a+b,0)||1, ttot = Object.values(types).reduce((a,b) => a+b,0)||1, amax = Math.max(1, ...Object.values(auth).map(Number)), now = Date.now();
+  const sc = posts.map(p => { const age = (now-(tsd(p.createdAt)?.getTime()||now))/36e5, eng = Object.keys(p.reactions||{}).length + 2*(p.commentsCount||0) + 3*(p.sharesCount||0), a = p.authorId, own = a === uid;
+    let s = 0;
+    if (!isOff(p) && fol[a]) s += 55;                                   // 1) من أتابعهم
+    s += 32 * Math.min(1, (Number(auth[fk(a||'')])||0) / amax);          // 2) من أشاهد وأتفاعل معهم دائماً
+    s += 28 * ((ints[p.category||'general']||0)/tot) + 10 * ((types[mediaType(p)]||0)/ttot); // 3) اهتماماتي
+    s += 34 * Math.exp(-age/24) + 6 * Math.log1p(eng);                   // 4) الأحدث والأكثر تفاعلاً
+    if (isOff(p)) s += 10; if (p.pinned) s += 15; if (own && age < 1) s += 20;
+    if (seenMap[p.id] && now - seenMap[p.id] < 3*864e5) s -= 45;         // شاهدته من قبل
+    s += Math.random() * 12;                                             // تنويع عند كل تحديث
+    return {p, s}; }).sort((x,y) => y.s - x.s).map(x => x.p);
+  const out = []; while (sc.length){ const last = out[out.length-1]?.authorId, i = sc.findIndex(p => p.authorId !== last); out.push(sc.splice(i < 0 ? 0 : i, 1)[0]); } // لا منشورين متتاليين لنفس الشخص
+  return out.map(p => p.id); }
 
 /* ============ 🪟 النوافذ ============ */
 let modals = [];
@@ -549,12 +570,13 @@ const trigger = () => { const c = S.cfg, ban = banned();
 const emptyBox = (ic, t, d='') => `<div class="empty"><i class="fas ${ic}"></i><div style="font-size:16px;color:var(--text-main)">${t}</div>${d?`<div style="font-size:13px;margin-top:6px">${d}</div>`:''}</div>`;
 function feedItems(){
   if (S.one){ const p = P(S.one);
-    return [{key:'back',html:`<a class="btn xs" href="${SELF}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
+    return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
   if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'sk1',html:sk},{key:'sk2',html:sk}]; }
   const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
-  if (!S.order || Date.now() - S.orderAt > 6e5){ S.order = rankIds(org); S.orderAt = Date.now(); }
+  if (!S.order){ S.order = rankIds(org); S.orderAt = Date.now(); }
   const map = new Map(org.map(p => [p.id,p])), known = new Set(S.order), byDate = (a,b) => (tsd(b.createdAt)||Date.now()) - (tsd(a.createdAt)||Date.now());
-  let ps = [...org.filter(p => !known.has(p.id)).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
+  const fresh = org.filter(p => !known.has(p.id)); S.pendingNew = fresh.filter(p => p.authorId !== uid).length;
+  let ps = [...fresh.filter(p => p.authorId === uid).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
   ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
   const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), show = ps.slice(0, S.limit), items = [{key:'trig',html:trigger()}]; let k = 0;
   show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (((i+1)%5===0 || (i===show.length-1 && !k)) && ads.length){ const ad = ads[k++ % ads.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
@@ -573,6 +595,7 @@ const draw = () => { clearTimeout(rt); rt = setTimeout(paint, 50); };
 function paint(){
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
   patch(R, feedItems()); observe(); tickAgo();
+  { const np = $('newPill'); if (np){ const n = S.one ? 0 : (S.pendingNew||0); np.hidden = !n; if (n) np.innerHTML = `<i class="fas fa-arrow-up"></i> ${ar(n)} ${n===1?'منشور جديد':'منشورات جديدة'}`; } }
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
 /* ============ 👁️ رصد المشاهدات والإعلانات ============ */
@@ -580,7 +603,7 @@ const seen = new Set(), adSeen = new Set(), vt = new Map();
 const io = new IntersectionObserver(es => es.forEach(e => { const el = e.target, id = el.dataset.post;
   if (e.isIntersecting){
     if (el.classList.contains('ad') && !adSeen.has(id)){ adSeen.add(id); const p = P(id); if (p?.isAd && p.authorId !== uid) updateDoc(doc(db,'posts',id),{'ad.impressions':increment(1)}).catch(() => {}); }
-    if (!seen.has(id) && !vt.has(id)) vt.set(id, setTimeout(() => { seen.add(id); vt.delete(id); track(P(id),'view'); }, 1500));
+    if (!seen.has(id) && !vt.has(id)) vt.set(id, setTimeout(() => { seen.add(id); vt.delete(id); markSeen(id); track(P(id),'view'); }, 1500));
   } else if (vt.has(id)){ clearTimeout(vt.get(id)); vt.delete(id); } }), {threshold:.55});
 function observe(){ document.querySelectorAll('article.post:not([data-ob])').forEach(a => { a.dataset.ob = '1'; io.observe(a); }); }
 
@@ -768,11 +791,12 @@ const H = {
   menu:(t,e) => { const w = t.closest('.menu-wrap'), was = w.classList.contains('open'); document.querySelectorAll('.menu-wrap.open').forEach(x => x.classList.remove('open')); if (!was) w.classList.add('open'); e.stopPropagation(); },
   more:() => { S.limit += 20; draw(); },
   myAds:myAdsModal,
+  refreshFeed:() => { S.order = null; scrollTo({top:0, behavior:'smooth'}); draw(); },
   newPost:t => openComposer({pick:t.dataset.t||null}), verifyReq:verifyModal,
   copy:async t => { await navigator.clipboard.writeText(postUrl(t.dataset.id)).catch(() => {}); toast('تم نسخ رابط المنشور'); },
   edit:t => { const p = P(t.dataset.id); if (p) editPost(p); }, boost:t => { const p = P(t.dataset.id); if (p) boost(p); }, report:t => { const p = P(t.dataset.id); if (p) reportModal(p); },
   del:async t => { const p = P(t.dataset.id); if (!p || !(await dialog({title:'حذف المنشور', body:'سيتم حذف المنشور مع جميع تعليقاته نهائياً ولا يمكن التراجع.', confirm:'حذف نهائي', danger:true}))) return;
-    try { const cs = await getDocs(collection(db,'posts',p.id,'comments')); await Promise.all(cs.docs.map(d => deleteDoc(d.ref))); delFiles(p.media); await deleteDoc(doc(db,'posts',p.id)); toast('تم الحذف'); if (S.one) location.replace(SELF); } catch(e){ toast('فشل الحذف','error'); } },
+    try { const cs = await getDocs(collection(db,'posts',p.id,'comments')); await Promise.all(cs.docs.map(d => deleteDoc(d.ref))); delFiles(p.media); await deleteDoc(doc(db,'posts',p.id)); toast('تم الحذف'); if (S.one) location.replace(LIST); } catch(e){ toast('فشل الحذف','error'); } },
   like:async t => { const p = P(t.dataset.id), m = p.reactions?.[uid]; const r = await setReaction(p, m ? m : 'like');
     if (r){ snd('like'); track(p,'react'); notify(p.authorId,'تفاعل جديد',`${uName(uid)} أعجبه منشورك`,{postId:p.id}); } },
   react:async t => { const p = P(t.dataset.id), r = await setReaction(p, t.dataset.t); t.closest('.react-wrap')?.classList.remove('pk');
@@ -824,7 +848,7 @@ function saveCache(){ if (S.one) return; clearTimeout(sct); sct = setTimeout(() 
 async function loadCache(){ if (S.one) return; const raw = await IDB.get('kv','feed:'+uid); if (!raw || S.live.posts) return;
   try { const c = JSON.parse(raw); if (!c || c.v !== 1) return;
     S.feed = c.feed||[]; S.adP = c.adP||[]; S.myAdP = c.myAdP||[]; if (!S.live.users){ S.users = {...c.users, ...S.users}; S.uids = new Set(c.uids||[]); } if (!S.live.soc){ S.soc = c.soc||{}; S.loaded.soc = true; } if (!S.live.cfg) S.cfg = c.cfg||{};
-    if (c.order && Date.now()-c.orderAt < 6e5){ S.order = c.order; S.orderAt = c.orderAt; }
+    
     S.posts = [...new Map([...S.feed, ...S.adP, ...S.myAdP].map(p => [p.id,p])).values()].filter(ok); S.loaded.posts = true; $('bal').textContent = ar(c.wal||0); updAdCnt(); paint();
   } catch(e){} }
 const ok = p => (p.status||'published') === 'published' || p.authorId === uid;
@@ -843,7 +867,7 @@ if (uid){
 if (S.one){ document.title = 'ميزان | منشور';
   onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; S.loaded.posts = true; if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
 } else {
-  onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { S.live.posts = true; S.feed = mapDocs(s); rebuild(); }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
+  onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { if (!S.live.posts) S.order = null; S.live.posts = true; S.feed = mapDocs(s); rebuild(); }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
   /* كل الإعلانات المفعّلة (حتى القديمة) تُعرض للمستخدمين الآخرين ضمن الخلاصة */
   onSnapshot(query(collection(db,'posts'), where('isAd','==',true), limit(60)), s => { S.adP = mapDocs(s); rebuild(); }, () => {});
 }
