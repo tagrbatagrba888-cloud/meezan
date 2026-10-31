@@ -269,6 +269,87 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .rp-to{font-size:11.5px;font-weight:800;color:var(--primary-lighter);margin-bottom:3px}.rp-to i{margin-left:4px;font-size:10px}
 .rp-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:12px;background:var(--bg-input);border:1px solid var(--border);font-size:12.5px;font-weight:700;color:var(--text-sub)}
 .rp-bar b{color:var(--text-main)}.rp-bar button{margin-right:auto;width:26px;height:26px;border-radius:50%;color:var(--text-sub)}.rp-bar button:hover{background:var(--border)}
+.ie-tools,.ie-opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.ie-stage{display:flex;justify-content:center;background:var(--bg-input);border-radius:14px;padding:10px;border:1px solid var(--border)}
+.ie-wrap{position:relative;display:inline-block;line-height:0;overflow:hidden;touch-action:none;border-radius:8px;max-width:100%}
+.ie-wrap canvas{display:block;max-width:min(640px,calc(100vw - 70px));max-height:52vh;width:auto;height:auto}
+.ie-box{position:absolute;border:2px dashed #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55);pointer-events:none}
+.ie-sw{width:28px;height:28px;border-radius:50%;border:3px solid var(--border);cursor:pointer;display:inline-block}.ie-sw.on{border-color:var(--gold);transform:scale(1.15)}
+.vt-r{display:flex;align-items:center;gap:10px;margin-top:12px}.vt-r label{width:92px;font-weight:800;font-size:13px}.vt-r input{flex:1;accent-color:var(--primary-lighter)}.u-stats{grid-template-columns:repeat(3,1fr)!important}
+.lvx{position:fixed;inset:0;z-index:900;background:#000;color:#fff;overflow:hidden;font-family:inherit}
+.lvx video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}.lvx video.mir{transform:scaleX(-1)}
+.lvx .lvshade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(0,0,0,.6),transparent 24%,transparent 50%,rgba(0,0,0,.72))}
+.lvx .lvtop{position:absolute;top:0;left:0;right:0;z-index:4;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 8px}
+.lvx .rb{width:46px;height:46px;flex:none;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);transition:.2s}
+.lvx .rb:active{transform:scale(.92)}.lvx .rb.off{background:#c0392b}.lvx .rb.on{background:var(--gold);color:#2b2208}.lvx .rb:disabled{opacity:.4;pointer-events:none}
+.lvx .lvt{padding:6px 12px;border-radius:20px;background:rgba(0,0,0,.5);font-weight:800;font-size:13px;white-space:nowrap}.lvx .lvt.live{background:#e11d48}.lvx .lvt.pz{background:#d68910}
+.lvx .lvn{flex:1;min-width:0;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:9px 14px;color:#fff;font:inherit;font-weight:700;outline:none}.lvx .lvn::placeholder{color:rgba(255,255,255,.65)}.lvx .lvn:read-only{border-color:transparent;background:transparent}
+.lvx .lvend{border:0;border-radius:20px;padding:9px 16px;background:#e11d48;color:#fff;font:inherit;font-weight:900;cursor:pointer;display:none}
+.lvx .lvchip{padding:6px 10px;border-radius:20px;background:rgba(201,169,97,.92);color:#2b2208;font-weight:900;font-size:12.5px;white-space:nowrap;display:none}
+.lvx .lvside{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 76px);z-index:4;display:flex;flex-direction:column;gap:10px}
+.lvx .lvctr{position:absolute;inset:0;z-index:3;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.55);font-weight:900;text-align:center;padding:20px;pointer-events:none}.lvx .lvctr .big{font-size:120px;line-height:1}.lvx .lvctr i{font-size:54px}
+.lvx .lvcm{position:absolute;z-index:4;left:12px;right:72px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);max-height:36%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}.lvx .lvcm::-webkit-scrollbar{display:none}
+.lvx .lvm{align-self:flex-start;max-width:100%;display:flex;gap:8px;align-items:flex-start;background:rgba(0,0,0,.45);border-radius:16px;padding:6px 10px;font-size:14px;line-height:1.5;word-break:break-word;animation:lvin .25s}.lvx .lvm.gift{background:linear-gradient(135deg,rgba(201,169,97,.9),rgba(232,209,144,.9));color:#2b2208;font-weight:800}
+.lvx .lvm .mav{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--primary-lighter);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex:none}.lvx .lvm .gic img{width:28px;height:28px;object-fit:contain}.lvx .lvm .gic .ic{font-size:24px;line-height:1}
+@keyframes lvin{from{opacity:0;transform:translateY(8px)}}
+.lvx .lvbar{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:8px;align-items:center}
+.lvx .lvgo{flex:1;border:0;border-radius:28px;padding:15px;background:#e11d48;color:#fff;font:inherit;font-weight:900;font-size:17px;cursor:pointer}
+.lvx .lvin{flex:1;display:none;gap:8px}.lvx .lvin input{flex:1;min-width:0;border-radius:24px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:#fff;padding:12px 16px;font:inherit;outline:none}.lvx .lvin button{width:46px;height:46px;border-radius:50%;border:0;background:var(--gold);color:#2b2208;font-size:17px;cursor:pointer}
+.lvx .lvfly{position:absolute;left:50%;top:44%;z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;animation:lvfly 2.8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.7);font-weight:900;text-align:center}.lvx .lvfly .ic{font-size:96px;line-height:1}.lvx .lvfly img{width:110px;height:110px;object-fit:contain}
+@keyframes lvfly{0%{opacity:0;transform:translate(-50%,40px) scale(.4)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}70%{opacity:1;transform:translate(-50%,-30px) scale(1)}100%{opacity:0;transform:translate(-50%,-140px) scale(.9)}}
+.lvx .lvsh{position:absolute;left:0;right:0;bottom:0;z-index:8;max-height:82%;display:none;flex-direction:column;background:var(--bg-card);color:var(--text-main);border-radius:22px 22px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.5);animation:lvup .25s}
+@keyframes lvup{from{transform:translateY(40px);opacity:0}}
+.lvsh .shh{display:flex;gap:8px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}.lvsh .shb{padding:14px 16px;overflow:auto;flex:1}
+.lvsh .rb2{border:0;background:var(--bg-input);width:36px;height:36px;border-radius:50%;cursor:pointer;color:var(--text-main)}
+.lvsh .gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.lvsh .gi{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--border);border-radius:16px;background:var(--bg-input);cursor:pointer;text-align:center;font-size:13px}.lvsh .gi:hover{border-color:var(--gold)}
+.lvsh .gi .ic,.lvsh .pv .ic{font-size:44px;line-height:52px}.lvsh .gi img,.lvsh .pv img{width:52px;height:52px;object-fit:contain}
+.lvsh .pv{display:flex;align-items:center;justify-content:center;width:84px;height:84px;border-radius:20px;border:2px dashed var(--gold);background:rgba(201,169,97,.08);flex:none}.lvsh .pv .ic{font-size:56px}.lvsh .pv img{width:70px;height:70px}
+.lvsh .lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;max-height:230px;overflow:auto;padding:4px;margin:8px 0}.lvsh .lg button{font-size:30px;height:54px;border-radius:14px;border:2px solid var(--border);background:var(--bg-input);cursor:pointer}.lvsh .lg button.on{border-color:var(--gold);background:rgba(201,169,97,.22);transform:scale(1.06)}
+.modal-ov{z-index:1000!important}.toast{z-index:1100!important}
+.pv .x.ed{left:34px}
+.tabs{display:flex;gap:6px;margin:2px 0 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:5px}
+.tabs button{flex:1;padding:9px 6px;border-radius:12px;font-weight:800;font-size:13.5px;color:var(--text-sub);display:flex;align-items:center;justify-content:center;gap:6px;position:relative}
+.tabs button.on{background:var(--primary);color:#fff}[data-theme="dark"] .tabs button.on{color:#0A1612}
+.tabs .dot{width:8px;height:8px;border-radius:50%;background:#e11d48;animation:pls 1.2s infinite}
+@keyframes pls{50%{opacity:.3}}
+.srch{display:flex;align-items:center;gap:8px;padding:6px 14px;margin-bottom:12px}
+.srch i{color:var(--text-sub)}.srch input{flex:1;min-width:0;border:0;background:none;outline:none;padding:9px 2px;font-size:14.5px;font-weight:700}
+.srch button{width:28px;height:28px;border-radius:50%;color:var(--text-sub)}.srch button:hover{background:var(--border)}
+.stbar{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;margin-bottom:2px;scrollbar-width:none}.stbar::-webkit-scrollbar{display:none}
+.stcd{flex:none;width:104px;height:178px;border-radius:16px;overflow:hidden;position:relative;background:var(--bg-card);border:1px solid var(--border);box-shadow:0 4px 14px var(--shadow);text-align:center;color:#fff}
+.stcd .pvw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;padding:8px;overflow:hidden;word-break:break-word}
+.stcd .pvw img,.stcd .pvw video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.stcd .pvw i{font-size:34px}
+.stcd::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.35),transparent 40%,rgba(0,0,0,.7));pointer-events:none}
+.stcd b{position:absolute;bottom:8px;left:6px;right:6px;z-index:2;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stcd .ring{position:absolute;top:8px;right:8px;z-index:2;border-radius:50%;padding:2px;background:#8a949c;display:flex}.stcd .ring.new{background:linear-gradient(135deg,var(--gold),#e11d48)}
+.stcd .ring .av{border:2px solid #fff}
+.stcd.mk{color:var(--text-main)}.stcd.mk::after{display:none}.stcd.mk .top{position:absolute;top:0;left:0;right:0;height:62%;display:flex;align-items:center;justify-content:center;background:var(--bg-input)}.stcd.mk .top .av{width:100%!important;height:100%!important;border-radius:0!important}
+.stcd.mk b{color:var(--text-main);bottom:8px}.stcd.mk .plus{position:absolute;top:calc(62% - 15px);left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;background:var(--primary-lighter);color:#fff;border:3px solid var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2}
+.stvx{position:fixed;inset:0;z-index:950;background:#000;color:#fff;display:flex;flex-direction:column}
+.stvx .stbars{display:flex;gap:4px;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 6px;z-index:5}.stvx .stbars i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.3);overflow:hidden}.stvx .stbars i.d b{width:100%}.stvx .stbars b{display:block;height:100%;width:0;background:#fff}
+.stvx .sthd{display:flex;align-items:center;gap:10px;padding:6px 12px;z-index:5}.stvx .sthd small{display:block;opacity:.8;font-size:11.5px}
+.stvx .stbtn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:15px}
+.stvx .stbody{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:26px;font-weight:800;text-align:center;padding:24px;word-break:break-word}
+.stvx .stbody img,.stvx .stbody video{max-width:100%;max-height:100%;object-fit:contain}.stvx .stbody .cap{position:absolute;bottom:0;left:0;right:0;padding:30px 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:15px}
+.stvx .stbody .au{display:flex;flex-direction:column;align-items:center;gap:16px;font-size:80px}.stvx .stbody audio{width:min(320px,80vw)}
+.stvx .stnav{position:absolute;top:90px;bottom:100px;width:34%;z-index:3}.stvx .stnav.l{left:0}.stvx .stnav.r{right:0}
+.stvx .stft{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px);z-index:5;font-weight:800}
+.stvx .stft button{font-size:26px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.12);transition:.15s}.stvx .stft button.on{background:var(--gold);transform:scale(1.15)}
+.pollc{padding:14px;margin-bottom:14px}.pollc .ph{display:flex;align-items:center;gap:10px;margin-bottom:10px}.pollc .pm{flex:1;min-width:0}.pollc .pm small{display:block;color:var(--text-sub)}
+.pollc .pq{font-size:17px;margin-bottom:10px;line-height:1.6}
+.popt{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;overflow:hidden;margin-top:8px;padding:12px 14px;border-radius:14px;border:2px solid var(--border);background:var(--bg-input);font-weight:800;font-size:14.5px;text-align:right}
+.popt:not(:disabled):hover{border-color:var(--primary-lighter)}.popt.on{border-color:var(--primary-lighter)}.popt .pfill{position:absolute;inset:0 0 0 auto;background:rgba(30,122,90,.2);transition:width .5s}.popt .pt,.popt .pn{position:relative}
+.pollc .pf{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--text-sub)}.pollc .pf small{flex:1}
+.lvc{padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.lvb{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:900;background:var(--bg-input);color:var(--text-sub)}.lvb.on{background:#e11d48;color:#fff}.lvb.on i{animation:pls 1.2s infinite}
+.lvx .lvst{position:absolute;top:calc(env(safe-area-inset-top,0px) + 66px);left:0;right:0;text-align:center;z-index:4;font-size:12.5px;font-weight:700;text-shadow:0 1px 6px #000;pointer-events:none}
+.lvx .lvm .lva{display:flex;gap:2px;flex:none}.lvx .lvm .lva button{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:11px}
+.lvx .lvrq{opacity:.75}.lvx .lvrp{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:5;display:none;align-items:center;gap:8px;background:rgba(0,0,0,.6);border-radius:14px;padding:6px 12px;font-size:13px}.lvx .lvrp button{margin-right:auto;color:#fff}
+.lvx .lvin{display:flex}
+.poll-opt-row{display:flex;gap:6px;margin-bottom:6px}
+.sfsw{display:inline-block;width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent}.sfsw.on{border-color:var(--gold)}
+
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -306,7 +387,7 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, onSnapshot, query, orderBy, limit, where, serverTimestamp, increment, deleteField, writeBatch, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, onSnapshot, query, orderBy, limit, where, serverTimestamp, increment, deleteField, writeBatch, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db = getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
 const $ = id => document.getElementById(id);
 
@@ -353,7 +434,7 @@ let toastT;
 function toast(t, type='success'){ const el = $('toast'); $('toastTx').textContent = t; el.className = 'toast show ' + type; $('toastIc').className = type==='error' ? 'fas fa-times-circle' : 'fas fa-check-circle'; clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800); }
 
 /* ============ 📦 الحالة ============ */
-const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, reply:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
+const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, stories:[], polls:[], lives:[], gifts:[], fol:{}, folLoaded:false, tab:"posts", q:"", comments:{}, reply:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
   loaded:{posts:false, soc:false}, order:null, limit:20, unsub:{}, one:new URLSearchParams(location.search).get('id')};
 const price = () => ({...DEF_PRICE, ...(S.cfg.prices||{})}), lim = () => ({...DEF_LIM, ...(S.cfg.limits||{})});
 const P = id => S.posts.find(p => p.id === id);
@@ -381,8 +462,8 @@ const profHref = id => id === uid ? OWN : `${PROFILE}?id=${encodeURIComponent(id
 const nameLink = a => a.official ? esc(a.name) : `<a href="${profHref(a.id)}">${esc(a.name)}</a>`;
 const avatarLink = (a, cls) => { const h = avatar(a.avatar, a.name, cls, a.official); return a.official ? h : `<a class="av-a" href="${profHref(a.id)}" aria-label="${esc(a.name)}">${h}</a>`; };
 const following = () => S.soc[uid]?.following || {};
-const isF = id => !!following()[id];
-const followersOf = id => id === ADMIN ? [...S.uids].filter(x => x !== ADMIN).length : Number(S.soc[id]?.followersCount || 0);
+const isF = id => S.folLoaded ? !!S.fol[id] : !!following()[id];
+const followersOf = id => id === ADMIN ? [...S.uids].filter(x => x !== ADMIN).length : Math.max(0, Number(S.soc[id]?.followersCount || 0) + Number(S.soc[id]?.followersAdj || 0));
 const followBtn = (target, pid) => `<button class="fbtn ${isF(target)?'on':''}" data-a="follow" data-id="${esc(target)}" data-p="${pid}">${isF(target)?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button>`;
 const banned = () => { const b = S.soc[uid]?.postBan; if (!b?.active) return null; const u = tsd(b.until); return u && u < new Date() ? null : b; };
 const mediaType = p => (p.media && p.media[0]?.type) || 'text';
@@ -583,22 +664,24 @@ function commentBox(p){
     <button class="ic send" data-a="sendComment" data-id="${p.id}" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div>`; }
 
 /* ============ 🧭 الخلاصة (تحديث ذكي بدون إعادة رسم كل شيء) ============ */
-const trigger = () => { const c = S.cfg, ban = banned();
+const trigger0 = () => { const c = S.cfg, ban = banned();
   return `<div class="card trig"><a class="av-a" href="${OWN}" aria-label="ملفي الشخصي">${avatar(uAvatar(S.users[uid]||me),uName(uid),'av44')}</a><button class="trig-in" data-a="newPost">${ban?'أنت ممنوع من النشر حالياً':'بم تفكر؟'}</button>
   <div class="trig-btns">${c.allowImages!==false?'<button data-a="newPost" data-t="image"><i class="fas fa-images" style="color:#2ECC71"></i>صورة</button>':''}${c.allowVideo!==false?'<button data-a="newPost" data-t="video"><i class="fas fa-video" style="color:#E74C3C"></i>فيديو</button>':''}${c.allowAudio!==false?'<button data-a="newPost" data-t="audio"><i class="fas fa-microphone" style="color:#3498DB"></i>صوت</button>':''}</div></div>`; };
+const trigger = () => { const h = trigger0(), k = h.lastIndexOf('</div></div>'); return h.slice(0,k) + '<button data-a="newPoll"><i class="fas fa-square-poll-vertical" style="color:#9B59B6"></i>استطلاع</button>' + h.slice(k); };
 const emptyBox = (ic, t, d='') => `<div class="empty"><i class="fas ${ic}"></i><div style="font-size:16px;color:var(--text-main)">${t}</div>${d?`<div style="font-size:13px;margin-top:6px">${d}</div>`:''}</div>`;
 function feedItems(){
   if (S.one){ const p = P(S.one);
     return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
   if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'sk1',html:sk},{key:'sk2',html:sk}]; }
+  if (S.tab==='live') return [...topBar(), ...liveItems()]; if (S.tab==='polls') return [...topBar(), ...pollItems()];
   const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
   if (!S.order){ S.order = rankIds(org); S.orderAt = Date.now(); }
   const map = new Map(org.map(p => [p.id,p])), known = new Set(S.order), byDate = (a,b) => (tsd(b.createdAt)||Date.now()) - (tsd(a.createdAt)||Date.now());
   const fresh = org.filter(p => !known.has(p.id)); S.pendingNew = fresh.filter(p => p.authorId !== uid).length;
   let ps = [...fresh.filter(p => p.authorId === uid).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
-  ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
+  ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0)); if (S.q.trim()) ps = ps.filter(searchOk);
   // الأولوية: 1) منشورات المنصة الرسمية  2) الإعلانات الممولة  3) الأحدث + من أتابعهم + المشاهير
-  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [{key:'trig',html:trigger()}];
+  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [...(S.q.trim()?[]:[{key:'stories',html:storiesBar()}]), {key:'trig',html:trigger()}, ...topBar(), ...(S.q.trim()?[]:feedExtras())];
   const WEEK = 7*864e5, isTop = p => isOff(p) && (p.pinned || Date.now() - (tsd(p.createdAt)?.getTime()||Date.now()) < WEEK);
   const offTop = ps.filter(isTop).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || byDate(a,b)), rest = ps.filter(p => !isTop(p));
   const rot = ads.length ? Math.floor(S.orderAt/60000) % ads.length : 0, ordAds = ads.slice(rot).concat(ads.slice(0,rot)), topAds = ordAds.slice(0,2), restAds = ordAds.slice(2);
@@ -606,7 +689,7 @@ function feedItems(){
   show.slice(0,nOff).forEach(p => items.push({key:p.id,html:card(p)}));
   topAds.forEach(ad => items.push({key:ad.id+':top',html:card(ad)}));
   show.slice(nOff).forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (restAds.length && (i+1)%5===0){ const ad = restAds[k++ % restAds.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
-  if (!show.length) items.push({key:'empty',html:emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
+  if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
   if (ps.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(ps.length-show.length)})</button>`});
   return items; }
 function patch(R, items){
@@ -650,17 +733,27 @@ function openComposer({pick=null}={}){
   function paintC(){
     $$('#cBgs').style.display = !hasMedia() ? 'flex' : 'none';
     $$('#cBgs').innerHTML = [''].concat(BGS).map(b => `<button type="button" data-c="bg" data-b="${esc(b)}" class="${C.bg===b?'on':''}" style="background:${b||'var(--bg-input)'};${b?'':'border:2px solid var(--border)'}" title="${b?'خلفية':'بدون'}">${b?'':'<i class="fas fa-xmark" style="font-size:12px"></i>'}</button>`).join('');
-    const pv = (m, k, i) => `<div class="pv">${m.type==='image'?`<img src="${esc(m.url)}" alt="">`:m.type==='video'?`<video src="${esc(m.url)}" muted></video><i class="fas fa-play" style="position:relative;color:#fff;font-size:22px;text-shadow:0 2px 8px #000"></i>`:m.type==='link'?`<i class="fas fa-link big"></i><span>${esc(m.url.slice(0,28))}</span>`:`<i class="fas fa-microphone-lines big"></i><span>${esc(m.name||'مقطع صوتي')}</span>`}<button class="x" data-c="rm" data-k="${k}" data-i="${i}" type="button"><i class="fas fa-xmark"></i></button></div>`;
+    const pv = (m, k, i) => `<div class="pv">${m.type==='image'?`<img src="${esc(m.url)}" alt="">`:m.type==='video'?`<video src="${esc(m.url)}" muted></video><i class="fas fa-play" style="position:relative;color:#fff;font-size:22px;text-shadow:0 2px 8px #000"></i>`:m.type==='link'?`<i class="fas fa-link big"></i><span>${esc(m.url.slice(0,28))}</span>`:`<i class="fas fa-microphone-lines big"></i><span>${esc(m.name||'مقطع صوتي')}</span>`}${(m.type==='image'||m.type==='video')?`<button class="x ed" data-c="edit" data-k="${k}" data-i="${i}" type="button" title="${m.type==='image'?'قص / كتابة':'قص الفيديو'}"><i class="fas ${m.type==='image'?'fa-crop-simple':'fa-scissors'}"></i></button>`:''}<button class="x" data-c="rm" data-k="${k}" data-i="${i}" type="button"><i class="fas fa-xmark"></i></button></div>`;
     $$('#cPrev').innerHTML = C.existing.map((m,i) => pv(m,'e',i)).join('') + C.files.map((m,i) => pv(m,'f',i)).join('');
     const on = !hasMedia() && C.bg; tx.style.fontSize = on ? '24px' : ''; tx.style.background = on ? C.bg : ''; tx.style.color = on ? '#fff' : ''; tx.style.textAlign = on ? 'center' : ''; tx.style.padding = on ? '28px 14px' : '4px'; tx.style.borderRadius = '14px'; }
   paintC();
   async function addFiles(kind, list){ const mx = c.maxVideoSec||60;
-    for (const f of list){ if (f.size > LIM[kind]*1048576){ toast(`حجم الملف أكبر من ${LIM[kind]}MB (الحد الذي حددته الإدارة)`,'error'); continue; }
-      if (kind==='video'){ const u = URL.createObjectURL(f), dur = await new Promise(r => { const v = document.createElement('video'); v.preload = 'metadata'; v.onloadedmetadata = () => r(v.duration); v.onerror = () => r(0); v.src = u; }); URL.revokeObjectURL(u); if (dur > mx+.5){ toast(`الفيديو أطول من ${mx} ثانية`,'error'); continue; } }
+    for (let f of list){ if (kind!=='video' && f.size > LIM[kind]*1048576){ toast(`حجم الملف أكبر من ${LIM[kind]}MB (الحد الذي حددته الإدارة)`,'error'); continue; }
+      if (kind==='video'){ const u = URL.createObjectURL(f), dur = await vidDur(u);
+        if (dur > mx+.5 || f.size > LIM.video*1048576){ toast(dur > mx+.5 ? `الفيديو أطول من ${mx} ثانية — حدّد الجزء المطلوب` : `الفيديو أكبر من ${LIM.video}MB — قُصّه لتصغيره`,'error');
+          const b = await openVideoTrimmer(u,{maxLen:mx}); URL.revokeObjectURL(u); if (!b) continue;
+          if (b.size > LIM.video*1048576){ toast(`حجم الفيديو بعد القص ما زال أكبر من ${LIM.video}MB`,'error'); continue; }
+          f = new File([b],'video-trim.webm',{type:b.type||'video/webm'}); } else URL.revokeObjectURL(u); }
       if (kind==='image'){ if (C.files.filter(x => x.type==='image').length >= (c.maxImages||10)){ toast('وصلت للحد الأقصى للصور','error'); continue; } }
       else { C.files = C.files.filter(x => x.type!==kind); C.existing = C.existing.filter(x => x.type!==kind); }
       C.files.push({type:kind, file:f, url:URL.createObjectURL(f), name:f.name}); }
     paintC(); }
+  async function editMedia(k, i){ const it = k==='f' ? C.files[i] : C.existing[i]; if (!it) return; let src = it.url;
+    if (k==='e' && String(src).startsWith('fsm:')){ toast('جارٍ تحميل الملف…'); src = await mLoad(src); if (!src) return toast('تعذر تحميل الملف','error'); }
+    const blob = it.type==='image' ? await openImageEditor(src) : await openVideoTrimmer(src,{maxLen:c.maxVideoSec||60}); if (!blob) return;
+    if (it.type==='video' && blob.size > LIM.video*1048576) return toast(`حجم الفيديو بعد القص أكبر من ${LIM.video}MB`,'error');
+    const file = new File([blob], it.type==='image'?'edit.jpg':'edit.webm', {type:blob.type}), n = {type:it.type, file, url:URL.createObjectURL(file), name:file.name};
+    if (k==='f'){ URL.revokeObjectURL(it.url); C.files[i] = n; } else { C.existing.splice(i,1); C.files.push(n); } paintC(); toast(it.type==='image'?'تم تعديل الصورة':'تم قص الفيديو'); }
   ['image','video','audio'].forEach(k => $$('#f'+k).addEventListener('change', e => { addFiles(k, [...e.target.files]); e.target.value = ''; }));
   ov.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; const k = b.dataset.c;
     if (k==='pick') $$('#f'+b.dataset.k).click();
@@ -668,6 +761,7 @@ function openComposer({pick=null}={}){
     else if (k==='link') dialog({title:'رابط فيديو', body:'ألصق رابط يوتيوب أو رابط فيديو مباشر', input:'https://', confirm:'إضافة'}).then(u => { if (!u) return; if (!safe(u)) return toast('الرابط غير صالح','error'); C.existing = C.existing.filter(x => x.type!=='link'); C.existing.push({type:'link',url:u}); paintC(); });
     else if (k==='emoT') $$('#cEmo').classList.toggle('show');
     else if (k==='emo'){ const s = tx.selectionStart ?? tx.value.length; tx.value = tx.value.slice(0,s)+b.dataset.e+tx.value.slice(s); tx.focus(); tx.setSelectionRange(s+2,s+2); }
+    else if (k==='edit') editMedia(b.dataset.k, +b.dataset.i);
     else if (k==='rm'){ const i = +b.dataset.i; if (b.dataset.k==='e') C.existing.splice(i,1); else { URL.revokeObjectURL(C.files[i].url); C.files.splice(i,1); } paintC(); } });
   if (pick) setTimeout(() => $$('#f'+pick).click(), 60);
   $$('#cGo').onclick = () => {
@@ -807,6 +901,7 @@ async function toggleFollow(target, pid){
   const b = writeBatch(db);
   b.set(doc(db,'user_social',uid),{following:{[target]: was ? deleteField() : true}, followingCount:increment(was?-1:1)},{merge:true});
   b.set(doc(db,'user_social',target),{followersCount:increment(was?-1:1)},{merge:true});
+  { const fr = doc(db,'follows',uid+'_'+target); if (was) b.delete(fr); else b.set(fr,{followerId:uid, followedId:target, by:'user', createdAt:serverTimestamp()}); }
   if (fromAd && !was && !p.ad?.fby?.[fk(uid)]) b.update(doc(db,'posts',pid),{'ad.follows':increment(1), ['ad.fby.'+fk(uid)]:true});
   await b.commit(); if (!was){ snd('follow'); notify(target,'متابع جديد',`${uName(uid)} بدأ بمتابعتك`,{url:`${PROFILE}?id=${encodeURIComponent(uid)}`}); } }
 
@@ -900,6 +995,360 @@ if (S.one){ document.title = 'ميزان | منشور';
   /* كل الإعلانات المفعّلة (حتى القديمة) تُعرض للمستخدمين الآخرين ضمن الخلاصة */
   onSnapshot(query(collection(db,'posts'), where('isAd','==',true), limit(60)), s => { S.adP = mapDocs(s); rebuild(); }, () => {});
 }
+
+/* ============ ➕ إضافات التوافق مع نسخة الأدمن: حالات + استطلاعات + بث + هدايا + بحث + محرر ============ */
+const dd = d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})});
+const tms = x => tsd(x)?.getTime() || 0;
+const clk = sec => `${Math.floor(sec/3600)?Math.floor(sec/3600)+':':''}${String(Math.floor(sec%3600/60)).padStart(2,'0')}:${String(Math.floor(sec%60)).padStart(2,'0')}`;
+const blobToDataUrl = b => new Promise((r,j) => { const f = new FileReader(); f.onload = () => r(f.result); f.onerror = j; f.readAsDataURL(b); });
+const loadImg = src => new Promise((res, rej) => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => rej(new Error('img')); im.src = src; });
+async function openImageEditor(src){
+  let im; try { im = await loadImg(src); } catch(_){ toast('تعذر فتح الصورة للتعديل','error'); return null; }
+  return new Promise(resolve => {
+    const k0 = Math.min(1, 1600/Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = Math.round(im.width*k0); cv.height = Math.round(im.height*k0);
+    const ctx = cv.getContext('2d'); ctx.drawImage(im,0,0,cv.width,cv.height);
+    const COLORS = ['#E74C3C','#F5B041','#2ECC71','#3498DB','#9B59B6','#FFFFFF','#000000'], cl = v => Math.min(1, Math.max(0, v));
+    let mode = 'draw', color = COLORS[0], size = 6, hist = [], drawing = false, last = null, crop = null, ratio = 0, done = false;
+    const ov = openModal(`${mh('تعديل الصورة — قص ورسم','fa-crop-simple')}<div class="mb">
+      <div class="ie-tools"><button class="btn xs primary" id="ieD" data-ie="mode:draw"><i class="fas fa-pen"></i> رسم</button><button class="btn xs" id="ieC" data-ie="mode:crop"><i class="fas fa-crop-simple"></i> قص</button><button class="btn xs" data-ie="rot"><i class="fas fa-rotate-right"></i> تدوير</button><button class="btn xs" data-ie="undo"><i class="fas fa-rotate-left"></i> تراجع</button></div>
+      <div class="ie-opts" id="ieO"></div><div class="ie-stage"><div class="ie-wrap" id="ieW"></div></div></div>
+      <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="ieOk"><i class="fas fa-check"></i> حفظ التعديل</button></div>`, {wide:true, onClose:() => { if (!done){ done = true; resolve(null); } }});
+    const w = ov.querySelector('#ieW'); w.appendChild(cv);
+    const pt = e => { const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height, px:cl((e.clientX-r.left)/r.width), py:cl((e.clientY-r.top)/r.height)}; };
+    const lw = () => size*cv.width/cv.getBoundingClientRect().width;
+    const snap = () => { hist.push({w:cv.width, h:cv.height, d:ctx.getImageData(0,0,cv.width,cv.height)}); if (hist.length > 12) hist.shift(); };
+    const box = () => { let b = w.querySelector('.ie-box'); if (!crop || mode!=='crop'){ b?.remove(); return; } if (!b){ b = document.createElement('div'); b.className = 'ie-box'; w.appendChild(b); }
+      Object.assign(b.style, {left:Math.min(crop.x0,crop.x1)*100+'%', top:Math.min(crop.y0,crop.y1)*100+'%', width:Math.abs(crop.x1-crop.x0)*100+'%', height:Math.abs(crop.y1-crop.y0)*100+'%'}); };
+    const fit = () => { if (!ratio || !crop) return; const W = cv.width, H = cv.height, dx = (crop.x1-crop.x0)*W, dy = (crop.y1-crop.y0)*H, sx = dx<0?-1:1, sy = dy<0?-1:1;
+      let aw = Math.abs(dx), ah = aw/ratio; const mw = sx>0 ? (1-crop.x0)*W : crop.x0*W, mh2 = sy>0 ? (1-crop.y0)*H : crop.y0*H;
+      if (ah > mh2){ ah = mh2; aw = ah*ratio; } if (aw > mw){ aw = mw; ah = aw/ratio; } crop.x1 = crop.x0 + sx*aw/W; crop.y1 = crop.y0 + sy*ah/H; };
+    const opts = () => { ov.querySelector('#ieO').innerHTML = mode==='draw'
+        ? COLORS.map(c => `<span class="ie-sw ${c===color?'on':''}" data-ie="col:${c}" style="background:${c}"></span>`).join('') + `<input type="range" id="ieS" min="2" max="40" value="${size}" style="flex:1;min-width:100px;accent-color:var(--primary-lighter)">`
+        : [['0','حر'],['1','1:1'],['1.3333','4:3'],['1.7778','16:9'],['0.75','3:4']].map(([v,t]) => `<button class="chip ${+v===ratio?'on':''}" data-ie="ratio:${v}">${t}</button>`).join('') + `<button class="btn xs ok" data-ie="apply"><i class="fas fa-check"></i> تطبيق القص</button><small style="font-weight:700;color:var(--text-sub)">اسحب على الصورة لتحديد المنطقة</small>`;
+      ov.querySelector('#ieD').classList.toggle('primary', mode==='draw'); ov.querySelector('#ieC').classList.toggle('primary', mode==='crop'); w.style.cursor = mode==='draw' ? 'crosshair' : 'cell'; };
+    const undo = () => { const h = hist.pop(); if (!h) return toast('لا يوجد ما يُتراجع عنه','error'); cv.width = h.w; cv.height = h.h; ctx.putImageData(h.d,0,0); crop = null; box(); };
+    const rot = () => { snap(); const t = document.createElement('canvas'); t.width = cv.height; t.height = cv.width; const c2 = t.getContext('2d'); c2.translate(t.width/2, t.height/2); c2.rotate(Math.PI/2); c2.drawImage(cv, -cv.width/2, -cv.height/2); cv.width = t.width; cv.height = t.height; ctx.drawImage(t,0,0); crop = null; box(); };
+    const applyCrop = () => { if (!crop) return toast('حدّد منطقة القص بالسحب على الصورة','error');
+      const l = Math.round(Math.min(crop.x0,crop.x1)*cv.width), t = Math.round(Math.min(crop.y0,crop.y1)*cv.height), cw = Math.round(Math.abs(crop.x1-crop.x0)*cv.width), ch = Math.round(Math.abs(crop.y1-crop.y0)*cv.height);
+      if (cw < 10 || ch < 10) return toast('منطقة القص صغيرة جداً','error'); snap(); const d = ctx.getImageData(l,t,cw,ch); cv.width = cw; cv.height = ch; ctx.putImageData(d,0,0); crop = null; box(); };
+    w.addEventListener('pointerdown', e => { w.setPointerCapture(e.pointerId); const p = pt(e); drawing = true;
+      if (mode==='draw'){ snap(); last = p; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, lw()/2, 0, Math.PI*2); ctx.fill(); } else { crop = {x0:p.px, y0:p.py, x1:p.px, y1:p.py}; box(); } });
+    w.addEventListener('pointermove', e => { if (!drawing) return; const p = pt(e);
+      if (mode==='draw'){ ctx.strokeStyle = color; ctx.lineWidth = lw(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke(); last = p; }
+      else { crop.x1 = p.px; crop.y1 = p.py; fit(); box(); } });
+    ['pointerup','pointercancel'].forEach(ev => w.addEventListener(ev, () => { drawing = false; }));
+    ov.addEventListener('click', e => { const b = e.target.closest('[data-ie]'); if (!b) return; const [k,v] = b.dataset.ie.split(':');
+      if (k==='mode'){ mode = v; crop = null; box(); opts(); } else if (k==='col'){ color = v; opts(); } else if (k==='ratio'){ ratio = +v; fit(); box(); opts(); }
+      else if (k==='rot') rot(); else if (k==='undo') undo(); else if (k==='apply') applyCrop(); });
+    ov.addEventListener('input', e => { if (e.target.id==='ieS') size = +e.target.value; });
+    ov.querySelector('#ieOk').onclick = () => { if (done) return; if (mode==='crop' && crop) applyCrop();
+      try { cv.toBlob(b => { if (!b) return toast('تعذر حفظ الصورة','error'); done = true; resolve(b); ov._close(); }, 'image/jpeg', .92); } catch(_){ toast('تعذر حفظ الصورة (مصدر خارجي)','error'); } };
+    opts();
+  });
+}
+function vidDur(src){ return new Promise(res => { const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true; const t = setTimeout(() => res(0), 10000);
+  v.onloadedmetadata = () => { if (isFinite(v.duration)){ clearTimeout(t); res(v.duration); } else { v.ontimeupdate = () => { v.ontimeupdate = null; clearTimeout(t); const d = v.duration; v.currentTime = 0; res(isFinite(d) ? d : 0); }; v.currentTime = 1e7; } };
+  v.onerror = () => { clearTimeout(t); res(0); }; v.src = src; }); }
+async function openVideoTrimmer(src, {maxLen = Infinity} = {}){
+  const dur = await vidDur(src); if (!dur){ toast('تعذر قراءة الفيديو','error'); return null; }
+  return new Promise(resolve => {
+    let done = false, busy = false, abort = false, s = 0, e = Math.min(dur, maxLen);
+    const ov = openModal(`${mh('قص الفيديو','fa-scissors')}<div class="mb"><video id="vtV" src="${esc(src)}" controls playsinline preload="auto" style="width:100%;max-height:44vh;border-radius:14px;background:#000"></video>
+      <div class="vt-r"><label>البداية <b id="vtSl"></b></label><input type="range" id="vtS" min="0" max="${dur}" step="0.1" value="0"></div>
+      <div class="vt-r"><label>النهاية <b id="vtEl"></b></label><input type="range" id="vtE" min="0" max="${dur}" step="0.1" value="${e}"></div>
+      <p class="dl-p" id="vtI" style="margin-top:10px"></p><div class="prog" id="vtP" hidden><div></div><span></span></div></div>
+      <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn" id="vtPre"><i class="fas fa-play"></i> معاينة الجزء</button><button class="btn primary" id="vtOk"><i class="fas fa-scissors"></i> قص وحفظ</button></div>`, {wide:true, onClose:() => { abort = true; if (!done){ done = true; resolve(null); } }});
+    const V = ov.querySelector('#vtV'), S = ov.querySelector('#vtS'), E = ov.querySelector('#vtE'), prog = ov.querySelector('#vtP'), okb = ov.querySelector('#vtOk');
+    const lbl = () => { ov.querySelector('#vtSl').textContent = clk(s); ov.querySelector('#vtEl').textContent = clk(e); ov.querySelector('#vtI').innerHTML = `المدة المحددة: <b>${clk(e-s)}</b> من ${clk(dur)}${isFinite(maxLen) ? ` — الحد الأقصى ${clk(Math.min(maxLen,dur))}` : ''}`; };
+    S.oninput = () => { s = +S.value; if (s > e-.5){ s = Math.max(0, e-.5); S.value = s; } if (e-s > maxLen){ e = s+maxLen; E.value = e; } V.currentTime = s; lbl(); };
+    E.oninput = () => { e = +E.value; if (e < s+.5){ e = Math.min(dur, s+.5); E.value = e; } if (e-s > maxLen){ s = e-maxLen; S.value = s; } V.currentTime = Math.max(0, e-.1); lbl(); };
+    ov.querySelector('#vtPre').onclick = () => { V.currentTime = s; V.play(); const chk = () => { if (V.currentTime >= e-.03){ V.pause(); V.removeEventListener('timeupdate', chk); } }; V.addEventListener('timeupdate', chk); };
+    okb.onclick = async () => { if (busy) return; busy = true; okb.disabled = true;
+      if (s < .05 && e >= dur-.05){ try { const b = await fetch(src).then(r => r.blob()); done = true; resolve(b); ov._close(); } catch(_){ toast('تعذر قراءة الفيديو','error'); busy = false; okb.disabled = false; } return; }
+      const R = document.createElement('video'); R.src = src; R.playsInline = true; R.preload = 'auto'; R.style.cssText = 'position:fixed;left:-9999px;top:0;width:4px;height:4px;opacity:0'; document.body.appendChild(R);
+      const cap = R.captureStream || R.mozCaptureStream;
+      if (!cap || !window.MediaRecorder){ R.remove(); toast('متصفحك لا يدعم قص الفيديو — استخدم Chrome أو Firefox','error'); busy = false; okb.disabled = false; return; }
+      prog.hidden = false; const setP = p => { prog.firstElementChild.style.width = (p*100)+'%'; prog.lastElementChild.textContent = `${Math.round(p*100)}% — لا تغلق النافذة`; }; setP(0);
+      try {
+        await new Promise((ok,no) => { R.onloadedmetadata = ok; R.onerror = no; if (R.readyState >= 1) ok(); });
+        R.currentTime = s; await new Promise(ok => { R.onseeked = ok; setTimeout(ok,1500); });
+        const stream = cap.call(R); let ac = null;
+        try { ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume(); const node = ac.createMediaElementSource(R), dest = ac.createMediaStreamDestination(); node.connect(dest);
+          stream.getAudioTracks().forEach(t => stream.removeTrack(t)); dest.stream.getAudioTracks().forEach(t => stream.addTrack(t)); } catch(_){}
+        const mime = ['video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '', ch = [];
+        const mr = new MediaRecorder(stream, {...(mime?{mimeType:mime}:{}), videoBitsPerSecond:1400000, audioBitsPerSecond:96000});
+        mr.ondataavailable = x => x.data.size && ch.push(x.data); const fin = new Promise(ok => mr.onstop = ok);
+        mr.start(500); await R.play();
+        await new Promise(ok => { const iv = setInterval(() => { setP(Math.min(1, Math.max(0, (R.currentTime-s)/(e-s)))); if (abort || R.currentTime >= e-.02 || R.ended){ clearInterval(iv); ok(); } }, 80); });
+        R.pause(); if (mr.state !== 'inactive') mr.stop(); await fin; ac?.close().catch(() => {}); R.remove();
+        if (abort) return; const blob = new Blob(ch, {type:(mime || 'video/webm').split(';')[0]}); done = true; resolve(blob); ov._close();
+      } catch(err){ console.error(err); R.remove(); if (!abort){ toast('تعذر قص الفيديو','error'); busy = false; okb.disabled = false; prog.hidden = true; } }
+    };
+    lbl();
+  });
+}
+
+
+const b64Blob = (d, type) => { d = String(d||''); const i = d.indexOf(';base64,'), bin = atob(i >= 0 ? d.slice(i+8) : d.split(',').pop()), u = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k); return new Blob([u], {type}); };
+const liveOn = L => L.status === 'live' && (Date.now() - (tsd(L.lastAt || L.startedAt)?.getTime() || Date.now())) < 45000;
+const liveBase = L => String(L.mime || 'video/webm').split(';')[0];
+const chunkQ = id => query(collection(db,'live_chunks'), where('sid','==',id));
+async function loadLiveBlob(id, type){
+  const s = await getDocs(chunkQ(id)), a = s.docs.map(d => d.data()).sort((x,y) => x.i - y.i), parts = [];
+  for (let j = 0; j < a.length; j++){ if (a[j].i !== j) break; parts.push(b64Blob(a[j].data, type)); }
+  return {blob:new Blob(parts, {type}), n:parts.length, total:a.length};
+}
+
+const giftIco = g => g.img ? `<img src="${esc(g.img)}" alt="">` : `<span class="ic">${esc(g.icon||'🎁')}</span>`;
+let giftsCb = null;
+
+/* ---------- البيانات اللحظية ---------- */
+onSnapshot(query(collection(db,'stories'), orderBy('createdAt','desc'), limit(200)), s => { S.stories = s.docs.map(dd); draw(); }, () => {});
+onSnapshot(query(collection(db,'polls'), orderBy('createdAt','desc'), limit(100)), s => { S.polls = s.docs.map(dd); draw(); }, () => {});
+onSnapshot(query(collection(db,'live_streams'), orderBy('startedAt','desc'), limit(40)), s => { S.lives = s.docs.map(dd); draw(); }, () => {});
+onSnapshot(collection(db,'live_gifts'), s => { S.gifts = s.docs.map(dd).sort((a,b) => (a.price||0)-(b.price||0)); giftsCb && giftsCb(); }, () => {});
+setInterval(() => { if (!document.hidden) draw(); }, 45000);
+
+/* ---------- 🔗 المتابعة: توافق كامل مع نسخة الأدمن (follows + followersAdj) ---------- */
+let bfDone = false;
+function backfill(){ if (bfDone || !uid || !S.folLoaded || !S.loaded.soc) return; bfDone = true;
+  const miss = Object.keys(following()).filter(t => following()[t] && t !== ADMIN && !S.fol[t]); if (!miss.length) return;
+  for (let i = 0; i < miss.length; i += 400){ const b = writeBatch(db); miss.slice(i,i+400).forEach(t => b.set(doc(db,'follows',uid+'_'+t),{followerId:uid, followedId:t, by:'user', createdAt:serverTimestamp()},{merge:true})); b.commit().catch(() => {}); } }
+if (uid) onSnapshot(query(collection(db,'follows'), where('followerId','==',uid)), s => { S.fol = {}; s.forEach(d => { const x = d.data(); if (x.followedId) S.fol[x.followedId] = true; }); S.folLoaded = true; backfill(); draw(); }, () => { S.folLoaded = false; });
+onSnapshot(collection(db,'user_social'), () => backfill());
+
+/* ---------- 🔎 البحث + التبويبات ---------- */
+const norm = s => String(s||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+const searchOk = p => { const q = norm(S.q).trim(); if (!q) return true; const a = authorOf(p), hay = norm([p.text, a.name, CMAP[p.category]?.name, p.sharedPost?.text].join(' ')); return q.split(/\s+/).every(w => hay.includes(w)); };
+const liveNow = () => S.lives.filter(liveOn);
+const topBar = () => { const ln = liveNow().length, T = (k,ic,t) => `<button class="${S.tab===k?'on':''}" data-a="tab" data-t="${k}"><i class="fas ${ic}"></i>${t}${k==='live'&&ln?'<span class="dot"></span>':''}</button>`;
+  const items = [{key:'tabs', html:`<div class="tabs">${T('posts','fa-newspaper','المنشورات')}${T('live','fa-tower-broadcast','البث المباشر')}${T('polls','fa-square-poll-vertical','الاستطلاعات')}</div>`}];
+  if (S.tab === 'posts') items.push({key:'srch', html:`<div class="card srch"><i class="fas fa-magnifying-glass"></i><input id="sq" type="search" placeholder="ابحث عن منشور (نص، اسم، تصنيف)…" autocomplete="off" enterkeyhint="search"><button id="sqx" data-a="sqClear" hidden aria-label="مسح"><i class="fas fa-xmark"></i></button></div>`});
+  return items; };
+const feedExtras = () => { const out = [];
+  liveNow().forEach(L => out.push({key:'lvn'+L.id, html:liveCard(L)}));
+  S.polls.filter(p => pollVisible(p) && pOpen(p)).slice(0,2).forEach(p => out.push({key:'pl'+p.id, html:pollCard(p)}));
+  return out; };
+
+/* ---------- 🔵 الحالات ---------- */
+const stActive = st => tms(st.expiresAt) > Date.now();
+const seenLocal = () => { try { return JSON.parse(localStorage.getItem('meezan_st_seen')||'{}'); } catch(_){ return {}; } };
+const stSeen = st => st.authorId === uid || !!st.vby?.[fk(uid)] || !!seenLocal()[st.id];
+function storyGroups(){ const g = new Map();
+  S.stories.filter(stActive).sort((a,b) => tms(a.createdAt) - tms(b.createdAt)).forEach(st => { const k = isOff(st) ? ADMIN : st.authorId; if (!g.has(k)) g.set(k, []); g.get(k).push(st); });
+  return [...g.entries()].map(([k,list]) => ({key:k, list, last:list[list.length-1], author:authorOf({authorId:k, isPlatform:k===ADMIN}), unseen:list.some(s => !stSeen(s))}))
+    .sort((a,b) => (b.key===uid)-(a.key===uid) || (b.key===ADMIN)-(a.key===ADMIN) || (b.unseen-a.unseen) || tms(b.last.createdAt)-tms(a.last.createdAt)); }
+const stBg = st => st.type==='text' ? `background:${esc(st.bg||BGS[0])}` : 'background:#111';
+const stThumb = st => { const m = st.media?.[0];
+  if (st.type==='image' && m) return `<img src="${esc(m.url)}" alt="" loading="lazy">`;
+  if (st.type==='video' && m) return `<video src="${esc(m.url)}" muted preload="metadata" playsinline></video>`;
+  if (st.type==='audio') return '<i class="fas fa-microphone-lines"></i>';
+  return esc((st.text||'').slice(0,50)); };
+const storiesBar = () => { const gs = storyGroups();
+  return `<div class="stbar"><button class="stcd mk" data-a="stNew"><div class="top">${avatar(uAvatar(S.users[uid]||me), uName(uid), 'av44')}</div><span class="plus"><i class="fas fa-plus"></i></span><b>إنشاء حالة</b></button>${gs.map(g => `<button class="stcd" data-a="stOpen" data-k="${esc(g.key)}"><div class="pvw" style="${stBg(g.last)}">${stThumb(g.last)}</div><span class="ring ${g.unseen?'new':''}">${avatar(g.author.avatar, g.author.name, 'av34', g.author.official)}</span><b>${g.key===uid?'حالتك':esc(g.author.name)}</b></button>`).join('')}</div>`; };
+
+function openStories(key){
+  const gs = storyGroups(), g0 = gs.findIndex(g => g.key === key); if (g0 < 0) return;
+  let gi = g0, si = Math.max(0, gs[g0].list.findIndex(s => !stSeen(s))), tm = null, closed = false;
+  const ov = document.createElement('div'); ov.className = 'stvx'; document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const stop = () => { clearTimeout(tm); tm = null; };
+  const close = () => { if (closed) return; closed = true; stop(); document.removeEventListener('keydown', onKey); ov.remove(); if (!modals.length) document.body.style.overflow = ''; draw(); };
+  const next = () => { if (si < gs[gi].list.length-1){ si++; show(); } else if (gi < gs.length-1){ gi++; si = 0; show(); } else close(); };
+  const prev = () => { if (si > 0){ si--; show(); } else if (gi > 0){ gi--; si = gs[gi].list.length-1; show(); } else show(); };
+  const onKey = e => { if (e.key==='Escape') close(); else if (e.key==='ArrowLeft') next(); else if (e.key==='ArrowRight') prev(); };
+  document.addEventListener('keydown', onKey);
+  const foot = st => { const mine = st.authorId === uid, cur = st.reactions?.[uid];
+    return mine ? `<span><i class="fas fa-eye"></i> ${ar(st.viewsCount||0)} مشاهدة</span><span>${Object.values(st.reactions||{}).map(t => RMAP[t]?.emoji||'').join(' ')||'لا تفاعلات بعد'}</span>`
+      : REACTIONS.map(r => `<button class="${cur===r.id?'on':''}" data-s="react:${r.id}" title="${r.label}">${r.emoji}</button>`).join(''); };
+  function show(){ stop(); const g = gs[gi], st = g.list[si]; if (!st) return close(); const a = g.author, m = st.media?.[0], mine = st.authorId === uid;
+    let body = '';
+    if (st.type==='image' && m) body = `<img src="${esc(m.url)}" alt="">`;
+    else if (st.type==='video' && m) body = `<video id="stM" src="${esc(m.url)}" autoplay playsinline></video>`;
+    else if (st.type==='audio' && m) body = `<div class="au"><i class="fas fa-microphone-lines"></i><audio id="stM" src="${esc(m.url)}" autoplay controls></audio></div>`;
+    else body = esc(st.text||'');
+    ov.innerHTML = `<div class="stbars">${g.list.map((x,i) => `<i class="${i<si?'d':''}"><b id="stb${i}"></b></i>`).join('')}</div>
+      <div class="sthd">${avatar(a.avatar, a.name, 'av34', a.official)}<div><b>${esc(a.name)}</b><small>${ago(st.createdAt)}</small></div><span style="flex:1"></span>${mine?'<button class="stbtn" data-s="del" title="حذف"><i class="fas fa-trash"></i></button>':''}<button class="stbtn" data-s="close"><i class="fas fa-xmark"></i></button></div>
+      <div class="stbody" style="${stBg(st)}">${body}${st.type!=='text'&&st.text?`<div class="cap">${esc(st.text)}</div>`:''}</div>
+      <button class="stnav l" data-s="next" aria-label="التالي"></button><button class="stnav r" data-s="prev" aria-label="السابق"></button>
+      <div class="stft" id="stFt">${foot(st)}</div>`; tickAgo();
+    const bar = ov.querySelector('#stb'+si), M = ov.querySelector('#stM');
+    if (M){ M.onended = next; M.ontimeupdate = () => { if (M.duration) bar.style.width = (M.currentTime/M.duration*100)+'%'; }; M.onerror = () => { tm = setTimeout(next, 4000); }; tm = setTimeout(next, 95000); }
+    else { requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transition = 'width 6s linear'; bar.style.width = '100%'; })); tm = setTimeout(next, 6000); }
+    if (!mine && !st.vby?.[fk(uid)] && !seenLocal()[st.id]){ const sl = seenLocal(); sl[st.id] = 1; const ks = Object.keys(sl); if (ks.length > 400) delete sl[ks[0]]; localStorage.setItem('meezan_st_seen', JSON.stringify(sl));
+      updateDoc(doc(db,'stories',st.id),{viewsCount:increment(1), ['vby.'+fk(uid)]:true}).catch(() => {}); } }
+  ov.addEventListener('click', async e => { const b = e.target.closest('[data-s]'); if (!b) return; const [k, v] = b.dataset.s.split(':'), st = gs[gi].list[si];
+    if (k==='close') close(); else if (k==='next') next(); else if (k==='prev') prev();
+    else if (k==='react'){ const cur = st.reactions?.[uid]; try { await updateDoc(doc(db,'stories',st.id),{[`reactions.${uid}`]: cur===v ? deleteField() : v}); st.reactions = {...(st.reactions||{})}; if (cur===v) delete st.reactions[uid]; else { st.reactions[uid] = v; snd('react'); notify(st.authorId,'تفاعل جديد',`${uName(uid)} تفاعل ${RMAP[v].emoji} مع حالتك`,{url:LIST}); } ov.querySelector('#stFt').innerHTML = foot(st); } catch(_){ toast('تعذر التفاعل','error'); } }
+    else if (k==='del'){ stop(); const ok = await dialog({title:'حذف الحالة', body:'سيتم حذف حالتك نهائياً.', confirm:'حذف', danger:true}); if (!ok){ show(); return; }
+      try { delFiles(st.media); await deleteDoc(doc(db,'stories',st.id)); toast('تم حذف الحالة'); close(); } catch(_){ toast('فشل الحذف','error'); show(); } } });
+  show(); }
+
+function storyForm(){
+  const ban = banned(); if (ban) return toast('أنت ممنوع من النشر'+(ban.reason?` — ${ban.reason}`:''),'error');
+  const LIM = lim(), mx = Math.min(30, S.cfg.maxVideoSec||60); let type = 'text', bg = BGS[0], blob = null, rec = null, tm = null, busy = false;
+  const ov = openModal(`${mh('إنشاء حالة','fa-circle-notch')}<div class="mb" id="sfRoot"></div><div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="sfGo"><i class="fas fa-paper-plane"></i> نشر الحالة</button></div><div class="prog" id="sfP" hidden style="margin:0 16px 14px"><div></div><span></span></div>`, {wide:true, onClose:() => { clearInterval(tm); try { rec?.state==='recording' && rec.stop(); } catch(_){} }}), root = ov.querySelector('#sfRoot');
+  const TY = {text:['نص','fa-font'], image:['صورة','fa-image'], video:['فيديو','fa-video'], audio:['صوت','fa-microphone']};
+  const draw0 = () => { const keep = root.querySelector('#sfTx')?.value || '';
+    root.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${Object.entries(TY).map(([k,[t,ic]]) => `<button class="btn xs ${type===k?'primary':''}" data-ty="${k}"><i class="fas ${ic}"></i> ${t}</button>`).join('')}</div>
+    ${type==='image'||type==='video' ? `<input class="inp" type="file" id="sfFile" accept="${type}/*"><div id="sfPrev" style="margin:8px 0"></div>` : ''}
+    ${type==='audio' ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn danger" id="sfRec"><i class="fas fa-microphone"></i> بدء التسجيل</button><span id="sfTm" style="font-weight:800"></span><input class="inp" type="file" id="sfFile" accept="audio/*" style="flex:1;min-width:160px"></div><div id="sfPrev" style="margin:8px 0"></div>` : ''}
+    <textarea class="inp" id="sfTx" rows="${type==='text'?4:2}" placeholder="${type==='text'?'اكتب حالتك…':'تعليق (اختياري)'}" style="margin:8px 0">${esc(keep)}</textarea>
+    ${type==='text' ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${BGS.map(b => `<span class="sfsw ${b===bg?'on':''}" data-bg="${esc(b)}" style="background:${b}"></span>`).join('')}</div>` : ''}
+    <p class="dl-p" style="margin-top:10px;font-size:12.5px">تظهر الحالة لمدة ٢٤ ساعة ثم تختفي تلقائياً.</p>`; };
+  const prev = () => { const p = root.querySelector('#sfPrev'); if (!p || !blob) return; const u = URL.createObjectURL(blob);
+    p.innerHTML = type==='image' ? `<img src="${u}" style="max-width:100%;max-height:230px;border-radius:12px"><br><button class="btn xs" data-ed="1" style="margin-top:6px"><i class="fas fa-crop-simple"></i> قص / كتابة</button>`
+      : type==='video' ? `<video src="${u}" controls style="max-width:100%;max-height:230px;border-radius:12px"></video><br><button class="btn xs" data-ed="1" style="margin-top:6px"><i class="fas fa-scissors"></i> قص الفيديو</button>` : `<audio src="${u}" controls></audio>`; };
+  root.addEventListener('click', async e => { const t = e.target.closest('[data-ty],[data-bg],#sfRec,[data-ed]'); if (!t) return;
+    if (t.dataset.ty){ type = t.dataset.ty; blob = null; draw0(); }
+    else if (t.dataset.bg){ bg = t.dataset.bg; root.querySelectorAll('.sfsw').forEach(x => x.classList.toggle('on', x.dataset.bg===bg)); }
+    else if (t.dataset.ed){ const u = URL.createObjectURL(blob), b = type==='image' ? await openImageEditor(u) : await openVideoTrimmer(u,{maxLen:mx}); if (b){ if (type==='video' && b.size > LIM.video*1048576) return toast(`الفيديو أكبر من ${LIM.video}MB`,'error'); blob = b; prev(); } }
+    else if (t.id==='sfRec'){ if (rec){ rec.stop(); return; }
+      try { const ms = await navigator.mediaDevices.getUserMedia({audio:true}); rec = new MediaRecorder(ms); const ch = []; let sec = 0; rec.ondataavailable = x => ch.push(x.data);
+        rec.onstop = () => { clearInterval(tm); ms.getTracks().forEach(x => x.stop()); blob = new Blob(ch,{type:rec.mimeType||'audio/webm'}); rec = null; t.innerHTML = '<i class="fas fa-microphone"></i> إعادة التسجيل'; prev(); };
+        rec.start(); t.innerHTML = '<i class="fas fa-stop"></i> إيقاف'; tm = setInterval(() => { sec++; const el = root.querySelector('#sfTm'); if (el) el.textContent = `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`; if (sec >= 90) rec?.stop(); }, 1000);
+      } catch(_){ toast('تعذر الوصول للميكروفون','error'); } } });
+  root.addEventListener('change', async e => { if (e.target.id !== 'sfFile') return; let f = e.target.files[0]; if (!f) return;
+    if (type==='image' && f.size > LIM.image*1048576) return toast(`الصورة أكبر من ${LIM.image}MB`,'error');
+    if (type==='audio' && f.size > LIM.audio*1048576) return toast(`الملف الصوتي أكبر من ${LIM.audio}MB`,'error');
+    if (type==='video'){ const u = URL.createObjectURL(f), dur = await vidDur(u);
+      if (dur > mx+.5 || f.size > LIM.video*1048576){ toast(dur > mx+.5 ? `الحالة لا تزيد عن ${mx} ثانية — حدّد الجزء المطلوب` : `الفيديو أكبر من ${LIM.video}MB — قُصّه لتصغيره`,'error'); const b = await openVideoTrimmer(u,{maxLen:mx}); if (!b) return; if (b.size > LIM.video*1048576) return toast(`الفيديو بعد القص ما زال أكبر من ${LIM.video}MB`,'error'); f = b; } }
+    blob = f; prev(); });
+  ov.querySelector('#sfGo').onclick = async function(){ if (busy) return; const text = root.querySelector('#sfTx').value.trim(), b = this;
+    if (type==='text' && !text) return toast('اكتب نص الحالة','error'); if (type!=='text' && !blob) return toast('اختر أو سجّل الملف أولاً','error');
+    busy = true; b.disabled = true; b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ النشر…'; const P0 = ov.querySelector('#sfP');
+    try { let media = []; if (type!=='text'){ P0.hidden = false; const d = type==='image' ? await shrink(blob) : await blobToDataUrl(blob);
+        media = [{type, url: await saveMedia(d, p => { P0.firstElementChild.style.width = (p*100)+'%'; P0.lastElementChild.textContent = Math.round(p*100)+'%'; })}]; }
+      await addDoc(collection(db,'stories'),{authorId:uid, authorName:uName(uid), authorAvatar:uAvatar(S.users[uid]||me), isPlatform:false, type, text, bg, media, expiresAt:Timestamp.fromMillis(Date.now()+864e5), reactions:{}, viewsCount:0, createdAt:serverTimestamp()});
+      toast('تم نشر الحالة'); ov._close(); } catch(err){ console.error(err); toast('فشل النشر — حاول مرة أخرى','error'); busy = false; b.disabled = false; b.innerHTML = 'إعادة المحاولة'; } };
+  draw0(); }
+
+/* ---------- 📊 الاستطلاعات ---------- */
+const pvotes = (p,o) => Object.values(p.votes||{}).filter(a => (a||[]).includes(o)).length;
+const pOpen = p => p.status !== 'closed' && (!p.expiresAt || tms(p.expiresAt) > Date.now());
+const pollVisible = p => p.authorId === uid || !(p.groups||[]).length || p.groups.includes(me.grade || S.users[uid]?.grade || '');
+function pollCard(p){ const tot = Object.keys(p.votes||{}).length, op = pOpen(p), mv = p.votes?.[uid] || [], show = mv.length > 0 || !op, a = authorOf({authorId:p.authorId, isPlatform:p.authorId===ADMIN}), own = p.authorId === uid;
+  return `<article class="card pollc"><div class="ph">${avatarLink(a,'av40')}<div class="pm"><b>${nameLink(a)}${badge(a)}</b><small>${ago(p.createdAt)} · استطلاع رأي</small></div><span class="lvb ${op?'on':''}" style="${op?'background:var(--success)':''}">${op?'مفتوح':'مغلق'}</span></div>
+  <h4 class="pq">${esc(p.question)}</h4>${p.multi?'<small style="color:var(--text-sub)">يمكنك اختيار أكثر من إجابة</small>':''}
+  ${(p.options||[]).map(o => { const n = pvotes(p,o.id), pc = tot ? Math.round(n/tot*100) : 0, sel = mv.includes(o.id);
+    return `<button class="popt ${sel?'on':''}" data-a="pvote" data-id="${p.id}" data-o="${esc(o.id)}" ${op?'':'disabled'}>${show?`<i class="pfill" style="width:${pc}%"></i>`:''}<span class="pt">${sel?'<i class="fas fa-circle-check" style="color:var(--primary-lighter)"></i> ':''}${esc(o.text)}</span>${show?`<span class="pn">${ar(pc)}٪ · ${ar(n)}</span>`:''}</button>`; }).join('')}
+  <div class="pf"><small>${ar(tot)} مصوّت${p.expiresAt&&op?` · ينتهي ${new Date(tms(p.expiresAt)).toLocaleDateString('ar-EG',{day:'numeric',month:'short'})}`:''}</small>${own?`<button class="btn xs" data-a="pclose" data-id="${p.id}"><i class="fas ${op?'fa-lock':'fa-lock-open'}"></i> ${op?'إغلاق':'فتح'}</button><button class="btn xs danger" data-a="pdel" data-id="${p.id}"><i class="fas fa-trash"></i></button>`:''}</div></article>`; }
+const pollItems = () => { const l = S.polls.filter(pollVisible), out = [{key:'newpoll', html:`<button class="btn primary" data-a="newPoll" style="width:100%;margin-bottom:12px"><i class="fas fa-plus"></i> إنشاء استطلاع رأي</button>`}];
+  l.forEach(p => out.push({key:'pl'+p.id, html:pollCard(p)})); if (!l.length) out.push({key:'pe', html:emptyBox('fa-square-poll-vertical','لا توجد استطلاعات بعد','أنشئ أول استطلاع رأي!')}); return out; };
+function pollForm(){
+  const ban = banned(); if (ban) return toast('أنت ممنوع من النشر','error');
+  let opts = [{id:'o1',text:''},{id:'o2',text:''}];
+  const ov = openModal(`${mh('استطلاع رأي جديد','fa-square-poll-vertical')}<div class="mb"><input class="inp" id="pqQ" placeholder="اكتب سؤال الاستطلاع" maxlength="200" style="margin-bottom:10px"><div id="pqO"></div><button class="btn xs" id="pqAdd"><i class="fas fa-plus"></i> إضافة خيار</button>
+    <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-weight:800;cursor:pointer"><input type="checkbox" id="pqM"> السماح باختيارات متعددة</label>
+    <label style="font-size:12.5px;font-weight:800;color:var(--text-sub)">مدة الاستطلاع</label><select class="sel" id="pqD" style="margin-top:6px"><option value="86400000">يوم واحد</option><option value="259200000">٣ أيام</option><option value="604800000" selected>أسبوع</option><option value="0">بدون حد زمني</option></select></div>
+    <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="pqGo"><i class="fas fa-paper-plane"></i> نشر</button></div>`), ob = ov.querySelector('#pqO');
+  const draw1 = () => { ob.innerHTML = opts.map((o,k) => `<div class="poll-opt-row"><input class="inp" data-k="${k}" value="${esc(o.text)}" maxlength="80" placeholder="الخيار ${ar(k+1)}"><button class="btn xs danger" data-rm="${k}"><i class="fas fa-xmark"></i></button></div>`).join(''); };
+  ob.addEventListener('input', e => { if (e.target.dataset.k != null) opts[+e.target.dataset.k].text = e.target.value; });
+  ob.addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; if (opts.length <= 2) return toast('لابد من خيارين على الأقل','error'); opts.splice(+b.dataset.rm,1); draw1(); });
+  ov.querySelector('#pqAdd').onclick = () => { if (opts.length >= 8) return toast('الحد الأقصى ٨ خيارات','error'); opts.push({id:'o'+Date.now().toString(36), text:''}); draw1(); };
+  ov.querySelector('#pqGo').onclick = async function(){ const question = ov.querySelector('#pqQ').value.trim(), clean = opts.filter(o => o.text.trim()).map(o => ({id:o.id, text:o.text.trim()}));
+    if (!question) return toast('اكتب سؤال الاستطلاع','error'); if (clean.length < 2) return toast('أضف خيارين على الأقل','error');
+    const dur = +ov.querySelector('#pqD').value; this.disabled = true;
+    try { await addDoc(collection(db,'polls'),{question, options:clean, multi:ov.querySelector('#pqM').checked, groups:[], expiresAt:dur ? Timestamp.fromMillis(Date.now()+dur) : null, status:'open', votes:{}, authorId:uid, authorName:uName(uid), authorAvatar:uAvatar(S.users[uid]||me), createdAt:serverTimestamp()});
+      toast('تم نشر الاستطلاع'); S.tab = 'polls'; ov._close(); draw(); } catch(e){ console.error(e); toast('فشل النشر','error'); this.disabled = false; } };
+  draw1(); }
+
+/* ---------- 🔴 البث المباشر (مشاهدة) ---------- */
+const liveCard = L => { const on = liveOn(L), cut = L.status==='live' && !on;
+  return `<div class="card lvc"><div style="display:flex;align-items:center;gap:8px"><span class="lvb ${on?'on':''}"><i class="fas fa-circle" style="font-size:8px"></i> ${on?'مباشر الآن':cut?'انقطع':'انتهى'}</span><small style="flex:1;text-align:left;color:var(--text-sub)">${ago(L.startedAt)}</small></div>
+  <b style="font-size:16px">${esc(L.title||'بث مباشر')}</b><small style="color:var(--text-sub)">${esc(L.hostName||ADMIN_NAME)}${L.duration?` · المدة ${clk(L.duration)}`:''}</small>
+  <button class="btn xs primary" data-a="liveOpen" data-id="${L.id}" style="align-self:flex-start"><i class="fas ${on?'fa-tower-broadcast':'fa-play'}"></i> ${on?'شاهد البث':'مشاهدة الإعادة'}</button></div>`; };
+const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.chunks > 0 || L.status==='ended'), out = l.map(L => ({key:'lv'+L.id, html:liveCard(L)}));
+  if (!out.length) out.push({key:'le', html:emptyBox('fa-tower-broadcast','لا توجد بثوث حالياً','سيصلك إشعار عند بدء بث مباشر جديد')}); return out; };
+
+async function liveView(id){
+  const L0 = S.lives.find(x => x.id === id); if (!L0) return;
+  const live = liveOn(L0), base = liveBase(L0), full = L0.mime || 'video/webm'; let dead = false, objUrl = null, iv = null, unsub = null, unsubC = null, replyTo = null, msgs = [], first = true, sending = false;
+  const ov = document.createElement('div'); ov.className = 'lvx';
+  ov.innerHTML = `<video id="lrV" playsinline autoplay></video><div class="lvshade"></div>
+    <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt ${live?'live':''}" id="lrB">${live?'● مباشر':'إعادة'}</span><span style="flex:1;min-width:0;font-weight:800;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L0.title||'بث مباشر')}</span><span class="lvchip" id="lvTot"></span></div>
+    <div class="lvst" id="lrS">جارٍ التحميل…</div>
+    <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button></div>
+    <div class="lvcm" id="lvCm"></div><div class="lvrp" id="lvRp"></div>
+    <div class="lvbar"><div class="lvin"><input id="lvCi" placeholder="اكتب تعليقاً…" maxlength="300"><button id="lvCs" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div><div class="lvsh" id="lvSh"></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const $$ = s => ov.querySelector(s), v = $$('#lrV'), ST = $$('#lrS'), B = $$('#lrB'), feed = $$('#lvCm'), sh = $$('#lvSh');
+  const closeAll = () => { if (dead) return; dead = true; clearInterval(iv); unsub?.(); unsubC?.(); giftsCb = null; document.removeEventListener('keydown', onKey); if (objUrl) URL.revokeObjectURL(objUrl); v.pause(); ov.remove(); if (!modals.length) document.body.style.overflow = ''; };
+  const onKey = e => { if (e.key==='Escape' && !modals.length){ if (sh.style.display==='flex') sh.style.display = 'none'; else closeAll(); } };
+  document.addEventListener('keydown', onKey); $$('#lvX').onclick = closeAll;
+  const msgHtml = m => { if (m.type==='gift') return `<div class="lvm gift"><span class="gic">${giftIco({img:m.giftImg, icon:m.giftIcon})}</span><span><b>${esc(m.name||'مستخدم')}</b> أرسل <b>${esc(m.giftName||'هدية')}</b>${m.price?` · ${ar(m.price)} ج.م`:''}</span></div>`;
+    return `<div class="lvm">${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span style="flex:1;min-width:0">${m.replyTo?`<small class="lvrq">↪ رد على ${esc(m.replyTo.name||'')}</small><br>`:''}<b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span><span class="lva"><button data-lv="reply:${m.id}" title="رد"><i class="fas fa-reply"></i></button>${m.uid===uid?`<button data-lv="del:${m.id}" title="حذف"><i class="fas fa-trash"></i></button>`:''}</span></div>`; };
+  const fly = m => { const el = document.createElement('div'); el.className = 'lvfly'; el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.name||'مستخدم')} أرسل ${esc(m.giftName||'هدية')}</div>`; ov.appendChild(el); setTimeout(() => el.remove(), 2900); };
+  unsubC = onSnapshot(query(collection(db,'live_comments'), where('sid','==',id)), s => { const fresh = []; s.docChanges().forEach(c => { if (c.type==='added') fresh.push(c.doc.id); });
+    msgs = s.docs.map(dd).sort((x,y) => (tms(x.createdAt)||Date.now()) - (tms(y.createdAt)||Date.now()));
+    const sum = msgs.reduce((a,m) => a + (m.type==='gift' ? Number(m.price)||0 : 0), 0), chip = $$('#lvTot'); chip.style.display = sum ? 'inline-block' : 'none'; chip.textContent = '🎁 '+ar(sum)+' ج.م';
+    feed.innerHTML = msgs.slice(-80).map(msgHtml).join('') || ''; feed.scrollTop = feed.scrollHeight;
+    if (!first) msgs.filter(m => m.type==='gift' && fresh.includes(m.id) && Date.now() - (tms(m.createdAt)||Date.now()) < 60000).forEach(fly); first = false; }, () => {});
+  const setReply = m => { replyTo = m ? {id:m.id, name:m.name||''} : null; const rp = $$('#lvRp'); rp.style.display = m ? 'flex' : 'none'; rp.innerHTML = m ? `<span>↪ رد على <b>${esc(m.name||'')}</b></span><button data-lv="cancel"><i class="fas fa-xmark"></i></button>` : ''; if (m) $$('#lvCi').focus(); };
+  feed.addEventListener('click', async e => { const b = e.target.closest('[data-lv]'); if (!b) return; const [k, cid] = b.dataset.lv.split(':'), m = msgs.find(x => x.id === cid);
+    if (k==='reply' && m) setReply(m);
+    else if (k==='del' && m){ try { await deleteDoc(doc(db,'live_comments',cid)); toast('تم حذف التعليق'); } catch(_){ toast('تعذر حذف التعليق','error'); } } });
+  $$('#lvRp').addEventListener('click', e => { if (e.target.closest('[data-lv="cancel"]')) setReply(null); });
+  const sendC = async () => { const inp = $$('#lvCi'), t = inp.value.trim(); if (!t || sending) return; if (banned()) return toast('أنت ممنوع من التعليق','error'); sending = true; inp.value = '';
+    try { await addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), text:t.slice(0,300), type:'comment', replyTo:replyTo||null, createdAt:serverTimestamp()}); snd('comment'); setReply(null); } catch(err){ console.error(err); toast('تعذّر إرسال التعليق','error'); } sending = false; };
+  $$('#lvCs').onclick = sendC; $$('#lvCi').addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); sendC(); } });
+  /* ---- 🎁 الهدايا: الخصم من المحفظة ---- */
+  const drawGifts = () => { if (sh.style.display !== 'flex') return;
+    sh.innerHTML = `<div class="shh"><b style="font-size:16px"><i class="fas fa-gift" style="color:var(--gold)"></i> أرسل هدية</b><span style="flex:1"></span><span style="font-weight:800;font-size:13px"><i class="fas fa-wallet" style="color:var(--gold)"></i> ${ar(S.wal)} ج.م</span><button class="rb2" data-g="close"><i class="fas fa-xmark"></i></button></div>
+      <div class="shb"><div class="gg">${S.gifts.map(g => `<div class="gi" data-g="send:${g.id}">${giftIco(g)}<b>${esc(g.name)}</b><small>${ar(g.price)} ج.م</small></div>`).join('') || '<div class="cm-empty" style="grid-column:1/-1">لا توجد هدايا متاحة حالياً</div>'}</div></div>`; };
+  giftsCb = drawGifts; let gbusy = false;
+  const needCharge = async () => { if (await dialog({title:'رصيد المحفظة لا يكفي', body:'رصيدك الحالي لا يكفي لإرسال هذه الهدية — اشحن المحفظة أولاً.', confirm:'شحن المحفظة'})) location.href = 'stor.html'; };
+  $$('#lvG').onclick = () => { sh.style.display = 'flex'; drawGifts(); };
+  sh.addEventListener('click', async e => { const t = e.target.closest('[data-g]'); if (!t) return; const [a, gid] = t.dataset.g.split(':');
+    if (a==='close'){ sh.style.display = 'none'; return; }
+    const g = S.gifts.find(x => x.id === gid); if (!g || gbusy) return; const price = Number(g.price)||0; if (!(price > 0)) return;
+    if (!uid) return toast('سجّل الدخول أولاً','error'); if (S.wal < price) return needCharge();
+    gbusy = true;
+    try { await debit(price, `هدية بث مباشر: ${g.name}`, 'live_gift', {liveId:id, giftId:g.id});
+      await addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), type:'gift', giftId:g.id, giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', price, createdAt:serverTimestamp()});
+      snd('react'); toast(`تم إرسال هدية «${g.name}» وخصم ${ar(price)} ج.م`); sh.style.display = 'none'; }
+    catch(err){ if (/لا يكفي/.test(err.message||'')) await needCharge(); else { console.error(err); toast('تعذر إرسال الهدية','error'); } }
+    gbusy = false; });
+    const fixDur = () => { v.onloadedmetadata = () => { if (v.duration === Infinity){ v.currentTime = 1e101; v.ontimeupdate = () => { v.ontimeupdate = null; v.currentTime = 0; }; } }; };
+  const load = async keep => { try { const {blob, n, total} = await loadLiveBlob(id, base); if (dead) return;
+      if (!n){ ST.textContent = 'لا توجد بيانات محفوظة لهذا البث'; return; }
+      const t = keep ? v.currentTime : 0, old = objUrl; objUrl = URL.createObjectURL(blob); fixDur(); v.src = objUrl; if (keep) v.addEventListener('loadedmetadata', () => { try { v.currentTime = t; } catch(_){} }, {once:true});
+      v.play().catch(() => {}); if (old) setTimeout(() => URL.revokeObjectURL(old), 2000);
+      ST.textContent = `${ar(n)} جزء · ${clk(L0.duration||0)}${n < total ? ' — بعض الأجزاء مفقودة' : ''}`;
+    } catch(e){ console.error(e); ST.textContent = 'تعذر تحميل البث'; } };
+  if (!live) return load(false);
+  const mt = window.MediaSource ? (MediaSource.isTypeSupported(full) ? full : MediaSource.isTypeSupported(base) ? base : '') : '';
+  const watchEnd = onEnd => { iv = setInterval(() => { const L = S.lives.find(x => x.id===id); if (L && !liveOn(L)){ clearInterval(iv); B.className = 'lvt'; B.textContent = 'انتهى البث'; ST.textContent = 'انتهى البث'; onEnd(); } }, 1500); };
+  if (!mt){ ST.textContent = 'مشاهدة مباشرة — يتحدّث الفيديو تلقائياً كل بضع ثوانٍ'; await load(false); iv = setInterval(() => load(true), 8000); return; }
+  const mse = new MediaSource(); objUrl = URL.createObjectURL(mse); v.src = objUrl;
+  const got = new Map(); let nxt = 0, busy = false, sb = null, started = false, ended = false;
+  const pump = async () => { if (busy || !sb || dead) return; busy = true;
+    try { while (got.has(nxt) && !dead){ const d = got.get(nxt); got.delete(nxt); nxt++; const buf = await b64Blob(d,'').arrayBuffer();
+        await new Promise((res, rej) => { sb.addEventListener('updateend', res, {once:true}); sb.addEventListener('error', rej, {once:true}); sb.appendBuffer(buf); });
+        if (v.buffered.length){ const e = v.buffered.end(v.buffered.length-1);
+          if (!started){ started = true; v.currentTime = Math.max(v.buffered.start(0), e-1.5); v.play().catch(() => {}); } else if (e - v.currentTime > 8) v.currentTime = e - 1.5; } }
+    } catch(e){ console.error(e); }
+    busy = false; if (got.has(nxt)) pump(); else if (ended && mse.readyState === 'open'){ try { mse.endOfStream(); } catch(_){} } };
+  mse.addEventListener('sourceopen', () => { if (sb) return;
+    try { sb = mse.addSourceBuffer(mt); } catch(e){ ST.textContent = 'تعذر تشغيل البث اللحظي'; return; }
+    unsub = onSnapshot(chunkQ(id), s => { s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data(); got.set(x.i, x.data); } }); pump(); if (!ended) ST.textContent = `مباشر — ${ar(got.size + nxt)} جزء`; });
+    watchEnd(() => setTimeout(() => { ended = true; pump(); }, 4000)); });
+}
+
+/* ---------- 🖱️ الأحداث الجديدة ---------- */
+Object.assign(H, {
+  tab:t => { S.tab = t.dataset.t; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); },
+  sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
+  stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
+  liveOpen:t => liveView(t.dataset.id),
+  pvote:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || !pOpen(p)) return; if (!uid) return toast('سجّل الدخول أولاً','error');
+    const o = t.dataset.o, cur = p.votes?.[uid] || []; let nv = p.multi ? (cur.includes(o) ? cur.filter(x => x !== o) : [...cur, o]) : (cur.includes(o) ? [] : [o]);
+    p.votes = {...(p.votes||{})}; if (nv.length) p.votes[uid] = nv; else delete p.votes[uid]; draw();
+    try { await updateDoc(doc(db,'polls',p.id),{[`votes.${uid}`]: nv.length ? nv : deleteField()}); snd('like'); } catch(_){ toast('تعذر تسجيل صوتك','error'); } },
+  pclose:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || p.authorId !== uid) return; await updateDoc(doc(db,'polls',p.id), pOpen(p) ? {status:'closed'} : {status:'open', expiresAt:null}); toast(pOpen(p) ? 'تم إغلاق الاستطلاع' : 'تم فتح الاستطلاع'); },
+  pdel:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || p.authorId !== uid) return; if (!(await dialog({title:'حذف الاستطلاع', body:'سيُحذف الاستطلاع مع كل الأصوات.', confirm:'حذف', danger:true}))) return; await deleteDoc(doc(db,'polls',p.id)); toast('تم الحذف'); }
+});
+document.addEventListener('input', e => { if (e.target.id === 'sq'){ S.q = e.target.value; const x = $('sqx'); if (x) x.hidden = !S.q; S.limit = 20; draw(); } });
+
 paint();
 </script>
 </body>
