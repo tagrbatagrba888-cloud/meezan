@@ -840,9 +840,12 @@
 
   .toast {
     position: fixed;
-    bottom: 24px;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
     left: 50%;
-    transform: translateX(-50%) translateY(120px);
+    transform: translateX(-50%) translateY(-160px);
+    pointer-events: none;
+    width: max-content;
+    line-height: 1.7;
     background: var(--bg-card);
     color: var(--text-main);
     padding: 14px 24px;
@@ -854,13 +857,26 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 99999;
+    z-index: 1000005;
     transition: transform 0.4s ease, opacity 0.3s ease;
     opacity: 0;
-    max-width: calc(100vw - 32px);
+    max-width: calc(100vw - 24px);
   }
 
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+  .toast i { flex-shrink: 0; }
+
+  /* ===== الشروط والأحكام ===== */
+  .terms-row { display: flex; align-items: center; gap: 10px; margin: 4px 0 16px; font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .terms-box { position: relative; width: 24px; height: 24px; flex-shrink: 0; cursor: pointer; display: block; }
+  .terms-box input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 2; }
+  .terms-mark { width: 24px; height: 24px; border: 2px solid var(--border); border-radius: 7px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: transparent; font-size: 13px; transition: all 0.2s; }
+  .terms-box input:checked + .terms-mark { background: var(--success); border-color: var(--success); color: #fff; }
+  .terms-box input:focus-visible + .terms-mark { box-shadow: 0 0 0 4px rgba(30, 122, 90, 0.2); }
+  .terms-row.shake .terms-mark { border-color: var(--error); }
+  .terms-text { cursor: pointer; user-select: none; }
+  .terms-link { color: #1E78FF; font-weight: 800; text-decoration: underline; }
+  .terms-link:hover { color: #0B5FE0; }
   .toast.success { border-color: var(--success); }
   .toast.success i { color: var(--success); }
   .toast.error { border-color: var(--error); }
@@ -1172,6 +1188,14 @@
 
           <div id="regAddressMount"></div>
 
+          <div class="terms-row" id="termsRow">
+            <label class="terms-box">
+              <input type="checkbox" id="termsCheck">
+              <span class="terms-mark"><i class="fas fa-check"></i></span>
+            </label>
+            <span class="terms-text" id="termsText">أوافق على <a href="shorot.html" target="_blank" rel="noopener" class="terms-link" id="termsLink">الشروط والأحكام</a></span>
+          </div>
+
           <button type="submit" class="btn btn-primary" id="registerBtn">
             <span class="spinner" id="registerSpinner"></span>
             <i class="fas fa-user-plus" id="registerIcon"></i>
@@ -1309,7 +1333,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp 
+  getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp,
+  collection, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { 
   getAuth, GoogleAuthProvider, signInWithPopup, signOut 
@@ -1838,8 +1863,9 @@ function buildCopyright(data) {
 // 💬 Toast
 // ============================================================
 let toastTimeout;
-function showToast(text, type = 'success') {
+function showToast(text, type = 'success', duration) {
   const toast = $('toast');
+  if (duration == null) duration = type === 'error' ? 5000 : 3500;
   const icon = $('toastIcon');
   $('toastText').textContent = text;
   toast.className = 'toast show ' + type;
@@ -1850,8 +1876,9 @@ function showToast(text, type = 'success') {
   };
   icon.className = `fas ${icons[type] || icons.success}`;
   clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), duration);
 }
+$('toast').addEventListener('click', () => $('toast').classList.remove('show'));
 
 // ============================================================
 // 🔔 نافذة تأكيد
@@ -2132,22 +2159,98 @@ function hideAllMessages() {
   $('disabledMsg').classList.remove('show');
 }
 
-function showError(msg) {
+// كل التنبيهات تظهر كإشعار ثابت أعلى شاشة الجهاز
+function showError(msg, duration) {
   hideAllMessages();
-  $('errorText').textContent = msg;
-  $('errorMsg').classList.add('show');
+  showToast(msg, 'error', duration);
 }
 
-function showSuccess(msg = 'تم تسجيل الدخول بنجاح! جاري التوجيه...') {
+function showSuccess(msg = 'تم تسجيل الدخول بنجاح! جاري التوجيه...', duration) {
   hideAllMessages();
-  $('successText').textContent = msg;
-  $('successMsg').classList.add('show');
+  showToast(msg, 'success', duration);
 }
 
 function showRegistrationClosed(msg) {
-  $('regClosedText').textContent = msg || 'التسجيل مغلق حالياً من قبل الإدارة';
-  $('registrationClosedMsg').classList.add('show');
+  showToast(msg || 'التسجيل مغلق حالياً من قبل الإدارة', 'warning');
 }
+
+// تنبيهات نافذة Google تظهر أيضاً أعلى الشاشة
+new MutationObserver(() => {
+  const el = $('googleModalError');
+  if (el.classList.contains('show') && el.textContent.trim()) showToast(el.textContent.trim(), 'error');
+}).observe($('googleModalError'), { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
+
+// ============================================================
+// 📝 طلبات إنشاء الحساب (موافقة الإدارة)
+// ============================================================
+const SIGNUP_COL = 'signup_requests';
+let signupApprovalEnabled = false;
+
+onSnapshot(doc(db, 'users', 'settings'), (snap) => {
+  if (!snap.exists()) return;
+  const v = snap.data().signupApprovalEnabled;
+  if (typeof v === 'boolean') signupApprovalEnabled = v;
+}, () => {});
+
+async function isApprovalOn() {
+  try {
+    const s = await withTimeout(getDoc(doc(db, 'users', 'settings')), 5000);
+    if (s.exists() && typeof s.data().signupApprovalEnabled === 'boolean') signupApprovalEnabled = s.data().signupApprovalEnabled;
+  } catch (e) {}
+  return signupApprovalEnabled;
+}
+
+const reqId = (role, username) => 'req_' + role + '_' + String(username).toLowerCase().replace(/[^a-z0-9_.\u0600-\u06FF-]/gi, '_');
+
+async function getRequest(role, username) {
+  try {
+    const s = await withTimeout(getDoc(doc(db, SIGNUP_COL, reqId(role, username))), 6000);
+    return s.exists() ? { ...s.data(), id: s.id } : null;
+  } catch (e) { return null; }
+}
+
+// هل لهذا الحساب طلب معلّق/مرفوض؟ (يُستدعى عند فشل الدخول العادي)
+async function checkRequestOnLogin(username, password) {
+  for (const role of ['student', 'teacher']) {
+    const r = await getRequest(role, username);
+    if (!r || r.status === 'approved') continue;
+    if (r.passwordEncrypted !== encryptPassword(password)) return 'wrongpass';
+    if (r.status === 'rejected') return 'rejected';
+    return 'pending';
+  }
+  return null;
+}
+
+const PENDING_LOGIN_MSG = 'عذراً، حسابك الآن قيد المراجعة. عند الانتهاء من مراجعته يمكنك تسجيل الدخول إذا وافقنا عليه.';
+const PENDING_REGISTER_MSG = 'تم إرسال طلبك بنجاح — جاري مراجعة حسابك. سنتيح لك تسجيل الدخول فور الموافقة.';
+
+async function submitSignupRequest(role, user) {
+  const id = reqId(role, user.username);
+  const old = await getRequest(role, user.username);
+  if (old && old.status === 'pending') throw new Error('يوجد طلب بنفس اسم المستخدم قيد المراجعة بالفعل');
+  const now = new Date().toISOString();
+  await withTimeout(setDoc(doc(db, SIGNUP_COL, id), {
+    ...user,
+    role,
+    status: 'pending',
+    createdAt: now,
+    requestedAt: now
+  }), 10000, 'تأخّر الاتصال أثناء إرسال الطلب');
+}
+
+function checkTerms() {
+  if ($('termsCheck').checked) return true;
+  const row = $('termsRow');
+  row.classList.add('shake');
+  setTimeout(() => row.classList.remove('shake'), 1500);
+  showError('يجب الموافقة على الشروط والأحكام أولاً لإنشاء الحساب');
+  return false;
+}
+
+$('termsText').addEventListener('click', (e) => {
+  if (e.target.closest('a')) return;
+  $('termsCheck').checked = !$('termsCheck').checked;
+});
 
 function showDisabledAccount(user) {
   hideAllMessages();
@@ -2456,7 +2559,13 @@ $('loginForm').addEventListener('submit', async (e) => {
 
     const user = items.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
 
-    if (!user) throw new Error('اسم المستخدم غير صحيح');
+    if (!user) {
+      const rs = await checkRequestOnLogin(username, password);
+      if (rs === 'pending') throw new Error(PENDING_LOGIN_MSG);
+      if (rs === 'rejected') throw new Error('عذراً، تم رفض طلب إنشاء حسابك من قبل الإدارة');
+      if (rs === 'wrongpass') throw new Error('كلمة السر غير صحيحة');
+      throw new Error('اسم المستخدم غير صحيح');
+    }
 
     const encrypted = encryptPassword(password);
     if (encrypted !== user.passwordEncrypted) throw new Error('كلمة السر غير صحيحة');
@@ -2465,6 +2574,7 @@ $('loginForm').addEventListener('submit', async (e) => {
       const expired = user.disableUntil && new Date(user.disableUntil) < new Date();
       if (!expired) {
         showDisabledAccount(user);
+        showToast('حسابك معطّل حالياً — راجع التفاصيل أسفل العنوان', 'error');
         btn.disabled = false;
         spinner.classList.remove('show');
         icon.style.display = '';
@@ -2496,7 +2606,7 @@ $('loginForm').addEventListener('submit', async (e) => {
     btnText.textContent = 'تسجيل الدخول';
     btn.disabled = false;
     $('loginPassword').value = '';
-    showError(err.message || 'حدث خطأ، حاول مرة أخرى');
+    showError(err.message || 'حدث خطأ، حاول مرة أخرى', err.message === PENDING_LOGIN_MSG ? 8000 : undefined);
   }
 });
 
@@ -2551,6 +2661,7 @@ $('registerForm').addEventListener('submit', async (e) => {
   const regAddrErr = regAddr.validate();
   if (regAddrErr) return showError(regAddrErr);
   const regAddrVal = regAddr.getValue();
+  if (!checkTerms()) return;
 
   const btn = $('registerBtn');
   const spinner = $('registerSpinner');
@@ -2583,7 +2694,8 @@ $('registerForm').addEventListener('submit', async (e) => {
       throw new Error('الرقم القومي مسجّل بالفعل');
     }
 
-    await regAddr.commit();
+    const approvalOn = await isApprovalOn();
+    if (!approvalOn) await regAddr.commit();
 
     const now = new Date().toISOString();
     const prefix = currentRegRole === 'teacher' ? 'TCH-' : 'USR-';
@@ -2606,6 +2718,23 @@ $('registerForm').addEventListener('submit', async (e) => {
       createdAt: now,
       updatedAt: now
     };
+
+    // 📝 وضع طلبات الإنشاء مفعّل: نحفظ الطلب فقط بدون إنشاء الحساب أو تسجيل الدخول
+    if (approvalOn) {
+      newUser.isOnline = false;
+      newUser.lastSeen = null;
+      await submitSignupRequest(currentRegRole, newUser);
+      $('registerForm').reset();
+      regAddr.reset();
+      $('regBirthDate').disabled = false;
+      $('termsCheck').checked = false;
+      spinner.classList.remove('show');
+      icon.style.display = '';
+      btnText.textContent = 'إنشاء الحساب';
+      btn.disabled = false;
+      showSuccess(PENDING_REGISTER_MSG, 8000);
+      return;
+    }
 
     // ✅ تحديث الذاكرة فوراً (حتى لا نقرأ من السيرفر مرة أخرى)
     items.push(newUser);
@@ -2665,6 +2794,7 @@ $('googleRegisterBtn').addEventListener('click', () => {
   if (currentRegRole === 'teacher' && !teacherRegisterEnabled) {
     return showRegistrationClosed('تسجيل المعلمين مغلق حالياً');
   }
+  if (!checkTerms()) return;
   handleGoogleAuth('register');
 });
 
@@ -2717,6 +2847,15 @@ async function handleGoogleAuth(mode) {
           showSuccess(`مرحباً ${otherUser.fullName || otherUser.username}! جاري التوجيه...`);
           setTimeout(() => window.location.replace('index.html'), 400);
           return;
+        }
+
+        try {
+          const qs = await withTimeout(getDocs(query(collection(db, SIGNUP_COL), where('email', '==', googleData.email))), 6000);
+          const reqs = qs.docs.map(d => d.data()).filter(r => r.status !== 'approved');
+          if (reqs.some(r => r.status === 'pending')) { try { await signOut(auth); } catch (e) {} throw new Error(PENDING_LOGIN_MSG); }
+          if (reqs.some(r => r.status === 'rejected')) { try { await signOut(auth); } catch (e) {} throw new Error('عذراً، تم رفض طلب إنشاء حسابك من قبل الإدارة'); }
+        } catch (e) {
+          if (e && (e.message === PENDING_LOGIN_MSG || /رفض طلب/.test(e.message || ''))) throw e;
         }
 
         throw new Error('لا يوجد حساب مسجّل بهذا البريد — أنشئ حساباً جديداً');
@@ -2909,7 +3048,8 @@ $('googleDataSave').addEventListener('click', async () => {
       throw new Error('الرقم القومي مسجّل بالفعل');
     }
 
-    await gAddr.commit();
+    const approvalOn = await isApprovalOn();
+    if (!approvalOn) await gAddr.commit();
 
     const now = new Date().toISOString();
     const prefix = role === 'teacher' ? 'TCH-' : 'USR-';
@@ -2935,6 +3075,18 @@ $('googleDataSave').addEventListener('click', async () => {
       createdAt: now,
       updatedAt: now
     };
+
+    if (approvalOn) {
+      newUser.isOnline = false;
+      newUser.lastSeen = null;
+      await submitSignupRequest(role, newUser);
+      $('googleDataModal').classList.remove('show');
+      googlePendingData = null;
+      try { await signOut(auth); } catch (e) {}
+      $('termsCheck').checked = false;
+      showSuccess(PENDING_REGISTER_MSG, 8000);
+      return;
+    }
 
     items.push(newUser);
     setUsersToMemory(collectionName, items);
