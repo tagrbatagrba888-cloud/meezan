@@ -353,6 +353,13 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .stvx{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lvx.shk{animation:lvshk .55s}@keyframes lvshk{0%,100%{transform:translate(0)}20%{transform:translate(-9px,4px)}40%{transform:translate(9px,-4px)}60%{transform:translate(-6px,-3px)}80%{transform:translate(6px,3px)}}
 .lvx .lvfly.lion .ic{font-size:150px}.lvx .lvfly.lion img{width:160px;height:160px}
+#mnPick{position:fixed;z-index:3000;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 30px var(--shadow);overflow:hidden;width:min(340px,calc(100vw - 16px))}
+#mnPick[hidden]{display:none}
+#mnPick .mi{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-weight:800;font-size:14px;color:var(--text-main)}
+#mnPick .mi.on,#mnPick .mi:hover{background:var(--bg-input)}
+#mnPick .mi small{color:var(--text-sub);font-weight:600;margin-right:auto;direction:ltr}
+#mnPick .me{padding:11px 14px;color:var(--text-sub);font-size:13px;font-weight:700}
+.mn{color:var(--primary-lighter);font-weight:800;text-decoration:none}[data-theme="dark"] .mn{color:var(--accent-light)}
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -428,7 +435,7 @@ const agoMs = ms => { if (!ms) return 'الآن'; const s = (Date.now()-ms)/1000
 const ago = t => { const d = tsd(t); return `<span class="ago" data-ts="${d ? d.getTime() : ''}"></span>`; };
 function tickAgo(){ document.querySelectorAll('.ago').forEach(e => { const v = agoMs(+e.dataset.ts || 0); if (e.textContent !== v) e.textContent = v; }); }
 setInterval(tickAgo, 30000);
-const fmt = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`).replace(/(^|\s)#([\w\u0600-\u06FF]+)/g, '$1<span class="tag">#$2</span>');
+const fmt = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`).replace(/(^|\s)#([\w\u0600-\u06FF]+)/g, '$1<span class="tag">#$2</span>').replace(/(^|\s)@([\w\u0600-\u06FF.\-]+)/g, (m, p, h) => { const id = window.mnFind && window.mnFind(h); return id ? `${p}<a class="mn" href="${profHref(id)}">@${h}</a>` : m; });
 const ytId = u => { const m = String(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/); return m ? m[1] : ''; };
 const ytFrame = id => `<iframe class="yt" src="https://www.youtube.com/embed/${id}" allowfullscreen loading="lazy"></iframe>`;
 const fk = s => String(s).replace(/[^\w-]/g, '_');
@@ -486,6 +493,38 @@ const SFX = (() => {
   const play = k => { if (!on() || !K[k]) return; try { const c = ctx(); K[k](c, c.currentTime + .02); } catch(_){} };
   return { play, kind, gift: (name, icon, price) => { let k = kind(name, icon); if (k === 'gift' && Number(price) >= 100) k = 'crown'; play(k); return k; } };
 })();
+
+/* ============ @ المنشن — المتابَعون فقط ============ */
+const mnNorm = x => String(x||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+const mnHandle = id => { const u = S.users[id] || {}; return String(u.username || u.userName || uName(id)).trim().replace(/\s+/g,'_'); };
+let mnIdx = null, mnN = -1;
+window.mnFind = h => { const ids = Object.keys(S.users); if (!mnIdx || mnN !== ids.length){ mnIdx = new Map(); mnN = ids.length;
+    ids.forEach(id => { const u = S.users[id]; [u.username, u.userName, uName(id)].filter(Boolean).forEach(x => mnIdx.set(mnNorm(String(x).trim().replace(/\s+/g,'_')), id)); }); }
+  return mnIdx.get(mnNorm(h)); };
+function mnNotify(text, ctx){ if (!text) return; const seen = new Set();
+  (String(text).match(/(^|\s)@([\w\u0600-\u06FF.\-]+)/g)||[]).forEach(t => { const id = window.mnFind(t.trim().slice(1)); if (id && id !== uid && id !== ADMIN && !seen.has(id)){ seen.add(id); notify(id, 'إشارة جديدة', `${uName(uid)} أشار إليك ${ctx.where}`, {postId:ctx.postId}); } }); }
+const mnBox = document.createElement('div'); mnBox.id = 'mnPick'; mnBox.hidden = true; document.body.appendChild(mnBox);
+let mnEl = null, mnList = [], mnSel = 0;
+const MN_RE = /(^|\s)@([^\s@]{0,30})$/;
+const mnOk = el => !!el && (el.id === 'cText' || el.id === 'lvCi' || el.id === 'shTx' || (el.id||'').startsWith('ce-') || el.classList?.contains('c-input'));
+const mnClose = () => { mnBox.hidden = true; mnEl = null; mnList = []; };
+function mnRender(){ mnBox.innerHTML = mnList.length ? mnList.map((id,i) => `<div class="mi ${i===mnSel?'on':''}" data-id="${esc(id)}">${avatar(uAvatar(S.users[id]), uName(id), 'av34')}<span>${esc(uName(id))}</span><small>@${esc(mnHandle(id))}</small></div>`).join('') : '<div class="me">لا يوجد متابَعون مطابقون</div>'; }
+function mnUpdate(el){ if (!mnOk(el)) return mnClose(); const pos = el.selectionStart ?? el.value.length, m = el.value.slice(0,pos).match(MN_RE); if (!m) return mnClose();
+  const q = mnNorm(m[2]), fol = S.folLoaded ? Object.keys(S.fol) : Object.keys(following()).filter(k => following()[k]);
+  mnList = fol.filter(id => id !== uid && id !== ADMIN && S.users[id] && (!q || mnNorm([uName(id), S.users[id].username, S.users[id].userName, S.users[id].fullName].join(' ')).includes(q))).slice(0,6);
+  mnEl = el; mnSel = 0; mnRender(); mnBox.hidden = false;
+  const r = el.getBoundingClientRect(), h = mnBox.offsetHeight || 200, below = innerHeight - r.bottom, left = Math.max(8, Math.min(r.left, innerWidth - mnBox.offsetWidth - 8));
+  mnBox.style.left = left + 'px'; if (below >= h + 8 || r.top < h + 8){ mnBox.style.top = (r.bottom + 4) + 'px'; mnBox.style.bottom = 'auto'; } else { mnBox.style.bottom = (innerHeight - r.top + 4) + 'px'; mnBox.style.top = 'auto'; } }
+function mnPick(id){ const el = mnEl; if (!el || !id) return; const pos = el.selectionStart ?? el.value.length, before = el.value.slice(0,pos), after = el.value.slice(pos), m = before.match(MN_RE); if (!m) return mnClose();
+  const h = mnHandle(id), start = before.length - m[2].length - 1; el.value = before.slice(0,start) + '@' + h + ' ' + after; const np = start + h.length + 2;
+  mnClose(); el.focus(); try { el.setSelectionRange(np,np); } catch(_){} el.dispatchEvent(new Event('input', {bubbles:true})); }
+mnBox.addEventListener('pointerdown', e => { e.preventDefault(); const t = e.target.closest('.mi'); if (t) mnPick(t.dataset.id); });
+document.addEventListener('input', e => mnUpdate(e.target));
+document.addEventListener('focusout', () => setTimeout(() => { if (mnEl && document.activeElement !== mnEl) mnClose(); }, 120));
+document.addEventListener('keydown', e => { if (mnBox.hidden || !mnEl) return;
+  if (e.key === 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); mnClose(); }
+  else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && mnList.length){ e.preventDefault(); e.stopImmediatePropagation(); mnSel = (mnSel + (e.key === 'ArrowDown' ? 1 : -1) + mnList.length) % mnList.length; mnRender(); }
+  else if ((e.key === 'Enter' || e.key === 'Tab') && mnList.length){ e.preventDefault(); e.stopImmediatePropagation(); mnPick(mnList[mnSel]); } }, true);
 
 /* ============ 👥 المستخدمون والمتابعة ============ */
 const uName = id => { if (id === ADMIN) return ADMIN_NAME; const u = S.users[id] || (id === uid ? me : null);
@@ -713,7 +752,7 @@ const emptyBox = (ic, t, d='') => `<div class="empty"><i class="fas ${ic}"></i><
 function feedItems(){
   if (S.one){ const p = P(S.one);
     return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
-  if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'sk1',html:sk},{key:'sk2',html:sk}]; }
+  if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'trig',html:trigger()}, ...(S.stories.length ? [{key:'stories',html:storiesBar()}] : []), {key:'sk1',html:sk},{key:'sk2',html:sk}]; }
   if (S.tab==='live') return [...topBar(), ...liveItems()]; if (S.tab==='polls') return [...topBar(), ...pollItems()];
   const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
   if (!S.order){ S.order = rankIds(org); S.orderAt = Date.now(); }
@@ -722,7 +761,7 @@ function feedItems(){
   let ps = [...fresh.filter(p => p.authorId === uid).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
   ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0)); if (S.q.trim()) ps = ps.filter(searchOk);
   // الأولوية: 1) منشورات المنصة الرسمية  2) الإعلانات الممولة  3) الأحدث + من أتابعهم + المشاهير
-  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [...(S.q.trim()?[]:[{key:'stories',html:storiesBar()}]), {key:'trig',html:trigger()}, ...topBar(), ...(S.q.trim()?[]:feedExtras())];
+  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [{key:'trig',html:trigger()}, ...(S.q.trim()?[]:[{key:'stories',html:storiesBar()}]), ...topBar(), ...(S.q.trim()?[]:feedExtras())];
   const WEEK = 7*864e5, isTop = p => isOff(p) && (p.pinned || Date.now() - (tsd(p.createdAt)?.getTime()||Date.now()) < WEEK);
   const offTop = ps.filter(isTop).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || byDate(a,b)), rest = ps.filter(p => !isTop(p));
   const rot = ads.length ? Math.floor(S.orderAt/60000) % ads.length : 0, ordAds = ads.slice(rot).concat(ads.slice(0,rot)), topAds = ordAds.slice(0,2), restAds = ordAds.slice(2);
@@ -838,7 +877,8 @@ function publishJob(job){
         job.up[i] = {type:it.type, url:await saveMedia(d, q => { pr[i] = q; upd(); })}; pr[i] = 1; upd(); }));
       const media = job.media.concat(job.files.map((_,i) => job.up[i]));
       set('fa-spinner fa-spin','جاري النشر…','لحظات…',.97);
-      await addDoc(collection(db,'posts'),{text:job.text, category:job.cat, bg:media.length?'':job.bg, media, authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, status:c.requireApproval?'pending':'published', pinned:false, reactions:{}, commentsCount:0, sharesCount:0, viewsCount:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+      const nref = await addDoc(collection(db,'posts'),{text:job.text, category:job.cat, bg:media.length?'':job.bg, media, authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, status:c.requireApproval?'pending':'published', pinned:false, reactions:{}, commentsCount:0, sharesCount:0, viewsCount:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+      if (!c.requireApproval) mnNotify(job.text, {postId:nref.id, where:'في منشور'});
       job.files.forEach(f => URL.revokeObjectURL(f.url)); jobs.delete(job); el.className = 'job done'; set('fa-circle-check', c.requireApproval ? 'تم الإرسال وبانتظار موافقة الإدارة' : 'تم النشر بنجاح', '', 1); setTimeout(() => el.remove(), 3500);
     } catch(err){ console.error(err); job.failed = true; el.className = 'job err'; set('fa-triangle-exclamation','فشل النشر', esc(err.code||err.message||'تحقق من الاتصال'), 0); } }
   run(); }
@@ -936,7 +976,7 @@ async function sendComment(pid){
     if (v) x.audioUrl = await saveMedia(await b2d(v.blob)); if (im) x.imageUrl = await saveMedia(im);
     const yl = (text.match(/https?:\/\/\S+/g)||[]).find(ytId); if (yl) x.videoLink = yl;
     await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text, hidden:false, createdAt:serverTimestamp(), ...x, ...(rp ? {parentId:rp.cid, replyToName:rp.name} : {})});
-    updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {});
+    updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {}); mnNotify(text, {postId:pid, where:'في تعليق'});
     S.drafts[pid] = ''; delete S.reply[pid]; delete S.voice[pid]; delete S.cimg[pid]; S.open.add(pid); snd('comment'); track(p,'comment'); draw();
     if (rp && rp.aid && rp.aid !== p.authorId) notify(rp.aid,'رد جديد',`${uName(uid)} ردّ على تعليقك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
     notify(p.authorId,'تعليق جديد',`${uName(uid)} علّق على منشورك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
@@ -1154,7 +1194,7 @@ const giftIco = g => g.img ? `<img src="${esc(g.img)}" alt="">` : `<span class="
 let giftsCb = null;
 
 /* ---------- البيانات اللحظية ---------- */
-onSnapshot(query(collection(db,'stories'), orderBy('createdAt','desc'), limit(200)), s => { S.stories = s.docs.map(dd); draw(); }, () => {});
+onSnapshot(query(collection(db,'stories'), orderBy('createdAt','desc'), limit(200)), s => { S.live.stories = true; S.stories = s.docs.map(dd); draw(); saveStories(); }, () => {});
 onSnapshot(query(collection(db,'polls'), orderBy('createdAt','desc'), limit(100)), s => { S.polls = s.docs.map(dd); draw(); }, () => {});
 onSnapshot(query(collection(db,'live_streams'), orderBy('startedAt','desc'), limit(40)), s => { S.lives = s.docs.map(dd); draw(); }, () => {});
 onSnapshot(collection(db,'live_gifts'), s => { S.gifts = s.docs.map(dd).sort((a,b) => (a.price||0)-(b.price||0)); giftsCb && giftsCb(); }, () => {});
@@ -1193,7 +1233,7 @@ function storyGroups(){ const g = new Map();
     .sort((a,b) => (b.key===uid)-(a.key===uid) || (b.key===ADMIN)-(a.key===ADMIN) || (b.unseen-a.unseen) || tms(b.last.createdAt)-tms(a.last.createdAt)); }
 const stBg = st => st.type==='text' ? `background:${esc(st.bg||BGS[0])}` : 'background:#111';
 const stThumb = st => { const m = st.media?.[0];
-  if (st.type==='image' && m) return `<img src="${esc(m.url)}" alt="" loading="lazy">`;
+  if (st.type==='image' && m) return `<img src="${esc(m.url)}" alt="" decoding="async">`;
   if (st.type==='video' && m) return `<video src="${esc(m.url)}" muted preload="metadata" playsinline></video>`;
   if (st.type==='audio') return '<i class="fas fa-microphone-lines"></i>';
   return esc((st.text||'').slice(0,50)); };
@@ -1245,6 +1285,12 @@ function openStories(key){
     else if (k==='del'){ stop(); const ok = await dialog({title:'حذف الحالة', body:'سيتم حذف حالتك نهائياً.', confirm:'حذف', danger:true}); if (!ok){ show(); return; }
       try { delFiles(st.media); await deleteDoc(doc(db,'stories',st.id)); toast('تم حذف الحالة'); close(); } catch(_){ toast('فشل الحذف','error'); show(); } } });
   show(); }
+
+let sst; const stKey = 'stories:'+uid;
+function saveStories(){ clearTimeout(sst); sst = setTimeout(() => { try { const act = S.stories.filter(stActive), users = {}; act.forEach(x => { if (S.users[x.authorId]) users[x.authorId] = S.users[x.authorId]; });
+  IDB.set('kv', stKey, JSON.stringify(J({v:1, stories:act, users}))); } catch(e){} }, 800); }
+(async () => { try { const raw = await IDB.get('kv', stKey); if (!raw || S.live.stories) return; const c = JSON.parse(raw); if (!c || c.v !== 1) return;
+  S.stories = c.stories || []; S.users = {...(c.users||{}), ...S.users}; draw(); } catch(e){} })();
 
 function storyForm(){
   const ban = banned(); if (ban) return toast('أنت ممنوع من النشر'+(ban.reason?` — ${ban.reason}`:''),'error');
