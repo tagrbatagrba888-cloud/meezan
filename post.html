@@ -724,7 +724,7 @@ function statusBar(p){ const st = p.status||'published';
 function card(p){
   const id = p.id, a = authorOf(p), off = a.official, own = !off && p.authorId === uid, rs = rsum(p), st = p.status||'published', open = S.open.has(id);
   const hasMedia = (p.media||[]).length > 0, bg = (!hasMedia && p.bg && !p.sharedPost && (p.text||'').length < 140) ? p.bg : '', cat = CMAP[p.category], canF = !off && !own, fol = followersOf(a.id);
-  const menu = [['copy','fa-link','نسخ رابط المنشور'], own&&!p.isAd ? ['edit','fa-pen','تعديل المنشور'] : null, own&&!p.isAd&&st==='published' ? ['boost','fa-rectangle-ad','ترويج كإعلان ممول'] : null, (!off&&!own) ? ['report','fa-flag','إبلاغ عن المنشور'] : null]
+  const menu = [['copy','fa-link','نسخ رابط المنشور'], own&&!p.isAd ? ['edit','fa-pen','تعديل المنشور'] : null, own&&!p.isAd&&st==='published' ? ['boost','fa-rectangle-ad','ترويج كإعلان ممول'] : null, (!off&&!own&&p.authorId) ? ['pgift','fa-gift','إرسال هدية'] : null, (!off&&!own) ? ['report','fa-flag','إبلاغ عن المنشور'] : null]
     .filter(Boolean).map(([k,ic,t]) => `<button data-a="${k}" data-id="${id}"><i class="fas ${ic}"></i>${t}</button>`).join('') + (own ? `<button class="d" data-a="del" data-id="${id}"><i class="fas fa-trash"></i>حذف المنشور</button>` : '');
   const ad = p.ad||{}, adFollow = p.isAd && ad.goal==='followers' && canF;
   return `<article class="post ${off?'official':''} ${p.isAd?'ad':''}" data-post="${id}">
@@ -765,11 +765,12 @@ function commentHtml(p, c, d=0){ const a = authorOf(c), own = c.authorId === uid
   return `<div class="cm ${c.hidden?'hid':''}" data-d="${Math.min(d,3)}">${avatarLink(a,'av34')}<div class="cm-body">
     <div class="cm-bub"><div class="cm-name">${nameLink(a)}${badge(a)}${c.hidden?'<span class="hid-tag"><i class="fas fa-eye-slash"></i> مخفي من الإدارة</span>':''}</div>
     ${c.parentId&&c.replyToName?`<div class="rp-to"><i class="fas fa-reply"></i> رداً على ${esc(c.replyToName)}</div>`:''}
+    ${c.gift?`<div class="cm-text"><span class="cgi">${giftIco({img:c.gift.img,icon:c.gift.icon})}<b>×${ar(c.gift.qty||1)}</b></span> أرسل <b>${esc(c.gift.name||'هدية')}</b> هدية إلى <b>${esc(c.gift.toName||'')}</b></div>`:''}
     ${ed?`<div class="cm-edit"><input id="ce-${c.id}" class="inp" value="${esc(c.text||'')}" style="min-width:180px"><button class="btn xs primary" data-a="saveComment" data-id="${p.id}" data-c="${c.id}">حفظ</button><button class="btn xs ghost" data-a="cancelEdit" data-id="${p.id}">إلغاء</button></div>`:c.text?`<div class="cm-text">${fmt(c.text)}</div>`:''}
     ${c.audioUrl?`<audio controls preload="none" src="${esc(c.audioUrl)}"></audio>`:''}${c.imageUrl?`<img class="cm-img" src="${esc(c.imageUrl)}" data-a="lightbox" data-url="${esc(c.imageUrl)}" alt="">`:''}${c.videoLink&&ytId(c.videoLink)?ytFrame(ytId(c.videoLink)):''}</div>${cgifts(p.id,c.id)}
     <div class="cm-acts"><span>${ago(c.createdAt)}</span>${c.edited?'<span>· عُدّل</span>':''}
       <button data-a="replyC" data-id="${p.id}" data-c="${c.id}">رد</button>
-      ${uid&&!own&&!a.official&&c.authorId?`<button data-a="cGift" data-id="${p.id}" data-c="${c.id}"><i class="fas fa-gift" style="color:var(--gold)"></i> هدية</button>`:''}
+      ${uid&&!own&&!c.gift&&!a.official&&c.authorId?`<button data-a="cGift" data-id="${p.id}" data-c="${c.id}"><i class="fas fa-gift" style="color:var(--gold)"></i> هدية</button>`:''}
       ${own&&c.text&&!ed?`<button data-a="editComment" data-id="${p.id}" data-c="${c.id}">تعديل</button>`:''}
       ${own?`<button class="d" data-a="delComment" data-id="${p.id}" data-c="${c.id}">حذف</button>`:''}</div></div></div>`; }
 function commentBox(p){
@@ -1557,28 +1558,50 @@ async function liveView(id){
   const watchEnd = onEnd => { iv = setInterval(() => { const L = S.lives.find(x => x.id===id); if (L && !liveOn(L)){ clearInterval(iv); B.className = 'lvt'; B.textContent = 'انتهى البث'; ST.textContent = 'انتهى البث'; SFX.play('end'); onEnd(); } }, 1500); };
   if (!mt){ ST.textContent = 'مشاهدة مباشرة — يتحدّث الفيديو تلقائياً كل بضع ثوانٍ'; await load(false); iv = setInterval(() => load(true), 8000); return; }
   const mse = new MediaSource(); objUrl = URL.createObjectURL(mse); v.src = objUrl;
-  const got = new Map(); let nxt = 0, busy = false, sb = null, started = false, ended = false;
+  const got = new Map(); let nxt = 0, busy = false, sb = null, started = false, ended = false, bad = 0, gapAt = 0, fb = false, wd = null, lastT = -1, lastProg = Date.now();
   const toBuf = d => { d = String(d||''); return fetch(d.startsWith('data:') ? d : 'data:application/octet-stream;base64,' + d).then(r => r.arrayBuffer()).catch(() => b64Blob(d,'').arrayBuffer()); };
   const appendBuf = buf => new Promise((res, rej) => { const ok = () => { sb.removeEventListener('error', er); res(); }, er = e => { sb.removeEventListener('updateend', ok); rej(e); };
     sb.addEventListener('updateend', ok, {once:true}); sb.addEventListener('error', er, {once:true});
     try { sb.appendBuffer(buf); } catch(e){ sb.removeEventListener('updateend', ok); sb.removeEventListener('error', er); rej(e); } });
-  const trimBuf = () => new Promise(res => { try { if (!v.buffered.length || sb.updating) return res(); const s0 = v.buffered.start(0), to = v.currentTime - 20; if (to - s0 < 20) return res();
-    sb.addEventListener('updateend', () => res(), {once:true}); sb.remove(s0, to); } catch(_){ res(); } });
-  const pump = async () => { if (busy || !sb || dead) return; busy = true;
-    try { while (got.has(nxt) && !dead){ const parts = []; let size = 0;
+  const idle = () => sb && sb.updating ? new Promise(r => sb.addEventListener('updateend', () => r(), {once:true})) : Promise.resolve();
+  /* تنظيف الذاكرة دائماً (حتى قبل بدء التشغيل) عشان البث الطويل ما يملّى المخزن ويعلّق */
+  const trimBuf = async force => { try { await idle(); if (!v.buffered.length) return; const s0 = v.buffered.start(0), e = v.buffered.end(v.buffered.length-1), to = Math.min(v.currentTime - 4, e - (force ? 8 : 25)); if (to - s0 < (force ? 2 : 8)) return; sb.remove(s0, to); await idle(); } catch(_){} };
+  const safeAppend = async buf => { try { await appendBuf(buf); } catch(e){ if (e && e.name === 'QuotaExceededError'){ await trimBuf(true); await appendBuf(buf); } else throw e; } };
+  /* خطة بديلة: لو المشغّل اللحظي تعطّل نتحول لتحديث الفيديو كل بضع ثوانٍ بدل ما يفضل معلّق */
+  const fallback = async why => { if (fb || dead) return; fb = true; clearInterval(wd); clearInterval(iv); unsub?.(); unsub = null; console.warn('live fallback:', why); ST.textContent = 'جارٍ تحسين الاتصال…';
+    const old = objUrl; objUrl = null; try { v.pause(); } catch(_){} await load(false); if (old) setTimeout(() => URL.revokeObjectURL(old), 2000);
+    iv = setInterval(() => { const L = S.lives.find(x => x.id === id), over = L && !liveOn(L); if (over){ clearInterval(iv); B.className = 'lvt'; B.textContent = 'انتهى البث'; SFX.play('end'); } load(true); }, 6000); };
+  const pump = async () => { if (busy || !sb || dead || fb) return; busy = true;
+    try { while (!dead && !fb){
+        if (!got.has(nxt)){ if (!got.size) break; if (!gapAt) gapAt = Date.now(); if (Date.now() - gapAt > 4000){ nxt = Math.min(...got.keys()); gapAt = 0; } else break; }
+        gapAt = 0; const parts = []; let size = 0;
         while (got.has(nxt) && (!parts.length || size < 8e5)){ const d = got.get(nxt); got.delete(nxt); nxt++; size += d.length; parts.push(d); }
         const bufs = await Promise.all(parts.map(toBuf)), tot = bufs.reduce((a,b) => a + b.byteLength, 0), u8 = new Uint8Array(tot); let off = 0; bufs.forEach(b => { u8.set(new Uint8Array(b), off); off += b.byteLength; });
-        await appendBuf(u8.buffer); if (got.has(nxt)) await new Promise(r => setTimeout(r, 0));
+        await safeAppend(u8.buffer); bad = 0; if (got.has(nxt)) await new Promise(r => setTimeout(r, 0));
         if (v.buffered.length){ const e = v.buffered.end(v.buffered.length-1), lag = e - v.currentTime;
           if (!started){ started = true; v.currentTime = Math.max(v.buffered.start(0), e - 1); v.play().catch(() => {}); }
           else if (lag > 3.5){ v.currentTime = e - 1; v.playbackRate = 1; }
           else v.playbackRate = lag > 2 ? 1.1 : 1; }
-        if (v.currentTime > 45) await trimBuf(); }
-    } catch(e){ console.error(e); }
+        await trimBuf(); }
+    } catch(e){ console.error(e); if (++bad >= 3){ busy = false; return fallback('append'); } }
     busy = false; if (got.has(nxt)) pump(); else if (ended && mse.readyState === 'open'){ try { mse.endOfStream(); } catch(_){} } };
+  /* حارس: يفك التعليق لو الفيديو وقف أو خرج عن النطاق أو توقف التحميل */
+  const guard = () => { if (dead){ clearInterval(wd); return; } if (fb) return;
+    try { if (got.size) pump();
+      if (v.buffered.length){ const r = v.buffered.length-1, s0 = v.buffered.start(r), e = v.buffered.end(r);
+        if (v.currentTime < s0 - .1 || v.currentTime > e + .5) v.currentTime = Math.max(s0, e - 1);
+        if (v.paused && started && !v.ended) v.play().catch(() => {});
+        if (Math.abs(v.currentTime - lastT) > .05){ lastT = v.currentTime; lastProg = Date.now(); }
+        else if (!v.paused && e - v.currentTime > .3){ const st = Date.now() - lastProg;
+          if (st > 12000) return fallback('stuck');
+          if (st > 3000){ v.currentTime = Math.max(s0, e - .6); v.play().catch(() => {}); } }
+        else lastProg = Date.now(); }
+    } catch(e){ console.error(e); } };
+  v.addEventListener('error', () => { if (!dead && !fb && started) fallback('video error'); });
   mse.addEventListener('sourceopen', () => { if (sb) return;
-    try { sb = mse.addSourceBuffer(mt); } catch(e){ ST.textContent = 'تعذر تشغيل البث اللحظي'; return; }
-    unsub = onSnapshot(chunkQ(id), s => { s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data(); got.set(x.i, x.data); } }); pump(); if (!ended) ST.textContent = `مباشر — ${ar(got.size + nxt)} جزء`; });
+    try { sb = mse.addSourceBuffer(mt); } catch(e){ fallback('addSourceBuffer'); return; }
+    unsub = onSnapshot(chunkQ(id), s => { s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data(); got.set(x.i, x.data); } }); pump(); if (!ended && !fb) ST.textContent = `مباشر — ${ar(got.size + nxt)} جزء`; }, () => fallback('snapshot'));
+    wd = setInterval(guard, 1500);
     watchEnd(() => setTimeout(() => { ended = true; pump(); }, 4000)); });
 }
 
@@ -1590,6 +1613,17 @@ Object.assign(H, {
       SFX.gift(g.name, g.icon, g.price); giftPop({giftImg:g.img||'', giftIcon:g.icon||'', text:`${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`});
       gqAdd({key:`c:${cid}:${g.id}`, g, qty, total, run: async (q, tt) => { const half = await transferGift(c.authorId, g, q, tt, p, cid);
         notify(c.authorId, 'هدية جديدة', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid}); toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
+  pgift:t => { const pid = t.dataset.id, p = P(pid); if (!p) return; if (!uid) return toast('سجّل الدخول أولاً','error');
+    const a = authorOf(p); if (a.official || !p.authorId || p.authorId === uid) return toast('لا يمكن إرسال هدية لهذا المنشور','error');
+    giftSheet({title:`هدية لـ ${a.name}`, sub:`<i class="fas fa-circle-info"></i> يحصل <b>${esc(a.name)}</b> على <b>٥٠٪</b> من قيمة الهدية — وتظهر في تعليقات المنشور`, split:true, onSend:(g, qty, total) => {
+      SFX.gift(g.name, g.icon, g.price); giftPop({giftImg:g.img||'', giftIcon:g.icon||'', text:`${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`});
+      /* تظهر فوراً في التعليقات (نسخة مؤقتة) ثم تحل محلها النسخة الحقيقية */
+      openComments(pid); S.comments[pid] = [...(S.comments[pid]||[]), {id:'tmp_'+Date.now()+Math.random().toString(36).slice(2,5), pending:true, authorId:uid, authorName:uName(uid), text:'', createdAt:new Date(), gift:{id:g.id, name:g.name, icon:g.icon||'', img:g.img||'', qty, total, to:p.authorId, toName:a.name}}]; draw();
+      gqAdd({key:`p:${pid}:${g.id}`, g, qty, total, run: async (q, tt) => { let half;
+        try { half = await transferGift(p.authorId, g, q, tt, p, ''); } catch(err){ S.comments[pid] = (S.comments[pid]||[]).filter(c => !c.pending); draw(); throw err; }
+        try { await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text:'', hidden:false, createdAt:serverTimestamp(), gift:{id:g.id, name:g.name, icon:g.icon||'', img:g.img||'', qty:q, total:tt, to:p.authorId, toName:a.name}});
+          updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {}); } catch(e2){ console.error(e2); S.comments[pid] = (S.comments[pid]||[]).filter(c => !c.pending); draw(); }
+        track(p,'comment'); notify(p.authorId, 'هدية جديدة', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} على منشورك — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid}); toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
   tab:t => { S.tab = t.dataset.t; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); },
   sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
   stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
