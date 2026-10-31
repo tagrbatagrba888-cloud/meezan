@@ -272,6 +272,11 @@ body.one .shared img{max-height:420px}
 .newpill{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:150;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;border-radius:30px;padding:9px 18px;font-weight:900;font-size:13.5px;box-shadow:0 10px 28px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;animation:pop .25s var(--ease)}
 .newpill[hidden]{display:none}
 [data-theme="dark"] .newpill{color:#0A1612}
+.cm[data-d="1"]{margin-right:34px}.cm[data-d="2"]{margin-right:60px}.cm[data-d="3"]{margin-right:80px}
+.cm[data-d="1"] .av34,.cm[data-d="2"] .av34,.cm[data-d="3"] .av34{width:28px;height:28px;font-size:12px}
+.rp-to{font-size:11.5px;font-weight:800;color:var(--primary-lighter);margin-bottom:3px}.rp-to i{margin-left:4px;font-size:10px}
+.rp-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:12px;background:var(--bg-input);border:1px solid var(--border);font-size:12.5px;font-weight:700;color:var(--text-sub)}
+.rp-bar b{color:var(--text-main)}.rp-bar button{margin-right:auto;width:26px;height:26px;border-radius:50%;color:var(--text-sub)}.rp-bar button:hover{background:var(--border)}
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -356,7 +361,7 @@ let toastT;
 function toast(t, type='success'){ const el = $('toast'); $('toastTx').textContent = t; el.className = 'toast show ' + type; $('toastIc').className = type==='error' ? 'fas fa-times-circle' : 'fas fa-check-circle'; clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800); }
 
 /* ============ 📦 الحالة ============ */
-const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
+const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, reply:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
   loaded:{posts:false, soc:false}, order:null, limit:20, unsub:{}, one:new URLSearchParams(location.search).get('id')};
 const price = () => ({...DEF_PRICE, ...(S.cfg.prices||{})}), lim = () => ({...DEF_LIM, ...(S.cfg.limits||{})});
 const P = id => S.posts.find(p => p.id === id);
@@ -559,19 +564,25 @@ function card(p){
 }
 function commentsBlock(p){ const list = S.comments[p.id];
   const shown = (list||[]).filter(c => !c.hidden || c.authorId === uid);
-  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':shown.length?shown.map(c => commentHtml(p,c)).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
-function commentHtml(p, c){ const a = authorOf(c), own = c.authorId === uid && !a.official, ed = S.editC && S.editC.cid === c.id;
-  return `<div class="cm ${c.hidden?'hid':''}">${avatarLink(a,'av34')}<div class="cm-body">
+  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':shown.length?threadOrder(shown).map(({c,d}) => commentHtml(p,c,d)).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
+function threadOrder(list){ const byId = new Map(list.map(c => [c.id,c])), kids = new Map(), roots = [];
+  list.forEach(c => { if (c.parentId && byId.has(c.parentId)){ if (!kids.has(c.parentId)) kids.set(c.parentId,[]); kids.get(c.parentId).push(c); } else roots.push(c); });
+  const out = [], walk = (c,d) => { out.push({c,d}); (kids.get(c.id)||[]).forEach(k => walk(k,d+1)); }; roots.forEach(c => walk(c,0)); return out; }
+function commentHtml(p, c, d=0){ const a = authorOf(c), own = c.authorId === uid && !a.official, ed = S.editC && S.editC.cid === c.id;
+  return `<div class="cm ${c.hidden?'hid':''}" data-d="${Math.min(d,3)}">${avatarLink(a,'av34')}<div class="cm-body">
     <div class="cm-bub"><div class="cm-name">${nameLink(a)}${badge(a)}${c.hidden?'<span class="hid-tag"><i class="fas fa-eye-slash"></i> مخفي من الإدارة</span>':''}</div>
+    ${c.parentId&&c.replyToName?`<div class="rp-to"><i class="fas fa-reply"></i> رداً على ${esc(c.replyToName)}</div>`:''}
     ${ed?`<div class="cm-edit"><input id="ce-${c.id}" class="inp" value="${esc(c.text||'')}" style="min-width:180px"><button class="btn xs primary" data-a="saveComment" data-id="${p.id}" data-c="${c.id}">حفظ</button><button class="btn xs ghost" data-a="cancelEdit" data-id="${p.id}">إلغاء</button></div>`:c.text?`<div class="cm-text">${fmt(c.text)}</div>`:''}
     ${c.audioUrl?`<audio controls preload="none" src="${esc(c.audioUrl)}"></audio>`:''}${c.imageUrl?`<img class="cm-img" src="${esc(c.imageUrl)}" data-a="lightbox" data-url="${esc(c.imageUrl)}" alt="">`:''}${c.videoLink&&ytId(c.videoLink)?ytFrame(ytId(c.videoLink)):''}</div>
     <div class="cm-acts"><span>${ago(c.createdAt)}</span>${c.edited?'<span>· عُدّل</span>':''}
+      <button data-a="replyC" data-id="${p.id}" data-c="${c.id}">رد</button>
       ${own&&c.text&&!ed?`<button data-a="editComment" data-id="${p.id}" data-c="${c.id}">تعديل</button>`:''}
       ${own?`<button class="d" data-a="delComment" data-id="${p.id}" data-c="${c.id}">حذف</button>`:''}</div></div></div>`; }
 function commentBox(p){
   if (S.cfg.allowComments === false) return '<div class="cm-empty">التعليقات متوقفة حالياً</div>';
   const rec = S.rec && S.rec.pid === p.id, v = S.voice[p.id], media = S.cfg.allowCommentMedia !== false, mic = S.cfg.allowAudio !== false;
-  return `<div class="cm-box">${avatar(uAvatar(S.users[uid]||me),uName(uid),'av34')}<div class="cm-in">
+  const rpl = S.reply[p.id], rpBar = rpl ? `<div class="rp-bar"><i class="fas fa-reply"></i><span>الرد على <b>${esc(rpl.name)}</b></span><button data-a="cancelReply" data-id="${p.id}" title="إلغاء الرد"><i class="fas fa-xmark"></i></button></div>` : '';
+  return `${rpBar}<div class="cm-box">${avatar(uAvatar(S.users[uid]||me),uName(uid),'av34')}<div class="cm-in">
     ${rec?`<div class="rec-bar"><span class="dot"></span>جارٍ التسجيل <b data-timer="${p.id}">0:00</b></div>`
       : v?`<div class="rec-bar"><audio controls src="${v.url}"></audio><button class="ic xs" data-a="clearVoice" data-id="${p.id}"><i class="fas fa-trash"></i></button></div>`
       : `<input class="c-input" id="ci-${p.id}" data-id="${p.id}" placeholder="اكتب تعليقاً أو الصق رابط يوتيوب…" value="${esc(S.drafts[p.id]||'')}">`}
@@ -776,13 +787,14 @@ async function toggleRec(pid){
 async function sendComment(pid){ if (!uid) return loginPrompt();
   const p = P(pid); if (!p || S.sending.has(pid)) return; const text = (S.drafts[pid]||'').trim(), v = S.voice[pid], im = S.cimg[pid];
   if (S.rec?.pid === pid) return toast('أوقف التسجيل أولاً','error'); if (!text && !v && !im) return;
-  S.sending.add(pid);
+  S.sending.add(pid); const rp = S.reply[pid];
   try { const x = {}; toast('جارٍ الإرسال…');
     if (v) x.audioUrl = await saveMedia(await b2d(v.blob)); if (im) x.imageUrl = await saveMedia(im);
     const yl = (text.match(/https?:\/\/\S+/g)||[]).find(ytId); if (yl) x.videoLink = yl;
-    await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text, hidden:false, createdAt:serverTimestamp(), ...x});
+    await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text, hidden:false, createdAt:serverTimestamp(), ...x, ...(rp ? {parentId:rp.cid, replyToName:rp.name} : {})});
     updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {});
-    S.drafts[pid] = ''; delete S.voice[pid]; delete S.cimg[pid]; S.open.add(pid); snd('comment'); track(p,'comment'); draw();
+    S.drafts[pid] = ''; delete S.reply[pid]; delete S.voice[pid]; delete S.cimg[pid]; S.open.add(pid); snd('comment'); track(p,'comment'); draw();
+    if (rp && rp.aid && rp.aid !== p.authorId) notify(rp.aid,'رد جديد',`${uName(uid)} ردّ على تعليقك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
     notify(p.authorId,'تعليق جديد',`${uName(uid)} علّق على منشورك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
   } catch(e){ console.error(e); toast('فشل إرسال التعليق — '+(e.code||e.message||'تحقق من الاتصال والصلاحيات'),'error'); }
   finally { S.sending.delete(pid); } }
@@ -835,6 +847,8 @@ const H = {
   cmImg:t => { S.cmT = t.dataset.id; $('cmFile').click(); }, cmImgRm:t => { delete S.cimg[t.dataset.id]; draw(); },
   editComment:t => { S.editC = {pid:t.dataset.id, cid:t.dataset.c}; draw(); setTimeout(() => $('ce-'+t.dataset.c)?.focus(), 120); },
   cancelEdit:() => { S.editC = null; draw(); },
+  replyC:t => { const pid = t.dataset.id, c = (S.comments[pid]||[]).find(x => x.id === t.dataset.c); if (!c) return; S.reply[pid] = {cid:c.id, name:authorOf(c).name, aid:c.authorId}; S.open.add(pid); draw(); setTimeout(() => $('ci-'+pid)?.focus(), 150); },
+  cancelReply:t => { delete S.reply[t.dataset.id]; draw(); },
   saveComment:async t => { const v = $('ce-'+t.dataset.c)?.value.trim(); if (!v) return toast('التعليق لا يمكن أن يكون فارغاً','error'); await updateDoc(doc(db,'posts',t.dataset.id,'comments',t.dataset.c),{text:v, edited:true, editedAt:serverTimestamp()}); S.editC = null; toast('تم تعديل التعليق'); },
   delComment:async t => { if (!(await dialog({title:'حذف التعليق', body:'هل تريد حذف هذا التعليق؟', confirm:'حذف', danger:true}))) return; const c = S.comments[t.dataset.id]?.find(x => x.id===t.dataset.c);
     await deleteDoc(doc(db,'posts',t.dataset.id,'comments',t.dataset.c)); await updateDoc(doc(db,'posts',t.dataset.id),{commentsCount:increment(-1)}); delFiles([{url:c?.audioUrl},{url:c?.imageUrl}]); toast('تم حذف التعليق'); }

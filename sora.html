@@ -1198,6 +1198,9 @@
   .btn-danger:disabled{opacity:.6;cursor:not-allowed}
   .btn-confirm.danger{background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff;box-shadow:0 6px 18px rgba(192,57,43,.4)}
 
+  .vb-name{color:#4cb8ff;margin-right:8px;font-size:.85em;vertical-align:middle}
+  .av-vb{position:absolute;bottom:4px;right:4px;width:36px;height:36px;border-radius:50%;background:#fff;color:#1d9bf0;border:3px solid var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:3}
+  .vb-name[hidden],.av-vb[hidden]{display:none}
   /* ===== عدادات الهيرو + منشوراتي ===== */
   .hero-stats{display:flex;gap:10px;justify-content:center;margin:0 auto 18px;max-width:420px}
   .hs{flex:1;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 6px;text-align:center;color:#fff;text-decoration:none;transition:all .25s ease}
@@ -1259,12 +1262,13 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
         <div class="avatar-big" id="avatarBig">
           <i class="fas fa-user"></i>
         </div>
+        <span class="av-vb" id="avVb" title="حساب موثّق" hidden><i class="fas fa-circle-check"></i></span>
         <button class="avatar-edit-badge" id="avatarEditBtn" title="تغيير الصورة">
           <i class="fas fa-camera"></i>
         </button>
       </div>
 
-      <h2 class="avatar-name" id="avatarName">—</h2>
+      <h2 class="avatar-name"><span id="avatarName">—</span><i class="fas fa-circle-check vb-name" id="vbName" title="حساب موثّق" hidden></i></h2>
       <div class="avatar-username" id="avatarUsername">@—</div>
 
       <div class="avatar-badges">
@@ -3127,6 +3131,9 @@ function renderSocialStats() {
   $('hsPosts').textContent = __num(pub);
   $('hsFollowers').textContent = __num(Math.max(0, mySocial.followersCount || 0));
   $('hsFollowing').textContent = __num(Math.max(0, mySocial.followingCount || 0));
+  const __v = !!mySocial.verified;
+  $('vbName').hidden = !__v;
+  $('avVb').hidden = !__v;
 }
 
 function renderMyPosts() {

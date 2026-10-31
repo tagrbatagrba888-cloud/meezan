@@ -90,6 +90,13 @@ a{color:inherit}
 [data-theme=dark] .cin button{color:#0A1612}
 .cin button:disabled{opacity:.5}
 .more{display:block;width:calc(100% - 28px);margin:6px 14px 14px;padding:11px;border-radius:12px;border:2px solid var(--bd);background:var(--in);color:var(--tx);font-family:inherit;font-weight:800;cursor:pointer}
+.avw{position:relative;display:inline-block}
+.av-vb{position:absolute;bottom:2px;left:2px;width:30px;height:30px;border-radius:50%;background:#fff;color:#1d9bf0;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.cm[data-d="1"]{margin-right:30px}.cm[data-d="2"]{margin-right:54px}.cm[data-d="3"]{margin-right:72px}
+.rp-to{font-size:11.5px;font-weight:800;color:var(--p2);margin-bottom:3px}.rp-to i{margin-left:4px;font-size:10px}
+.cacts{display:flex;gap:12px;align-items:center;margin-top:3px}.cacts button{background:none;border:0;font-family:inherit;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer}.cacts button:hover{color:var(--p2);text-decoration:underline}
+.rp-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 12px;border-radius:12px;background:var(--in);border:1px solid var(--bd);font-size:12.5px;font-weight:700;color:var(--sub)}
+.rp-bar b{color:var(--tx)}.rp-bar button{margin-right:auto;width:26px;height:26px;border-radius:50%;border:0;background:none;color:var(--sub);cursor:pointer}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--card);color:var(--tx);border:2px solid var(--bd);padding:12px 20px;border-radius:14px;font-weight:800;font-size:13.5px;box-shadow:0 12px 40px rgba(0,0,0,.3);opacity:0;transition:.35s;z-index:999;max-width:calc(100vw - 32px)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}.toast.error{border-color:var(--err)}
 </style>
@@ -134,7 +141,7 @@ new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==
 const REACTIONS=[{id:'like',e:'👍',l:'أعجبني'},{id:'love',e:'❤️',l:'أحببته'},{id:'haha',e:'😂',l:'أضحكني'},{id:'wow',e:'😮',l:'واو'},{id:'sad',e:'😢',l:'أحزنني'},{id:'angry',e:'😡',l:'أغضبني'}];
 const RM=Object.fromEntries(REACTIONS.map(r=>[r.id,r]));
 
-let U=null, soc={}, mySoc={}, posts=[], exc=null, comments={}, open=new Set(), unsub={}, drafts={}, sending=new Set(), limit=10;
+let U=null, soc={}, mySoc={}, posts=[], exc=null, comments={}, replyTo={}, open=new Set(), unsub={}, drafts={}, sending=new Set(), limit=10;
 
 async function load(){
   if(id===ADMIN){ draw(); return; }
@@ -175,7 +182,7 @@ function draw(){
   if(id===ADMIN)U={fullName:'ميزان',avatarUrl:LOGO,_role:'حساب المنصة الرسمي',_official:true};
   if(!U){R.innerHTML='<div class="empty">المستخدم غير موجود</div>';return;}
   const name=U.fullName||U.username||'مستخدم', ver=U._official||soc.verified, officialAcc=!!U._official;
-  R.innerHTML=`<div class="card"><div class="hero"><span class="av"><b>${esc(name.charAt(0))}</b>${U.avatarUrl?`<img src="${esc(U.avatarUrl)}" alt="">`:''}</span>
+  R.innerHTML=`<div class="card"><div class="hero"><span class="avw"><span class="av"><b>${esc(name.charAt(0))}</b>${U.avatarUrl?`<img src="${esc(U.avatarUrl)}" alt="">`:''}</span>${ver?'<span class="av-vb" title="حساب موثّق"><i class="fas fa-circle-check"></i></span>':''}</span>
     <h2>${esc(name)}${ver?'<i class="fas fa-circle-check vb"></i>':''}</h2>
     <div><span class="tg"><i class="fas fa-user"></i>${esc(U._role)}</span>${U.grade&&!U._teacher?`<span class="tg"><i class="fas fa-users-rectangle"></i>${esc(U.grade)}</span>`:''}</div>
     ${officialAcc?'':`<div class="hero-act" id="heroAct"></div>`}</div>
@@ -230,12 +237,17 @@ function mediaHtml(p){
 }
 function rsum(p){ const r=p.reactions||{},v=Object.values(r),by={};v.forEach(t=>by[t]=(by[t]||0)+1);
   return {total:v.length,mine:r[me]||null,top:Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t])=>RM[t]?.e||'👍')}; }
+function threadOrder(list){ const byId=new Map(list.map(c=>[c.id,c])), kids=new Map(), roots=[];
+  list.forEach(c=>{ if(c.parentId&&byId.has(c.parentId)){ if(!kids.has(c.parentId))kids.set(c.parentId,[]); kids.get(c.parentId).push(c); } else roots.push(c); });
+  const out=[], walk=(c,d)=>{ out.push({c,d}); (kids.get(c.id)||[]).forEach(k=>walk(k,d+1)); }; roots.forEach(c=>walk(c,0)); return out; }
 function commentsHtml(p){
   const list=(comments[p.id]||[]).filter(c=>!c.hidden);
-  const items=comments[p.id]===undefined?'<div class="cnone">جارٍ التحميل…</div>':list.length?list.map(c=>{
+  const items=comments[p.id]===undefined?'<div class="cnone">جارٍ التحميل…</div>':list.length?threadOrder(list).map(({c,d})=>{
     const own=String(c.authorId)===me, href=own?'sora.html':'user.html?id='+encodeURIComponent(c.authorId||'');
-    return `<div class="cm"><span class="pav"><b>${esc((c.authorName||'م').trim().charAt(0))}</b></span><div class="cb"><b><a href="${href}">${esc(c.authorName||'مستخدم')}</a>${c.authorVerified?' <i class="fas fa-circle-check vb"></i>':''}</b>${c.text?`<p>${fmt(c.text)}</p>`:''}${c.imageUrl&&safeUrl(c.imageUrl)?`<img src="${esc(c.imageUrl)}" alt="">`:''}${c.audioUrl&&safeUrl(c.audioUrl)?`<audio controls preload="none" src="${esc(c.audioUrl)}" style="width:100%;margin-top:6px"></audio>`:''}<small>${fmtT(c.createdAt)}${c.edited?' · تم التعديل':''}</small></div></div>`;}).join(''):'<div class="cnone">لا توجد تعليقات بعد — كن أول من يعلّق</div>';
-  return `<div class="cms">${items}<div class="cin"><textarea id="ci-${p.id}" rows="1" placeholder="اكتب تعليقاً…" data-p="${p.id}">${esc(drafts[p.id]||'')}</textarea><button data-a="send" data-id="${p.id}" ${sending.has(p.id)?'disabled':''} aria-label="إرسال"><i class="fas fa-paper-plane"></i></button></div></div>`;
+    return `<div class="cm" data-d="${Math.min(d,3)}"><span class="pav"><b>${esc((c.authorName||'م').trim().charAt(0))}</b></span><div class="cb"><b><a href="${href}">${esc(c.authorName||'مستخدم')}</a>${(c.authorVerified||(own&&mySoc.verified))?' <i class="fas fa-circle-check vb"></i>':''}</b>${c.parentId&&c.replyToName?`<div class="rp-to"><i class="fas fa-reply"></i> رداً على ${esc(c.replyToName)}</div>`:''}${c.text?`<p>${fmt(c.text)}</p>`:''}${c.imageUrl&&safeUrl(c.imageUrl)?`<img src="${esc(c.imageUrl)}" alt="">`:''}${c.audioUrl&&safeUrl(c.audioUrl)?`<audio controls preload="none" src="${esc(c.audioUrl)}" style="width:100%;margin-top:6px"></audio>`:''}<div class="cacts"><small>${fmtT(c.createdAt)}${c.edited?' · تم التعديل':''}</small><button data-a="reply" data-id="${p.id}" data-c="${c.id}">رد</button></div></div></div>`;}).join(''):'<div class="cnone">لا توجد تعليقات بعد — كن أول من يعلّق</div>';
+  const rp=replyTo[p.id];
+  const bar=rp?`<div class="rp-bar"><i class="fas fa-reply"></i><span>الرد على <b>${esc(rp.name)}</b></span><button data-a="cancelReply" data-id="${p.id}" aria-label="إلغاء الرد"><i class="fas fa-xmark"></i></button></div>`:'';
+  return `<div class="cms">${items}${bar}<div class="cin"><textarea id="ci-${p.id}" rows="1" placeholder="${replyTo[p.id]?'اكتب ردك…':'اكتب تعليقاً…'}" data-p="${p.id}">${esc(drafts[p.id]||'')}</textarea><button data-a="send" data-id="${p.id}" ${sending.has(p.id)?'disabled':''} aria-label="إرسال"><i class="fas fa-paper-plane"></i></button></div></div>`;
 }
 function postHtml(p){
   const name=U.fullName||U.username||'مستخدم', r=rsum(p), mine=r.mine, href='ard.html?id='+encodeURIComponent(p.id), bgTxt=(p.text||'')||(p.media?.length?'':'منشور');
@@ -267,11 +279,13 @@ async function setReaction(p,type){ const cur=p.reactions?.[me]; await updateDoc
 async function sendComment(pid){
   const t=$('ci-'+pid), text=(t?.value||'').trim(); if(!text)return toast('اكتب تعليقاً أولاً','error');
   if(sending.has(pid))return; sending.add(pid); drawPosts();
-  const p=posts.find(x=>x.id===pid);
+  const p=posts.find(x=>x.id===pid), rp=replyTo[pid];
   try{
-    await addDoc(collection(db,'posts',pid,'comments'),{authorId:me,authorName:myName,authorVerified:false,text,hidden:false,createdAt:serverTimestamp()});
+    await addDoc(collection(db,'posts',pid,'comments'),{authorId:me,authorName:myName,authorVerified:!!mySoc.verified,text,hidden:false,createdAt:serverTimestamp(),...(rp?{parentId:rp.cid,replyToName:rp.name}:{})});
     updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(()=>{});
-    drafts[pid]=''; if(p)notify(p.authorId,'تعليق جديد',`${myName} علّق على منشورك: «${text.slice(0,60)}»`,'ard.html?id='+pid);
+    drafts[pid]=''; delete replyTo[pid];
+    if(rp&&rp.aid&&p&&rp.aid!==p.authorId)notify(rp.aid,'رد جديد',`${myName} ردّ على تعليقك: «${text.slice(0,60)}»`,'ard.html?id='+pid);
+    if(p)notify(p.authorId,'تعليق جديد',`${myName} علّق على منشورك: «${text.slice(0,60)}»`,'ard.html?id='+pid);
   }catch(e){ console.error(e); toast('فشل إرسال التعليق','error'); }
   finally{ sending.delete(pid); drawPosts(); }
 }
@@ -288,6 +302,8 @@ document.addEventListener('click',async e=>{
   if(a==='more'){ limit+=10; drawPosts(); }
   else if(a==='cm'){ if(open.has(pid)){open.delete(pid);drawPosts();}else openComments(pid); }
   else if(a==='send'){ sendComment(pid); }
+  else if(a==='reply'){ const c=(comments[pid]||[]).find(x=>x.id===t.dataset.c); if(c){ replyTo[pid]={cid:c.id,name:c.authorName||'مستخدم',aid:c.authorId}; open.add(pid); drawPosts(); setTimeout(()=>{const i=$('ci-'+pid); if(i)i.focus();},80);} }
+  else if(a==='cancelReply'){ delete replyTo[pid]; drawPosts(); }
   else if(a==='copy'){ try{await navigator.clipboard.writeText(postUrl(pid)); toast('تم نسخ رابط المنشور');}catch(x){toast('تعذّر النسخ','error');} }
   else if(a==='rxlist'){ if(p&&Object.keys(p.reactions||{}).length)toast(Object.entries(p.reactions).length+' تفاعل'); }
   else if((a==='like'||a==='react')&&p){

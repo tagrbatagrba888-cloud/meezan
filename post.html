@@ -265,6 +265,13 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .newpill[hidden]{display:none}
 [data-theme="dark"] .newpill{color:#0A1612}
 </style>
+<script>
+/* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
+   هنا بنحفظ نسخة في localStorage ونرجّعها لو التبويب فاضي. (تسجيل الخروج لازم يمسح meezan_persist) */
+(function(){try{var K='meezan_persist',S=sessionStorage,KS=['meezan_logged_in','meezan_user_id','meezan_role','meezan_username','meezan_user_data','meezan_login_at'];
+if(S.getItem('meezan_logged_in')==='true'){var o={};KS.forEach(function(k){var v=S.getItem(k);if(v!==null)o[k]=v;});localStorage.setItem(K,JSON.stringify(o));}
+else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in==='true'&&r.meezan_user_id){KS.forEach(function(k){if(r[k]!=null)S.setItem(k,r[k]);});}}}catch(e){}})();
+</script>
 </head>
 <body>
 
@@ -458,7 +465,8 @@ function rankIds(posts){ const u = S.soc[uid]||{}, ints = u.interests||{}, types
     if (!isOff(p) && fol[a]) s += 55;                                   // 1) من أتابعهم
     s += 32 * Math.min(1, (Number(auth[fk(a||'')])||0) / amax);          // 2) من أشاهد وأتفاعل معهم دائماً
     s += 28 * ((ints[p.category||'general']||0)/tot) + 10 * ((types[mediaType(p)]||0)/ttot); // 3) اهتماماتي
-    s += 34 * Math.exp(-age/24) + 6 * Math.log1p(eng);                   // 4) الأحدث والأكثر تفاعلاً
+    s += 44 * Math.exp(-age/24) + 6 * Math.log1p(eng);                   // 4) الأحدث والأكثر تفاعلاً
+    if (!isOff(p)) s += 22 * Math.min(1, Math.log10(1 + followersOf(a)) / 4); // 5) المشاهير (كثيرو المتابعين)
     if (isOff(p)) s += 10; if (p.pinned) s += 15; if (own && age < 1) s += 20;
     if (seenMap[p.id] && now - seenMap[p.id] < 3*864e5) s -= 45;         // شاهدته من قبل
     s += Math.random() * 12;                                             // تنويع عند كل تحديث
@@ -578,8 +586,15 @@ function feedItems(){
   const fresh = org.filter(p => !known.has(p.id)); S.pendingNew = fresh.filter(p => p.authorId !== uid).length;
   let ps = [...fresh.filter(p => p.authorId === uid).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
   ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
-  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), show = ps.slice(0, S.limit), items = [{key:'trig',html:trigger()}]; let k = 0;
-  show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (((i+1)%5===0 || (i===show.length-1 && !k)) && ads.length){ const ad = ads[k++ % ads.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
+  // الأولوية: 1) منشورات المنصة الرسمية  2) الإعلانات الممولة  3) الأحدث + من أتابعهم + المشاهير
+  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [{key:'trig',html:trigger()}];
+  const WEEK = 7*864e5, isTop = p => isOff(p) && (p.pinned || Date.now() - (tsd(p.createdAt)?.getTime()||Date.now()) < WEEK);
+  const offTop = ps.filter(isTop).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || byDate(a,b)), rest = ps.filter(p => !isTop(p));
+  const rot = ads.length ? Math.floor(S.orderAt/60000) % ads.length : 0, ordAds = ads.slice(rot).concat(ads.slice(0,rot)), topAds = ordAds.slice(0,2), restAds = ordAds.slice(2);
+  const show = [...offTop, ...rest].slice(0, S.limit), nOff = Math.min(offTop.length, show.length); let k = 0;
+  show.slice(0,nOff).forEach(p => items.push({key:p.id,html:card(p)}));
+  topAds.forEach(ad => items.push({key:ad.id+':top',html:card(ad)}));
+  show.slice(nOff).forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (restAds.length && (i+1)%5===0){ const ad = restAds[k++ % restAds.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
   if (!show.length) items.push({key:'empty',html:emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
   if (ps.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(ps.length-show.length)})</button>`});
   return items; }
