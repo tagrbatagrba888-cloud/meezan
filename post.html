@@ -364,6 +364,7 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .lvx .rb{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(0,0,0,.6)}
 .lvx .lvcm{-webkit-mask-image:none;mask-image:none}
 .lvx video:not(.mir){transform:translateZ(0)}
+.lvx .lvm.join{background:rgba(30,122,90,.6);font-size:13px}
 .lvx .lvvw{display:none;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:rgba(0,0,0,.55);font-weight:800;font-size:13px;white-space:nowrap}
 .lvx .lvhrt{position:absolute;z-index:7;pointer-events:none;animation:lvhr 1.7s ease-out forwards;will-change:transform,opacity;text-shadow:0 2px 8px rgba(0,0,0,.4)}
 @keyframes lvhr{0%{opacity:0;transform:translate(0,0) scale(.4) rotate(0)}12%{opacity:1;transform:translate(calc(var(--dx)*.1),-20px) scale(1.2) rotate(var(--rot))}100%{opacity:0;transform:translate(var(--dx),-260px) scale(1) rotate(var(--rot))}}
@@ -1031,7 +1032,9 @@ async function sendComment(pid){
 function openComments(pid){
   S.open.add(pid);
   if (!S.unsub[pid]) S.unsub[pid] = onSnapshot(query(collection(db,'posts',pid,'comments'), orderBy('createdAt','asc')), s => { S.comments[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); draw(); }, e => { console.error('comments',e); if (S.comments[pid]===undefined) S.comments[pid] = []; draw(); });
-  if (!S.unsub[pid+':g']) S.unsub[pid+':g'] = onSnapshot(query(collection(db,'comment_gifts'), where('pid','==',pid)), s => { S.cgifts[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); draw(); }, () => { S.cgifts[pid] = S.cgifts[pid] || []; });
+  if (!S.unsub[pid+':g']) S.unsub[pid+':g'] = onSnapshot(query(collection(db,'comment_gifts'), where('pid','==',pid)), s => { S.cgifts[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})}));
+    if (S.gOK && S.gOK[pid]) s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data({serverTimestamps:'estimate'}); if (x.from !== uid && Date.now() - (tms(x.createdAt)||Date.now()) < 60000){ SFX.gift(x.giftName, x.giftIcon, x.unitPrice||0); giftPop({giftImg:x.giftImg, giftIcon:x.giftIcon, text:`${x.fromName||'مستخدم'}: ${x.giftName||'هدية'}${x.qty>1?' ×'+ar(x.qty):''}`}); } } });
+    (S.gOK = S.gOK || {})[pid] = true; draw(); }, () => { S.cgifts[pid] = S.cgifts[pid] || []; });
   draw(); }
 async function setReaction(p, type){ const cur = p.reactions?.[uid]; await updateDoc(doc(db,'posts',p.id),{[`reactions.${uid}`]: cur===type ? deleteField() : type}); return cur===type ? null : type; }
 async function toggleFollow(target, pid){
@@ -1475,10 +1478,10 @@ const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.c
 
 async function liveView(id){
   const L0 = S.lives.find(x => x.id === id); if (!L0) return;
-  let vwStop = null; const live = liveOn(L0), base = liveBase(L0), full = L0.mime || 'video/webm'; let dead = false, objUrl = null, iv = null, unsub = null, unsubC = null, replyTo = null, msgs = [], first = true, sending = false;
+  let vwStop = null, vwList = [], vMode = false, vwFill = null; const live = liveOn(L0), base = liveBase(L0), full = L0.mime || 'video/webm'; let dead = false, objUrl = null, iv = null, unsub = null, unsubC = null, replyTo = null, msgs = [], first = true, sending = false;
   const ov = document.createElement('div'); ov.className = 'lvx';
   ov.innerHTML = `<video id="lrV" playsinline autoplay></video><div class="lvshade"></div>
-    <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt ${live?'live':''}" id="lrB">${live?'● مباشر':'إعادة'}</span><span class="lvvw" id="lvVw"><i class="fas fa-eye"></i> <b id="lvVn">٠</b></span><span style="flex:1;min-width:0;font-weight:800;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L0.title||'بث مباشر')}</span><span class="lvchip" id="lvTot"></span></div>
+    <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt ${live?'live':''}" id="lrB">${live?'● مباشر':'إعادة'}</span><button class="lvvw" id="lvVw" title="المشاهدون" style="border:0;color:#fff;font:inherit;cursor:pointer"><i class="fas fa-eye"></i> <b id="lvVn">٠</b></button><span style="flex:1;min-width:0;font-weight:800;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L0.title||'بث مباشر')}</span><span class="lvchip" id="lvTot"></span></div>
     <div class="lvst" id="lrS">جارٍ التحميل…</div>
     <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button></div>
     <div class="lvcm" id="lvCm"></div><div class="lvrp" id="lvRp"></div>
@@ -1490,18 +1493,30 @@ async function liveView(id){
   document.addEventListener('keydown', onKey); $$('#lvX').onclick = closeAll;
   { const chipV = $$('#lvVw'), nEl = $$('#lvVn'); let vw = [], vok = false, hb = null, tk = null, vu = null; const vdoc = uid ? doc(db,'live_viewers', id+'_'+uid) : null;
     const showV = () => { if (!vok) return; const n = vw.filter(x => !x.at || Date.now() - x.at < 55000).length; nEl.textContent = ar(Math.max(1, n)); chipV.style.display = 'inline-flex'; };
-    if (live){ vu = onSnapshot(query(collection(db,'live_viewers'), where('sid','==',id)), s => { vok = true; vw = s.docs.map(d => ({at: tms(d.data().lastAt)})); showV(); }, () => { vok = false; });
-      if (vdoc){ const beat = () => setDoc(vdoc, {sid:id, uid, name:uName(uid), lastAt:serverTimestamp()}).catch(() => {}); beat(); hb = setInterval(beat, 20000); }
+    if (live){ vu = onSnapshot(query(collection(db,'live_viewers'), where('sid','==',id)), s => { vok = true; vw = s.docs.map(d => { const x = d.data({serverTimestamps:'estimate'}); return {uid:x.uid||d.id, name:x.name||'مستخدم', avatar:x.avatar||'', at:tms(x.lastAt)}; }); vwList = vw; showV(); if (vMode && vwFill) vwFill(); }, () => { vok = false; });
+      if (vdoc){ const beat = () => setDoc(vdoc, {sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), lastAt:serverTimestamp()}).catch(() => {}); beat(); hb = setInterval(beat, 20000);
+        const jk = 'lvj_'+id+'_'+uid; if (!sessionStorage.getItem(jk)){ sessionStorage.setItem(jk,'1'); addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), type:'join', text:'', createdAt:serverTimestamp()}).catch(() => {}); } }
       tk = setInterval(showV, 8000); }
     vwStop = () => { clearInterval(hb); clearInterval(tk); vu && vu(); vu = null; if (vdoc && live) deleteDoc(vdoc).catch(() => {}); };
     addEventListener('pagehide', () => vwStop && vwStop(), {once:true}); }
+  { const fillV = () => { const L = sh.querySelector('#vwL'); if (!L) return; const q = norm(sh.querySelector('#vwQ')?.value), m = new Map();
+      msgs.forEach(x => { if (x.uid && !x.host && x.uid !== ADMIN) m.set(x.uid, {name:x.name, avatar:x.avatar||'', online:false}); });
+      vwList.forEach(x => m.set(x.uid, {name:x.name || m.get(x.uid)?.name, avatar:x.avatar || m.get(x.uid)?.avatar || '', online:!x.at || Date.now() - x.at < 55000}));
+      const all = [...m.values()], list = all.filter(x => !q || norm(x.name).includes(q)).sort((a,b) => (b.online-a.online) || String(a.name).localeCompare(String(b.name),'ar'));
+      sh.querySelector('#vwC').textContent = `${ar(all.filter(x => x.online).length)} متصل الآن · ${ar(all.length)} دخلوا`;
+      L.innerHTML = list.map(x => `<div class="rxl">${avatar(x.avatar, x.name, 'av34')}<span style="flex:1">${esc(x.name||'مستخدم')}</span><small style="font-weight:700;color:${x.online?'var(--success)':'var(--text-sub)'}">${x.online?'● متصل الآن':'غادر'}</small></div>`).join('') || '<div class="cm-empty">لا يوجد مشاهدون مطابقون</div>'; };
+    vwFill = fillV;
+    $$('#lvVw').onclick = () => { vMode = true; sh.style.display = 'flex';
+      sh.innerHTML = `<div class="shh"><b style="font-size:16px"><i class="fas fa-eye" style="color:var(--gold)"></i> المشاهدون</b><span id="vwC" style="font-size:12.5px;font-weight:800;color:var(--text-sub)"></span><span style="flex:1"></span><button class="rb2" data-g="close"><i class="fas fa-xmark"></i></button></div><div class="shb"><input class="inp" id="vwQ" placeholder="ابحث في المشاهدين…" autocomplete="off" style="margin-bottom:8px"><div id="vwL"></div></div>`; fillV(); };
+    sh.addEventListener('input', e => { if (e.target.id === 'vwQ') fillV(); }); }
   { const HR = ['❤️','🌹','💖','💕','🌸','😍','🔥','💐','✨']; let lastTap = 0, lx = 0, ly = 0, combo = 0;
     const burst = (x, y) => { if (ov.querySelectorAll('.lvhrt').length > 60) return; for (let i = 0; i < 7; i++){ const e = document.createElement('div'); e.className = 'lvhrt'; e.textContent = HR[Math.random()*HR.length|0];
         e.style.left = (x + (Math.random()*70-35)) + 'px'; e.style.top = (y - 20) + 'px'; e.style.setProperty('--dx', (Math.random()*160-80)+'px'); e.style.setProperty('--rot', (Math.random()*50-25)+'deg'); e.style.fontSize = (26+Math.random()*26)+'px'; e.style.animationDelay = (i*40)+'ms';
         ov.appendChild(e); setTimeout(() => e.remove(), 1900); } SFX.play('pop'); };
     ov.addEventListener('pointerup', e => { if (e.target.closest('button,input,.lvsh,.lvcm,.lvbar,.lvtop,.lvside,.lvrp')) return; const now = Date.now(), near = Math.hypot(e.clientX-lx, e.clientY-ly) < 60;
       if ((now - lastTap < 320 && near) || now < combo){ burst(e.clientX, e.clientY); combo = now + 700; lastTap = 0; } else lastTap = now; lx = e.clientX; ly = e.clientY; }); }
-  const msgHtml = m => { if (m.type==='gift') return `<div class="lvm gift" data-mid="${m.id}"><span class="gic">${giftIco({img:m.giftImg, icon:m.giftIcon})}</span><span><b>${esc(m.name||'مستخدم')}</b> أرسل <b>${esc(m.giftName||'هدية')}</b>${m.qty>1?` ×${ar(m.qty)}`:''}${m.price?` · ${ar(m.price)} ج.م`:''}</span></div>`;
+  const msgHtml = m => { if (m.type==='join') return `<div class="lvm join" data-mid="${m.id}"><span>👋 <b>${esc(m.name||'مستخدم')}</b> دخل البث</span></div>`;
+    if (m.type==='gift') return `<div class="lvm gift" data-mid="${m.id}"><span class="gic">${giftIco({img:m.giftImg, icon:m.giftIcon})}</span><span><b>${esc(m.name||'مستخدم')}</b> أرسل <b>${esc(m.giftName||'هدية')}</b>${m.qty>1?` ×${ar(m.qty)}`:''}${m.price?` · ${ar(m.price)} ج.م`:''}</span></div>`;
     return `<div class="lvm" data-mid="${m.id}">${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span style="flex:1;min-width:0">${m.replyTo?`<small class="lvrq">↪ رد على ${esc(m.replyTo.name||'')}</small><br>`:''}<b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span><span class="lva"><button data-lv="reply:${m.id}" title="رد"><i class="fas fa-reply"></i></button>${m.uid===uid?`<button data-lv="del:${m.id}" title="حذف"><i class="fas fa-trash"></i></button>`:''}</span></div>`; };
   const fly = m => { const k = SFX.kind(m.giftName, m.giftIcon), el = document.createElement('div'); el.className = 'lvfly' + (k==='lion' ? ' lion' : ''); el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.name||'مستخدم')} أرسل ${esc(m.giftName||'هدية')}${m.qty>1?' ×'+ar(m.qty):''}</div>`; ov.appendChild(el); setTimeout(() => el.remove(), 2900);
     if (k==='lion'){ ov.classList.add('shk'); setTimeout(() => ov.classList.remove('shk'), 600); } };
@@ -1531,7 +1546,7 @@ async function liveView(id){
     try { await addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), text:t.slice(0,300), type:'comment', replyTo:replyTo||null, createdAt:serverTimestamp()}); snd('comment'); setReply(null); } catch(err){ console.error(err); toast('تعذّر إرسال التعليق','error'); } sending = false; };
   $$('#lvCs').onclick = sendC; $$('#lvCi').addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); sendC(); } });
   /* ---- 🎁 الهدايا: الخصم من المحفظة ---- */
-  const drawGifts = () => { if (sh.style.display !== 'flex') return;
+  const drawGifts = () => { if (sh.style.display !== 'flex' || vMode) return;
     sh.innerHTML = `<div class="shh"><b style="font-size:16px"><i class="fas fa-gift" style="color:var(--gold)"></i> أرسل هدية</b><span style="flex:1"></span><span style="font-weight:800;font-size:13px"><i class="fas fa-wallet" style="color:var(--gold)"></i> ${ar(S.wal)} ج.م</span><button class="rb2" data-g="close"><i class="fas fa-xmark"></i></button></div>
       <div class="shb"><div class="gg">${S.gifts.map(g => `<div class="gi" data-g="send:${g.id}">${giftIco(g)}<b>${esc(g.name)}</b><small>${ar(g.price)} ج.م</small></div>`).join('') || '<div class="cm-empty" style="grid-column:1/-1">لا توجد هدايا متاحة حالياً</div>'}</div></div>`; };
   giftsCb = drawGifts; let gbusy = false;
@@ -1541,7 +1556,7 @@ async function liveView(id){
     gqAdd({key:'live:'+id+':'+g.id, g, qty, total, run: async (q, t) => { await debit(t, `هدية بث مباشر: ${g.name}${q>1?' ×'+q:''}`, 'live_gift', {liveId:id, giftId:g.id, qty:q});
       await addDoc(collection(db,'live_comments'),{sid:id, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), type:'gift', giftId:g.id, giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', qty:q, unitPrice:Number(g.price)||0, price:t, createdAt:serverTimestamp()}); snd('react'); } }); } });
   sh.addEventListener('click', async e => { const t = e.target.closest('[data-g]'); if (!t) return; const [a, gid] = t.dataset.g.split(':');
-    if (a==='close'){ sh.style.display = 'none'; return; }
+    if (a==='close'){ sh.style.display = 'none'; vMode = false; return; }
     const g = S.gifts.find(x => x.id === gid); if (!g || gbusy) return; const price = Number(g.price)||0; if (!(price > 0)) return;
     if (!uid) return toast('سجّل الدخول أولاً','error'); if (S.wal < price) return needCharge();
     gbusy = true; effect({giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', name:uName(uid), price}); sh.style.display = 'none';
