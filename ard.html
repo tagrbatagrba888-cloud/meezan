@@ -273,6 +273,13 @@ body.one .shared img{max-height:420px}
 .newpill[hidden]{display:none}
 [data-theme="dark"] .newpill{color:#0A1612}
 </style>
+<script>
+/* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
+   هنا بنحفظ نسخة في localStorage ونرجّعها لو التبويب فاضي. (تسجيل الخروج لازم يمسح meezan_persist) */
+(function(){try{var K='meezan_persist',S=sessionStorage,KS=['meezan_logged_in','meezan_user_id','meezan_role','meezan_username','meezan_user_data','meezan_login_at'];
+if(S.getItem('meezan_logged_in')==='true'){var o={};KS.forEach(function(k){var v=S.getItem(k);if(v!==null)o[k]=v;});localStorage.setItem(K,JSON.stringify(o));}
+else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in==='true'&&r.meezan_user_id){KS.forEach(function(k){if(r[k]!=null)S.setItem(k,r[k]);});}}}catch(e){}})();
+</script>
 </head>
 <body>
 
