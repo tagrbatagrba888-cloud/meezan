@@ -205,6 +205,62 @@ textarea.inp{resize:vertical;line-height:1.7}
  .modal-ov{align-items:flex-end;padding:0}.modal,.modal.wide{border-radius:22px 22px 0 0;width:100%;max-height:94dvh}
  .tb-title small{display:none}
 }
+
+/* ===== لمسة احترافية ===== */
+:root{--r:16px;--ease:cubic-bezier(.2,.7,.2,1)}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:10px}
+.topbar{background:color-mix(in srgb,var(--bg-card) 88%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);box-shadow:0 1px 0 var(--border),0 8px 24px -12px var(--shadow)}
+.tb-in{padding:10px 14px;gap:8px}
+.tb-title{letter-spacing:.2px}
+.ib{position:relative}
+.ib .cnt{position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--gold);color:#2b2208;font-size:10.5px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-card)}
+.tb-menu{position:relative}
+.tb-menu .menu{left:0;top:calc(100% + 8px);min-width:200px}
+.card,.post{border-radius:var(--r)}
+.post{transition:box-shadow .3s var(--ease),border-color .3s}
+.post:hover{box-shadow:0 10px 28px -10px var(--shadow)}
+.p-name{line-height:1.4}
+.p-sub{margin-top:2px;line-height:1.5}
+.av-a{display:inline-flex;flex-shrink:0;text-decoration:none;border-radius:50%;transition:transform .2s var(--ease)}
+.av-a:hover{transform:scale(1.05)}
+.p-name a:hover,.cm-name a:hover{text-decoration:underline;text-underline-offset:3px}
+.gi img,.vid{background:var(--bg-input)}
+.gi{transition:filter .2s}.gi:hover{filter:brightness(.96)}
+.stats{padding:10px 16px 8px}
+.act{min-height:42px}
+.btn,.act,.ic,.ib,.fbtn{touch-action:manipulation}
+.btn.primary:hover{filter:brightness(1.07)}
+.menu{animation:pop .16s var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.97)}}
+.toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+/* هيكل تحميل احترافي */
+.sk{height:auto;padding:16px;animation:none;display:block}
+.sk .l{height:12px;border-radius:6px;margin-bottom:10px;background:linear-gradient(90deg,var(--bg-input) 25%,var(--border) 50%,var(--bg-input) 75%);background-size:200% 100%;animation:shim 1.3s linear infinite}
+.sk .h{display:flex;gap:12px;align-items:center;margin-bottom:16px}.sk .c{width:48px;height:48px;border-radius:50%;flex-shrink:0;background:var(--bg-input)}
+.sk .img{height:180px;border-radius:12px;margin-top:6px;background:linear-gradient(90deg,var(--bg-input) 25%,var(--border) 50%,var(--bg-input) 75%);background-size:200% 100%;animation:shim 1.3s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+/* شريط النشر في الخلفية */
+#jobs{position:fixed;z-index:900;right:0;left:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 14px}
+.job{pointer-events:auto;width:min(420px,100%);background:var(--bg-card);border:1px solid var(--border);border-radius:16px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:10px 14px;display:flex;align-items:center;gap:12px;animation:pop .25s var(--ease);overflow:hidden;position:relative}
+.job .ji{width:36px;height:36px;border-radius:50%;background:var(--bg-input);display:flex;align-items:center;justify-content:center;color:var(--primary-lighter);flex-shrink:0}
+.job.err .ji{color:var(--error)}.job.done .ji{color:var(--success)}
+.job .jt{flex:1;min-width:0;font-weight:800;font-size:13.5px;line-height:1.4}
+.job .jt small{display:block;color:var(--text-sub);font-weight:700;font-size:12px}
+.job .jb{position:absolute;bottom:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--primary-lighter));width:0;transition:width .25s}
+/* إعلاني */
+.ad-own{margin:6px 16px 12px;padding:12px 14px;border-radius:14px;background:rgba(201,169,97,.1);border:1px solid rgba(201,169,97,.45)}
+.ad-own .r{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:800;flex-wrap:wrap}
+.ad-own .bar{height:8px;border-radius:6px;background:var(--border);margin:9px 0 7px;overflow:hidden}
+.ad-own .bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--primary-lighter),var(--gold));transition:width .4s}
+.ad-own .m{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-sub);font-weight:700}
+.adrow{padding:12px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;background:var(--bg-input)}
+.adrow .t{font-weight:800;font-size:14px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adrow .bar{height:7px;border-radius:5px;background:var(--border);margin:8px 0;overflow:hidden}.adrow .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary-lighter),var(--gold))}
+.adrow .m{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;color:var(--text-sub);font-weight:700;flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(max-width:560px){.tb-title{font-size:16px}.tb-logo{width:38px;height:38px}.ib{width:38px;height:38px}.wal{padding:7px 10px;font-size:12.5px}.tb-in{gap:6px}}
 </style>
 </head>
 <body>
@@ -212,16 +268,23 @@ textarea.inp{resize:vertical;line-height:1.7}
 <header class="topbar"><div class="tb-in">
   <a class="ib" id="back" href="index.html" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
   <div class="tb-brand">
-    <img class="tb-logo" src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="MEEZAN">
+    <img class="tb-logo" src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
     <div class="tb-title"><span>ميزان</span><small>المنشورات</small></div>
   </div>
-  <a class="wal" href="stor.html"><i class="fas fa-wallet"></i><span id="bal">0</span> ج.م</a>
-  <button class="ib" data-a="verifyReq" title="توثيق الحساب"><i class="fas fa-circle-check"></i></button>
-  <button class="ib" data-a="sound" title="الصوت"><i class="fas fa-volume-high" id="sndIc"></i></button>
-  <button class="ib" data-a="theme" title="الوضع الليلي/النهاري"><i class="fas fa-moon" id="themeIc"></i></button>
+  <a class="wal" href="stor.html" aria-label="المحفظة"><i class="fas fa-wallet"></i><span id="bal">0</span> ج.م</a>
+  <button class="ib" data-a="myAds" title="إعلاناتي" aria-label="إعلاناتي"><i class="fas fa-rectangle-ad"></i><span class="cnt" id="adCnt" hidden>0</span></button>
+  <div class="menu-wrap tb-menu">
+    <button class="ib" data-a="menu" title="المزيد" aria-label="المزيد"><i class="fas fa-ellipsis-vertical"></i></button>
+    <div class="menu">
+      <button data-a="verifyReq"><i class="fas fa-circle-check"></i>توثيق الحساب</button>
+      <button data-a="sound"><i class="fas fa-volume-high" id="sndIc"></i>الصوت</button>
+      <button data-a="theme"><i class="fas fa-moon" id="themeIc"></i>الوضع الليلي / النهاري</button>
+    </div>
+  </div>
 </div></header>
 
 <div class="col" id="root"></div>
+<div id="jobs" aria-live="polite"></div>
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIc"></i><span id="toastTx"></span></div>
 <input type="file" id="cmFile" accept="image/*" hidden>
 
@@ -237,7 +300,7 @@ const uid = sessionStorage.getItem('meezan_user_id') || '', role = sessionStorag
 let me = {}; try { me = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || {}; } catch (e) {}
 
 /* ============ ⚙️ الثوابت (نفس نسخة الأدمن) ============ */
-const ADMIN = 'meezan', ADMIN_NAME = 'ميزان', LOGO = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', PROFILE = 'user.html', SELF = 'post.html';
+const ADMIN = 'meezan', ADMIN_NAME = 'ميزان', LOGO = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', PROFILE = 'user.html', OWN = 'sora.html', SELF = 'post.html';
 const DEF_PRICE = {views1000:50, click:2, follow:5, verify:100}, DEF_LIM = {image:10, video:20, audio:5};
 const CATS = [
   {id:'general',name:'عام',icon:'fa-globe'},{id:'edu',name:'تعليم',icon:'fa-graduation-cap'},{id:'fun',name:'ترفيه',icon:'fa-face-laugh'},
@@ -258,9 +321,12 @@ const ar = n => Number(n||0).toLocaleString('ar-EG');
 const compact = n => { n = Number(n||0); return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','')+'M' : n >= 1e3 ? (n/1e3).toFixed(1).replace('.0','')+'K' : String(n); };
 const safe = u => /^https?:\/\//i.test(u||'') ? u : '';
 const tsd = t => { if (!t) return null; if (t.toDate) return t.toDate(); if (t.seconds) return new Date(t.seconds*1000); const d = new Date(t); return isNaN(d) ? null : d; };
-function ago(t){ const d = tsd(t); if (!d) return 'الآن'; const s = (Date.now()-d)/1000;
+const agoMs = ms => { if (!ms) return 'الآن'; const s = (Date.now()-ms)/1000;
   if (s < 60) return 'الآن'; if (s < 3600) return `منذ ${Math.floor(s/60)} دقيقة`; if (s < 86400) return `منذ ${Math.floor(s/3600)} ساعة`;
-  if (s < 604800) return `منذ ${Math.floor(s/86400)} يوم`; return d.toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric'}); }
+  if (s < 604800) return `منذ ${Math.floor(s/86400)} يوم`; return new Date(ms).toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric'}); };
+const ago = t => { const d = tsd(t); return `<span class="ago" data-ts="${d ? d.getTime() : ''}"></span>`; };
+function tickAgo(){ document.querySelectorAll('.ago').forEach(e => { const v = agoMs(+e.dataset.ts || 0); if (e.textContent !== v) e.textContent = v; }); }
+setInterval(tickAgo, 30000);
 const fmt = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`).replace(/(^|\s)#([\w\u0600-\u06FF]+)/g, '$1<span class="tag">#$2</span>');
 const ytId = u => { const m = String(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/); return m ? m[1] : ''; };
 const ytFrame = id => `<iframe class="yt" src="https://www.youtube.com/embed/${id}" allowfullscreen loading="lazy"></iframe>`;
@@ -270,7 +336,7 @@ let toastT;
 function toast(t, type='success'){ const el = $('toast'); $('toastTx').textContent = t; el.className = 'toast show ' + type; $('toastIc').className = type==='error' ? 'fas fa-times-circle' : 'fas fa-check-circle'; clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800); }
 
 /* ============ 📦 الحالة ============ */
-const S = {posts:[], users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
+const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
   loaded:{posts:false, soc:false}, order:null, limit:20, unsub:{}, one:new URLSearchParams(location.search).get('id')};
 const price = () => ({...DEF_PRICE, ...(S.cfg.prices||{})}), lim = () => ({...DEF_LIM, ...(S.cfg.limits||{})});
 const P = id => S.posts.find(p => p.id === id);
@@ -294,7 +360,9 @@ function authorOf(o){
 }
 const avatar = (url, name, cls='av40', logo=false) => `<span class="av ${cls} ${logo?'logo':''}"><b>${esc((name||'م').trim().charAt(0))}</b>${url?`<img src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}</span>`;
 const badge = a => a.official ? `<span class="vb gold" title="حساب المنصة الموثّق"><i class="fas fa-circle-check"></i></span><span class="tag-off">المنصة</span>` : a.verified ? `<span class="vb" title="حساب موثّق"><i class="fas fa-circle-check"></i></span>` : '';
-const nameLink = a => a.official ? esc(a.name) : `<a href="${PROFILE}?id=${encodeURIComponent(a.id)}">${esc(a.name)}</a>`;
+const profHref = id => id === uid ? OWN : `${PROFILE}?id=${encodeURIComponent(id)}`;
+const nameLink = a => a.official ? esc(a.name) : `<a href="${profHref(a.id)}">${esc(a.name)}</a>`;
+const avatarLink = (a, cls) => { const h = avatar(a.avatar, a.name, cls, a.official); return a.official ? h : `<a class="av-a" href="${profHref(a.id)}" aria-label="${esc(a.name)}">${h}</a>`; };
 const following = () => S.soc[uid]?.following || {};
 const isF = id => !!following()[id];
 const followersOf = id => id === ADMIN ? [...S.uids].filter(x => x !== ADMIN).length : Number(S.soc[id]?.followersCount || 0);
@@ -307,16 +375,41 @@ const goalDone = a => a.target>0 && ((a.goal==='views'&&(a.impressions||0)>=a.ta
 const adOn = p => { const a = p.ad||{}, n = Date.now(); if (!a.active || goalDone(a)) return false;
   return (!a.start || n >= new Date(a.start)) && (!a.end || n <= new Date(a.end+'T23:59:59')) && (!(a.groups||[]).length || a.groups.includes(me.grade||S.users[uid]?.grade||'')); };
 
+/* ============ 💾 كاش المتصفح (IndexedDB) ============ */
+const IDB = (() => { let p;
+  const open = () => p || (p = new Promise((res,rej) => { try { const r = indexedDB.open('meezan_posts_cache',1); r.onupgradeneeded = () => { r.result.createObjectStore('kv'); r.result.createObjectStore('media'); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch(e){ rej(e); } }).catch(() => null));
+  return {
+    get:(st,k) => open().then(d => d ? new Promise(res => { try { const q = d.transaction(st).objectStore(st).get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); } catch(e){ res(undefined); } }) : undefined),
+    set:(st,k,v) => open().then(d => { if (d) try { d.transaction(st,'readwrite').objectStore(st).put(v,k); } catch(e){} }),
+    prune:(st,maxAge) => open().then(d => { if (!d) return; try { const os = d.transaction(st,'readwrite').objectStore(st), lim = Date.now()-maxAge; os.openCursor().onsuccess = e => { const c = e.target.result; if (!c) return; if ((c.value?.t||0) < lim) c.delete(); c.continue(); }; } catch(e){} }) };
+})();
+setTimeout(() => IDB.prune('media', 30*864e5), 15000);
+
 /* ============ 📤 وسائط Base64 داخل مستندات Firestore ============ */
-const CH = 600000, mediaCache = new Map();
+const CH = 800000, mediaCache = new Map();
 const b2d = b => new Promise((r,j) => { const f = new FileReader(); f.onload = () => r(f.result); f.onerror = j; f.readAsDataURL(b); });
 function shrink(file){ return new Promise((res,rej) => { const im = new Image(), u = URL.createObjectURL(file); im.onload = () => { const k = Math.min(1, 1280/Math.max(im.width,im.height)), c = document.createElement('canvas'); c.width = im.width*k; c.height = im.height*k; c.getContext('2d').drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg',.78)); }; im.onerror = () => rej(new Error('img')); im.src = u; }); }
-async function saveMedia(d, onp){ const id = 'm'+Date.now()+Math.random().toString(36).slice(2,7), parts = []; for (let i=0;i<d.length;i+=CH) parts.push(d.slice(i,i+CH)); let k = 0;
-  await Promise.all(parts.map((p,i) => setDoc(doc(db,'post_media',`${id}_${i}`),{data:p,i,mid:id,createdAt:serverTimestamp()}).then(() => onp && onp(++k/parts.length)))); return `fsm:${id}:${parts.length}`; }
+async function saveMedia(d, onp){ const id = 'm'+Date.now()+Math.random().toString(36).slice(2,7), parts = []; for (let i=0;i<d.length;i+=CH) parts.push(d.slice(i,i+CH));
+  const groups = []; for (let i=0;i<parts.length;i+=3) groups.push(parts.slice(i,i+3).map((p,j) => [i+j,p])); let done = 0, next = 0;
+  const worker = async () => { while (next < groups.length){ const g = groups[next++], b = writeBatch(db); g.forEach(([i,p]) => b.set(doc(db,'post_media',`${id}_${i}`),{data:p,i,mid:id,createdAt:serverTimestamp()})); await b.commit(); done += g.length; onp && onp(done/parts.length); } };
+  await Promise.all(Array.from({length:Math.min(4,groups.length)}, worker)); return `fsm:${id}:${parts.length}`; }
 const delFiles = ms => (ms||[]).forEach(m => { const a = String(m.url||'').split(':'); if (a[0]==='fsm') for (let i=0;i<(+a[2]||1);i++) deleteDoc(doc(db,'post_media',`${a[1]}_${i}`)).catch(() => {}); });
-const mLoad = ptr => { if (mediaCache.has(ptr)) return mediaCache.get(ptr); const a = ptr.split(':'), m = ptr.startsWith('fsm:');
-  const r = Promise.all(Array.from({length:+(m?a[2]:a[4])||1}, (_,i) => getDoc(m ? doc(db,'post_media',`${a[1]}_${i}`) : doc(db,a[1],`avatar_${a[2]}_${a[3]}_${i}`)).then(s => s.exists() ? s.data().data : ''))).then(x => x.join('')).catch(() => ''); mediaCache.set(ptr,r); return r; };
-function fixM(el){ const s = el.getAttribute('src')||''; if (!/^fs(m|av):/.test(s) || el._b === s) return; el._b = s; el.removeAttribute('onerror'); el.removeAttribute('src'); mLoad(s).then(d => { if (d){ el.src = d; el.style.display = ''; } }); }
+const mem = new Map();
+const mLoad = ptr => { if (mediaCache.has(ptr)) return mediaCache.get(ptr);
+  const r = (async () => {
+    const hit = await IDB.get('media', 'm:'+ptr);
+    if (hit && (hit.b || hit.d)){ const u = hit.b ? URL.createObjectURL(hit.b) : hit.d; mem.set(ptr,u); return u; }
+    const a = ptr.split(':'), m = ptr.startsWith('fsm:');
+    const parts = await Promise.all(Array.from({length:+(m?a[2]:a[4])||1}, (_,i) => getDoc(m ? doc(db,'post_media',`${a[1]}_${i}`) : doc(db,a[1],`avatar_${a[2]}_${a[3]}_${i}`)).then(x => x.exists() ? x.data().data : null)));
+    if (parts.some(x => x == null)) return '';
+    const d = parts.join(''); let blob = null; try { blob = await (await fetch(d)).blob(); } catch(e){}
+    IDB.set('media','m:'+ptr, blob ? {b:blob, t:Date.now()} : {d, t:Date.now()});
+    const u = blob ? URL.createObjectURL(blob) : d; mem.set(ptr,u); return u;
+  })().catch(() => '').then(u => { if (!u) mediaCache.delete(ptr); return u; });
+  mediaCache.set(ptr,r); return r; };
+function fixM(el){ const s = el.getAttribute('src')||''; if (!/^fs(m|av):/.test(s) || el._b === s) return; el._b = s; el.removeAttribute('onerror'); el.removeAttribute('src');
+  const u = mem.get(s); if (u){ el.src = u; el.style.display = ''; return; }
+  mLoad(s).then(d => { if (d){ el.src = d; el.style.display = ''; } }); }
 const MSEL = 'img[src^="fsm:"],img[src^="fsav:"],video[src^="fsm:"],audio[src^="fsm:"]';
 new MutationObserver(ms => ms.forEach(m => { if (m.type==='attributes'){ if (/^(IMG|VIDEO|AUDIO)$/.test(m.target.tagName)) fixM(m.target); return; }
   m.addedNodes.forEach(n => { if (n.nodeType!==1) return; if (/^(IMG|VIDEO|AUDIO)$/.test(n.tagName)) fixM(n); else n.querySelectorAll?.(MSEL).forEach(fixM); }); })).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
@@ -378,6 +471,15 @@ function mediaHtml(p){
   return h; }
 function sharedHtml(p){ const s = p.sharedPost; if (!s) return '';
   return `<a class="shared" href="${s.id?SELF+'?id='+encodeURIComponent(s.id):'#'}">${s.thumb?`<img src="${esc(s.thumb)}" alt="" loading="lazy">`:''}<div class="sh-b"><div class="sh-n">${esc(s.authorName||'')}</div>${s.text?`<div>${fmt(String(s.text).slice(0,280))}</div>`:''}</div></a>`; }
+const GN = {views:['مشاهدة','impressions'], clicks:['نقرة','clicks'], followers:['متابع','follows']};
+function adInfo(p){ const a = p.ad||{}, g = GN[a.goal]||GN.views, done = Number(a[g[1]]||0), tgt = Number(a.target||0), pct = tgt>0 ? Math.min(100,Math.round(done/tgt*100)) : 0, n = Date.now();
+  let st = 'نشط', cls = 'g';
+  if (goalDone(a)){ st = 'اكتمل الهدف'; cls = 'o'; } else if (a.end && n > new Date(a.end+'T23:59:59')){ st = 'انتهت المدة'; cls = 'r'; } else if (!a.active){ st = 'بانتظار موافقة الإدارة'; cls = 'y'; } else if (a.start && n < new Date(a.start)){ st = 'مجدول'; cls = 'y'; }
+  return {a, noun:g[0], done, tgt, pct, st, cls}; }
+const adOwnHtml = p => { const i = adInfo(p); return `<div class="ad-own"><div class="r"><span><i class="fas fa-rectangle-ad" style="color:var(--gold);margin-left:6px"></i>إعلانك الممول</span><span class="tg ${i.cls}">${i.st}</span></div><div class="bar"><i style="width:${i.pct}%"></i></div><div class="m"><span>${ar(i.done)} من ${ar(i.tgt)} ${i.noun} (${i.pct}%)</span><span>الميزانية: ${ar(i.a.paid||i.a.budget||0)} ج.م</span>${i.a.end?`<span>ينتهي: ${esc(i.a.end)}</span>`:''}</div></div>`; };
+function myAdsModal(){
+  const list = (S.one ? [] : S.posts).concat(S.myAdP).filter(p => p.isAd && p.authorId === uid), seenI = new Set(), mine = list.filter(p => !seenI.has(p.id) && seenI.add(p.id)).sort((a,b) => (tsd(b.createdAt)||0) - (tsd(a.createdAt)||0));
+  openModal(`${mh('إعلاناتي','fa-rectangle-ad')}<div class="mb">${mine.length ? mine.map(p => { const i = adInfo(p); return `<div class="adrow"><div class="t">${esc((p.text||'منشور بدون نص').slice(0,70))}</div><div class="r" style="display:flex;justify-content:space-between;align-items:center"><span class="tg ${i.cls}">${i.st}</span><span style="font-size:12.5px;font-weight:800">${ar(i.a.paid||i.a.budget||0)} ج.م</span></div><div class="bar"><i style="width:${i.pct}%"></i></div><div class="m"><span>${ar(i.done)} من ${ar(i.tgt)} ${i.noun}</span><a class="btn xs" href="${SELF}?id=${encodeURIComponent(p.id)}"><i class="fas fa-eye"></i> عرض المنشور</a></div></div>`; }).join('') : emptyBox('fa-rectangle-ad','لا توجد إعلانات بعد','من قائمة ⋯ على أي منشور لك اختر «ترويج كإعلان ممول»')}</div>`, {wide:true}); }
 function statusBar(p){ const st = p.status||'published';
   if (st==='pending') return `<div class="st-bar y"><i class="fas fa-hourglass-half"></i> بانتظار موافقة الإدارة</div>`;
   if (st==='hidden') return `<div class="st-bar"><i class="fas fa-eye-slash"></i> منشور مخفي من الإدارة</div>`;
@@ -394,7 +496,7 @@ function card(p){
     ${off?`<div class="off-bar"><i class="fas fa-shield-halved"></i> منشور رسمي من المنصة</div>`:''}
     ${p.pinned?`<div class="pin-bar"><i class="fas fa-thumbtack"></i> منشور مثبّت</div>`:''}
     ${st!=='published'?statusBar(p):''}
-    <header class="p-head">${avatar(a.avatar,a.name,'av48',off)}
+    <header class="p-head">${avatarLink(a,'av48')}
       <div class="p-meta"><div class="p-name">${nameLink(a)}${badge(a)}${canF?followBtn(a.id,id):''}</div>
         <div class="p-sub">${p.isAd?`<span class="spons">ممول</span><span>·</span><span>${esc(ad.sponsor||a.name)}</span>`:`<span>${ago(p.createdAt)}</span>`}<span>·</span><span><i class="fas fa-user-group"></i> ${compact(fol)} متابع</span>
           ${cat&&cat.id!=='general'?`<span>·</span><span><i class="fas ${cat.icon}"></i> ${cat.name}</span>`:''}<span>·</span><i class="fas fa-earth-africa" title="عام"></i>${p.edited?`<span>· تم التعديل${p.editedByAdmin?' بواسطة الإدارة':''}</span>`:''}</div></div>
@@ -402,6 +504,7 @@ function card(p){
     </header>
     ${p.text?`<div class="p-text ${bg?'bgd':''}" ${bg?`style="background:${esc(bg)}"`:''}>${fmt(p.text)}</div>`:''}
     ${sharedHtml(p)}${mediaHtml(p)}
+    ${own&&p.isAd?adOwnHtml(p):''}
     ${p.isAd&&ad.ctaUrl&&ad.goal!=='followers'?`<div class="ad-cta"><div class="u"><b>${esc(ad.sponsor||a.name)}</b>${esc(ad.ctaUrl.replace(/^https?:\/\//,'').slice(0,50))}</div><a class="btn xs gold" data-a="cta" data-id="${id}" href="${esc(safe(ad.ctaUrl))}" target="_blank" rel="noopener noreferrer">${esc(ad.ctaLabel||'اعرف المزيد')}</a></div>`:''}
     ${adFollow?`<div class="ad-cta"><div class="u"><b>${esc(ad.sponsor||a.name)}</b>تابع الحساب ليصلك كل جديد</div><button class="btn xs gold" data-a="follow" data-id="${esc(a.id)}" data-p="${id}">${isF(a.id)?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button></div>`:''}
     <div class="stats">
@@ -421,7 +524,7 @@ function commentsBlock(p){ const list = S.comments[p.id];
   const shown = (list||[]).filter(c => !c.hidden || c.authorId === uid);
   return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':shown.length?shown.map(c => commentHtml(p,c)).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
 function commentHtml(p, c){ const a = authorOf(c), own = c.authorId === uid && !a.official, ed = S.editC && S.editC.cid === c.id;
-  return `<div class="cm ${c.hidden?'hid':''}">${avatar(a.avatar,a.name,'av34',a.official)}<div class="cm-body">
+  return `<div class="cm ${c.hidden?'hid':''}">${avatarLink(a,'av34')}<div class="cm-body">
     <div class="cm-bub"><div class="cm-name">${nameLink(a)}${badge(a)}${c.hidden?'<span class="hid-tag"><i class="fas fa-eye-slash"></i> مخفي من الإدارة</span>':''}</div>
     ${ed?`<div class="cm-edit"><input id="ce-${c.id}" class="inp" value="${esc(c.text||'')}" style="min-width:180px"><button class="btn xs primary" data-a="saveComment" data-id="${p.id}" data-c="${c.id}">حفظ</button><button class="btn xs ghost" data-a="cancelEdit" data-id="${p.id}">إلغاء</button></div>`:c.text?`<div class="cm-text">${fmt(c.text)}</div>`:''}
     ${c.audioUrl?`<audio controls preload="none" src="${esc(c.audioUrl)}"></audio>`:''}${c.imageUrl?`<img class="cm-img" src="${esc(c.imageUrl)}" data-a="lightbox" data-url="${esc(c.imageUrl)}" alt="">`:''}${c.videoLink&&ytId(c.videoLink)?ytFrame(ytId(c.videoLink)):''}</div>
@@ -441,20 +544,20 @@ function commentBox(p){
 
 /* ============ 🧭 الخلاصة (تحديث ذكي بدون إعادة رسم كل شيء) ============ */
 const trigger = () => { const c = S.cfg, ban = banned();
-  return `<div class="card trig">${avatar(uAvatar(S.users[uid]||me),uName(uid),'av44')}<button class="trig-in" data-a="newPost">${ban?'أنت ممنوع من النشر حالياً':'بم تفكر؟'}</button>
+  return `<div class="card trig"><a class="av-a" href="${OWN}" aria-label="ملفي الشخصي">${avatar(uAvatar(S.users[uid]||me),uName(uid),'av44')}</a><button class="trig-in" data-a="newPost">${ban?'أنت ممنوع من النشر حالياً':'بم تفكر؟'}</button>
   <div class="trig-btns">${c.allowImages!==false?'<button data-a="newPost" data-t="image"><i class="fas fa-images" style="color:#2ECC71"></i>صورة</button>':''}${c.allowVideo!==false?'<button data-a="newPost" data-t="video"><i class="fas fa-video" style="color:#E74C3C"></i>فيديو</button>':''}${c.allowAudio!==false?'<button data-a="newPost" data-t="audio"><i class="fas fa-microphone" style="color:#3498DB"></i>صوت</button>':''}</div></div>`; };
 const emptyBox = (ic, t, d='') => `<div class="empty"><i class="fas ${ic}"></i><div style="font-size:16px;color:var(--text-main)">${t}</div>${d?`<div style="font-size:13px;margin-top:6px">${d}</div>`:''}</div>`;
 function feedItems(){
   if (S.one){ const p = P(S.one);
     return [{key:'back',html:`<a class="btn xs" href="${SELF}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
-  if (!S.loaded.posts || !S.loaded.soc) return [{key:'sk1',html:'<div class="card sk"></div>'},{key:'sk2',html:'<div class="card sk"></div>'}];
-  const org = S.posts.filter(p => !p.isAd);
-  if (!S.order) S.order = rankIds(org);
+  if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'sk1',html:sk},{key:'sk2',html:sk}]; }
+  const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
+  if (!S.order || Date.now() - S.orderAt > 6e5){ S.order = rankIds(org); S.orderAt = Date.now(); }
   const map = new Map(org.map(p => [p.id,p])), known = new Set(S.order), byDate = (a,b) => (tsd(b.createdAt)||Date.now()) - (tsd(a.createdAt)||Date.now());
   let ps = [...org.filter(p => !known.has(p.id)).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
   ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
-  const ads = S.posts.filter(p => p.isAd && (p.status||'published')==='published' && adOn(p)), show = ps.slice(0, S.limit), items = [{key:'trig',html:trigger()}]; let k = 0;
-  show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); if ((i+1)%5===0 && ads.length){ const ad = ads[k++ % ads.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
+  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), show = ps.slice(0, S.limit), items = [{key:'trig',html:trigger()}]; let k = 0;
+  show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (((i+1)%5===0 || (i===show.length-1 && !k)) && ads.length){ const ad = ads[k++ % ads.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
   if (!show.length) items.push({key:'empty',html:emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
   if (ps.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(ps.length-show.length)})</button>`});
   return items; }
@@ -469,7 +572,7 @@ let rt;
 const draw = () => { clearTimeout(rt); rt = setTimeout(paint, 50); };
 function paint(){
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
-  patch(R, feedItems()); observe();
+  patch(R, feedItems()); observe(); tickAgo();
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
 /* ============ 👁️ رصد المشاهدات والإعلانات ============ */
@@ -518,20 +621,33 @@ function openComposer({pick=null}={}){
     else if (k==='emo'){ const s = tx.selectionStart ?? tx.value.length; tx.value = tx.value.slice(0,s)+b.dataset.e+tx.value.slice(s); tx.focus(); tx.setSelectionRange(s+2,s+2); }
     else if (k==='rm'){ const i = +b.dataset.i; if (b.dataset.k==='e') C.existing.splice(i,1); else { URL.revokeObjectURL(C.files[i].url); C.files.splice(i,1); } paintC(); } });
   if (pick) setTimeout(() => $$('#f'+pick).click(), 60);
-  $$('#cGo').onclick = async () => {
+  $$('#cGo').onclick = () => {
     if (C.busy) return; const text = tx.value.trim(); if (!text && !hasMedia()) return toast('اكتب نصاً أو أضف وسائط','error');
-    C.busy = true; const go = $$('#cGo'), prog = $$('#cProg'); go.disabled = true; prog.hidden = false;
-    const setP = (v, t) => { prog.firstElementChild.style.width = (v*100)+'%'; prog.lastElementChild.textContent = t; };
-    try {
-      const media = C.existing.map(({type,url}) => ({type,url})), n = C.files.length;
-      for (let i=0;i<n;i++){ const it = C.files[i]; setP(i/n, `معالجة ${i+1} من ${n}…`);
-        const d = it.type==='image' ? await shrink(it.file) : await b2d(it.file);
-        media.push({type:it.type, url:await saveMedia(d, q => setP((i+q)/n, `حفظ ${i+1} من ${n} — ${Math.round(q*100)}%`))}); }
-      setP(1,'جارٍ النشر…');
-      await addDoc(collection(db,'posts'),{text, category:$$('#cCat').value, bg:media.length?'':C.bg, media, authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, status:c.requireApproval?'pending':'published', pinned:false, reactions:{}, commentsCount:0, sharesCount:0, viewsCount:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
-      toast(c.requireApproval?'تم الإرسال وبانتظار موافقة الإدارة':'تم النشر بنجاح'); ov._close();
-    } catch(err){ console.error(err); toast('فشل النشر — '+(err.code||err.message||'تحقق من الاتصال'),'error'); C.busy = false; go.disabled = false; prog.hidden = true; } };
+    C.busy = true;
+    publishJob({text, cat:$$('#cCat').value, bg:C.bg, existing:[...C.existing], files:[...C.files]});
+    ov._close(); };
 }
+/* النشر في الخلفية: تضغط "نشر" فتُغلق النافذة ويكمل الرفع وأنت تتصفح */
+const jobs = new Set();
+addEventListener('beforeunload', e => { if (jobs.size){ e.preventDefault(); e.returnValue = ''; } });
+function publishJob(job){
+  const c = S.cfg, box = $('jobs'), el = document.createElement('div'); el.className = 'job';
+  const set = (ic, t, sub, p) => { el.innerHTML = `<div class="ji"><i class="fas ${ic}"></i></div><div class="jt">${t}${sub?`<small>${sub}</small>`:''}</div>${job.failed?'<button class="btn xs primary" data-j="retry">إعادة المحاولة</button><button class="ic xs" data-j="drop" aria-label="إلغاء"><i class="fas fa-xmark"></i></button>':''}<div class="jb" style="width:${Math.round((p||0)*100)}%"></div>`; };
+  el.addEventListener('click', e => { const b = e.target.closest('[data-j]'); if (!b) return; if (b.dataset.j==='retry') run(); else { job.files.forEach(f => URL.revokeObjectURL(f.url)); jobs.delete(job); el.remove(); } });
+  box.appendChild(el); jobs.add(job); job.media = job.media || job.existing.map(({type,url}) => ({type,url})); job.up = job.up || {};
+  async function run(){
+    job.failed = false; el.className = 'job'; set('fa-spinner fa-spin','جاري النشر…','يمكنك متابعة التصفح',.02);
+    try {
+      const n = job.files.length, pr = new Array(n).fill(0), upd = () => set('fa-spinner fa-spin','جاري النشر…', n ? `رفع الملفات ${Math.round(pr.reduce((a,b) => a+b,0)/n*100)}% — يمكنك متابعة التصفح` : 'يمكنك متابعة التصفح', .05+.9*(n?pr.reduce((a,b) => a+b,0)/n:1));
+      await Promise.all(job.files.map(async (it,i) => { if (job.up[i]){ pr[i] = 1; return; }
+        const d = it.type==='image' ? await shrink(it.file) : await b2d(it.file);
+        job.up[i] = {type:it.type, url:await saveMedia(d, q => { pr[i] = q; upd(); })}; pr[i] = 1; upd(); }));
+      const media = job.media.concat(job.files.map((_,i) => job.up[i]));
+      set('fa-spinner fa-spin','جاري النشر…','لحظات…',.97);
+      await addDoc(collection(db,'posts'),{text:job.text, category:job.cat, bg:media.length?'':job.bg, media, authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, status:c.requireApproval?'pending':'published', pinned:false, reactions:{}, commentsCount:0, sharesCount:0, viewsCount:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+      job.files.forEach(f => URL.revokeObjectURL(f.url)); jobs.delete(job); el.className = 'job done'; set('fa-circle-check', c.requireApproval ? 'تم الإرسال وبانتظار موافقة الإدارة' : 'تم النشر بنجاح', '', 1); setTimeout(() => el.remove(), 3500);
+    } catch(err){ console.error(err); job.failed = true; el.className = 'job err'; set('fa-triangle-exclamation','فشل النشر', esc(err.code||err.message||'تحقق من الاتصال'), 0); } }
+  run(); }
 function editPost(p){
   const ov = openModal(`${mh('تعديل المنشور','fa-pen')}<div class="mb"><select class="sel" id="eCat" style="margin-bottom:10px">${CATS.map(x => `<option value="${x.id}" ${(p.category||'general')===x.id?'selected':''}>${x.name}</option>`).join('')}</select><textarea class="inp" id="eTx" rows="5">${esc(p.text||'')}</textarea></div><div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="eGo"><i class="fas fa-floppy-disk"></i> حفظ</button></div>`);
   ov.querySelector('#eGo').onclick = async () => { const text = ov.querySelector('#eTx').value.trim(); if (!text && !(p.media||[]).length) return toast('اكتب نصاً','error');
@@ -559,11 +675,11 @@ function boost(p){
   $$('#bOk').onclick = async () => { const k = $$('#bGoal').value, g = G[k], amt = Math.round((+$$('#bBud').value||0)*100)/100, url = $$('#bUrl').value.trim(), target = g.calc(amt);
     if (!(amt>0)) return toast('أدخل ميزانية صحيحة','error'); if (target < 1) return toast('الميزانية قليلة جداً لهذا الهدف','error');
     if (k==='clicks' && !safe(url)) return toast('أدخل رابط الوجهة (https://)','error'); if (url && !safe(url)) return toast('الرابط يجب أن يبدأ بـ https://','error');
-    const b = $$('#bOk'); b.disabled = true;
-    try { await debit(amt, 'دفع إعلان ممول', 'ad', {postId:p.id});
+    const b = $$('#bOk'); b.disabled = true; let paid = false;
+    try { await debit(amt, 'دفع إعلان ممول', 'ad', {postId:p.id}); paid = true;
       await updateDoc(doc(db,'posts',p.id),{isAd:true, ad:{sponsor:uName(uid), ctaLabel:$$('#bCta').value, ctaUrl:k==='followers'?'':url, start:new Date().toISOString().slice(0,10), end:$$('#bEnd').value, budget:amt, paid:amt, goal:k, target, active:!S.cfg.requireApproval, groups:[], impressions:0, clicks:0, follows:0}});
-      toast(`تم خصم ${ar(amt)} ج.م — هدفك ${ar(target)} ${g.noun}`); ov._close();
-    } catch(er){ toast(er.message||'فشل','error'); b.disabled = false; } }; }
+      toast(`تم خصم ${ar(amt)} ج.م — تابع إعلانك من زر «إعلاناتي»`); ov._close();
+    } catch(er){ if (paid){ try { await credit(amt,'استرداد مبلغ إعلان (فشل التفعيل)','refund'); } catch(_){} } toast(er.message||'فشل','error'); b.disabled = false; } }; }
 
 /* ============ ✅ طلب التوثيق (مدفوع — السعر من الأدمن) ============ */
 function verifyModal(){
@@ -651,6 +767,7 @@ const H = {
   sound:() => { const on = localStorage.getItem('meezan_snd') === '0'; localStorage.setItem('meezan_snd', on?'1':'0'); $('sndIc').className = on?'fas fa-volume-high':'fas fa-volume-xmark'; if (on) snd('like'); toast(on?'تم تشغيل الأصوات':'تم كتم الأصوات'); },
   menu:(t,e) => { const w = t.closest('.menu-wrap'), was = w.classList.contains('open'); document.querySelectorAll('.menu-wrap.open').forEach(x => x.classList.remove('open')); if (!was) w.classList.add('open'); e.stopPropagation(); },
   more:() => { S.limit += 20; draw(); },
+  myAds:myAdsModal,
   newPost:t => openComposer({pick:t.dataset.t||null}), verifyReq:verifyModal,
   copy:async t => { await navigator.clipboard.writeText(postUrl(t.dataset.id)).catch(() => {}); toast('تم نسخ رابط المنشور'); },
   edit:t => { const p = P(t.dataset.id); if (p) editPost(p); }, boost:t => { const p = P(t.dataset.id); if (p) boost(p); }, report:t => { const p = P(t.dataset.id); if (p) reportModal(p); },
@@ -696,18 +813,40 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.react-wr
 const th = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', th); $('themeIc').className = th==='dark' ? 'fas fa-sun' : 'fas fa-moon';
 $('sndIc').className = localStorage.getItem('meezan_snd')==='0' ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
-onSnapshot(doc(db,'users','all'), s => { const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); });
+function rebuild(){ if (S.one) return; const m = new Map(); [S.feed, S.adP, S.myAdP].forEach(l => l.forEach(p => m.set(p.id, p))); S.posts = [...m.values()].filter(ok); S.loaded.posts = true; updAdCnt(); draw(); saveCache(); }
+function updAdCnt(){ const n = S.myAdP.filter(p => adOn(p)).length, e = $('adCnt'); e.hidden = !n; e.textContent = ar(n); }
+const J = x => JSON.parse(JSON.stringify(x, (k,v) => v && typeof v.toDate === 'function' ? {seconds:v.seconds, nanoseconds:v.nanoseconds} : v));
+let sct;
+function saveCache(){ if (S.one) return; clearTimeout(sct); sct = setTimeout(() => { try {
+  const ps = S.posts.filter(p => p.isAd || S.feed.slice(0,40).some(f => f.id === p.id)), ids = new Set([uid, ADMIN, ...ps.map(p => p.authorId)]), users = {}, soc = {};
+  ids.forEach(i => { if (S.users[i]) users[i] = S.users[i]; if (S.soc[i]) soc[i] = S.soc[i]; });
+  IDB.set('kv','feed:'+uid, JSON.stringify(J({v:1, t:Date.now(), feed:S.feed.slice(0,40), adP:S.adP, myAdP:S.myAdP, users, soc, uids:[...S.uids], cfg:S.cfg, wal:S.wal, order:S.order, orderAt:S.orderAt}))); } catch(e){} }, 1500); }
+async function loadCache(){ if (S.one) return; const raw = await IDB.get('kv','feed:'+uid); if (!raw || S.live.posts) return;
+  try { const c = JSON.parse(raw); if (!c || c.v !== 1) return;
+    S.feed = c.feed||[]; S.adP = c.adP||[]; S.myAdP = c.myAdP||[]; if (!S.live.users){ S.users = {...c.users, ...S.users}; S.uids = new Set(c.uids||[]); } if (!S.live.soc){ S.soc = c.soc||{}; S.loaded.soc = true; } if (!S.live.cfg) S.cfg = c.cfg||{};
+    if (c.order && Date.now()-c.orderAt < 6e5){ S.order = c.order; S.orderAt = c.orderAt; }
+    S.posts = [...new Map([...S.feed, ...S.adP, ...S.myAdP].map(p => [p.id,p])).values()].filter(ok); S.loaded.posts = true; $('bal').textContent = ar(c.wal||0); updAdCnt(); paint();
+  } catch(e){} }
+const ok = p => (p.status||'published') === 'published' || p.authorId === uid;
+loadCache();
+const mapDocs = s => s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})}));
+onSnapshot(doc(db,'users','all'), s => { S.live.users = true; const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); saveCache(); });
 onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : []).forEach(u => S.users[u.id] = u); draw(); });
-onSnapshot(collection(db,'user_social'), s => { S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); }, () => { S.loaded.soc = true; draw(); });
-onSnapshot(doc(db,'settings','postsConfig'), s => { S.cfg = s.exists() ? s.data() : {}; draw(); });
+onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
+onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; draw(); });
 if (uid){
   onSnapshot(doc(db,'wallets',uid), s => { S.wal = s.exists() ? Number(s.data().balance||0) : 0; $('bal').textContent = ar(S.wal); });
   onSnapshot(query(collection(db,'verifyRequests'), where('uid','==',uid)), s => { S.reqs = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); }, () => {});
+  /* إعلاناتي: تُجلب دائماً حتى لو كان المنشور خارج آخر 100 منشور */
+  onSnapshot(query(collection(db,'posts'), where('authorId','==',uid), where('isAd','==',true)), s => { S.myAdP = mapDocs(s); rebuild(); if (S.one) updAdCnt(); }, () => {});
 }
-const ok = p => (p.status||'published') === 'published' || p.authorId === uid;
 if (S.one){ document.title = 'ميزان | منشور';
   onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; S.loaded.posts = true; if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
-} else onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { S.posts = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})).filter(ok); S.loaded.posts = true; draw(); }, () => toast('تعذّر تحميل المنشورات','error'));
+} else {
+  onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { S.live.posts = true; S.feed = mapDocs(s); rebuild(); }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
+  /* كل الإعلانات المفعّلة (حتى القديمة) تُعرض للمستخدمين الآخرين ضمن الخلاصة */
+  onSnapshot(query(collection(db,'posts'), where('isAd','==',true), limit(60)), s => { S.adP = mapDocs(s); rebuild(); }, () => {});
+}
 paint();
 </script>
 </body>
