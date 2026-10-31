@@ -102,6 +102,44 @@ a{color:inherit}
 .vb[hidden],.av-vb[hidden]{display:none}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--card);color:var(--tx);border:2px solid var(--bd);padding:12px 20px;border-radius:14px;font-weight:800;font-size:13.5px;box-shadow:0 12px 40px rgba(0,0,0,.3);opacity:0;transition:.35s;z-index:999;max-width:calc(100vw - 32px)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}.toast.error{border-color:var(--err)}
+.stb{background:var(--in);border:0;border-radius:14px;padding:10px;text-align:center;font-family:inherit;color:inherit;cursor:pointer;transition:.2s}
+.stb:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--sh)}
+
+/* ===== قوائم المتابِعين / يتابع ===== */
+.fl-ov{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:900}
+.fl-ov.show{display:flex}
+.fl-box{background:var(--card);color:var(--tx);width:100%;max-width:520px;max-height:82vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 50px rgba(0,0,0,.4);border-top:5px solid var(--g);font-family:Cairo,sans-serif;animation:flUp .28s ease}
+@media(min-width:600px){.fl-ov{align-items:center;padding:20px}.fl-box{border-radius:22px;max-height:80vh}}
+@keyframes flUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.fl-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--bd)}
+.fl-h b{flex:1;font-size:17px;font-weight:900}
+.fl-x{width:36px;height:36px;border-radius:50%;border:0;background:var(--in);color:var(--tx);cursor:pointer;font-size:15px}
+.fl-s{display:flex;align-items:center;gap:8px;margin:12px 16px 4px;padding:0 12px;border:2px solid var(--bd);border-radius:12px;background:var(--in)}
+.fl-s i{color:var(--sub);font-size:13px}
+.fl-s input{flex:1;border:0;background:none;outline:none;padding:10px 0;font-family:inherit;font-weight:700;font-size:14px;color:var(--tx)}
+.fl-l{overflow-y:auto;padding:8px 12px 16px;-webkit-overflow-scrolling:touch}
+.fl-r{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--bd)}
+.fl-r:last-child{border-bottom:0}
+.fl-i{flex:1;min-width:0;display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit}
+.fl-av{position:relative;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#145A43,#1E7A5A);color:#fff;font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.fl-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fl-n{min-width:0;display:flex;flex-direction:column}
+.fl-n b{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-n small{font-size:12px;color:var(--sub);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-b{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:11px;border:2px solid var(--p);background:var(--p);color:#fff;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:.2s}
+[data-theme=dark] .fl-b{color:#0A1612}
+.fl-b.on{background:transparent;color:var(--tx);border-color:var(--bd)}
+.fl-b.on:hover{border-color:var(--err);color:var(--err)}
+.fl-b.dg{background:var(--err);border-color:var(--err);color:#fff}
+.fl-b:disabled{opacity:.55;cursor:wait}
+.fl-me{flex-shrink:0;font-size:12px;font-weight:800;color:var(--sub);padding:0 8px}
+.fl-e{text-align:center;color:var(--sub);font-weight:700;font-size:13.5px;padding:34px 12px;line-height:1.9}
+.fl-sm{max-width:360px;border-radius:20px;padding:22px 18px 18px;text-align:center}
+.fl-sm p{font-weight:800;font-size:15px;line-height:1.9;margin-bottom:16px}
+.fl-ca{display:flex;gap:10px;justify-content:center}
+.fl-ca .fl-b{flex:1;justify-content:center}
+.fl-cf{align-items:center!important;padding:20px}
+.fl-cf .fl-box{border-radius:20px}
 </style>
 </head>
 <body>
@@ -110,7 +148,7 @@ a{color:inherit}
 <div class="toast" id="toast"></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, query, where, orderBy, serverTimestamp, increment, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, query, where, orderBy, serverTimestamp, increment, deleteField, writeBatch, FieldPath } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db=getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
 
 if(sessionStorage.getItem('meezan_logged_in')!=='true'){ try{localStorage.setItem('meezan_next',location.href)}catch(e){} location.replace('login.html'); }
@@ -152,18 +190,18 @@ new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==
 const REACTIONS=[{id:'like',e:'👍',l:'أعجبني'},{id:'love',e:'❤️',l:'أحببته'},{id:'haha',e:'😂',l:'أضحكني'},{id:'wow',e:'😮',l:'واو'},{id:'sad',e:'😢',l:'أحزنني'},{id:'angry',e:'😡',l:'أغضبني'}];
 const RM=Object.fromEntries(REACTIONS.map(r=>[r.id,r]));
 
-let U=null, soc={}, mySoc={}, posts=[], exc=null, comments={}, replyTo={}, open=new Set(), unsub={}, drafts={}, sending=new Set(), limit=10;
+let U=null, soc={}, mySoc={}, fol={}, adminFol=0, posts=[], exc=null, comments={}, replyTo={}, open=new Set(), unsub={}, drafts={}, sending=new Set(), limit=10;
 
 let excStarted=false;
 function startExc(){ if(excStarted)return; excStarted=true; calcExcellence(); }
 const PK='meezan_uv:'+id; let svT;
 function saveP(){ clearTimeout(svT); svT=setTimeout(()=>{ try{ if(!U)return;
   const pubU={id:U.id,fullName:U.fullName,username:U.username,grade:U.grade,avatarUrl:(String(U.avatarUrl||'').startsWith('data:')?'':U.avatarUrl),_role:U._role,_teacher:U._teacher,_official:U._official};
-  localStorage.setItem(PK,JSON.stringify({U:pubU,soc:{verified:!!soc.verified,followersCount:soc.followersCount||0,followingCount:soc.followingCount||0},posts:posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).slice(0,30),exc,t:Date.now()})); }catch(e){} },500); }
+  localStorage.setItem(PK,JSON.stringify({U:pubU,soc:{verified:!!soc.verified,followersCount:soc.followersCount||0,followersAdj:soc.followersAdj||0,followingCount:soc.followingCount||0},posts:posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).slice(0,30),exc,t:Date.now()})); }catch(e){} },500); }
 const sig=u=>u?[u.fullName,u.username,u.avatarUrl,u.grade,u._role].join('|'):'';
 function setU(u){ const changed=sig(u)!==sig(U); U=u; if(changed||!$('stats'))draw(); if(!U._teacher)startExc(); saveP(); }
 async function load(){
-  if(id===ADMIN){ draw(); return; }
+  if(id===ADMIN){ draw(); getDoc(doc(db,'users','all')).then(s=>{ adminFol=(s.exists()?s.data().items||[]:[]).filter(u=>String(u.id)!==ADMIN).length; drawStats(); }).catch(()=>{}); return; }
   let done=0, found=false;
   const fin=u=>{ if(u&&!found){found=true;setU(u);} if(++done===2&&!found&&!U)draw(); };
   ['users','teachers'].forEach(c=>getDoc(doc(db,c,'all')).then(s=>{ const u=(s.exists()?s.data().items||[]:[]).find(x=>String(x.id)===id); fin(u?{...u,_role:c==='teachers'?'معلم':'طالب',_teacher:c==='teachers'}:null); }).catch(()=>fin(null)));
@@ -191,7 +229,9 @@ function drawExc(){
 }
 
 const pubPosts=()=>posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).sort((a,b)=>(tsd(b.createdAt)||0)-(tsd(a.createdAt)||0));
-const isF=()=>!!(mySoc.following||{})[id];
+const isFol=t=>!!(fol[t]||(mySoc.following||{})[t]);
+const isF=()=>isFol(id);
+const folCount=()=>id===ADMIN?adminFol:Math.max(0,Number(soc.followersCount||0)+Number(soc.followersAdj||0));
 
 /* ===== رأس الصفحة (الصورة + العدادات + نسبة التفوق) ===== */
 function draw(){
@@ -212,22 +252,27 @@ function drawStats(){
   const s=$('stats'); if(!s)return;
   { const v=id===ADMIN||!!soc.verified, a=$('avVb'), b=$('vbName'); if(a)a.hidden=!v; if(b)b.hidden=!v; }
   const n=pubPosts().length, off=id===ADMIN;
-  s.style.gridTemplateColumns=off?'1fr':'repeat(3,1fr)';
-  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?'':`<div><b>${ar(Math.max(0,soc.followersCount||0))}</b><span>متابِع</span></div><div><b>${ar(Math.max(0,soc.followingCount||0))}</b><span>يتابع</span></div>`}`;
+  s.style.gridTemplateColumns=off?'repeat(2,1fr)':'repeat(3,1fr)';
+  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(Math.max(0,soc.followingCount||0))}</b><span>يتابع</span></button>`}`;
+  if(FL.kind) flRender();
 }
 function drawFollow(){
   const a=$('heroAct'); if(!a)return;
   a.innerHTML=`<button class="fbtn ${isF()?'on':''}" id="fBtn">${isF()?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button>`;
 }
+async function followBatch(t,want){
+  const b=writeBatch(db);
+  b.set(doc(db,'user_social',me),{following:{[t]:want?true:deleteField()},followingCount:increment(want?1:-1)},{merge:true});
+  b.set(doc(db,'user_social',t),{followersCount:increment(want?1:-1)},{merge:true});
+  const fr=doc(db,'follows',me+'_'+t);
+  if(want) b.set(fr,{followerId:me,followedId:t,by:'user',createdAt:serverTimestamp()}); else b.delete(fr);
+  await b.commit();
+  if(want) notify(t,'متابع جديد',`${myName} بدأ بمتابعتك`,'user.html?id='+encodeURIComponent(me));
+}
 async function toggleFollow(){
   const btn=$('fBtn'); if(btn)btn.disabled=true; const was=isF();
-  try{
-    const b=writeBatch(db);
-    b.set(doc(db,'user_social',me),{following:{[id]:was?deleteField():true},followingCount:increment(was?-1:1)},{merge:true});
-    b.set(doc(db,'user_social',id),{followersCount:increment(was?-1:1)},{merge:true});
-    await b.commit();
-    if(!was) notify(id,'متابع جديد',`${myName} بدأ بمتابعتك`,'user.html?id='+encodeURIComponent(me));
-  }catch(e){ toast('تعذّر تنفيذ العملية','error'); if(btn)btn.disabled=false; }
+  try{ await followBatch(id,!was); }
+  catch(e){ toast('تعذّر تنفيذ العملية','error'); if(btn)btn.disabled=false; }
 }
 
 /* ===== الإشعارات (نفس نظام الصفحات الأخرى) ===== */
@@ -311,6 +356,7 @@ document.addEventListener('input',e=>{ const t=e.target; if(t.matches('textarea[
 document.addEventListener('keydown',e=>{ const t=e.target; if(t.matches?.('textarea[data-p]')&&e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendComment(t.dataset.p); } });
 document.addEventListener('click',async e=>{
   if(e.target.closest('#fBtn')){ toggleFollow(); return; }
+  { const fb=e.target.closest('[data-fl]'); if(fb){ flOpen(fb.dataset.fl); return; } }
   const t=e.target.closest('[data-a]'); 
   if(!t){ document.querySelectorAll('.pact.pk').forEach(x=>x.classList.remove('pk')); return; }
   const a=t.dataset.a, pid=t.dataset.id, p=posts.find(x=>x.id===pid);
@@ -329,6 +375,102 @@ document.addEventListener('click',async e=>{
     }catch(x){ toast('تعذّر التفاعل','error'); }
   }
 });
+
+
+/* ============================================================
+   👥 قوائم المتابِعين / يتابع (مع إمكانية إلغاء المتابعة)
+   المصدر: مجموعة follows + user_social (نفس نظام صفحة المنشورات)
+   ============================================================ */
+const FL={kind:null,A:new Set(),B:new Set(),un:[],q:'',f:{u:false,a:false,b:false}};
+let flUM=null, flUMp=null;
+const flEsc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const flAr=n=>Number(n||0).toLocaleString('ar-EG');
+const flNorm=s=>String(s||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+function flLoadUsers(){
+  if(flUMp) return flUMp;
+  flUMp=Promise.all(['users','teachers'].map(c=>getDoc(doc(db,c,'all')).then(s=>({c,items:s.exists()?(s.data().items||[]):[]})).catch(()=>({c,items:[]})))).then(r=>{
+    const m={};
+    r.forEach(({c,items})=>items.forEach(u=>{ const k=String(u.id); if(m[k])return;
+      m[k]={name:u.fullName||u.name||u.username||'مستخدم',avatar:u.avatarUrl||u.avatar||'',sub:c==='teachers'?'معلم':(u.grade||'طالب')}; }));
+    flUM=m; return m; });
+  return flUMp; }
+function flIds(){
+  const t=String(FL_TARGET()), s=flTargetSoc()||{}, out=new Set(FL.A);
+  FL.B.forEach(x=>out.add(x));
+  if(FL.kind==='following') Object.keys(s.following||{}).forEach(k=>{ if(s.following[k]) out.add(String(k)); });
+  out.delete(t); out.delete('meezan');
+  return [...out]; }
+function flRow(r){
+  const id=r.id, u=r.u, name=r.name, mine=String(id)===String(FL_ME);
+  const av=u&&u.avatar?`<img src="${flEsc(u.avatar)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'';
+  const inner=`<span class="fl-av"><b>${flEsc((name.trim().charAt(0))||'م')}</b>${av}</span><span class="fl-n"><b>${flEsc(name)}</b><small>${flEsc(u?u.sub:'')}</small></span>`;
+  const link=u?`<a class="fl-i" href="${flEsc(flHref(id))}">${inner}</a>`:`<div class="fl-i">${inner}</div>`;
+  let btn='';
+  if(mine) btn='<span class="fl-me">أنت</span>';
+  else{
+    const on=flIsFol(id), own=flOwnList()&&FL.kind==='following';
+    btn=`<button type="button" class="fl-b ${on?'on':''}" data-rid="${flEsc(id)}" data-on="${on?1:0}">${on?(own?'<i class="fas fa-user-minus"></i> إلغاء المتابعة':'<i class="fas fa-check"></i> متابَع'):'<i class="fas fa-plus"></i> متابعة'}</button>`; }
+  return `<div class="fl-r">${link}${btn}</div>`; }
+function flRender(){
+  const ov=document.getElementById('flOv'); if(!ov||!ov.classList.contains('show')||!FL.kind) return;
+  const L=ov.querySelector('#flL'), T=ov.querySelector('#flT');
+  const loaded=FL.f.u&&FL.f.a&&(FL.kind==='following'||FL.f.b);
+  const ids=flIds();
+  T.textContent=(FL.kind==='following'?'يتابع':'المتابِعون')+(loaded?' ('+flAr(ids.length)+')':'');
+  if(!loaded){ L.innerHTML='<div class="fl-e"><i class="fas fa-spinner fa-spin"></i> جارٍ التحميل…</div>'; return; }
+  const um=flUM||{};
+  let rows=ids.map(id=>{ const u=um[id]||null; return {id,u,name:u?u.name:'مستخدم غير متاح'}; });
+  rows.sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  const q=flNorm(FL.q).trim(); if(q) rows=rows.filter(r=>flNorm(r.name).includes(q));
+  ov.querySelector('.fl-s').style.display=ids.length>6?'':'none';
+  if(!rows.length){ L.innerHTML='<div class="fl-e">'+(ids.length?'لا توجد نتائج مطابقة':(FL.kind==='following'?(flOwnList()?'أنت لا تتابع أحداً بعد':'لا يتابع أحداً بعد'):'لا يوجد متابِعون بعد'))+'</div>'; return; }
+  L.innerHTML=rows.map(flRow).join(''); }
+function flClose(){
+  const ov=document.getElementById('flOv'); if(ov) ov.classList.remove('show');
+  FL.un.forEach(f=>{ try{f()}catch(e){} }); FL.un=[]; FL.kind=null; document.body.style.overflow=''; }
+function flOpen(kind){
+  FL.un.forEach(f=>{ try{f()}catch(e){} }); FL.un=[];
+  FL.kind=kind; FL.A=new Set(); FL.B=new Set(); FL.q=''; FL.f={u:false,a:false,b:kind==='following'};
+  const t=String(FL_TARGET());
+  let ov=document.getElementById('flOv');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='flOv'; ov.className='fl-ov';
+    ov.innerHTML='<div class="fl-box" role="dialog" aria-modal="true"><div class="fl-h"><b id="flT"></b><button type="button" class="fl-x" id="flX" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div><div class="fl-s"><i class="fas fa-magnifying-glass"></i><input id="flQ" type="search" placeholder="ابحث بالاسم…" autocomplete="off"></div><div class="fl-l" id="flL"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov||e.target.closest('#flX')){ flClose(); return; } const b=e.target.closest('[data-rid]'); if(b) flToggle(b); });
+    ov.querySelector('#flQ').addEventListener('input',e=>{ FL.q=e.target.value; flRender(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ov.classList.contains('show')) flClose(); });
+  }
+  ov.querySelector('#flQ').value='';
+  ov.classList.add('show'); document.body.style.overflow='hidden';
+  flRender();
+  flLoadUsers().then(()=>{ FL.f.u=true; flRender(); });
+  const bad=k=>()=>{ FL.f[k]=true; flRender(); };
+  if(kind==='following'){
+    FL.un.push(onSnapshot(query(collection(db,'follows'),where('followerId','==',t)),s=>{ FL.A=new Set(); s.forEach(d=>{ const x=d.data(); if(x.followedId) FL.A.add(String(x.followedId)); }); FL.f.a=true; flRender(); },bad('a')));
+  }else{
+    FL.un.push(onSnapshot(query(collection(db,'follows'),where('followedId','==',t)),s=>{ FL.A=new Set(); s.forEach(d=>{ const x=d.data(); if(x.followerId) FL.A.add(String(x.followerId)); }); FL.f.a=true; flRender(); },bad('a')));
+    FL.un.push(onSnapshot(query(collection(db,'user_social'),where(new FieldPath('following',t),'==',true)),s=>{ FL.B=new Set(); s.forEach(d=>FL.B.add(String(d.id))); FL.f.b=true; flRender(); },bad('b')));
+  } }
+async function flToggle(b){
+  const rid=b.dataset.rid, on=b.dataset.on==='1'; if(b.disabled) return;
+  if(on){ const nm=(flUM&&flUM[rid]&&flUM[rid].name)||'هذا المستخدم';
+    if(!(await flConfirm('هل تريد إلغاء متابعة «'+nm+'»؟','إلغاء المتابعة'))) return; }
+  b.disabled=true;
+  try{ await flSetFollow(rid,!on); }
+  catch(e){ console.error(e); flToast('تعذّر تنفيذ العملية','error'); }
+  b.disabled=false; flRender(); }
+
+const FL_ME=String(me), FL_TARGET=()=>id, flTargetSoc=()=>soc, flIsFol=isFol, flOwnList=()=>false, flToast=toast;
+const flHref=r=>String(r)===String(me)?'sora.html':'user.html?id='+encodeURIComponent(r);
+const flSetFollow=(t,want)=>followBatch(t,want);
+function flConfirm(msg,ok){ return new Promise(res=>{
+  const d=document.createElement('div'); d.className='fl-ov fl-cf show'; d.style.zIndex=950;
+  d.innerHTML=`<div class="fl-box fl-sm"><p>${flEsc(msg)}</p><div class="fl-ca"><button type="button" class="fl-b on" data-v="0">تراجع</button><button type="button" class="fl-b dg" data-v="1">${flEsc(ok)}</button></div></div>`;
+  d.addEventListener('click',e=>{ const v=e.target.closest('[data-v]'); if(v||e.target===d){ d.remove(); res(!!v&&v.dataset.v==='1'); } });
+  document.body.appendChild(d); }); }
+/* مزامنة حالة متابعتي مع مجموعة follows (نفس صفحة المنشورات) */
+if(me) onSnapshot(query(collection(db,'follows'),where('followerId','==',me)),s=>{ fol={}; s.forEach(d=>{ const x=d.data(); if(x.followedId) fol[String(x.followedId)]=true; }); drawFollow(); if(FL.kind) flRender(); },()=>{});
 
 if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div>';}else if(id!==me){
   try{ const c=JSON.parse(localStorage.getItem(PK)||'null'); if(c&&c.U){ U=c.U; soc=c.soc||{}; posts=c.posts||[]; exc=c.exc||null; draw(); if(!U._teacher&&!U._official)startExc(); } }catch(e){}

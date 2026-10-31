@@ -363,7 +363,7 @@ let toastT;
 function toast(t, type='success'){ const el = $('toast'); $('toastTx').textContent = t; el.className = 'toast show ' + type; $('toastIc').className = type==='error' ? 'fas fa-times-circle' : 'fas fa-check-circle'; clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800); }
 
 /* ============ 📦 الحالة ============ */
-const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, cfg:{}, wal:0, comments:{}, reply:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
+const S = {posts:[], feed:[], adP:[], myAdP:[], live:{}, orderAt:0, users:{}, uids:new Set(), soc:{}, fol:{}, cfg:{}, wal:0, comments:{}, reply:{}, open:new Set(), drafts:{}, cimg:{}, voice:{}, rec:null, editC:null, reqs:[], sending:new Set(),
   loaded:{posts:false, soc:false}, order:null, limit:20, unsub:{}, one:new URLSearchParams(location.search).get('id')};
 const price = () => ({...DEF_PRICE, ...(S.cfg.prices||{})}), lim = () => ({...DEF_LIM, ...(S.cfg.limits||{})});
 const P = id => S.posts.find(p => p.id === id);
@@ -391,8 +391,8 @@ const profHref = id => id === uid ? OWN : `${PROFILE}?id=${encodeURIComponent(id
 const nameLink = a => a.official ? esc(a.name) : `<a href="${profHref(a.id)}">${esc(a.name)}</a>`;
 const avatarLink = (a, cls) => { const h = avatar(a.avatar, a.name, cls, a.official); return a.official ? h : `<a class="av-a" href="${profHref(a.id)}" aria-label="${esc(a.name)}">${h}</a>`; };
 const following = () => S.soc[uid]?.following || {};
-const isF = id => !!following()[id];
-const followersOf = id => id === ADMIN ? [...S.uids].filter(x => x !== ADMIN).length : Number(S.soc[id]?.followersCount || 0);
+const isF = id => !!(S.fol[id] || following()[id]);
+const followersOf = id => id === ADMIN ? [...S.uids].filter(x => x !== ADMIN).length : Math.max(0, Number(S.soc[id]?.followersCount || 0) + Number(S.soc[id]?.followersAdj || 0));
 const followBtn = (target, pid) => `<button class="fbtn ${isF(target)?'on':''}" data-a="follow" data-id="${esc(target)}" data-p="${pid}">${isF(target)?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button>`;
 const banned = () => { const b = S.soc[uid]?.postBan; if (!b?.active) return null; const u = tsd(b.until); return u && u < new Date() ? null : b; };
 const mediaType = p => (p.media && p.media[0]?.type) || 'text';
@@ -810,6 +810,7 @@ async function toggleFollow(target, pid){
   const b = writeBatch(db);
   b.set(doc(db,'user_social',uid),{following:{[target]: was ? deleteField() : true}, followingCount:increment(was?-1:1)},{merge:true});
   b.set(doc(db,'user_social',target),{followersCount:increment(was?-1:1)},{merge:true});
+  { const fr = doc(db,'follows',uid+'_'+target); if (was) b.delete(fr); else b.set(fr,{followerId:uid, followedId:target, by:'user', createdAt:serverTimestamp()}); }
   if (fromAd && !was && !p.ad?.fby?.[fk(uid)]) b.update(doc(db,'posts',pid),{'ad.follows':increment(1), ['ad.fby.'+fk(uid)]:true});
   await b.commit(); if (!was){ snd('follow'); notify(target,'متابع جديد',`${uName(uid)} بدأ بمتابعتك`,{url:`${PROFILE}?id=${encodeURIComponent(uid)}`}); } }
 
@@ -899,7 +900,7 @@ function watchSoc(id){ if (!S.one || !id || id === ADMIN || socW.has(id)) return
   onSnapshot(doc(db,'user_social',id), s => { S.soc[id] = s.exists() ? s.data() : {}; S.live.soc = true; S.loaded.soc = true; draw(); saveOne(); }, () => {}); }
 function saveOne(){ if (!S.one) return; clearTimeout(oct); oct = setTimeout(() => { try { const p = S.posts[0]; if (!p) return;
   const cm = S.comments[S.one]||[], ids = new Set([p.authorId, uid, ...cm.map(c => c.authorId)]), users = {}, soc = {};
-  ids.forEach(i => { const u = S.users[i]; if (u){ users[i] = {}; SAFE_U.forEach(k => { if (u[k] != null && !(typeof u[k]==='string' && u[k].startsWith('data:') && u[k].length > 20000)) users[i][k] = u[k]; }); } if (S.soc[i]) soc[i] = {verified:!!S.soc[i].verified, followersCount:S.soc[i].followersCount||0}; });
+  ids.forEach(i => { const u = S.users[i]; if (u){ users[i] = {}; SAFE_U.forEach(k => { if (u[k] != null && !(typeof u[k]==='string' && u[k].startsWith('data:') && u[k].length > 20000)) users[i][k] = u[k]; }); } if (S.soc[i]) soc[i] = {verified:!!S.soc[i].verified, followersCount:S.soc[i].followersCount||0, followersAdj:S.soc[i].followersAdj||0}; });
   IDB.set('kv', ONE_KEY, JSON.stringify(J({v:1, t:Date.now(), post:p, comments:cm, users, soc, cfg:{allowComments:S.cfg.allowComments, allowCommentMedia:S.cfg.allowCommentMedia, allowAudio:S.cfg.allowAudio}}))); } catch(e){} }, 600); }
 async function loadOne(){ if (!S.one) return; const raw = await IDB.get('kv', ONE_KEY); if (!raw || S.live.one) return;
   try { const c = JSON.parse(raw); if (!c || c.v !== 1 || !c.post || c.post.id !== S.one) return;
@@ -914,6 +915,7 @@ onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : [
 if (S.one){ S.loaded.soc = true; watchSoc(uid); } else onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
 onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; draw(); });
 if (uid){
+  onSnapshot(query(collection(db,'follows'), where('followerId','==',uid)), s => { S.fol = {}; s.forEach(d => { const x = d.data(); if (x.followedId) S.fol[String(x.followedId)] = true; }); draw(); }, () => {});
   onSnapshot(doc(db,'wallets',uid), s => { S.wal = s.exists() ? Number(s.data().balance||0) : 0; $('bal').textContent = ar(S.wal); });
   onSnapshot(query(collection(db,'verifyRequests'), where('uid','==',uid)), s => { S.reqs = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); }, () => {});
   /* إعلاناتي: تُجلب دائماً حتى لو كان المنشور خارج آخر 100 منشور */
