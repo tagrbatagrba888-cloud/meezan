@@ -2799,25 +2799,23 @@ function applySettings(data) {
 function applyColors(data) {
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
   const rootStyle = document.documentElement.style;
-
-  rootStyle.removeProperty('--primary');
-  rootStyle.removeProperty('--accent');
+  const ok = (c) => /^#[0-9A-Fa-f]{6}$/.test(c || '');
+  let p = null, a = null;
 
   if (currentTheme === 'light' && data.lightColorsEnabled === true) {
-    if (data.lightPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.lightPrimary)) {
-      rootStyle.setProperty('--primary', data.lightPrimary);
-    }
-    if (data.lightAccent && /^#[0-9A-Fa-f]{6}$/.test(data.lightAccent)) {
-      rootStyle.setProperty('--accent', data.lightAccent);
-    }
+    if (ok(data.lightPrimary)) p = data.lightPrimary;
+    if (ok(data.lightAccent)) a = data.lightAccent;
   } else if (currentTheme === 'dark' && data.darkColorsEnabled === true) {
-    if (data.darkPrimary && /^#[0-9A-Fa-f]{6}$/.test(data.darkPrimary)) {
-      rootStyle.setProperty('--primary', data.darkPrimary);
-    }
-    if (data.darkAccent && /^#[0-9A-Fa-f]{6}$/.test(data.darkAccent)) {
-      rootStyle.setProperty('--accent', data.darkAccent);
-    }
+    if (ok(data.darkPrimary)) p = data.darkPrimary;
+    if (ok(data.darkAccent)) a = data.darkAccent;
   }
+
+  // لا نلمس الـ style إلا لو القيمة تغيّرت فعلاً
+  if (p) { if (rootStyle.getPropertyValue('--primary').trim() !== p) rootStyle.setProperty('--primary', p); }
+  else if (rootStyle.getPropertyValue('--primary')) rootStyle.removeProperty('--primary');
+
+  if (a) { if (rootStyle.getPropertyValue('--accent').trim() !== a) rootStyle.setProperty('--accent', a); }
+  else if (rootStyle.getPropertyValue('--accent')) rootStyle.removeProperty('--accent');
 }
 
 // ============================================================
@@ -3620,7 +3618,7 @@ onSnapshot(doc(db, 'settings', 'login_user'), (snap) => {
 
 new MutationObserver(() => {
   if (currentSettings) applyColors(currentSettings);
-}).observe(document.documentElement, { attributes: ['data-theme'] });
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 // ============================================================
 // 📡 Real-time: الأزرار (مع حفظ في الكاش)
