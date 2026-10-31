@@ -1367,8 +1367,8 @@ try { localStorage.removeItem(MZ_HOLD_KEY); } catch (e) {}  // تنظيف أي �
 function mzHoldUntil() { let v = 0; try { v = parseInt(localStorage.getItem(MZ_HOLD_KEY)) || 0; } catch (e) {} return Math.max(v, mzHoldMem); }
 function mzSetHold(ms) { mzHoldMem = Date.now() + ms; try { localStorage.setItem(MZ_HOLD_KEY, String(mzHoldMem)); } catch (e) {} }
 function mzClearHold() { mzHoldMem = 0; try { localStorage.removeItem(MZ_HOLD_KEY); } catch (e) {} }
-function mzExtConfigured() { return !!(botSettings.apiEnabled && botSettings.apiUrl); }
-function mzExtMode() { return mzExtConfigured() && Date.now() >= mzHoldUntil() ? 'external' : 'internal'; }
+function mzExtConfigured() { return !!(botSettings.apiEnabled && mzProviders().length); }
+function mzExtMode() { return mzExtConfigured() && mzProviders().some(p => Date.now() >= provHeld(p.id)) ? 'external' : 'internal'; }
 function mzSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function mzTempErrText() { const m = (botSettings.apiErrorMsg || '').trim(); return (m && !/تحويل|محلي|المحلية/.test(m)) ? m : MZ_TEMP_ERR; }
 
@@ -1381,6 +1381,7 @@ function mzClassify(status, bodyText) {
   if (status === 402) return { kind: 'exhausted' };
   if (status === 401 || (status === 400 && /api[ _-]?key/i.test(b) && /invalid|not valid|expired|missing/i.test(b))) return { kind: 'auth' };
   if (status === 429 || status === 403) {
+    if (/PerMinute|per minute|rate[_ ]?limit|too many requests/i.test(b) && !/insufficient[_ ]quota|credit balance|billing[_ ]hard[_ ]limit|spending limit/i.test(b)) return { kind: 'rate', retryMs: retryMs || 4000 };
     if (/insufficient[_ ]quota|out of credits|credit balance|billing[_ ]hard[_ ]limit|spending limit|PerDay|per day|daily|limit:\s*0\b/i.test(b)) return { kind: 'exhausted' };
     if (/PerMinute|per minute|rate[_ ]?limit|too many requests|retry/i.test(b)) return { kind: 'rate', retryMs: retryMs || 4000 };
     if (status === 429) return { kind: 'rate', retryMs: retryMs || 4000 };
@@ -2011,7 +2012,7 @@ function updateBannersVisibility() {
 }
 
 function isBotAvailable() {
-  return botSettings.enabled === true &&
+  return botSettings.enabled !== false &&
          !isTransferredToSupport &&
          !claimedBy &&
          !isClosed;
@@ -2362,7 +2363,8 @@ async function respondWithBot(userText, userMsgId) {
     // ✅ الذكاء الخارجي هو المتحكم الوحيد طول ما هو شغال ورصيده موجود
     let internal = mzExtMode() === 'internal';
     if (!internal) {
-      const r = await mzRetry(() => callExternalAPI(userText, userData));
+      const r = await callExternalAPI(userText, userData);
+      if (!r.ok) console.warn('[bot] all providers failed:', r.reason, r.detail || '');
       if (r.ok) {
         const tg = mzParseTags(r.text);
         if (tg.transfer) goTransfer = true;
@@ -2407,8 +2409,8 @@ function applyGeminiAuth(headers, url, key) {
 // ============================================================
 // 🌐 استدعاء الـ API الخارجي - نسخة قوية
 // ============================================================
-async function callExternalAPI(userMessage, userData) {
-  if (!botSettings.apiEnabled || !botSettings.apiUrl) return { ok: false, reason: 'api_disabled', kind: 'disabled' };
+async function callOneProvider(P, userMessage, userData) {
+  if (!P || !P.url) return { ok: false, reason: 'api_disabled', kind: 'disabled' };
 
   const systemPrompt = (botSettings.systemPrompt && botSettings.systemPrompt.indexOf(MZ_PERSONA_MARK) !== -1) ? botSettings.systemPrompt : STRONG_SYSTEM_PROMPT;
   const userContext = buildUserContext(userData);
@@ -2422,11 +2424,10 @@ async function callExternalAPI(userMessage, userData) {
   if (history.length && history[history.length - 1].role === 'user' && history[history.length - 1].content === userMessage) history = history.slice(0, -1);
 
   let extraHeaders = {};
-  if (botSettings.apiHeaders) { try { extraHeaders = JSON.parse(botSettings.apiHeaders); } catch (e) {} }
+  if (P.headers) { try { extraHeaders = JSON.parse(P.headers); } catch (e) {} }
   const headers = { 'Content-Type': 'application/json', ...extraHeaders };
-  const gem = isGeminiUrl(botSettings.apiUrl);
-  if (gem) applyGeminiAuth(headers, botSettings.apiUrl, botSettings.apiKey);
-  else if (botSettings.apiKey && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + botSettings.apiKey;
+  const gem = mzFmt(P) === 'gemini';
+  mzApplyAuth(headers, P, gem);
 
   const maxTok = parseInt(botSettings.apiMaxTokens) || 0;
   const hasYt = !!mzYoutubeUrl(userMessage);
@@ -2438,19 +2439,17 @@ async function callExternalAPI(userMessage, userData) {
   for (let i = 0; i < list.length; i++) {
     const a = list[i];
     const sys = mkSystem(a.tools);
-    const reqBody = gem
-      ? mzBuildGeminiBody(sys, history, userMessage, maxTok, a)
-      : { model: botSettings.apiModel || 'default', messages: [{ role: 'system', content: sys }, ...history, { role: 'user', content: mzExpandLinks(userMessage) }], max_tokens: Math.max(maxTok, 1500), temperature: parseFloat(botSettings.apiTemperature) || 0.7 };
+    const reqBody = mzBodyFor(P, gem, sys, history, userMessage, maxTok, a);
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(botSettings.apiUrl, { method: 'POST', headers, body: JSON.stringify(reqBody), signal: controller.signal });
+      const res = await fetch(mzUrlFor(P), { method: 'POST', headers, body: JSON.stringify(reqBody), signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) {
         let bt = ''; try { bt = await res.text(); } catch (e) {}
         const c = mzClassify(res.status, bt);
-        lastFail = { ok: false, reason: 'http_' + res.status, kind: c.kind, retryMs: c.retryMs };
+        lastFail = { ok: false, reason: 'http_' + res.status, kind: c.kind, retryMs: c.retryMs, detail: String(bt).slice(0, 300) };
         if (c.kind === 'tools_unsupported' && i < list.length - 1) { if (!list[i + 1].tools) mzToolsOk = false; continue; }
         return lastFail;
       }
@@ -2462,7 +2461,12 @@ async function callExternalAPI(userMessage, userData) {
       else if (data.content && typeof data.content === 'string') replyText = data.content;
       else if (data.reply) replyText = data.reply;
       else if (data.message) replyText = typeof data.message === 'string' ? data.message : data.message.content;
-      else if (data.response) replyText = data.response;
+      else if (data.response) replyText = typeof data.response === 'string' ? data.response : (data.response.text || data.response.content || '');
+      else if (data.text) replyText = data.text;
+      else if (data.answer) replyText = data.answer;
+      else if (data.output) replyText = typeof data.output === 'string' ? data.output : '';
+      else if (data.result) replyText = typeof data.result === 'string' ? data.result : '';
+      else if (data.data && (data.data.reply || data.data.text || data.data.content)) replyText = data.data.reply || data.data.text || data.data.content;
       else if (typeof data === 'string') replyText = data;
 
       if (!replyText || !String(replyText).trim()) {
@@ -2474,11 +2478,84 @@ async function callExternalAPI(userMessage, userData) {
       return { ok: true, text: String(replyText).trim() };
     } catch (e) {
       clearTimeout(timer);
-      return { ok: false, reason: e.name === 'AbortError' ? 'timeout' : 'network', kind: 'transient' };
+      return { ok: false, reason: e.name === 'AbortError' ? 'timeout' : 'network', kind: 'transient', detail: e.message };
     }
   }
   return lastFail;
 }
+
+
+const mzWait = ms => new Promise(r => setTimeout(r, ms));
+function mzFmt(P) {
+  const f = P.format || 'auto', u = P.url || '';
+  if (f !== 'auto') return f;
+  if (isGeminiUrl(u)) return 'gemini';
+  if (/api\.anthropic\.com/i.test(u)) return 'anthropic';
+  if (/\/chat\/completions|openai\.com|openrouter|groq\.com|together|deepseek|mistral|x\.ai|perplexity|fireworks/i.test(u)) return 'openai';
+  return 'custom';
+}
+function mzUrlFor(P) {
+  if (P.auth === 'query' && P.key && !/[?&]key=/.test(P.url)) return P.url + (P.url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(P.key);
+  return P.url;
+}
+function mzApplyAuth(headers, P, gem) {
+  const k = P.key, au = P.auth || 'auto', f = mzFmt(P);
+  if (!k || au === 'none' || au === 'query') return;
+  if (gem) { applyGeminiAuth(headers, P.url, k); return; }
+  if (f === 'anthropic' && au === 'auto') { headers['x-api-key'] = k; headers['anthropic-version'] = '2023-06-01'; headers['anthropic-dangerous-direct-browser-access'] = 'true'; return; }
+  if (au === 'x-api-key') { headers['x-api-key'] = k; return; }
+  if (!headers['Authorization']) headers['Authorization'] = 'Bearer ' + k;
+}
+function mzBodyFor(P, gem, sys, history, userMessage, maxTok, a) {
+  if (gem) return mzBuildGeminiBody(sys, history, userMessage, maxTok, a);
+  const f = mzFmt(P), um = mzExpandLinks(userMessage), mt = Math.max(maxTok, 1500), tp = parseFloat(botSettings.apiTemperature) || 0.7;
+  if (f === 'anthropic') {
+    const ms = [];
+    [...history, { role: 'user', content: um }].forEach(m => { const l = ms[ms.length - 1]; if (l && l.role === m.role) l.content += '\n' + m.content; else ms.push({ role: m.role, content: m.content }); });
+    while (ms.length && ms[0].role !== 'user') ms.shift();
+    return { model: P.model || 'claude-sonnet-4-5', system: sys, max_tokens: mt, temperature: tp, messages: ms };
+  }
+  const messages = [{ role: 'system', content: sys }, ...history, { role: 'user', content: um }];
+  if (f === 'openai') return { model: P.model || 'default', messages, max_tokens: mt, temperature: tp };
+  const body = { messages, message: um, prompt: um, query: um, system: sys, history, max_tokens: mt, temperature: tp };
+  if (P.model) body.model = P.model;
+  return body;
+}
+
+/* ===== البوتات المتعددة: ترتيب أولوية + تبديل تلقائي ===== */
+const PROV_HOLD_KEY = 'mz_prov_hold_v1';
+let provHold = {}; try { provHold = JSON.parse(localStorage.getItem(PROV_HOLD_KEY) || '{}') || {}; } catch (e) {}
+try { localStorage.removeItem(MZ_HOLD_KEY); } catch (e) {}
+function provHeld(id) { return provHold[id] || 0; }
+function provSave() { try { localStorage.setItem(PROV_HOLD_KEY, JSON.stringify(provHold)); } catch (e) {} }
+function provSetHold(id, ms) { provHold[id] = Date.now() + ms; provSave(); }
+function provClearHold(id) { delete provHold[id]; provSave(); }
+function mzProviders() {
+  const arr = Array.isArray(botSettings.providers) ? botSettings.providers : [];
+  if (!arr.length && botSettings.apiUrl) return [{ id: 'legacy', name: 'البوت الأساسي', url: botSettings.apiUrl, key: botSettings.apiKey, model: botSettings.apiModel, headers: botSettings.apiHeaders, format: 'auto', auth: 'auto', enabled: true }];
+  return arr.filter(p => p && p.enabled !== false && p.url);
+}
+async function callExternalAPI(userMessage, userData) {
+  const list = mzProviders();
+  if (!list.length) return { ok: false, reason: 'api_disabled', kind: 'disabled' };
+  let last = null, tried = 0, quotaOnly = true;
+  for (const P of list) {
+    if (Date.now() < provHeld(P.id)) continue;
+    tried++;
+    let r = await callOneProvider(P, userMessage, userData);
+    if (!r.ok && r.kind === 'rate') { await mzWait(Math.min(r.retryMs || 3000, 6000)); r = await callOneProvider(P, userMessage, userData); }
+    else if (!r.ok && r.kind === 'transient') { await mzWait(1000); r = await callOneProvider(P, userMessage, userData); }
+    if (r.ok) { provClearHold(P.id); r.provider = P.name; return r; }
+    const ms = r.kind === 'exhausted' ? 15 * 60e3 : r.kind === 'auth' ? 30 * 60e3 : r.kind === 'rate' ? 2 * 60e3 : 20e3;
+    provSetHold(P.id, ms);
+    console.warn('[bot] ' + (P.name || P.id) + ' failed:', r.reason, r.detail || '');
+    if (!['exhausted', 'auth', 'rate'].includes(r.kind)) quotaOnly = false;
+    last = r;
+  }
+  if (!tried) return { ok: false, reason: 'all_on_hold', kind: 'exhausted' };
+  return { ok: false, reason: last.reason, kind: quotaOnly ? 'exhausted' : last.kind, detail: last.detail };
+}
+
 
 // ============================================================
 // 🌟 معرفة المنصة الكاملة (ثابتة + لحظية من قاعدة البيانات)
