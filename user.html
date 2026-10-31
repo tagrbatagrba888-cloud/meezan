@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#0B3D2E">
+<title>ميزان | عرض المستخدم</title>
+<link rel="icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#0B3D2E;--p2:#1E7A5A;--g:#C9A961;--bg:#F5F1E8;--card:#fff;--in:#F8FBF9;--tx:#0B3D2E;--sub:#5A6B66;--bd:#E0E5E1;--sh:rgba(11,61,46,.15)}
+[data-theme=dark]{--p:#C9A961;--p2:#E0C888;--bg:#0A1612;--card:#11201B;--in:#1A2C25;--tx:#F5F1E8;--sub:#9BAEA6;--bd:#1E3A31;--sh:rgba(0,0,0,.5)}
+body{font-family:Cairo,sans-serif;background:var(--bg);color:var(--tx);min-height:100dvh}
+.top{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--bd);box-shadow:0 4px 20px var(--sh);display:flex;align-items:center;gap:10px;padding:10px 16px}
+.top h1{flex:1;font-size:18px;font-weight:900}.ib{width:40px;height:40px;border-radius:12px;background:var(--in);border:2px solid var(--bd);display:inline-flex;align-items:center;justify-content:center;color:var(--p);text-decoration:none;cursor:pointer}
+.col{max-width:680px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:0 4px 16px var(--sh);margin-bottom:14px;overflow:hidden}
+.hero{padding:28px 18px 20px;text-align:center;background:linear-gradient(135deg,#0B3D2E,#145A43);color:#F3E2B0}
+.av{position:relative;display:inline-flex;align-items:center;justify-content:center;width:104px;height:104px;border-radius:50%;border:3px solid var(--g);background:linear-gradient(135deg,#145A43,#1E7A5A);color:#fff;font-size:42px;font-weight:900;overflow:hidden}.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero h2{margin-top:12px;font-size:22px;font-weight:900;color:#fff}.vb{color:#1d9bf0;margin-right:6px}
+.tg{display:inline-flex;gap:6px;align-items:center;margin:8px 4px 0;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.14);font-size:13px;font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}.stats div{background:var(--in);border-radius:14px;padding:10px;text-align:center}.stats b{display:block;font-size:20px;font-weight:900}.stats span{font-size:12px;color:var(--sub);font-weight:700}
+.sec{font-weight:900;margin:6px 4px 10px;display:flex;gap:8px;align-items:center}.sec i{color:var(--g)}
+.row{display:block;text-decoration:none;color:var(--tx);padding:14px 16px;border-top:1px solid var(--bd)}.row:first-child{border:0}.row:hover{background:var(--in)}
+.row p{font-weight:600;line-height:1.7;margin-bottom:4px;word-break:break-word}.row small{color:var(--sub);font-weight:700;font-size:12px}
+.empty{text-align:center;padding:40px 20px;border:2px dashed var(--bd);border-radius:20px;color:var(--sub);font-weight:700}
+.btn{display:inline-flex;gap:8px;align-items:center;padding:9px 16px;border-radius:12px;font-weight:800;font-size:13.5px;background:var(--in);border:2px solid var(--bd);color:var(--tx);text-decoration:none;margin:0 14px 14px}
+</style>
+</head>
+<body>
+<div class="top"><a class="ib" href="javascript:history.length>1?history.back():location.href='post.html'"><i class="fas fa-arrow-right"></i></a><h1>عرض المستخدم</h1><a class="ib" href="post.html" title="المنشورات"><i class="fas fa-newspaper"></i></a></div>
+<div class="col" id="root"><div class="empty">جارٍ التحميل…</div></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const db=getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
+if(sessionStorage.getItem('meezan_logged_in')!=='true') location.replace('login.html');
+document.documentElement.dataset.theme=localStorage.getItem('meezan_theme')||'light';
+const me=sessionStorage.getItem('meezan_user_id')||'', id=new URLSearchParams(location.search).get('id')||'', R=document.getElementById('root');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tsd=t=>t?.toDate?t.toDate():t?.seconds?new Date(t.seconds*1000):t?new Date(t):null;
+const cache=new Map(), mLoad=p=>{if(cache.has(p))return cache.get(p);const a=p.split(':');const r=Promise.all(Array.from({length:+a[4]||1},(_,i)=>getDoc(doc(db,a[1],`avatar_${a[2]}_${a[3]}_${i}`)).then(s=>s.exists()?s.data().data:''))).then(x=>x.join('')).catch(()=>'');cache.set(p,r);return r;};
+const fix=el=>{const s=el.getAttribute('src')||'';if(!s.startsWith('fsav:')||el._b===s)return;el._b=s;el.removeAttribute('src');mLoad(s).then(d=>{if(d)el.src=d;});};
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.tagName==='IMG')fix(n);else n.querySelectorAll?.('img[src^="fsav:"]').forEach(fix);}))).observe(document.documentElement,{childList:true,subtree:true});
+let U=null,soc={},posts=[];
+async function load(){
+  for(const c of ['users','teachers']){const s=await getDoc(doc(db,c,'all'));const u=(s.exists()?s.data().items||[]:[]).find(x=>x.id===id);if(u){U={...u,_role:c==='teachers'?'معلم':'طالب'};break;}}
+  draw();
+}
+function draw(){
+  if(id==='meezan')U={fullName:'ميزان',avatarUrl:'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png',_role:'حساب المنصة الرسمي'};
+  if(!U){R.innerHTML='<div class="empty">المستخدم غير موجود</div>';return;}
+  const name=U.fullName||U.username||'مستخدم',ver=id==='meezan'||soc.verified,pub=posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).sort((a,b)=>(tsd(b.createdAt)||0)-(tsd(a.createdAt)||0));
+  const rx=pub.reduce((a,p)=>a+Object.keys(p.reactions||{}).length,0);
+  R.innerHTML=`<div class="card"><div class="hero"><span class="av"><b>${esc(name.charAt(0))}</b>${U.avatarUrl?`<img src="${esc(U.avatarUrl)}" alt="">`:''}</span>
+   <h2>${esc(name)}${ver?'<i class="fas fa-circle-check vb"></i>':''}</h2><div><span class="tg"><i class="fas fa-user"></i>${esc(U._role)}</span>${U.grade?`<span class="tg"><i class="fas fa-users-rectangle"></i>${esc(U.grade)}</span>`:''}</div></div>
+   <div class="stats"><div><b>${pub.length.toLocaleString('ar-EG')}</b><span>منشور</span></div><div><b>${rx.toLocaleString('ar-EG')}</b><span>تفاعل</span></div><div><b>${pub.reduce((a,p)=>a+(p.commentsCount||0),0).toLocaleString('ar-EG')}</b><span>تعليق</span></div></div>
+   ${id===me?'<a class="btn" href="sora.html"><i class="fas fa-user-gear"></i> ملفي الشخصي</a>':''}</div>
+   <div class="sec"><i class="fas fa-newspaper"></i>منشورات ${esc(name.split(' ')[0])}</div>
+   ${pub.length?`<div class="card">${pub.map(p=>`<a class="row" href="post.html?id=${encodeURIComponent(p.id)}"><p>${esc((p.text||'منشور بوسائط').slice(0,160))}</p><small>${(tsd(p.createdAt)||new Date()).toLocaleDateString('ar-EG')} · ${Object.keys(p.reactions||{}).length} تفاعل · ${p.commentsCount||0} تعليق</small></a>`).join('')}</div>`:'<div class="empty">لا توجد منشورات</div>'}`;
+}
+if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div>';}else{
+  load();
+  onSnapshot(doc(db,'user_social',id),s=>{soc=s.exists()?s.data():{};draw();},()=>{});
+  onSnapshot(query(collection(db,'posts'),where('authorId','==',id)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));draw();},()=>{});
+}
+</script>
+</body>
+</html>
