@@ -395,11 +395,48 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .gq-sum{display:flex;align-items:baseline;gap:8px;font-weight:800;flex-wrap:wrap}.gq-sum b{font-size:20px;color:var(--primary-lighter)}.gq-sum small{color:var(--text-sub);font-weight:700;margin-right:auto}
 .gq-go{padding:14px;border-radius:16px;background:linear-gradient(135deg,var(--gold),#e8d190);color:#2b2208;font-weight:900;font-size:16px;box-shadow:0 6px 18px rgba(201,169,97,.4)}.gq-go:active{transform:scale(.97)}
 .gq-go.pulse{animation:gqp .25s}@keyframes gqp{50%{transform:scale(1.04)}}
-.gpop{position:fixed;left:50%;top:44%;z-index:1300;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;animation:lvfly 2.8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.6);font-weight:900;text-align:center;color:#fff;background:rgba(0,0,0,.35);padding:12px 18px;border-radius:20px}
+.gpop{position:fixed;left:50%;top:44%;z-index:1300;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;animation:lvfly 2.8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.6);font-weight:900;text-align:center;color:#fff}
 .gpop .ic{font-size:84px;line-height:1}.gpop img{width:96px;height:96px;object-fit:contain}
 .cgf{display:flex;gap:6px;flex-wrap:wrap;padding:4px 10px 0}
 .cgi{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(201,169,97,.28),rgba(201,169,97,.08));border:1px solid var(--gold);border-radius:20px;padding:2px 9px 2px 7px;font-size:12.5px;font-weight:900}
 .cgi .ic{font-size:17px;line-height:1}.cgi img{width:20px;height:20px;object-fit:contain}
+
+#gfxBox{position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden}
+.gfx{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;text-shadow:0 2px 10px rgba(0,0,0,.8);font-weight:900;text-align:center;color:#fff;max-width:92vw;background:none}
+.gfx .ga{width:min(78vmin,520px);height:min(78vmin,520px);object-fit:contain;background:transparent;display:block}
+.gfx .ic{font-size:96px;line-height:1}.gfx img.gs{width:110px;height:110px;object-fit:contain}.gfx .gt{font-size:16px}
+.cm-list{position:relative}.cm-list.scr{overflow-y:auto;overscroll-behavior:contain;padding-left:6px;scrollbar-width:thin}
+.tabs button{font-size:12.5px;gap:4px;padding:9px 2px}
+/* ===== الريلز ===== */
+.rlx{position:fixed;inset:0;z-index:940;background:#000;color:#fff;font-family:inherit}
+.rl-top{position:absolute;top:0;left:0;right:0;z-index:8;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 26px;background:linear-gradient(rgba(0,0,0,.6),transparent);pointer-events:none}
+.rl-top>*{pointer-events:auto}.rl-top b{flex:1;font-size:19px;text-shadow:0 2px 8px #000}
+.rl-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;border:0;cursor:pointer}
+.rl-sc{position:absolute;inset:0;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}.rl-sc::-webkit-scrollbar{display:none}
+.rl-it{height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;background:#000;overflow:hidden}
+.rl-it video,.rl-it iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border:0;background:#000}
+.rl-it video.cv{object-fit:cover}
+.rl-tap{position:absolute;inset:0;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.rl-shade{position:absolute;left:0;right:0;bottom:0;height:48%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none;z-index:3}
+.rl-ld{position:absolute;left:50%;top:50%;z-index:3;width:38px;height:38px;margin:-19px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:rls .8s linear infinite;pointer-events:none}@keyframes rls{to{transform:rotate(360deg)}}
+.rl-info{position:absolute;right:14px;left:82px;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:5;display:flex;flex-direction:column;gap:8px;text-shadow:0 1px 6px #000}
+.rl-au{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px}.rl-au a{color:#fff}.rl-au .fbtn{background:rgba(255,255,255,.2);color:#fff;border:1px solid #fff8;padding:3px 12px;border-radius:20px;font-size:12.5px;font-weight:800}.rl-au .fbtn.on{opacity:.75}
+.rl-tx{font-size:14px;line-height:1.6;max-height:3.2em;overflow:hidden;cursor:pointer;word-break:break-word}.rl-tx.ex{max-height:34vh;overflow:auto}.rl-tx a{color:#ffe28a}
+.rl-side{position:absolute;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);z-index:6;display:flex;flex-direction:column;gap:16px;align-items:center}
+.rl-side>div{position:relative;display:flex;flex-direction:column;align-items:center}
+.rl-side .rl-btn{width:48px;height:48px;font-size:21px;background:rgba(0,0,0,.35)}.rl-side small{font-size:12px;font-weight:900;margin-top:3px;text-shadow:0 1px 4px #000}
+.rl-side .rl-btn.on{color:var(--accent,#C9A961)}
+.rl-pk{position:absolute;left:58px;bottom:0;display:none;gap:2px;background:rgba(20,20,20,.92);border-radius:40px;padding:6px 10px;box-shadow:0 10px 30px rgba(0,0,0,.6)}.rl-pk.show{display:flex}.rl-pk button{font-size:26px;width:38px;height:38px;background:none;border:0;cursor:pointer;transition:transform .15s}.rl-pk button:hover{transform:scale(1.35)}
+.rl-pb{position:absolute;left:0;right:0;bottom:0;height:20px;z-index:7;cursor:pointer}.rl-pb::before{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.22)}.rl-pb i{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--accent,#C9A961)}
+.rl-burst{position:absolute;z-index:9;font-size:100px;pointer-events:none;animation:rlb .85s ease-out forwards;filter:drop-shadow(0 4px 12px rgba(0,0,0,.6))}
+@keyframes rlb{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-120%) scale(1)}}
+.rl-pp{position:absolute;left:50%;top:50%;z-index:9;width:84px;height:84px;margin:-42px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:34px;pointer-events:none;animation:rlp .6s ease-out forwards}
+@keyframes rlp{0%{opacity:0;transform:scale(.6)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+.rl-em{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#ddd;font-weight:800;text-align:center;padding:30px}.rl-em i{font-size:56px;color:var(--accent,#C9A961)}
+.rlsh{position:absolute;left:0;right:0;bottom:0;z-index:20;height:72%;display:flex;flex-direction:column;background:var(--bg-card);color:var(--text-main);border-radius:22px 22px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.6);animation:gsup .25s}
+.rlsh-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;font-size:16px}.rlsh-h .rl-btn{width:34px;height:34px;font-size:14px;background:var(--bg-input);color:var(--text-main)}
+.rlsh-b{flex:1;min-height:0;display:flex;flex-direction:column}.rlsh-b .cm-wrap{flex:1;min-height:0;display:flex;flex-direction:column;border-top:1px solid var(--border);margin:0;padding:6px 14px calc(env(safe-area-inset-bottom,0px) + 10px)}
+.rlsh .cm-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;max-height:none!important}
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -532,7 +569,7 @@ const SFX = (() => {
     if (/تاج|ملك|👑|crown|king/.test(x)) return 'crown'; if (/الماس|ماس|💎|ذهب|💰|🪙|gem|diamond|gold/.test(x)) return 'gem'; return 'gift'; };
   const play = (k, seed = 0) => { if (!on() || !K[k]) return; try { const c = ctx(); K[k](c, c.currentTime + .02, seed); } catch(_){} };
   const hash = x => { let h = 0; String(x||'').split('').forEach(ch => h = (h*31 + ch.charCodeAt(0)) >>> 0); return h; };
-  return { play, kind, gift: (name, icon, price) => { const gg = (S.gifts||[]).find(x => x.name === name); if (gg && gg.sound && on()){ try { new Audio(gg.sound).play().catch(() => {}); return 'custom'; } catch(_){} } let k = kind(name, icon); if (k === 'gift' && Number(price) >= 100) k = 'crown'; play(k, hash(name)); return k; } };
+  return { on, play, kind, gift: (name, icon, price) => { const gg = (S.gifts||[]).find(x => x.name === name); if (gg && gg.sound && on()){ try { new Audio(gg.sound).play().catch(() => {}); return 'custom'; } catch(_){} } let k = kind(name, icon); if (k === 'gift' && Number(price) >= 100) k = 'crown'; play(k, hash(name)); return k; } };
 })();
 
 /* ============ @ المنشن — المتابَعون فقط ============ */
@@ -701,8 +738,8 @@ function mediaHtml(p){
   const m = p.media||[], imgs = m.filter(x => x.type==='image'), vids = m.filter(x => x.type==='video'), auds = m.filter(x => x.type==='audio'); let h = '';
   if (imgs.length){ const n = Math.min(imgs.length,5);
     h += `<div class="grid g${n}">${imgs.slice(0,5).map((x,i) => `<div class="gi" data-a="lightbox" data-url="${esc(x.url)}"><img loading="lazy" src="${esc(x.url)}" alt="">${i===4&&imgs.length>5?`<div class="more">+${imgs.length-5}</div>`:''}</div>`).join('')}</div>`; }
-  vids.forEach(v => h += `<video class="vid" controls preload="metadata" playsinline src="${esc(v.url)}"></video>`);
-  m.filter(x => x.type==='link').forEach(l => h += ytId(l.url) ? ytFrame(ytId(l.url)) : `<video class="vid" controls preload="metadata" playsinline src="${esc(l.url)}"></video>`);
+  vids.forEach(v => h += `<video class="vid" data-vk="${esc(v.url)}" controls preload="metadata" playsinline src="${esc(v.url)}"></video>`);
+  m.filter(x => x.type==='link').forEach(l => h += ytId(l.url) ? ytFrame(ytId(l.url)) : `<video class="vid" data-vk="${esc(l.url)}" controls preload="metadata" playsinline src="${esc(l.url)}"></video>`);
   auds.forEach(a => h += `<div class="aud"><i class="fas fa-microphone-lines"></i><audio controls preload="none" src="${esc(a.url)}"></audio></div>`);
   return h; }
 function sharedHtml(p){ const s = p.sharedPost; if (!s) return '';
@@ -762,7 +799,7 @@ const giftRow = x => { const a = authorOf({authorId:x.from}), to = authorOf({aut
   return `<div class="cm" data-d="0">${avatarLink(a,'av34')}<div class="cm-body"><div class="cm-bub" style="background:linear-gradient(135deg,rgba(201,169,97,.28),rgba(201,169,97,.08));border:1px solid var(--gold)"><div class="cm-name">${nameLink(a)}${badge(a)}</div><div class="cm-text"><span class="cgi">${giftIco({img:x.giftImg,icon:x.giftIcon})}<b>×${ar(x.qty||1)}</b></span> أرسل <b>${esc(x.giftName||'هدية')}</b> هدية إلى <b>${esc(to.name)}</b></div></div><div class="cm-acts"><span>${ago(x.createdAt)}</span></div></div></div>`; };
 function commentsBlock(p){ const list = S.comments[p.id], gr = pgRows(p);
   const shown = (list||[]).filter(c => !c.hidden || c.authorId === uid);
-  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':(shown.length||gr.length)?threadOrder(shown).map(({c,d}) => commentHtml(p,c,d)).join('')+gr.map(giftRow).join(''):'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
+  return `<div class="cm-wrap">${list===undefined?'<div class="cm-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل التعليقات…</div>':(shown.length||gr.length)?`<div class="cm-list" data-n="${shown.length+gr.length}">`+threadOrder(shown).map(({c,d}) => commentHtml(p,c,d)).join('')+gr.map(giftRow).join('')+'</div>':'<div class="cm-empty">لا توجد تعليقات بعد</div>'}${commentBox(p)}</div>`; }
 function threadOrder(list){ const byId = new Map(list.map(c => [c.id,c])), kids = new Map(), roots = [];
   list.forEach(c => { if (c.parentId && byId.has(c.parentId)){ if (!kids.has(c.parentId)) kids.set(c.parentId,[]); kids.get(c.parentId).push(c); } else roots.push(c); });
   const out = [], walk = (c,d) => { out.push({c,d}); (kids.get(c.id)||[]).forEach(k => walk(k,d+1)); }; roots.forEach(c => walk(c,0)); return out; }
@@ -839,8 +876,9 @@ let rt;
 const draw = () => { clearTimeout(rt); rt = setTimeout(paint, 50); };
 function paint(){
   if (document.querySelector('.lvx')) return;
+  if (document.querySelector('.rlx')){ rlSync(); return; }
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
-  patch(R, feedItems()); observe(); tickAgo();
+  const cmS = cmSave(); patch(R, feedItems()); observe(); tickAgo(); observeVids(); fitCm(); cmRestore(cmS);
   { const np = $('newPill'); if (np){ const n = S.one ? 0 : (S.pendingNew||0); np.hidden = !n; if (n) np.innerHTML = `<i class="fas fa-arrow-up"></i> ${ar(n)} ${n===1?'منشور جديد':'منشورات جديدة'}`; } }
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
@@ -1024,7 +1062,7 @@ async function sendComment(pid){
     const yl = (text.match(/https?:\/\/\S+/g)||[]).find(ytId); if (yl) x.videoLink = yl;
     await addDoc(collection(db,'posts',pid,'comments'),{authorId:uid, authorName:uName(uid), authorVerified:!!S.soc[uid]?.verified, text, hidden:false, createdAt:serverTimestamp(), ...x, ...(rp ? {parentId:rp.cid, replyToName:rp.name} : {})});
     updateDoc(doc(db,'posts',pid),{commentsCount:increment(1)}).catch(() => {}); mnNotify(text, {postId:pid, where:'في تعليق'});
-    S.drafts[pid] = ''; delete S.reply[pid]; delete S.voice[pid]; delete S.cimg[pid]; S.open.add(pid); snd('comment'); track(p,'comment'); draw();
+    S.cmStick = {pid, n:(S.comments[pid]||[]).length + pgRows(p).length}; S.drafts[pid] = ''; delete S.reply[pid]; delete S.voice[pid]; delete S.cimg[pid]; S.open.add(pid); snd('comment'); track(p,'comment'); draw();
     if (rp && rp.aid && rp.aid !== p.authorId) notify(rp.aid,'رد جديد',`${uName(uid)} ردّ على تعليقك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
     notify(p.authorId,'تعليق جديد',`${uName(uid)} علّق على منشورك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
   } catch(e){ console.error(e); toast('فشل إرسال التعليق — '+(e.code||e.message||'تحقق من الاتصال والصلاحيات'),'error'); }
@@ -1033,7 +1071,7 @@ function openComments(pid){
   S.open.add(pid);
   if (!S.unsub[pid]) S.unsub[pid] = onSnapshot(query(collection(db,'posts',pid,'comments'), orderBy('createdAt','asc')), s => { S.comments[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); draw(); }, e => { console.error('comments',e); if (S.comments[pid]===undefined) S.comments[pid] = []; draw(); });
   if (!S.unsub[pid+':g']) S.unsub[pid+':g'] = onSnapshot(query(collection(db,'comment_gifts'), where('pid','==',pid)), s => { S.cgifts[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})}));
-    if (S.gOK && S.gOK[pid]) s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data({serverTimestamps:'estimate'}); if (x.from !== uid && Date.now() - (tms(x.createdAt)||Date.now()) < 60000){ SFX.gift(x.giftName, x.giftIcon, x.unitPrice||0); giftPop({giftImg:x.giftImg, giftIcon:x.giftIcon, text:`${x.fromName||'مستخدم'}: ${x.giftName||'هدية'}${x.qty>1?' ×'+ar(x.qty):''}`}); } } });
+    if (S.gOK && S.gOK[pid]) s.docChanges().forEach(c => { if (c.type === 'added'){ const x = c.doc.data({serverTimestamps:'estimate'}); if (x.from !== uid && Date.now() - (tms(x.createdAt)||Date.now()) < 60000){ giftFx(gOf(x), `${x.fromName||'مستخدم'}: ${x.giftName||'هدية'}${x.qty>1?' ×'+ar(x.qty):''}`, x.unitPrice||0); } } });
     (S.gOK = S.gOK || {})[pid] = true; draw(); }, () => { S.cgifts[pid] = S.cgifts[pid] || []; });
   draw(); }
 async function setReaction(p, type){ const cur = p.reactions?.[uid]; await updateDoc(doc(db,'posts',p.id),{[`reactions.${uid}`]: cur===type ? deleteField() : type}); return cur===type ? null : type; }
@@ -1255,7 +1293,7 @@ async function gqRun(){ if (GQ.busy) return; GQ.busy = true;
     try { await j.run(j.qty, j.total); } catch(err){ console.error(err); if (/لا يكفي/.test(err.message||'')) toast('رصيدك لا يكفي — اشحن المحفظة','error'); else toast('تعذر إرسال الهدية'+(err.code?' — '+err.code:''),'error'); }
     GQ.list.shift(); GQ.cost = Math.max(0, r2(GQ.cost - j.total)); }
   GQ.busy = false; }
-function giftPop(m){ const el = document.createElement('div'); el.className = 'gpop'; el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.text||'')}</div>`; document.body.appendChild(el); setTimeout(() => el.remove(), 2900); }
+function giftPop(m){ giftFx({name:m.giftName||'', icon:m.giftIcon, img:m.giftImg}, m.text||'', 0); }
 function giftSheet(o){
   if (!uid) return toast('سجّل الدخول أولاً','error');
   const prevG = giftsCb, ov = document.createElement('div'); ov.className = 'gsx'; let sel = null, qty = 1;
@@ -1304,7 +1342,7 @@ async function transferGift(toUid, g, qty, total, p, cid){
 onSnapshot(query(collection(db,'stories'), orderBy('createdAt','desc'), limit(200)), s => { S.live.stories = true; S.stories = s.docs.map(dd); draw(); saveStories(); }, () => {});
 onSnapshot(query(collection(db,'polls'), orderBy('createdAt','desc'), limit(100)), s => { S.polls = s.docs.map(dd); draw(); }, () => {});
 onSnapshot(query(collection(db,'live_streams'), orderBy('startedAt','desc'), limit(40)), s => { S.lives = s.docs.map(dd); draw(); }, () => {});
-onSnapshot(collection(db,'live_gifts'), s => { S.gifts = s.docs.map(dd).sort((a,b) => (a.price||0)-(b.price||0)); giftsCb && giftsCb(); }, () => {});
+onSnapshot(collection(db,'live_gifts'), s => { S.gifts = s.docs.map(dd).sort((a,b) => (a.price||0)-(b.price||0)); S.gifts.forEach(g => { if (g.anim && String(g.anim).startsWith('fsm:')){ mLoad(g.anim); if (g.animType !== 'image') gfxVideoUrl(g.anim); } }); giftsCb && giftsCb(); }, () => {});
 setInterval(() => { if (!document.hidden) draw(); }, 45000);
 
 /* ---------- 🔗 المتابعة: توافق كامل مع نسخة الأدمن (follows + followersAdj) ---------- */
@@ -1322,7 +1360,7 @@ const searchOk = p => { const q = norm(S.q).replace(/@/g,'').trim(); if (!q) ret
   return q.split(/\s+/).every(w => hay.includes(w)) || flat.includes(q.replace(/\s+/g,'')); };
 const liveNow = () => S.lives.filter(liveOn);
 const topBar = () => { const ln = liveNow().length, T = (k,ic,t) => `<button class="${S.tab===k?'on':''}" data-a="tab" data-t="${k}"><i class="fas ${ic}"></i>${t}${k==='live'&&ln?'<span class="dot"></span>':''}</button>`;
-  const items = [{key:'tabs', html:`<div class="tabs">${T('posts','fa-newspaper','المنشورات')}${T('live','fa-tower-broadcast','البث المباشر')}${T('polls','fa-square-poll-vertical','الاستطلاعات')}</div>`}];
+  const items = [{key:'tabs', html:`<div class="tabs">${T('posts','fa-newspaper','المنشورات')}<button data-a="reels"><i class="fas fa-clapperboard"></i>الريلز</button>${T('live','fa-tower-broadcast','البث')}${T('polls','fa-square-poll-vertical','الاستطلاعات')}</div>`}];
   if (S.tab === 'posts') items.push({key:'srch', html:`<div class="card srch"><i class="fas fa-magnifying-glass"></i><input id="sq" type="search" placeholder="ابحث عن منشور (نص، اسم، تصنيف)…" autocomplete="off" enterkeyhint="search"><button id="sqx" data-a="sqClear" hidden aria-label="مسح"><i class="fas fa-xmark"></i></button></div>`});
   return items; };
 const feedExtras = () => { const out = [];
@@ -1521,7 +1559,7 @@ async function liveView(id){
     return `<div class="lvm" data-mid="${m.id}">${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span style="flex:1;min-width:0">${m.replyTo?`<small class="lvrq">↪ رد على ${esc(m.replyTo.name||'')}</small><br>`:''}<b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span><span class="lva"><button data-lv="reply:${m.id}" title="رد"><i class="fas fa-reply"></i></button>${m.uid===uid?`<button data-lv="del:${m.id}" title="حذف"><i class="fas fa-trash"></i></button>`:''}</span></div>`; };
   const fly = m => { const k = SFX.kind(m.giftName, m.giftIcon), el = document.createElement('div'); el.className = 'lvfly' + (k==='lion' ? ' lion' : ''); el.innerHTML = `${giftIco({img:m.giftImg, icon:m.giftIcon})}<div>${esc(m.name||'مستخدم')} أرسل ${esc(m.giftName||'هدية')}${m.qty>1?' ×'+ar(m.qty):''}</div>`; ov.appendChild(el); setTimeout(() => el.remove(), 2900);
     if (k==='lion'){ ov.classList.add('shk'); setTimeout(() => ov.classList.remove('shk'), 600); } };
-  const effect = m => { fly(m); SFX.gift(m.giftName, m.giftIcon, m.price/(m.qty||1)); if (m.qty >= 10) setTimeout(() => SFX.play('crown'), 240); };
+  const effect = m => { const gg = gOf(m); giftFx(gg, `${m.name||'مستخدم'} أرسل ${m.giftName||'هدية'}${m.qty>1?' ×'+ar(m.qty):''}`, m.price/(m.qty||1)); if (!gg.anim && SFX.kind(m.giftName, m.giftIcon) === 'lion'){ ov.classList.add('shk'); setTimeout(() => ov.classList.remove('shk'), 600); } if (m.qty >= 10) setTimeout(() => SFX.play('crown'), 240); };
   const shown = new Set();
   let sum = 0; const kT = m => tms(m.createdAt) || Date.now(), idx = mid => { for (let i = msgs.length-1; i >= 0; i--) if (msgs[i].id === mid) return i; return -1; };
   unsubC = onSnapshot(query(collection(db,'live_comments'), where('sid','==',id)), s => { const freshM = []; let removed = false;
@@ -1632,13 +1670,13 @@ Object.assign(H, {
   cGift:t => { const pid = t.dataset.id, cid = t.dataset.c, p = P(pid), c = (S.comments[pid]||[]).find(x => x.id === cid); if (!p || !c) return; if (!uid) return toast('سجّل الدخول أولاً','error');
     const a = authorOf(c); if (a.official || !c.authorId || c.authorId === uid) return toast('لا يمكن إرسال هدية لهذا التعليق','error');
     giftSheet({title:`هدية لـ ${a.name}`, sub:`<i class="fas fa-circle-info"></i> يحصل <b>${esc(a.name)}</b> على <b>٥٠٪</b> من قيمة الهدية`, split:true, onSend:(g, qty, total) => {
-      SFX.gift(g.name, g.icon, g.price); giftPop({giftImg:g.img||'', giftIcon:g.icon||'', text:`${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`});
+      giftFx(g, `${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`, g.price);
       gqAdd({key:`c:${cid}:${g.id}`, g, qty, total, run: async (q, tt) => { const half = await transferGift(c.authorId, g, q, tt, p, cid);
         notify(c.authorId, 'هدية جديدة', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid}); toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
   pgift:t => { const pid = t.dataset.id, p = P(pid); if (!p) return; if (!uid) return toast('سجّل الدخول أولاً','error');
     const a = authorOf(p); if (a.official || !p.authorId || p.authorId === uid) return toast('لا يمكن إرسال هدية لهذا المنشور','error');
     giftSheet({title:`هدية لـ ${a.name}`, sub:`<i class="fas fa-circle-info"></i> يحصل <b>${esc(a.name)}</b> على <b>٥٠٪</b> من قيمة الهدية — وتظهر في تعليقات المنشور`, split:true, onSend:(g, qty, total) => {
-      SFX.gift(g.name, g.icon, g.price); giftPop({giftImg:g.img||'', giftIcon:g.icon||'', text:`${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`});
+      giftFx(g, `${qty>1?ar(qty)+'× ':''}${g.name} ← ${a.name}`, g.price);
       /* تظهر فوراً في التعليقات (صف مؤقت) ثم يحل محلها الصف الحقيقي */
       const tid = 'tmp_'+Date.now()+Math.random().toString(36).slice(2,5); (S.pgtmp[pid] = S.pgtmp[pid]||[]).push({id:tid, from:uid, to:p.authorId, giftName:g.name, giftIcon:g.icon||'', giftImg:g.img||'', qty, createdAt:new Date()});
       openComments(pid); draw();
@@ -1661,6 +1699,170 @@ Object.assign(H, {
   pdel:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || p.authorId !== uid) return; if (!(await dialog({title:'حذف الاستطلاع', body:'سيُحذف الاستطلاع مع كل الأصوات.', confirm:'حذف', danger:true}))) return; await deleteDoc(doc(db,'polls',p.id)); toast('تم الحذف'); }
 });
 document.addEventListener('input', e => { if (e.target.id === 'sq'){ S.q = e.target.value; const x = $('sqx'); if (x) x.hidden = !S.q; S.limit = 20; draw(); } });
+
+/* ============ 🎬 هدايا متحركة شفافة + مدة الظهور = مدة الصوت (نفس نسخة الأدمن) ============ */
+const gOf = m => (S.gifts||[]).find(x => (m.giftId && x.id === m.giftId) || (m.giftName && x.name === m.giftName)) || {name:m.giftName||'', icon:m.giftIcon||'', img:m.giftImg||''};
+const soundDur = src => new Promise(res => { try { const a = new Audio(); a.preload = 'metadata'; a.onloadedmetadata = () => res(isFinite(a.duration) ? a.duration : 0); a.onerror = () => res(0); a.src = src; } catch(_){ res(0); } });
+const gfxBlobs = new Map();
+async function gfxVideoUrl(ptr){ const k = ptr.length < 120 ? ptr : ''; if (k && gfxBlobs.has(k)) return gfxBlobs.get(k);
+  const d = ptr.startsWith('fsm:') ? await mLoad(ptr) : ptr; if (!d) return ''; let u = d; if (d.startsWith('data:')){ try { u = URL.createObjectURL(await (await fetch(d)).blob()); } catch(_){} } if (k) gfxBlobs.set(k, u); return u; }
+function startKey(v, cv, mode, thr){
+  const ctx = cv.getContext('2d', {willReadFrequently:true}); let w = 0, h = 0, stop = false; const lo = (Number(thr)||40)*.5, hi = (Number(thr)||40)*1.6, sp = Math.max(1, hi - lo);
+  const frame = () => { if (stop) return; if (v.videoWidth && v.readyState >= 2){
+      if (!w){ const k = Math.min(1, 512/Math.max(v.videoWidth, v.videoHeight)); w = cv.width = Math.round(v.videoWidth*k); h = cv.height = Math.round(v.videoHeight*k); }
+      ctx.drawImage(v, 0, 0, w, h); const im = ctx.getImageData(0, 0, w, h), d = im.data;
+      for (let i = 0; i < d.length; i += 4){ const r = d[i], g = d[i+1], b = d[i+2]; let a = 255;
+        if (mode === 'black'){ const m = Math.max(r, g, b); a = m <= lo ? 0 : m >= hi ? 255 : (m - lo)*255/sp; }
+        else if (mode === 'white'){ const m = 255 - Math.min(r, g, b); a = m <= lo ? 0 : m >= hi ? 255 : (m - lo)*255/sp; }
+        else { const mx = Math.max(r, b), dm = g - mx; a = dm <= lo ? 255 : dm >= hi ? 0 : 255*(1 - (dm - lo)/sp); if (dm > 0) d[i+1] = mx + dm*.25; }
+        d[i+3] = a; }
+      ctx.putImageData(im, 0, 0); }
+    if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(frame); else requestAnimationFrame(frame); };
+  frame(); return () => { stop = true; };
+}
+let gfxQ = Promise.resolve(), gfxN = 0;
+function giftFx(g, text, price){ g = g || {};
+  if (g.anim){ if (gfxN >= 6) return; gfxN++; gfxQ = gfxQ.then(() => gfxPlay(g, text, price)).catch(e => console.error(e)).then(() => { gfxN--; }); }
+  else gfxPlay(g, text, price).catch(e => console.error(e)); }
+async function gfxPlay(g, text, price){
+  const box = document.getElementById('gfxBox') || document.body.appendChild(Object.assign(document.createElement('div'), {id:'gfxBox'}));
+  const el = document.createElement('div'); el.className = 'gfx'; let media = null, v = null, cv = null, stopKey = null, aud = null;
+  if (g.anim){
+    if (g.animType === 'image'){ const d = g.anim.startsWith('fsm:') ? await mLoad(g.anim) : g.anim; if (d){ media = document.createElement('img'); media.className = 'ga'; media.src = d; } }
+    else { const u = await gfxVideoUrl(g.anim); if (u){ v = document.createElement('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.src = u; v.className = 'ga';
+        if ((g.animBg || 'alpha') === 'alpha') media = v; else { cv = document.createElement('canvas'); cv.className = 'ga'; media = cv; } } }
+  }
+  if (media) el.appendChild(media); else el.innerHTML = g.img ? `<img class="gs" src="${esc(g.img)}" alt="">` : `<span class="ic">${esc(g.icon||'🎁')}</span>`;
+  if (text){ const t = document.createElement('div'); t.className = 'gt'; t.textContent = text; el.appendChild(t); }
+  const snd0 = SFX.on() ? (g.sound || '') : '';
+  let dur = 0; if (snd0) dur = (await soundDur(snd0)) || Number(g.sndDur) || 0;
+  if (!dur) dur = Number(g.dur) || (g.anim ? 3 : 2.8);
+  if (v) await new Promise(r => { if (v.readyState >= 2) return r(); v.onloadeddata = r; v.onerror = r; setTimeout(r, 2500); });
+  box.appendChild(el); if (cv) stopKey = startKey(v, cv, g.animBg, g.animThr);
+  if (snd0){ aud = new Audio(snd0); aud.play().catch(() => {}); } else SFX.gift(g.name, g.icon, price);
+  if (v) v.play().catch(() => {});
+  const f = Math.min(.3, dur*.15)/dur, T = 'translate(-50%,-50%) scale(', an = el.animate([{opacity:0, transform:T+'.7)'}, {opacity:1, transform:T+'1)', offset:f}, {opacity:1, transform:T+'1)', offset:1-f}, {opacity:0, transform:T+'1)'}], {duration:dur*1000, fill:'forwards'});
+  await new Promise(r => { an.onfinish = r; if (aud) aud.onended = r; });
+  stopKey && stopKey(); v && v.pause(); aud && aud.pause(); el.remove(); }
+
+/* ============ 💬 صندوق التعليقات: سكرول داخلي بعد ٥ تعليقات ============ */
+function cmSave(){ const m = new Map(); try { document.querySelectorAll('#root .cm-list').forEach(l => { const k = l.closest('[data-post]')?.dataset.post; if (k) m.set(k, {t:l.scrollTop, bot:l.scrollTop + l.clientHeight >= l.scrollHeight - 6}); }); } catch(_){} return m; }
+function fitCm(root = document){ try { root.querySelectorAll('.cm-list').forEach(l => { if (l.closest('.rlsh')) return; const rows = [...l.children].filter(x => x.classList.contains('cm'));
+    if (rows.length <= 5){ l.classList.remove('scr'); l.style.maxHeight = ''; return; }
+    const h = rows[5].offsetTop - rows[0].offsetTop; if (h > 80){ l.style.maxHeight = Math.min(Math.max(h, 220), 560) + 'px'; l.classList.add('scr'); } }); } catch(_){} }
+function cmRestore(m){ try { document.querySelectorAll('#root .cm-list').forEach(l => { const k = l.closest('[data-post]')?.dataset.post, s = k && m.get(k), st = S.cmStick;
+    if (st && st.pid === k && Number(l.dataset.n) > st.n){ l.scrollTop = l.scrollHeight; S.cmStick = null; } else if (s) l.scrollTop = s.t; }); } catch(_){} }
+addEventListener('resize', () => fitCm());
+document.addEventListener('load', e => { if (e.target && e.target.closest && e.target.closest('.cm-list')) fitCm(); }, true);
+
+/* ============ ▶️ تشغيل فيديوهات المنشورات تلقائياً أثناء السكرول ============ */
+S.feedMuted = true; const vpos = new Map(), vUser = new Set();
+function vPlay(v){ const k = v.dataset.vk || ''; if (vUser.has(k) || !v.isConnected) return; v._prog = S.feedMuted; v.muted = S.feedMuted; const pr = v.play(); if (pr && pr.catch) pr.catch(() => { if (!v.muted){ v._prog = true; v.muted = true; v.play().catch(() => {}); } }); }
+function vStop(v){ v._byUs = true; try { v.pause(); } catch(_){} setTimeout(() => { v._byUs = false; }, 60); }
+const vio = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (document.querySelector('.rlx')) return;
+  if (e.isIntersecting && e.intersectionRatio >= .6){ v._act = true; vPlay(v); } else if (!e.isIntersecting || e.intersectionRatio < .35){ v._act = false; vStop(v); } }), {threshold:[0, .35, .6, .9]});
+function observeVids(){ try { document.querySelectorAll('#root video.vid:not([data-vo])').forEach(v => { v.dataset.vo = '1'; const k = v.dataset.vk || ''; let lt = 0;
+    v.addEventListener('loadedmetadata', () => { const p = vpos.get(k); if (p && p > 1 && p < (v.duration||1e9) - 1) v.currentTime = p; });
+    v.addEventListener('canplay', () => { if (v._act && !document.querySelector('.rlx')) vPlay(v); });
+    v.addEventListener('timeupdate', () => { const n = Date.now(); if (n - lt > 800){ lt = n; if (v.currentTime > 0) vpos.set(k, v.currentTime); } });
+    v.addEventListener('ended', () => vpos.delete(k));
+    v.addEventListener('play', () => { vUser.delete(k); document.querySelectorAll('#root video.vid').forEach(o => { if (o !== v && !o.paused) vStop(o); }); });
+    v.addEventListener('pause', () => { if (!v._byUs && v._act && !v.ended) vUser.add(k); });
+    v.addEventListener('volumechange', () => { if (v._prog === v.muted){ v._prog = undefined; return; } S.feedMuted = v.muted; });
+    vio.observe(v); }); } catch(_){} }
+document.addEventListener('visibilitychange', () => { if (document.hidden){ document.querySelectorAll('#root video.vid').forEach(vStop); rlPauseAll(); } else rlResume(); });
+
+/* ============ 🎞️ الريلز ============ */
+S.rlMuted = false;
+const vidsOf = p => (p.media||[]).filter(m => m.type === 'video' || m.type === 'link');
+const reelsPosts = () => S.posts.filter(p => (p.status||'published') === 'published' && !p.isAd && !p.deleted && vidsOf(p).length);
+const rlFind = pid => S.posts.find(p => p.id === pid);
+const rlIt = (p, m, i) => { const a = authorOf(p), id = p.id, yt = m.type === 'link' ? ytId(m.url) : '', own = !a.official && p.authorId === uid, canF = !a.official && !own && p.authorId, canG = !a.official && !own && p.authorId, rs = rsum(p);
+  const media = yt ? `<iframe class="rl-m" data-yt="${yt}" allow="autoplay; encrypted-media" allowfullscreen></iframe>` : `<video class="rl-m" playsinline loop preload="metadata" data-vk="${esc(m.url)}" data-src="${esc(m.url)}"></video>`;
+  return `<section class="rl-it" data-pid="${id}" data-i="${i}">${media}<div class="rl-ld"></div><div class="rl-tap"></div><div class="rl-shade"></div>
+    <div class="rl-info"><div class="rl-au">${avatarLink(a,'av34')}<span>${nameLink(a)}${badge(a)}</span>${canF?`<button class="fbtn ${isF(a.id)?'on':''}" data-rl="follow" data-id="${esc(a.id)}">${isF(a.id)?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button>`:''}</div>
+      ${p.text?`<div class="rl-tx" data-rl="ex">${fmt(p.text)}</div>`:''}</div>
+    <div class="rl-side"><div><button class="rl-btn rl-lk ${rs.mine?'on':''}" data-rl="like" data-id="${id}" aria-label="أعجبني">${rs.mine?(RMAP[rs.mine]?.emoji||'👍'):'<i class="far fa-thumbs-up"></i>'}</button><small class="rl-lc">${compact(rs.total)}</small><div class="rl-pk"></div></div>
+      <div><button class="rl-btn" data-rl="cm" data-id="${id}" aria-label="تعليقات"><i class="far fa-comment"></i></button><small class="rl-cc">${compact(p.commentsCount||0)}</small></div>
+      ${canG?`<div><button class="rl-btn" data-rl="gift" data-id="${id}" aria-label="هدية"><i class="fas fa-gift" style="color:var(--accent,#C9A961)"></i></button><small>هدية</small></div>`:''}
+      <div><button class="rl-btn" data-rl="share" data-id="${id}" aria-label="مشاركة"><i class="fas fa-share"></i></button><small class="rl-sc2">${compact(p.sharesCount||0)}</small></div>
+      <div><button class="rl-btn" data-rl="more" data-id="${id}" aria-label="المزيد"><i class="fas fa-ellipsis"></i></button></div></div>
+    <div class="rl-pb" data-rl="seek"><i></i></div></section>`; };
+function rlCmd(f, fn, args = []){ try { f.contentWindow.postMessage(JSON.stringify({event:'command', func:fn, args}), '*'); } catch(_){} }
+function rlLoad(it){ if (!it || it._ld) return; it._ld = true; const v = it.querySelector('video'); if (v){ v.setAttribute('src', v.dataset.src); } }
+function rlStop(it){ const v = it.querySelector('video'), f = it.querySelector('iframe'); it._want = false; if (v){ v._byUs = true; v.pause(); setTimeout(() => { v._byUs = false; }, 60); } if (f && f.getAttribute('src')){ f.removeAttribute('src'); } }
+function rlPlay(it){ if (!it) return; const v = it.querySelector('video'), f = it.querySelector('iframe'); it._want = true; it._paused = false;
+  if (v){ rlLoad(it); v.muted = S.rlMuted; const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.muted = true; S.rlMuted = true; rlMuteIc(); v.play().catch(() => {}); }); }
+  else if (f){ f._pl = true; if (!f.getAttribute('src')){ f.setAttribute('src', `https://www.youtube.com/embed/${f.dataset.yt}?enablejsapi=1&autoplay=1&mute=${S.rlMuted?1:0}&playsinline=1&controls=0&rel=0&modestbranding=1&loop=1&playlist=${f.dataset.yt}`); f.onload = () => { it.querySelector('.rl-ld')?.remove(); if (!S.rlMuted) rlCmd(f, 'unMute'); }; } else rlCmd(f, 'playVideo'); } }
+function rlToggle(it){ if (!it) return; const v = it.querySelector('video'), f = it.querySelector('iframe'); let pl;
+  if (v){ if (v.paused){ it._paused = false; rlPlay(it); pl = true; } else { it._paused = true; it._want = false; v._byUs = true; v.pause(); setTimeout(() => { v._byUs = false; }, 60); pl = false; } }
+  else if (f){ const playing = f._pl !== false; f._pl = !playing; rlCmd(f, playing ? 'pauseVideo' : 'playVideo'); it._paused = playing; pl = !playing; }
+  const e = document.createElement('div'); e.className = 'rl-pp'; e.innerHTML = `<i class="fas ${pl ? 'fa-play' : 'fa-pause'}"></i>`; it.appendChild(e); setTimeout(() => e.remove(), 650); }
+function rlMuteIc(){ const b = document.querySelector('.rlx [data-rl="mute"] i'); if (b) b.className = 'fas ' + (S.rlMuted ? 'fa-volume-xmark' : 'fa-volume-high'); }
+function rlPauseAll(){ document.querySelectorAll('.rlx video').forEach(v => { v._byUs = true; v.pause(); }); document.querySelectorAll('.rlx iframe[src]').forEach(f => rlCmd(f, 'pauseVideo')); }
+function rlResume(){ const it = S.rlCur; if (it && it.isConnected && !it._paused && document.querySelector('.rlx')) rlPlay(it); }
+function rlSetActive(it){ if (!it || S.rlCur === it) return; const old = S.rlCur; S.rlCur = it; document.querySelectorAll('.rlx .rl-it').forEach(x => { if (x !== it) rlStop(x); });
+  const prev = it.previousElementSibling, next = it.nextElementSibling; rlLoad(prev); rlLoad(next); rlPlay(it); const p = rlFind(it.dataset.pid);
+  clearTimeout(S.rlVt); S.rlVt = setTimeout(() => { if (S.rlCur === it && p){ markSeen(p.id); track(p, 'view'); } }, 1500); }
+async function rlLike(it, ev){ const p = rlFind(it.dataset.pid); if (!p) return; const r = it.getBoundingClientRect(), b = document.createElement('div'); b.className = 'rl-burst'; b.textContent = '👍';
+  b.style.left = ((ev?.clientX ?? (r.left + r.width/2)) - r.left) + 'px'; b.style.top = ((ev?.clientY ?? (r.top + r.height/2)) - r.top) + 'px'; it.appendChild(b); setTimeout(() => b.remove(), 900);
+  if (p.reactions?.[uid]) return; try { await setReaction(p, 'like'); snd('like'); track(p, 'react'); notify(p.authorId, 'تفاعل جديد', `${uName(uid)} أعجبه الفيديو في منشورك`, {postId:p.id}); } catch(_){ toast('تعذر تسجيل الإعجاب','error'); } }
+function rlSync(){ const ov = document.querySelector('.rlx'); if (!ov) return;
+  ov.querySelectorAll('.rl-it').forEach(it => { const p = rlFind(it.dataset.pid); if (!p){ if (!it.dataset.gone){ it.dataset.gone = '1'; rlStop(it); it.innerHTML = '<div class="rl-em"><i class="fas fa-ghost"></i>هذا الفيديو لم يعد متاحاً</div>'; } return; }
+    const rs = rsum(p), lk = it.querySelector('.rl-lk'); if (lk){ const h = rs.mine ? (RMAP[rs.mine]?.emoji||'👍') : '<i class="far fa-thumbs-up"></i>'; if (lk.innerHTML !== h) lk.innerHTML = h; lk.classList.toggle('on', !!rs.mine); }
+    const set = (s, v) => { const e = it.querySelector(s); if (e && e.textContent !== v) e.textContent = v; }; set('.rl-lc', compact(rs.total)); set('.rl-cc', compact(p.commentsCount||0)); set('.rl-sc2', compact(p.sharesCount||0));
+    const fb = it.querySelector('.fbtn'); if (fb){ const on = isF(fb.dataset.id), h = on ? '<i class="fas fa-check"></i> متابَع' : '<i class="fas fa-plus"></i> متابعة'; if (fb.innerHTML !== h){ fb.innerHTML = h; fb.classList.toggle('on', on); } } });
+  const sh = ov.querySelector('.rlsh'); if (sh) rlSheetPaint(); }
+function rlSheetPaint(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; const p = rlFind(sh.dataset.pid), b = sh.querySelector('.rlsh-b'); if (!p || !b) return;
+  const ae = document.activeElement, aid = ae && ae.id && b.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null, l0 = b.querySelector('.cm-list'), t0 = l0 ? l0.scrollTop : 0, nb = l0 ? l0.scrollTop + l0.clientHeight >= l0.scrollHeight - 6 : true;
+  b.innerHTML = commentsBlock(p); const l1 = b.querySelector('.cm-list'), st = S.cmStick;
+  if (l1){ if (st && st.pid === p.id && Number(l1.dataset.n) > st.n){ l1.scrollTop = l1.scrollHeight; S.cmStick = null; } else l1.scrollTop = t0; }
+  if (aid){ const ni = document.getElementById(aid); if (ni){ ni.focus(); try { ni.setSelectionRange(pos, pos); } catch(_){} } } }
+function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; if (!sh._was) S.open.delete(sh.dataset.pid); sh.remove(); }
+function openReels(){
+  if (document.querySelector('.rlx')) return; document.querySelectorAll('#root video.vid').forEach(vStop);
+  const ps = reelsPosts(), ord = rankIds(ps), map = new Map(ps.map(p => [p.id, p])), items = []; ord.forEach(id => { const p = map.get(id); vidsOf(p).forEach((m, i) => items.push(rlIt(p, m, i))); });
+  const ov = document.createElement('div'); ov.className = 'rlx';
+  ov.innerHTML = `<div class="rl-top"><button class="rl-btn" data-rl="close" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button><b><i class="fas fa-clapperboard" style="color:var(--accent,#C9A961);margin-left:8px"></i>الريلز</b><button class="rl-btn" data-rl="mute" aria-label="الصوت"><i class="fas ${S.rlMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i></button></div>
+    <div class="rl-sc">${items.join('') || '<div class="rl-em"><i class="fas fa-film"></i>لا توجد فيديوهات منشورة بعد</div>'}</div>`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden'; S.rlCur = null;
+  const sc = ov.querySelector('.rl-sc');
+  const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && e.intersectionRatio >= .6) rlSetActive(e.target); }), {root:sc, threshold:[.6]});
+  ov.querySelectorAll('.rl-it').forEach(it => {
+    io2.observe(it); const v = it.querySelector('video');
+    if (v){ const pb = it.querySelector('.rl-pb i'); v.addEventListener('loadeddata', () => { it.querySelector('.rl-ld')?.remove(); v.classList.toggle('cv', v.videoHeight > v.videoWidth*1.15); if (it._want && !it._paused) rlPlay(it); });
+      v.addEventListener('waiting', () => { if (!it.querySelector('.rl-ld') && it === S.rlCur){ const d = document.createElement('div'); d.className = 'rl-ld'; it.insertBefore(d, it.querySelector('.rl-tap')); } }); v.addEventListener('playing', () => it.querySelector('.rl-ld')?.remove());
+      v.addEventListener('timeupdate', () => { if (v.duration) pb.style.width = (v.currentTime/v.duration*100) + '%'; }); }
+    const tap = it.querySelector('.rl-tap'); tap.addEventListener('click', e => { const n = Date.now();
+      if (n - (it._lt||0) < 320){ clearTimeout(it._tt); it._lt = 0; rlLike(it, e); } else { it._lt = n; it._tt = setTimeout(() => { it._lt = 0; rlToggle(it); }, 320); } });
+    const lk = it.querySelector('.rl-lk'), pk = it.querySelector('.rl-pk'); let lpT = 0, lpD = false;
+    pk.innerHTML = REACTIONS.map(r => `<button data-rl="react" data-id="${it.dataset.pid}" data-t="${r.id}" title="${r.label}">${r.emoji}</button>`).join('');
+    lk.addEventListener('pointerdown', () => { lpD = false; lpT = setTimeout(() => { lpD = true; pk.classList.add('show'); }, 420); });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => lk.addEventListener(ev, () => clearTimeout(lpT)));
+    lk.addEventListener('click', e => { if (lpD){ e.stopPropagation(); e.preventDefault(); lpD = false; } }, true); });
+  const first = ov.querySelector('.rl-it'); if (first){ rlLoad(first); requestAnimationFrame(() => rlSetActive(first)); }
+  history.pushState({rl:1}, ''); ov._hist = true;
+  ov.addEventListener('click', async e => { const b = e.target.closest('[data-rl]'); if (!b){ ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show')); return; } const k = b.dataset.rl, pid = b.dataset.id, p = pid && rlFind(pid), it = b.closest('.rl-it');
+    if (!['react','like'].includes(k)) ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show'));
+    if (k === 'close') closeReels(); else if (k === 'mute'){ S.rlMuted = !S.rlMuted; rlMuteIc(); const c = S.rlCur; if (c){ const v = c.querySelector('video'), f = c.querySelector('iframe'); if (v) v.muted = S.rlMuted; if (f && f.getAttribute('src')) rlCmd(f, S.rlMuted ? 'mute' : 'unMute'); } }
+    else if (k === 'like' && p) H.like({dataset:{id:pid}}).catch(() => toast('تعذر تسجيل الإعجاب','error'));
+    else if (k === 'react' && p) H.react(b).catch(() => {});
+    else if (k === 'cm' && p){ rlSheetClose(); const sh = document.createElement('div'); sh.className = 'rlsh'; sh.dataset.pid = pid; sh._was = S.open.has(pid); sh.innerHTML = `<div class="rlsh-h"><b>التعليقات</b><button class="rl-btn" data-rl="shx" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div><div class="rlsh-b"></div>`; ov.appendChild(sh); openComments(pid); rlSheetPaint(); }
+    else if (k === 'shx') rlSheetClose();
+    else if (k === 'gift' && p) H.pgift({dataset:{id:pid}});
+    else if (k === 'share' && p) shareModal(p);
+    else if (k === 'follow') toggleFollow(b.dataset.id, it?.dataset.pid);
+    else if (k === 'ex') b.classList.toggle('ex');
+    else if (k === 'more' && p) { const o = openModal(`${mh('خيارات الفيديو','fa-ellipsis')}<div class="mb" style="display:flex;flex-direction:column;gap:8px"><button class="btn" data-m="copy"><i class="fas fa-link"></i> نسخ رابط المنشور</button>${p.authorId !== uid && !isOff(p) ? '<button class="btn danger" data-m="rep"><i class="fas fa-flag"></i> إبلاغ عن الفيديو</button>' : ''}</div>`);
+      o.addEventListener('click', async ev => { const mb = ev.target.closest('[data-m]'); if (!mb) return; if (mb.dataset.m === 'copy'){ await navigator.clipboard.writeText(postUrl(p.id)).catch(() => {}); toast('تم نسخ رابط المنشور'); o._close(); } else { o._close(); reportModal(p); } }); }
+    else if (k === 'seek'){ const v = it?.querySelector('video'); if (v && v.duration){ const r = b.getBoundingClientRect(); v.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)) * v.duration; } } });
+  sc.addEventListener('scroll', () => { ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show')); }, {passive:true});
+}
+function closeReels(fromPop){ const ov = document.querySelector('.rlx'); if (!ov) return; clearTimeout(S.rlVt); ov.querySelectorAll('.rl-it').forEach(rlStop); rlSheetClose(); S.rlCur = null; ov.remove(); if (!modals.length) document.body.style.overflow = ''; if (!fromPop && history.state && history.state.rl) history.back(); draw(); }
+addEventListener('popstate', () => { if (document.querySelector('.rlx')) closeReels(true); });
+document.addEventListener('keydown', e => { const ov = document.querySelector('.rlx'); if (!ov || modals.length) return; if (e.key === 'Escape') closeReels(); else if (e.key === ' ' && !/INPUT|TEXTAREA/.test(e.target.tagName)){ e.preventDefault(); rlToggle(S.rlCur); }
+  else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !/INPUT|TEXTAREA/.test(e.target.tagName)){ e.preventDefault(); const c = S.rlCur, n = c && (e.key === 'ArrowDown' ? c.nextElementSibling : c.previousElementSibling); if (n && n.classList.contains('rl-it')) n.scrollIntoView({behavior:'smooth'}); } });
+Object.assign(H, {reels:() => openReels()});
 
 paint();
 </script>
