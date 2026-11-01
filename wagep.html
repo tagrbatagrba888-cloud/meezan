@@ -937,6 +937,29 @@
     .pw-preview { padding: 12px; gap: 10px; }
     .pw-preview-value { font-size: 17px; letter-spacing: 3px; }
   }
+  /* ============ Toggle switches (إعدادات الإشعارات) ============ */
+  .pref-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 16px; border: 2px solid var(--border); border-radius: 14px;
+    background: var(--bg-input); margin-bottom: 12px;
+  }
+  .pref-row:last-of-type { margin-bottom: 0; }
+  .pref-text { min-width: 0; }
+  .pref-text b { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 3px; }
+  .pref-text small { font-size: 12px; color: var(--text-sub); font-weight: 600; line-height: 1.6; }
+  .switch { position: relative; width: 54px; height: 30px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch .slider {
+    position: absolute; inset: 0; cursor: pointer; background: var(--border);
+    border-radius: 999px; transition: all 0.25s ease;
+  }
+  .switch .slider::before {
+    content: ''; position: absolute; width: 22px; height: 22px; top: 4px; right: 4px;
+    background: #fff; border-radius: 50%; transition: all 0.25s ease; box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .switch input:checked + .slider { background: var(--success); }
+  .switch input:checked + .slider::before { transform: translateX(-24px); }
+
   /* ============ Main tabs (إضافة / واجباتي / التصحيح) ============ */
   .main-tabs { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; padding-bottom: 2px; }
   .main-tab {
@@ -1141,6 +1164,36 @@
     <div class="info-box">
       <i class="fas fa-lightbulb"></i>
       <span>اختر الفرقة من القائمة. الواجب يظهر لطلاب هذه الفرقة فقط، ويصلهم إشعار فور النشر.</span>
+    </div>
+  </div>
+
+  <!-- ============ إعدادات الإشعارات ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon" style="background: linear-gradient(135deg, #2980B9, #3498DB);"><i class="fas fa-bell"></i></span>
+      <span>إعدادات الإشعارات</span>
+    </div>
+
+    <div class="pref-row">
+      <div class="pref-text">
+        <b>هل تريد إرسال إشعارات للطلاب عند إنشاء واجب؟</b>
+        <small>مفعّل: يصل الطلاب إشعار فور النشر. غير مفعّل: لا يُرسل أي إشعار حتى لو أنشأت واجباً.</small>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="prefNotify" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="pref-row" id="prefNameRow">
+      <div class="pref-text">
+        <b>هل تريد ذكر اسمك عند إنشاء واجب؟</b>
+        <small>مفعّل: يظهر اسمك في الإشعار. غير مفعّل: يظهر الإشعار بدون اسمك.</small>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="prefShowName" checked>
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
@@ -1918,6 +1971,39 @@ try { uData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || 
 const teacherName = () => teacherData?.fullName || uData.fullName || userName;
 
 // ============================================================
+// 🔔 تفضيلات إشعارات المعلم (تُحفظ على الجهاز لكل معلم)
+// ============================================================
+const PREF_KEY = 'meezan_hw_notif_prefs_' + userId;
+function loadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {};
+    return { notify: p.notify !== false, showName: p.showName !== false }; // الافتراضي: مفعّل
+  } catch (e) { return { notify: true, showName: true }; }
+}
+function savePrefs() {
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify({
+      notify: $('prefNotify').checked,
+      showName: $('prefShowName').checked
+    }));
+  } catch (e) {}
+}
+function syncPrefsUI() {
+  // خيار ذكر الاسم مالوش لازمة لو الإشعارات مقفولة
+  const on = $('prefNotify').checked;
+  $('prefNameRow').style.opacity = on ? '1' : '0.5';
+  $('prefShowName').disabled = !on;
+}
+{
+  const p = loadPrefs();
+  $('prefNotify').checked = p.notify;
+  $('prefShowName').checked = p.showName;
+  syncPrefsUI();
+  $('prefNotify').addEventListener('change', () => { savePrefs(); syncPrefsUI(); });
+  $('prefShowName').addEventListener('change', savePrefs);
+}
+
+// ============================================================
 // 📲 الإشعارات (نفس منظومة صفحات الأدمن)
 // ============================================================
 async function addNotificationToUsers(userIds, notifId) {
@@ -1953,13 +2039,13 @@ async function triggerPush(notifId) {
   } finally { clearTimeout(t); }
 }
 
-async function sendNotification({ ids, title, body, url, target = 'custom', targetLabel = '', kind }) {
+async function sendNotification({ ids, title, body, url, target = 'custom', targetLabel = '', kind, hideName = false }) {
   ids = [...new Set((ids || []).filter(Boolean))];
   if (!ids.length) return null;
   const notifId = newId('notif');
   const n = {
     id: notifId, title, body, type: 'page', url, mediaType: 'page',
-    senderId: userId, senderName: teacherName(), createdAt: iso(),
+    senderId: userId, senderName: hideName ? 'المعلم' : teacherName(), createdAt: iso(),
     target, targetLabel, recipients: ids
   };
   if (kind) n.kind = kind;
@@ -1978,15 +2064,21 @@ async function studentIdsOfGrade(grade) {
 // 📝 إشعار فوري لكل طلاب الفرقة عند نشر واجب
 async function notifyNewHomework(hw) {
   try {
+    const prefs = loadPrefs();
+    // لو المعلم قفل الإشعارات: ما يتبعتش أي إشعار
+    if (!prefs.notify) return { count: 0, skipped: true };
     const ids = await studentIdsOfGrade(hw.grade);
     if (!ids.length) return { count: 0 };
     const r = await sendNotification({
       ids,
       title: '📝 واجب جديد',
-      body: `${hw.teacherName || teacherName()} أضاف واجب "${hw.name}" — ادخل وحله الآن`,
+      body: prefs.showName
+        ? `${hw.teacherName || teacherName()} أضاف واجب "${hw.name}" — ادخل وحله الآن`
+        : `تم إضافة واجب جديد "${hw.name}" — ادخل وحله الآن`,
       url: STUDENT_HW_PAGE,
       target: 'grade',
-      targetLabel: `فرقة "${hw.grade}" (${ids.length} طالب)`
+      targetLabel: `فرقة "${hw.grade}" (${ids.length} طالب)`,
+      hideName: !prefs.showName
     });
     r.push.then((res) => {
       if (res && res.ok) showToast(`📲 Push وصل لـ ${res.sent} جهاز`, 'success');
@@ -2805,7 +2897,7 @@ $('saveBtn').addEventListener('click', async () => {
       إجمالي الدرجات: <strong>${totalScore}</strong><br>
       نوع كلمة السر: <strong>${getPasswordLabel(passwordType)}</strong><br>
       نوع التصحيح: <strong>${correctionType === 'auto' ? 'فوري' : 'يدوي'}</strong><br><br>
-      ${notif.count ? `📲 تم إرسال إشعار لـ <strong>${notif.count}</strong> طالب<br>` : (notif.failed ? '' : 'لا يوجد طلاب في هذه الفرقة حالياً لإرسال إشعار لهم<br>')}
+      ${notif.skipped ? '🔕 الإشعارات متوقفة (لم يُرسل إشعار للطلاب)<br>' : (notif.count ? `📲 تم إرسال إشعار لـ <strong>${notif.count}</strong> طالب<br>` : (notif.failed ? '' : 'لا يوجد طلاب في هذه الفرقة حالياً لإرسال إشعار لهم<br>'))}
       ${rewardAmount ? `🎁 هدية الواجب: <strong>${fmtMoney(rewardAmount)}</strong> أُضيفت لمحفظتك` : (cleanedQuestions.length <= MIN_Q_FOR_TEACHER_REWARD ? `ℹ️ هدية المعلم تُصرف للواجب اللي فيه أكثر من <strong>${MIN_Q_FOR_TEACHER_REWARD}</strong> سؤال` : '')}
     `;
     $('successModal').classList.add('show');
