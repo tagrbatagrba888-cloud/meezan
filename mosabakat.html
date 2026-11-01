@@ -6388,7 +6388,7 @@ $('pwSendAll').addEventListener('click', async () => {
 // ============================================================
 // يُحفظ في مستند منفصل (contest_rooms/bank_<id>) حتى لا يراه الطلاب قبل نشره
 let bankMode = false, editingBankId = null;
-let bankItems = [], bankUnsub = null, bankBusy = false;
+let bankItems = [], bankUnsub = null, bankBusy = false, bankPending = 0;
 const bankRef = (id) => doc(db, 'contest_rooms', 'bank_' + id);
 const newBankId = () => 'b_' + NOW() + '_' + Math.random().toString(36).slice(2, 7);
 
@@ -6398,6 +6398,7 @@ function bankStart() {
   if (!id) return;
   bankUnsub = onSnapshot(bankRef(id), (s) => {
     if (currentChatContestId !== id) return;
+    if (bankPending > 0) return; // فيه حفظ جارٍ: الشاشة المحلية هي الأحدث، فلا نرجّعها لنسخة قديمة
     bankItems = s.exists() ? (s.data().items || []) : [];
     bankRender();
   }, (e) => console.log('bank error:', e.message));
@@ -6416,6 +6417,7 @@ async function mutBank(fn) {
   const before = bankItems;
   bankItems = fn([...bankItems]);
   bankRender();
+  bankPending++;
   try {
     await runTransaction(db, async (tx) => {
       const ref = bankRef(id), s = await tx.get(ref);
@@ -6428,23 +6430,24 @@ async function mutBank(fn) {
     bankItems = before; bankRender();
     showToast('تعذّر حفظ بنك الأسئلة', 'error');
     return false;
-  }
+  } finally { bankPending--; }
 }
 // يسحب سؤالاً من البنك (مرة واحدة فقط حتى لو ضغطت مرتين أو من جهازين)
 async function bankTake(itemId) {
+  // ⚡ فوري: يُسحب السؤال من القائمة المحلية في نفس اللحظة، والحذف من السيرفر يتم في الخلفية
   const id = currentChatContestId;
-  let taken = null;
-  await runTransaction(db, async (tx) => {
-    taken = null;
+  const item = bankItems.find(x => x.id === itemId);
+  if (!item) return null;
+  bankItems = bankItems.filter(x => x.id !== itemId);
+  bankRender();
+  bankPending++;
+  runTransaction(db, async (tx) => {
     const ref = bankRef(id), s = await tx.get(ref);
-    const items = s.exists() ? [...(s.data().items || [])] : [];
-    const i = items.findIndex(x => x.id === itemId);
-    if (i < 0) return;
-    taken = items[i]; items.splice(i, 1);
+    const items = (s.exists() ? (s.data().items || []) : []).filter(x => x.id !== itemId);
     tx.set(ref, { contestId: id, createdBy: adminId, items, updatedAt: serverTimestamp() }, { merge: true });
-  });
-  if (taken) { bankItems = bankItems.filter(x => x.id !== itemId); bankRender(); }
-  return taken;
+  }).catch(e => { console.error(e); showToast('تعذّر تحديث البنك — قد يظهر السؤال المنشور فيه مرة أخرى', 'warning'); })
+    .finally(() => { bankPending--; });
+  return item;
 }
 
 // نشر سؤال من البنك في الغرفة (نفس طريقة النشر العادية)
@@ -6580,7 +6583,7 @@ async function bankSaveFromForm(keepOpen) {
     correctEssayAnswer: essayAnswer, explanation
   };
   const editing = !!editingBankId;
-  await mutBank(items => {
+  mutBank(items => {   // بدون انتظار السيرفر: يظهر فوراً ويُحفظ في الخلفية
     const i = items.findIndex(x => x.id === id);
     if (i >= 0) { items[i] = item; return items; }
     return editing ? items : [...items, item];
@@ -6643,8 +6646,9 @@ $('bankToggleBulk').addEventListener('click', () => { $('bankBulk').classList.to
 $('bankBulkAdd').addEventListener('click', async () => {
   const items = parseBulk($('bankBulkText').value).map(x => ({ ...x, id: newBankId() }));
   if (!items.length) return showToast('لا توجد أسئلة صالحة للإضافة', 'warning');
-  const ok = await mutBank(cur => [...cur, ...items]);
-  if (ok) { $('bankBulkText').value = ''; bulkInfo(); showToast(`✅ أُضيف ${items.length} سؤال للبنك`, 'success'); }
+  mutBank(cur => [...cur, ...items]);
+  $('bankBulkText').value = ''; bulkInfo();
+  showToast(`✅ أُضيف ${items.length} سؤال للبنك`, 'success');
 });
 
 // ➕ عرض المزيد لأوقات الإجابة (أكثر من 3)
