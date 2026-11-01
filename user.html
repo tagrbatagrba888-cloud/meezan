@@ -231,7 +231,9 @@ function drawExc(){
 const pubPosts=()=>posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).sort((a,b)=>(tsd(b.createdAt)||0)-(tsd(a.createdAt)||0));
 const isFol=t=>!!(fol[t]||(mySoc.following||{})[t]);
 const isF=()=>isFol(id);
-const folCount=()=>id===ADMIN?adminFol:Math.max(0,Number(soc.followersCount||0)+Number(soc.followersAdj||0));
+const FC={A:null,B:null,M:null};
+const folCount=()=>{ const st=Math.max(0,Number(soc.followersCount||0)+Number(soc.followersAdj||0)); return id===ADMIN?adminFol:(FC.A&&FC.B)?new Set([...FC.A,...FC.B]).size:st; };
+const folingCount=()=>{ const st=Math.max(0,Number(soc.followingCount||0)+Number(soc.followingAdj||0)); if(!FC.M) return st; const s=new Set(FC.M); Object.keys(soc.following||{}).forEach(k=>{ if(soc.following[k]) s.add(k); }); return s.size; };
 
 /* ===== رأس الصفحة (الصورة + العدادات + نسبة التفوق) ===== */
 function draw(){
@@ -253,7 +255,7 @@ function drawStats(){
   { const v=id===ADMIN||!!soc.verified, a=$('avVb'), b=$('vbName'); if(a)a.hidden=!v; if(b)b.hidden=!v; }
   const n=pubPosts().length, off=id===ADMIN;
   s.style.gridTemplateColumns=off?'repeat(2,1fr)':'repeat(3,1fr)';
-  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(Math.max(0,Number(soc.followingCount||0)+Number(soc.followingAdj||0)))}</b><span>يتابع</span></button>`}`;
+  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(folingCount())}</b><span>يتابع</span></button>`}`;
   if(FL.kind) flRender();
 }
 function drawFollow(){
@@ -476,6 +478,9 @@ if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div
   try{ const c=JSON.parse(localStorage.getItem(PK)||'null'); if(c&&c.U){ U=c.U; soc=c.soc||{}; posts=c.posts||[]; exc=c.exc||null; draw(); if(!U._teacher&&!U._official)startExc(); } }catch(e){}
   load();
   onSnapshot(doc(db,'user_social',id),s=>{soc=s.exists()?s.data():{};drawStats();if(U)drawPosts();saveP();},()=>{});
+  onSnapshot(query(collection(db,'follows'),where('followedId','==',id)),s=>{ FC.A=new Set(); s.forEach(d=>{ const x=d.data(); if(x.followerId) FC.A.add(String(x.followerId)); }); drawStats(); },()=>{});
+  onSnapshot(query(collection(db,'user_social'),where(new FieldPath('following',id),'==',true)),s=>{ FC.B=new Set(); s.forEach(d=>FC.B.add(String(d.id))); drawStats(); },()=>{});
+  onSnapshot(query(collection(db,'follows'),where('followerId','==',id)),s=>{ FC.M=new Set(); s.forEach(d=>{ const x=d.data(); if(x.followedId) FC.M.add(String(x.followedId)); }); drawStats(); },()=>{});
   onSnapshot(doc(db,'user_social',me),s=>{mySoc=s.exists()?s.data():{};drawFollow();},()=>{});
   onSnapshot(query(collection(db,'posts'),where('authorId','==',id)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));drawStats();drawPosts();saveP();},()=>{});
 }

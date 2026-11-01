@@ -3176,8 +3176,8 @@ const __isPublished = (p) => (p.status || 'published') === 'published' && !p.isA
 function renderSocialStats() {
   const pub = myPosts.filter(__isPublished).length;
   $('hsPosts').textContent = __num(pub);
-  $('hsFollowers').textContent = __num(Math.max(0, Number(mySocial.followersCount || 0) + Number(mySocial.followersAdj || 0)));
-  $('hsFollowing').textContent = __num(Math.max(0, Number(mySocial.followingCount || 0) + Number(mySocial.followingAdj || 0)));
+  { const _s = Math.max(0, Number(mySocial.followersCount || 0) + Number(mySocial.followersAdj || 0)); $('hsFollowers').textContent = __num(window.__fcN ? window.__fcN('fw', _s) : _s); }
+  { const _s = Math.max(0, Number(mySocial.followingCount || 0) + Number(mySocial.followingAdj || 0)); $('hsFollowing').textContent = __num(window.__fcN ? window.__fcN('fg', _s) : _s); }
   const __v = !!mySocial.verified;
   $('vbName').hidden = !__v;
   $('avVb').hidden = !__v;
@@ -3340,8 +3340,13 @@ async function flSetFollow(t,want){
   if(want) b.set(fr,{followerId:me,followedId:t,by:'user',createdAt:serverTimestamp()}); else b.delete(fr);
   await b.commit();
   if(want) flNotify(t,'متابع جديد',`${currentUser?.fullName||currentUser?.username||'مستخدم'} بدأ بمتابعتك`,'user.html?id='+encodeURIComponent(me)); }
+/* العدّادات من نفس مصدر القوائم (follows + following) عشان تطابق القائمة دائماً */
+window.FLC = {A:null,B:null,M:null};
+window.__fcN = (k, st) => { const C = window.FLC; if (k === 'fw') return (C.A && C.B) ? new Set([...C.A, ...C.B]).size : st; if (!C.M) return st; const s = new Set(C.M); Object.keys(mySocial.following || {}).forEach(t => { if (mySocial.following[t]) s.add(t); }); return s.size; };
+onSnapshot(query(collection(db,'follows'),where('followedId','==',String(userId))),s=>{ FLC.A=new Set(); s.forEach(d=>{ const x=d.data(); if(x.followerId) FLC.A.add(String(x.followerId)); }); renderSocialStats(); },()=>{});
+onSnapshot(query(collection(db,'user_social'),where(new FieldPath('following',String(userId)),'==',true)),s=>{ FLC.B=new Set(); s.forEach(d=>FLC.B.add(String(d.id))); renderSocialStats(); },()=>{});
 /* حالة متابعتي من مجموعة follows (نفس صفحة المنشورات) */
-onSnapshot(query(collection(db,'follows'),where('followerId','==',String(userId))),s=>{ myFol={}; s.forEach(d=>{ const x=d.data(); if(x.followedId) myFol[String(x.followedId)]=true; }); if(FL.kind) flRender(); },()=>{});
+onSnapshot(query(collection(db,'follows'),where('followerId','==',String(userId))),s=>{ myFol={}; s.forEach(d=>{ const x=d.data(); if(x.followedId) myFol[String(x.followedId)]=true; }); FLC.M=new Set(Object.keys(myFol)); renderSocialStats(); if(FL.kind) flRender(); },()=>{});
 $('hsFollowersBtn').addEventListener('click',()=>flOpen('followers'));
 $('hsFollowingBtn').addEventListener('click',()=>flOpen('following'));
 
