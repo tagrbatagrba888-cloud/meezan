@@ -937,6 +937,29 @@
     .pw-preview { padding: 12px; gap: 10px; }
     .pw-preview-value { font-size: 17px; letter-spacing: 3px; }
   }
+  /* ============ إضافة دفعة أسئلة ============ */
+  .add-bulk-btn {
+    width: 100%; margin-top: 10px; padding: 14px; border-radius: 13px;
+    border: 2px dashed var(--warning); background: rgba(230, 126, 34, 0.06); color: var(--text-main);
+    font-family: 'Cairo', sans-serif; font-size: 13.5px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
+  }
+  .add-bulk-btn:hover { background: var(--bg-card); transform: translateY(-2px); }
+  .add-bulk-btn i { color: var(--warning); font-size: 15px; }
+  .bulk-panel { display: none; margin-top: 12px; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; }
+  .bulk-panel.show { display: block; }
+  .bulk-help { font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-sub); white-space: pre-wrap; margin-bottom: 10px; }
+  .bulk-help code { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; }
+  .bulk-text {
+    width: 100%; min-height: 220px; resize: vertical; direction: rtl; padding: 12px 14px;
+    font: 500 13.5px/1.9 'Cairo', sans-serif; color: var(--text-main); background: var(--bg-card);
+    border: 2px solid var(--border); border-radius: 12px; outline: none;
+  }
+  .bulk-text:focus { border-color: var(--primary); }
+  .bulk-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .bulk-foot > span { flex: 1; min-width: 160px; font-size: 12.5px; font-weight: 800; color: var(--text-main); }
+  .bulk-foot .btn { padding: 11px 18px; font-size: 13.5px; flex: 0 0 auto; }
+
   /* ============ Toggle switches (إعدادات الإشعارات) ============ */
   .pref-row {
     display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -1321,6 +1344,32 @@
         <i class="fas fa-pen-fancy" style="color: var(--warning);"></i>
         <span>سؤال مقالي</span>
       </button>
+    </div>
+
+    <button type="button" class="add-bulk-btn" id="toggleBulkBtn">
+      <i class="fas fa-paste"></i>
+      <span>إضافة دفعة أسئلة (الصق أسئلة كثيرة مرة واحدة)</span>
+    </button>
+
+    <div class="bulk-panel" id="bulkPanel">
+      <div class="bulk-help">اكتب أو الصق أسئلتك، وافصل بين كل سؤال والتالي بسطر فاضي.
+السطر الأول = نص السؤال، وبعده الاختيارات (أ) ب) ج) ...) وضع <code>*</code> قبل الاختيار الصحيح (ويمكن أكثر من إجابة صحيحة).
+بدون اختيارات = سؤال مقالي (والسطر <code>إجابة: ...</code> للإجابة النموذجية).
+اختياري: <code>درجة: 2</code>
+
+س1: عاصمة مصر؟
+أ) الإسكندرية
+*ب) القاهرة
+ج) الجيزة
+درجة: 2
+
+س2: اشرح مبدأ الفصل بين السلطات
+إجابة: توزيع السلطات بين التشريعية والتنفيذية والقضائية</div>
+      <textarea class="bulk-text" id="bulkText" placeholder="الصق الأسئلة هنا..."></textarea>
+      <div class="bulk-foot">
+        <span id="bulkInfo">0 سؤال جاهز للإضافة</span>
+        <button type="button" class="btn btn-primary" id="bulkAddBtn"><i class="fas fa-check"></i> <span>إضافة الأسئلة</span></button>
+      </div>
     </div>
   </div>
 
@@ -1916,6 +1965,68 @@ function createQuestionCard(q, idx) {
 
   return card;
 }
+
+// ============================================================
+// 📋 إضافة دفعة أسئلة (نفس نظام الأسئلة الجماعية في المسابقات)
+// ============================================================
+const BULK_OPT_RE = /^(\*|✓|✔)?\s*(?:[أابتجحدهـوABCDEFabcdef]|\d{1,2})\s*[\)\.\-–:]\s*(.+?)\s*(✓|✔|\*)?$/;
+function parseBulkQuestions(text) {
+  const blocks = String(text || '').replace(/\r/g, '').split(/\n\s*\n+/).map(b => b.trim()).filter(Boolean);
+  const out = [];
+  blocks.forEach(block => {
+    const it = { type: 'essay', title: '', score: 1, options: [], correctEssayAnswer: '' };
+    let hasTitle = false;
+    block.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      let m;
+      if (/^(?:وقت|time)\s*[:：]/i.test(line)) return;      // الوقت غير مستخدم في الواجبات
+      if (/^(?:شرح|الشرح)\s*[:：]/.test(line)) return;      // الشرح غير مستخدم في الواجبات
+      if ((m = line.match(/^(?:درجة|الدرجة|score)\s*[:：]\s*(\d+)/i))) { it.score = Math.min(100, Math.max(1, +m[1])); return; }
+      if ((m = line.match(/^(?:إجابة|اجابة|الإجابة|الاجابة|answer)\s*[:：]\s*(.+)/i))) { it.correctEssayAnswer = m[1].trim(); return; }
+      if (!hasTitle) {
+        it.title = line.replace(/^(?:س|سؤال|q)?\s*\d*\s*[:：\.\-\)]\s*/i, '').trim() || line;
+        hasTitle = true; return;
+      }
+      if ((m = line.match(BULK_OPT_RE))) {
+        it.options.push({ text: m[2].trim(), correct: !!(m[1] || m[3]) });
+        return;
+      }
+      it.title += '\n' + line; // سطر إضافي من نص السؤال
+    });
+    if (!it.title) return;
+    if (it.options.length >= 2) {
+      if (!it.options.some(o => o.correct)) return; // اختياري بدون إجابة صحيحة = يتجاهل
+      it.type = 'mcq';
+      delete it.correctEssayAnswer;
+    } else {
+      it.type = 'essay';
+      delete it.options;
+    }
+    out.push(it);
+  });
+  return out;
+}
+function updateBulkInfo() {
+  const text = $('bulkText').value;
+  const total = String(text).split(/\n\s*\n+/).filter(b => b.trim()).length;
+  const ok = parseBulkQuestions(text).length;
+  $('bulkInfo').textContent = ok + ' سؤال جاهز للإضافة' + (total > ok ? ` — ⚠️ ${total - ok} كتلة تم تجاهلها (تأكد من علامة * على الإجابة الصحيحة)` : '');
+}
+$('bulkText').addEventListener('input', updateBulkInfo);
+$('toggleBulkBtn').addEventListener('click', () => {
+  $('bulkPanel').classList.toggle('show');
+  if ($('bulkPanel').classList.contains('show')) $('bulkText').focus();
+});
+$('bulkAddBtn').addEventListener('click', () => {
+  const items = parseBulkQuestions($('bulkText').value);
+  if (!items.length) return showToast('لا توجد أسئلة صالحة للإضافة', 'warning');
+  items.forEach((q, i) => questions.push({ ...q, id: generateId() + '_' + i }));
+  renderQuestions();
+  $('bulkText').value = '';
+  updateBulkInfo();
+  showToast(`✅ أُضيف ${items.length} سؤال`, 'success');
+  const c = $('questionsContainer');
+  c.scrollTop = c.scrollHeight;
+});
 
 function escapeHtml(s) {
   if (s == null) return '';
