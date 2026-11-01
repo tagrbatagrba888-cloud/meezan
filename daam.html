@@ -1232,6 +1232,24 @@
 .gsg{font-family:'Cairo',sans-serif}
 .gq-go{width:100%}
 
+
+/* ===== التفاعل على الرسائل ===== */
+.msg-reacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.rx-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border-radius:12px;border:1px solid rgba(127,127,127,.35);background:rgba(127,127,127,.16);color:inherit;font:700 13px 'Cairo',sans-serif;cursor:pointer;line-height:1.5}
+.rx-chip b{font-size:11px;font-weight:800}
+.rx-chip.me{border-color:var(--accent,#C9A961);background:rgba(201,169,97,.28)}
+.rx-chip:active{transform:scale(.94)}
+.rx-pop{position:fixed;z-index:99999;display:flex;gap:2px;padding:6px 8px;background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:28px;box-shadow:0 8px 28px rgba(0,0,0,.3);direction:ltr}
+.rx-pop button{border:none;background:none;font-size:24px;cursor:pointer;border-radius:50%;width:38px;height:38px;transition:transform .15s}
+.rx-pop button:hover{transform:scale(1.25);background:rgba(127,127,127,.15)}
+.rx-pop button.on{background:rgba(201,169,97,.3)}
+
+.msg-react-btn{align-self:center;flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--border,#ddd);background:var(--bg-input,#eee);color:var(--text-sub,#888);font-size:14px;cursor:pointer;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;padding:0}
+.msg:hover .msg-react-btn,.msg-react-btn:focus{opacity:1}
+@media (hover:none){.msg-react-btn{opacity:.55}}
+.msg-text.del{font-style:italic;opacity:.75}
+.reply-quote{border-right:3px solid var(--gold,#C9A961);background:rgba(127,127,127,.15);border-radius:6px;padding:4px 8px;margin-bottom:6px;font-size:12px;opacity:.9}
+.reply-quote b{display:block;font-size:11px}
 </style>
 </head>
 <body>
@@ -1485,7 +1503,11 @@ const arN = n => Number(n || 0).toLocaleString('ar-EG');
 const r2 = n => Math.round(n * 100) / 100;
 const X = { wal: 0, gifts: [], started: false };
 const LIMITS = { image: 30, gif: 10, video: 20, audio: 5, file: 10 }; // MB
-const isGiftMsg = m => !!m && (m.type === 'gift' || m.isGift === true || !!m.giftName);
+const isGiftMsg = m => !!m && !m.deleted && (m.type === 'gift' || m.isGift === true || !!m.giftName || m.mediaType === 'gift' || !!m.gift);
+function normGift(m) {
+  if (m && m.gift && !m.giftName) { const g = m.gift; m.giftId = g.id || ''; m.giftName = g.name || ''; m.giftIcon = g.icon || ''; m.giftImg = g.img || ''; m.qty = g.qty; m.unitPrice = g.unitPrice; m.total = g.total; m.received = g.received; }
+  return m;
+}
 const newId = () => 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 
 function fmtDur(s) { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
@@ -1683,7 +1705,7 @@ function detectGifts(messages) {
 function giftBubbleHtml(msg, type) {
   const g = gOf(msg), q = Number(msg.qty) || 1, mine = type === 'user';
   const total = Number(msg.total) || (Number(msg.unitPrice || g.price) || 0) * q;
-  return `<div class="gm" role="button" title="اضغط لإعادة التشغيل"><div class="gm-ic">${giftIco(g)}</div><div class="gm-i"><small>${mine ? 'أرسلت هدية' : 'أرسل لك هدية 🎁'}</small><b>${escapeHtml(g.name || 'هدية')}${q > 1 ? ' ×' + arN(q) : ''}</b>${total ? `<small>${arN(total)} ج.م</small>` : ''}</div><i class="fas fa-rotate-right gm-rp"></i></div>`;
+  return `<div class="gm" role="button" title="اضغط لإعادة التشغيل"><div class="gm-ic">${giftIco(g)}</div><div class="gm-i"><small>${mine ? 'أرسلت هدية' : 'أرسل لك هدية 🎁'}</small><b>${escapeHtml(g.name || 'هدية')}${q > 1 ? ' ×' + arN(q) : ''}</b>${total ? `<small>${arN(total)} ج.م${(!mine && Number(msg.received)) ? ' • وصلك ' + arN(msg.received) + ' ج.م في محفظتك' : ''}</small>` : ''}</div><i class="fas fa-rotate-right gm-rp"></i></div>`;
 }
 
 /* ---------- 🖼️ عرض الوسائط داخل الرسائل ---------- */
@@ -1978,7 +2000,9 @@ async function sendGiftToSupport(g, qty, total) {
   const id = newId(), txid = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), now = new Date().toISOString();
   const wRef = doc(db, 'wallets', currentUserId), tRef = doc(db, 'wallet_transactions', txid), cRef = doc(db, 'support_chats', sessionId);
   const lbl = `${g.name}${qty > 1 ? ' ×' + qty : ''}`;
-  const m = { id, sender: 'user', type: 'gift', text: '', mediaUrl: '', mediaType: '', actions: [], senderName: '', userName: currentUserName, userRole: currentRole, giftId: g.id, giftName: g.name, giftIcon: g.icon || '', giftImg: g.img || '', qty, unitPrice: Number(g.price) || 0, total, createdAt: now };
+  const gobj = { id: g.id, name: g.name, icon: g.icon || '', qty, unitPrice: Number(g.price) || 0, total };
+  if (g.img && /^(https?:\/\/|fsm:)/i.test(g.img) && String(g.img).length < 2000) gobj.img = g.img;
+  const m = { id, sender: 'user', type: 'gift', text: '', mediaUrl: '', mediaType: 'gift', actions: [], senderName: '', userName: currentUserName, userRole: currentRole, giftId: g.id, giftName: g.name, giftIcon: g.icon || '', giftImg: gobj.img || '', qty, unitPrice: Number(g.price) || 0, total, gift: gobj, createdAt: now };
   seenGifts.add(id);
   await runTransaction(db, async tx => {
     const s = await tx.get(wRef), bal = s.exists() ? Number(s.data().balance || 0) : 0, nb = r2(bal - total);
@@ -2335,7 +2359,51 @@ function startPlatformLive() {
   [['users', 'users', 'all'], ['teachers', 'teachers', 'all'], ['exams', 'exams', 'all'], ['homeworks', 'homeworks', 'all'], ['examSubs', 'exam_subs', 'all'], ['hwSubs', 'homework_subs', 'all'], ['courses', 'courses', 'all'], ['codes', 'payment_codes', 'all'], ['library', 'settings', 'library'], ['contests', 'contests', 'all']].forEach(([k, c, d]) =>
     onSnapshot(doc(db, c, d), sn => { if (platformDataCache) { platformDataCache[k] = sn.exists() ? (sn.data().items || []) : []; platformDataTime = Date.now(); } }, () => {}));
 }
-function msgSig(m) { return [m.text, m.edited, m.mediaUrl, m.audioUrl, m.fileUrl, m.type, m.giftName, m.qty, m.fileName, m.duration, m.actionsUsed, isBotAvailable(), siteLogo, botSettings.botAvatarUrl, botSettings.botName, currentUser?.avatarUrl].join('|'); }
+var RX = ['👍','❤️','😂','😮','😢','🙏'], RX_ME = 'u';
+function reactsHtml(m) {
+  if (m.deleted || !m.reactions) return '';
+  const by = {};
+  Object.entries(m.reactions).forEach(([k, e]) => { if (!e) return; const o = by[e] || (by[e] = { n: 0, me: false }); o.n++; if (k === RX_ME) o.me = true; });
+  const es = Object.keys(by); if (!es.length) return '';
+  return `<div class="msg-reacts">${es.map(e => `<button type="button" class="rx-chip${by[e].me ? ' me' : ''}" data-rx="${e}">${e}${by[e].n > 1 ? ` <b>${arN(by[e].n)}</b>` : ''}</button>`).join('')}</div>`;
+}
+async function reactMsg(id, emoji) {
+  if (!sessionId) return;
+  if (isClosed) return showToast('المحادثة مغلقة', 'warning');
+  const ref = doc(db, 'support_chats', sessionId);
+  try {
+    await runTransaction(db, async tx => {
+      const s = await tx.get(ref); if (!s.exists()) return;
+      const ms = (s.data().messages || []).map(m => ({ ...m }));
+      const t = ms.find(x => x.id === id); if (!t || t.deleted) return;
+      const r = { ...(t.reactions || {}) };
+      if (r[RX_ME] === emoji) delete r[RX_ME]; else r[RX_ME] = emoji;
+      if (Object.keys(r).length) t.reactions = r; else delete t.reactions;
+      tx.update(ref, { messages: ms, updatedAt: serverTimestamp() });
+    });
+  } catch (e) { console.error('reaction error:', e); showToast('تعذّر إرسال التفاعل', 'error'); }
+}
+function closeRxPicker() { document.querySelectorAll('.rx-pop').forEach(p => p.remove()); }
+function openRxPicker(id, anchor) {
+  closeRxPicker();
+  const cur = ((localMessages || []).find(m => m.id === id) || {}).reactions || {};
+  const p = document.createElement('div'); p.className = 'rx-pop';
+  p.innerHTML = RX.map(e => `<button type="button" data-e="${e}" class="${cur[RX_ME] === e ? 'on' : ''}">${e}</button>`).join('');
+  document.body.appendChild(p);
+  const r = anchor.getBoundingClientRect();
+  let top = r.top - p.offsetHeight - 8; if (top < 8) top = r.bottom + 8;
+  p.style.top = top + 'px';
+  p.style.left = Math.max(8, Math.min(r.left + r.width / 2 - p.offsetWidth / 2, innerWidth - p.offsetWidth - 8)) + 'px';
+  p.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; closeRxPicker(); reactMsg(id, b.dataset.e); });
+}
+$('chatMessages').addEventListener('click', e => {
+  const chip = e.target.closest('.rx-chip');
+  if (chip) { const el = chip.closest('.msg[data-id]'); if (el) reactMsg(el.dataset.id, chip.dataset.rx); return; }
+  const b = e.target.closest('.msg-react-btn');
+  if (b) { const el = b.closest('.msg[data-id]'); if (el) { e.stopPropagation(); openRxPicker(el.dataset.id, b); } }
+});
+document.addEventListener('click', e => { if (!e.target.closest('.rx-pop')) closeRxPicker(); });
+function msgSig(m) { return [m.text, m.deleted, m.reactions ? JSON.stringify(m.reactions) : '', m.replyTo ? m.replyTo.id : '', m.received, m.edited, m.mediaUrl, m.audioUrl, m.fileUrl, m.type, m.giftName, m.qty, m.fileName, m.duration, m.actionsUsed, isBotAvailable(), siteLogo, botSettings.botAvatarUrl, botSettings.botName, currentUser?.avatarUrl].join('|'); }
 function renderIncremental(messages) {
   const c = $('chatMessages'); const near = c.scrollHeight - c.scrollTop - c.clientHeight < 140;
   const keys = new Set(messages.map(m => m.id));
@@ -2756,6 +2824,7 @@ function loadMessages() {
     updateBannersVisibility();
 
     messages.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    messages.forEach(normGift);
     if (messages.length === 0) { initChat(); return; }
 
     const adminTyping = data.adminTypingAt && (Date.now() - new Date(data.adminTypingAt).getTime() < 4000);
@@ -2859,14 +2928,15 @@ function renderMessage(msg, target) {
     return;
   }
 
-  const text = msg.text || '';
-  const mediaUrl = msg.mediaUrl || msg.audioUrl || msg.fileUrl || '';
+  const text = msg.deleted ? '' : (msg.text || '');
+  const mediaUrl = msg.deleted ? '' : (msg.mediaUrl || msg.audioUrl || msg.fileUrl || '');
   const mediaType = msg.mediaType || '';
   const actions = msg.actions || [];
   const time = msg.createdAt ? new Date(msg.createdAt) : new Date();
   const senderName = msg.senderName || '';
 
   const msgDiv = document.createElement('div');
+  msgDiv.dataset.id = msg.id;
   msgDiv.className = `msg ${type === 'user' ? 'user' : (type === 'support' || type === 'admin' ? 'support' : 'bot')}`;
 
   const avatarDiv = document.createElement('div');
@@ -2896,11 +2966,15 @@ function renderMessage(msg, target) {
     html += `<div class="msg-sender-name" style="color:var(--accent);"><i class="fas fa-headset"></i> ${escapeHtml(senderName || 'الدعم')}</div>`;
   }
 
-  if (text) html += `<div class="msg-text">${formatText(text)}</div>`;
-
+  if (msg.replyTo) html += `<div class="reply-quote"><b>${escapeHtml(msg.replyTo.name || '')}</b>${escapeHtml((msg.replyTo.text || '📎').slice(0, 90))}</div>`;
   const gift = isGiftMsg(msg);
-  if (gift) html += giftBubbleHtml(msg, type);
-  else if (mediaUrl) html += '<div class="msg-media mx"></div>';
+  if (msg.deleted) html += '<div class="msg-text del"><i class="fas fa-ban"></i> تم حذف هذه الرسالة</div>';
+  else {
+    if (text) html += `<div class="msg-text">${formatText(text)}</div>`;
+    if (gift) html += giftBubbleHtml(msg, type);
+    else if (mediaUrl) html += '<div class="msg-media mx"></div>';
+  }
+  html += reactsHtml(msg);
 
   html += `<div class="msg-meta"><i class="far fa-clock"></i> ${formatTimeAgo(time)}${msg.edited ? ' <span style="font-size:10px;opacity:.7">(معدّلة)</span>' : ''}</div>`;
 
@@ -2932,6 +3006,7 @@ function renderMessage(msg, target) {
 
   msgDiv.appendChild(avatarDiv);
   msgDiv.appendChild(contentDiv);
+  if (!msg.deleted) { const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'msg-react-btn'; rb.title = 'تفاعل'; rb.innerHTML = '<i class="far fa-face-smile"></i>'; msgDiv.appendChild(rb); }
   messagesEl.appendChild(msgDiv);
 }
 
