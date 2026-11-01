@@ -197,7 +197,7 @@ function startExc(){ if(excStarted)return; excStarted=true; calcExcellence(); }
 const PK='meezan_uv:'+id; let svT;
 function saveP(){ clearTimeout(svT); svT=setTimeout(()=>{ try{ if(!U)return;
   const pubU={id:U.id,fullName:U.fullName,username:U.username,grade:U.grade,avatarUrl:(String(U.avatarUrl||'').startsWith('data:')?'':U.avatarUrl),_role:U._role,_teacher:U._teacher,_official:U._official};
-  localStorage.setItem(PK,JSON.stringify({U:pubU,soc:{verified:!!soc.verified,followersCount:soc.followersCount||0,followersAdj:soc.followersAdj||0,followingCount:soc.followingCount||0},posts:posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).slice(0,30),exc,t:Date.now()})); }catch(e){} },500); }
+  localStorage.setItem(PK,JSON.stringify({U:pubU,soc:{verified:!!soc.verified,followersCount:soc.followersCount||0,followersAdj:soc.followersAdj||0,followingCount:soc.followingCount||0,followingAdj:soc.followingAdj||0},posts:posts.filter(p=>(p.status||'published')==='published'&&!p.isAd).slice(0,30),exc,t:Date.now()})); }catch(e){} },500); }
 const sig=u=>u?[u.fullName,u.username,u.avatarUrl,u.grade,u._role].join('|'):'';
 function setU(u){ const changed=sig(u)!==sig(U); U=u; if(changed||!$('stats'))draw(); if(!U._teacher)startExc(); saveP(); }
 async function load(){
@@ -253,7 +253,7 @@ function drawStats(){
   { const v=id===ADMIN||!!soc.verified, a=$('avVb'), b=$('vbName'); if(a)a.hidden=!v; if(b)b.hidden=!v; }
   const n=pubPosts().length, off=id===ADMIN;
   s.style.gridTemplateColumns=off?'repeat(2,1fr)':'repeat(3,1fr)';
-  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(Math.max(0,soc.followingCount||0))}</b><span>يتابع</span></button>`}`;
+  s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(Math.max(0,Number(soc.followingCount||0)+Number(soc.followingAdj||0)))}</b><span>يتابع</span></button>`}`;
   if(FL.kind) flRender();
 }
 function drawFollow(){

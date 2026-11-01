@@ -3177,7 +3177,7 @@ function renderSocialStats() {
   const pub = myPosts.filter(__isPublished).length;
   $('hsPosts').textContent = __num(pub);
   $('hsFollowers').textContent = __num(Math.max(0, Number(mySocial.followersCount || 0) + Number(mySocial.followersAdj || 0)));
-  $('hsFollowing').textContent = __num(Math.max(0, mySocial.followingCount || 0));
+  $('hsFollowing').textContent = __num(Math.max(0, Number(mySocial.followingCount || 0) + Number(mySocial.followingAdj || 0)));
   const __v = !!mySocial.verified;
   $('vbName').hidden = !__v;
   $('avVb').hidden = !__v;
