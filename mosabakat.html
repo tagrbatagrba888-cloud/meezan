@@ -2527,6 +2527,44 @@
 .ctl-hud{display:flex!important;visibility:hidden;min-height:36px;box-sizing:border-box}
 .ctl-hud.on{visibility:visible}
 </style>
+<style id="bank-style">
+/* ===== بنك الأسئلة ===== */
+.chat-tool-btn{position:relative}
+.bank-badge{display:none;position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--warning);color:#fff;font:900 10.5px Cairo,sans-serif;align-items:center;justify-content:center;border:2px solid var(--bg-card)}
+.chat-tool-btn.bank{background:linear-gradient(135deg,#E67E22,#F39C12);color:#fff;border-color:var(--warning)}
+.chat-tool-btn.bank:hover{background:var(--warning);transform:translateY(-2px)}
+.ctl-bar button.nxt{background:linear-gradient(135deg,#1E7A5A,#2ECC71);color:#fff;border-color:var(--success)}
+.ctl-bar button.nxt:disabled{opacity:.5;cursor:not-allowed}
+#bankModal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px;z-index:250000;overflow-y:auto}
+#bankModal.show{display:flex}
+.bank-box{background:var(--bg-card);border-radius:20px;padding:20px;max-width:760px;width:100%;box-shadow:0 25px 70px rgba(0,0,0,.6);border-top:6px solid var(--warning);max-height:94vh;overflow-y:auto}
+.bank-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px dashed var(--border)}
+.bank-head h2{flex:1;font-size:17px;font-weight:800;color:var(--text-main)}
+.bank-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bank-tools .btn{padding:10px 14px;font-size:13px}
+.bank-bulk{display:none;background:var(--bg-input);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
+.bank-bulk.show{display:block}
+.bank-bulk textarea{width:100%;min-height:200px;direction:rtl;font:500 13px/1.8 Cairo,sans-serif;padding:10px 12px;border:2px solid var(--border);border-radius:12px;background:var(--bg-card);color:var(--text-main);outline:none;resize:vertical}
+.bank-bulk textarea:focus{border-color:var(--primary)}
+.bank-help{font:600 11.5px/1.9 Cairo,sans-serif;color:var(--text-sub);margin-bottom:8px;white-space:pre-wrap}
+.bank-help code{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:0 5px}
+.bank-bulk-foot{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.bank-bulk-foot span{flex:1;font:800 12.5px Cairo,sans-serif;color:var(--text-main)}
+.bank-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:2px solid var(--border);border-radius:14px;background:var(--bg-input);margin-bottom:8px}
+.bank-item:first-child{border-color:var(--success);background:rgba(30,122,90,.06)}
+.bank-num{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px Cairo,sans-serif;flex-shrink:0}
+[data-theme="dark"] .bank-num{color:var(--bg-page)}
+.bank-main{flex:1;min-width:0}
+.bank-t{font:700 13.5px/1.6 Cairo,sans-serif;color:var(--text-main);word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bank-m{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.bank-m span{font:700 10.5px Cairo,sans-serif;padding:2px 8px;border-radius:8px;border:1px solid var(--border);color:var(--text-sub);background:var(--bg-card)}
+.bank-act{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:150px}
+.bank-act button{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-sub);cursor:pointer;font-size:12px;transition:all .2s}
+.bank-act button:hover{border-color:var(--accent);color:var(--text-main);transform:translateY(-2px)}
+.bank-act button.go:hover{background:var(--success);color:#fff;border-color:var(--success)}
+.bank-act button.del:hover{background:var(--error);color:#fff;border-color:var(--error)}
+.bank-empty{padding:30px 14px;text-align:center;color:var(--text-sub);font:600 13px/1.8 Cairo,sans-serif;border:2px dashed var(--border);border-radius:14px}
+</style>
 </head>
 <body>
 
@@ -2898,6 +2936,7 @@
   <span class="ctl-pill" id="ctlStatus">انتظار</span>
   <div class="ctl-hud" id="ctlHud"><b id="hudQ"></b><span id="hudA"></span><span id="hudT"></span><i id="hudBar"></i></div>
   <button data-ctl="start"><i class="fas fa-play"></i> بدء</button>
+  <button data-ctl="next" id="ctlNext" class="nxt"><i class="fas fa-forward"></i> نشر التالي <span id="ctlNextCount"></span></button>
   <button data-ctl="pause" id="ctlPause"><i class="fas fa-pause"></i> إيقاف</button>
   <button data-ctl="end" class="dng"><i class="fas fa-flag-checkered"></i> إنهاء</button>
   <button data-ctl="announce"><i class="fas fa-bullhorn"></i> إعلان</button>
@@ -2922,6 +2961,10 @@
             </button>
             <button class="chat-tool-btn sound" id="btnSoundFx" title="مؤثر صوتي">
               <i class="fas fa-volume-high"></i>
+            </button>
+            <button class="chat-tool-btn bank" id="btnBank" title="بنك الأسئلة (تجهيز أسئلة بدون نشر)">
+              <i class="fas fa-layer-group"></i>
+              <span class="bank-badge" id="bankBadge"></span>
             </button>
           </div>
           <textarea class="chat-input" id="chatInput" placeholder="اكتب رسالتك..." rows="1"></textarea>
@@ -2994,6 +3037,47 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Question Bank ============ -->
+<div id="bankModal">
+  <div class="bank-box">
+    <div class="bank-head">
+      <div class="modal-header-icon" style="background: linear-gradient(135deg, #E67E22, #F39C12);"><i class="fas fa-layer-group"></i></div>
+      <h2>بنك الأسئلة <span id="bankTitleCount" style="color:var(--warning);">0</span></h2>
+      <button class="modal-close" id="bankClose" type="button"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="bank-tools">
+      <button class="btn btn-info" id="bankAddOne" type="button"><i class="fas fa-plus"></i> <span>إضافة سؤال</span></button>
+      <button class="btn btn-warning" id="bankToggleBulk" type="button"><i class="fas fa-paste"></i> <span>إضافة دفعة أسئلة</span></button>
+      <button class="btn btn-success" id="bankPublishNext" type="button"><i class="fas fa-forward"></i> <span>نشر التالي</span></button>
+      <button class="btn btn-cancel" id="bankClearAll" type="button"><i class="fas fa-trash-can"></i> <span>مسح الكل</span></button>
+    </div>
+
+    <div class="bank-bulk" id="bankBulk">
+      <div class="bank-help">اكتب أو الصق أسئلتك، وافصل بين كل سؤال والتالي بسطر فاضي.
+السطر الأول = نص السؤال، وبعده الاختيارات (أ) ب) ج) ...) وضع <code>*</code> قبل الاختيار الصحيح.
+بدون اختيارات = سؤال مقالي (والسطر <code>إجابة: ...</code> للإجابة النموذجية).
+اختياري: <code>وقت: 30</code> ، <code>درجة: 2</code> ، <code>شرح: ...</code>
+
+س1: عاصمة مصر؟
+أ) الإسكندرية
+*ب) القاهرة
+ج) الجيزة
+وقت: 30
+
+س2: اشرح مبدأ الفصل بين السلطات
+إجابة: توزيع السلطات بين التشريعية والتنفيذية والقضائية</div>
+      <textarea id="bankBulkText" placeholder="الصق الأسئلة هنا..."></textarea>
+      <div class="bank-bulk-foot">
+        <span id="bankBulkInfo">0 سؤال جاهز للإضافة</span>
+        <button class="btn btn-primary" id="bankBulkAdd" type="button" style="padding:10px 16px;"><i class="fas fa-check"></i> <span>إضافة للبنك</span></button>
+      </div>
+    </div>
+
+    <div id="bankList"></div>
   </div>
 </div>
 
@@ -3072,6 +3156,10 @@
       <button class="btn btn-cancel" id="qModalCancel">
         <i class="fas fa-times"></i>
         <span>إلغاء</span>
+      </button>
+      <button class="btn btn-success" id="qModalSaveNext" type="button" style="display:none;">
+        <i class="fas fa-plus"></i>
+        <span>حفظ وإضافة آخر</span>
       </button>
       <button class="btn btn-info" id="qModalSave">
         <i class="fas fa-paper-plane"></i>
@@ -4294,6 +4382,7 @@ function openChatRoom(contest) {
   startChatListener();
   startContestantsListener();
   startCountdownTimer();
+  bankStart();
 
   setTimeout(() => {
     $('chatInput').focus();
@@ -4313,6 +4402,7 @@ function closeChatRoom() {
 
   if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
   if (unsubscribeContestants) { unsubscribeContestants(); unsubscribeContestants = null; }
+  bankStop();
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 }
 
@@ -4850,6 +4940,9 @@ function openQuestionModal(existingQ = null, existingIndex = null) {
   renderQuestionOptions();
 
   $('qModalError').classList.remove('show');
+  $('qModalSaveNext').style.display = bankMode ? '' : 'none';
+  $('qModalSave').querySelector('span').textContent = bankMode ? 'حفظ في البنك' : 'نشر السؤال';
+  if (bankMode) $('qModalTitle').textContent = existingQ ? 'تعديل سؤال في البنك' : 'إضافة سؤال إلى البنك (لن يُنشر الآن)';
   $('questionModal').classList.add('show');
   setTimeout(() => $('qTitle').focus(), 100);
 }
@@ -4857,6 +4950,8 @@ function openQuestionModal(existingQ = null, existingIndex = null) {
 function closeQuestionModal() {
   $('questionModal').classList.remove('show');
   editingQuestionId = null;
+  bankMode = false;
+  editingBankId = null;
 }
 
 $('qModalClose').addEventListener('click', closeQuestionModal);
@@ -4944,6 +5039,7 @@ $('btnAddOption').addEventListener('click', () => {
 });
 
 $('qModalSave').addEventListener('click', async () => {
+  if (bankMode) return bankSaveFromForm(false);
   const errEl = $('qModalError');
   errEl.classList.remove('show');
 
@@ -6286,6 +6382,270 @@ $('pwSendAll').addEventListener('click', async () => {
   } catch (e) { console.error(e); showToast('تعذّر الإرسال', 'error'); }
 });
 
+
+// ============================================================
+// 🗂️ بنك الأسئلة: جهّز أسئلة كثيرة بدون نشر، وانشرها واحداً واحداً
+// ============================================================
+// يُحفظ في مستند منفصل (contest_rooms/bank_<id>) حتى لا يراه الطلاب قبل نشره
+let bankMode = false, editingBankId = null;
+let bankItems = [], bankUnsub = null, bankBusy = false;
+const bankRef = (id) => doc(db, 'contest_rooms', 'bank_' + id);
+const newBankId = () => 'b_' + NOW() + '_' + Math.random().toString(36).slice(2, 7);
+
+function bankStart() {
+  bankStop();
+  const id = currentChatContestId;
+  if (!id) return;
+  bankUnsub = onSnapshot(bankRef(id), (s) => {
+    if (currentChatContestId !== id) return;
+    bankItems = s.exists() ? (s.data().items || []) : [];
+    bankRender();
+  }, (e) => console.log('bank error:', e.message));
+}
+function bankStop() {
+  if (bankUnsub) { bankUnsub(); bankUnsub = null; }
+  bankItems = [];
+  $('bankModal')?.classList.remove('show');
+  bankRender();
+}
+
+// تعديل البنك: يظهر فوراً ثم يُحفظ على أحدث نسخة من السيرفر
+async function mutBank(fn) {
+  const id = currentChatContestId;
+  if (!id) return false;
+  const before = bankItems;
+  bankItems = fn([...bankItems]);
+  bankRender();
+  try {
+    await runTransaction(db, async (tx) => {
+      const ref = bankRef(id), s = await tx.get(ref);
+      const items = s.exists() ? [...(s.data().items || [])] : [];
+      tx.set(ref, { contestId: id, createdBy: adminId, items: fn(items), updatedAt: serverTimestamp() }, { merge: true });
+    });
+    return true;
+  } catch (e) {
+    console.error(e);
+    bankItems = before; bankRender();
+    showToast('تعذّر حفظ بنك الأسئلة', 'error');
+    return false;
+  }
+}
+// يسحب سؤالاً من البنك (مرة واحدة فقط حتى لو ضغطت مرتين أو من جهازين)
+async function bankTake(itemId) {
+  const id = currentChatContestId;
+  let taken = null;
+  await runTransaction(db, async (tx) => {
+    taken = null;
+    const ref = bankRef(id), s = await tx.get(ref);
+    const items = s.exists() ? [...(s.data().items || [])] : [];
+    const i = items.findIndex(x => x.id === itemId);
+    if (i < 0) return;
+    taken = items[i]; items.splice(i, 1);
+    tx.set(ref, { contestId: id, createdBy: adminId, items, updatedAt: serverTimestamp() }, { merge: true });
+  });
+  if (taken) { bankItems = bankItems.filter(x => x.id !== itemId); bankRender(); }
+  return taken;
+}
+
+// نشر سؤال من البنك في الغرفة (نفس طريقة النشر العادية)
+async function publishFromBank(item) {
+  const cid = currentChatContestId;
+  const qid = generateQuestionId(), msgId = 'qmsg_' + NOW() + '_' + Math.random().toString(36).slice(2, 5);
+  const timer = parseInt(item.timer) || 0;
+  const created = new Date(NOW()).toISOString();
+  const endAt = timer > 0 ? new Date(NOW() + timer * 1000).toISOString() : null;
+  let targetStudent = null;
+  if (item.targetStudentId) {
+    const c = (currentContestants || []).find(x => x.id === item.targetStudentId);
+    if (c) targetStudent = { id: c.id, name: c.name };
+  }
+  const isMcq = item.type === 'mcq';
+  const question = {
+    type: item.type, title: item.title, score: item.score || 1, timer,
+    targetStudentId: item.targetStudentId || '',
+    options: isMcq ? (item.options || []) : [],
+    correctEssayAnswer: item.correctEssayAnswer || '', explanation: item.explanation || ''
+  };
+  mutRoomFast(d => ({
+    messages: [...(d.messages || []), {
+      id: msgId, sender: 'admin', senderId: adminId, senderName: adminName, type: 'question',
+      questionId: qid, questionIndex: (d.messages || []).filter(m => m.type === 'question').length + 1,
+      question, targetStudent, timer: timer > 0 ? timer : null, timerEndAt: endAt, createdAt: created
+    }]
+  }));
+  const qObj = { id: qid, type: item.type, title: item.title, score: item.score || 1, options: question.options, correctEssayAnswer: question.correctEssayAnswer, explanation: question.explanation };
+  patchContestFast(cid, c => ({ questions: [...(c.questions || []), qObj] }));
+}
+
+// ⏭️ نشر السؤال التالي
+ACT.next = async () => {
+  if (bankBusy) return;
+  const first = bankItems[0];
+  if (!first) return showToast('لا توجد أسئلة في البنك — أضف أسئلة من زر "بنك الأسئلة"', 'warning');
+  bankBusy = true;
+  try {
+    const item = await bankTake(first.id);
+    if (!item) return showToast('هذا السؤال نُشر بالفعل من جهاز آخر', 'info');
+    await publishFromBank(item);
+    showToast(bankItems.length ? `✅ تم نشر السؤال — المتبقي ${bankItems.length}` : '✅ تم نشر آخر سؤال في البنك', 'success');
+    FX.pop();
+  } catch (e) { console.error(e); showToast('تعذّر نشر السؤال', 'error'); }
+  finally { bankBusy = false; }
+};
+
+// ----- عرض البنك -----
+function bankRender() {
+  const n = bankItems.length;
+  const badge = $('bankBadge');
+  if (badge) { badge.textContent = n || ''; badge.style.display = n ? 'flex' : 'none'; }
+  const cn = $('ctlNextCount'); if (cn) cn.textContent = n ? `(${n})` : '';
+  const tc = $('bankTitleCount'); if (tc) tc.textContent = n;
+  const list = $('bankList'); if (!list) return;
+  if (!n) {
+    list.innerHTML = '<div class="bank-empty"><i class="fas fa-layer-group" style="font-size:34px;display:block;margin-bottom:8px;opacity:.5;"></i>البنك فارغ — أضف سؤالاً أو ألصق دفعة أسئلة، وبعدها انشرها بزر "نشر التالي".</div>';
+    return;
+  }
+  list.innerHTML = bankItems.map((it, i) => `
+    <div class="bank-item" data-id="${escapeHtml(it.id)}">
+      <div class="bank-num">${i + 1}</div>
+      <div class="bank-main">
+        <div class="bank-t">${escapeHtml(it.title || '')}</div>
+        <div class="bank-m">
+          <span>${it.type === 'mcq' ? 'اختياري' : 'مقالي'}</span>
+          ${it.type === 'mcq' ? `<span>${(it.options || []).length} اختيارات</span>` : ''}
+          <span>⭐ ${it.score || 1}</span>
+          ${it.timer ? `<span>⏱️ ${it.timer}ث</span>` : ''}
+          ${i === 0 ? '<span style="color:var(--success);border-color:var(--success);">التالي للنشر</span>' : ''}
+        </div>
+      </div>
+      <div class="bank-act">
+        <button type="button" data-b="up" title="أعلى" ${i === 0 ? 'disabled style="opacity:.35"' : ''}><i class="fas fa-arrow-up"></i></button>
+        <button type="button" data-b="down" title="أسفل" ${i === n - 1 ? 'disabled style="opacity:.35"' : ''}><i class="fas fa-arrow-down"></i></button>
+        <button type="button" data-b="edit" title="تعديل"><i class="fas fa-pen"></i></button>
+        <button type="button" class="go" data-b="go" title="نشر هذا السؤال الآن"><i class="fas fa-paper-plane"></i></button>
+        <button type="button" class="del" data-b="del" title="حذف"><i class="fas fa-trash-can"></i></button>
+      </div>
+    </div>`).join('');
+}
+$('bankList').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-b]'); if (!b || b.disabled) return;
+  const id = b.closest('.bank-item').dataset.id, act = b.dataset.b;
+  const it = bankItems.find(x => x.id === id); if (!it) return;
+  if (act === 'up' || act === 'down') {
+    mutBank(items => {
+      const i = items.findIndex(x => x.id === id), j = act === 'up' ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= items.length) return items;
+      [items[i], items[j]] = [items[j], items[i]]; return items;
+    });
+  } else if (act === 'del') {
+    mutBank(items => items.filter(x => x.id !== id));
+  } else if (act === 'edit') {
+    bankMode = true; editingBankId = id; openQuestionModal({ ...it });
+  } else if (act === 'go') {
+    if (bankBusy) return; bankBusy = true;
+    try { const item = await bankTake(id); if (item) { await publishFromBank(item); showToast('✅ تم نشر السؤال', 'success'); FX.pop(); } }
+    catch (err) { console.error(err); showToast('تعذّر نشر السؤال', 'error'); }
+    finally { bankBusy = false; }
+  }
+});
+$('btnBank').addEventListener('click', () => { $('bankModal').classList.add('show'); bankRender(); });
+$('bankClose').addEventListener('click', () => $('bankModal').classList.remove('show'));
+$('bankModal').addEventListener('click', (e) => { if (e.target === $('bankModal')) $('bankModal').classList.remove('show'); });
+$('bankPublishNext').addEventListener('click', () => ACT.next());
+$('bankAddOne').addEventListener('click', () => { bankMode = true; editingBankId = null; openQuestionModal(null); });
+$('bankClearAll').addEventListener('click', () => {
+  if (!bankItems.length) return;
+  if (confirm(`مسح كل أسئلة البنك (${bankItems.length})؟ لا يمكن التراجع.`)) mutBank(() => []);
+});
+
+// ----- حفظ سؤال من النافذة إلى البنك -----
+async function bankSaveFromForm(keepOpen) {
+  $('qModalError').classList.remove('show');
+  const title = cleanInput($('qTitle').value);
+  const score = Math.max(1, parseInt($('qScore').value) || 1);
+  const timer = parseInt($('qTimer').value) || 0;
+  const targetStudentId = $('qTargetStudent').value || '';
+  const essayAnswer = cleanInput($('qEssayAnswer').value);
+  const explanation = cleanInput($('qExplanation').value);
+  if (!title) return showQErr('الرجاء إدخال نص السؤال');
+  if (chatQuestionModalType === 'mcq') {
+    if (chatQuestionOptions.length < 2) return showQErr('يجب أن يكون هناك إجابتان على الأقل');
+    if (!chatQuestionOptions.some(o => o.correct)) return showQErr('حدد إجابة صحيحة');
+    if (chatQuestionOptions.some(o => !cleanInput(o.text))) return showQErr('كل الإجابات يجب أن تكون مكتوبة');
+  }
+  const id = editingBankId || newBankId();
+  const item = {
+    id, type: chatQuestionModalType, title, score, timer: timer > 0 ? timer : 0, targetStudentId,
+    options: chatQuestionModalType === 'mcq' ? chatQuestionOptions.map(o => ({ text: cleanInput(o.text), correct: !!o.correct })) : [],
+    correctEssayAnswer: essayAnswer, explanation
+  };
+  const editing = !!editingBankId;
+  await mutBank(items => {
+    const i = items.findIndex(x => x.id === id);
+    if (i >= 0) { items[i] = item; return items; }
+    return editing ? items : [...items, item];
+  });
+  if (keepOpen && !editing) {
+    // نفرّغ الحقول ونفضل في نفس النافذة لإضافة سؤال جديد (نوع السؤال والدرجة والوقت يفضلوا زي ما هم)
+    $('qTitle').value = ''; $('qEssayAnswer').value = ''; $('qExplanation').value = '';
+    chatQuestionOptions = [{ text: '', correct: false }, { text: '', correct: false }];
+    renderQuestionOptions();
+    showToast(`✅ أُضيف للبنك (${bankItems.length})`, 'success');
+    $('qTitle').focus();
+  } else {
+    closeQuestionModal();
+    showToast(editing ? '✅ تم تعديل السؤال' : `✅ أُضيف للبنك (${bankItems.length})`, 'success');
+  }
+}
+$('qModalSaveNext').addEventListener('click', () => bankSaveFromForm(true));
+
+// ----- إضافة دفعة أسئلة من نص -----
+const OPT_RE = /^(\*|✓|✔)?\s*(?:[أابتجحدهـوABCDEFabcdef]|\d{1,2})\s*[\)\.\-–:]\s*(.+?)\s*(✓|✔|\*)?$/;
+function parseBulk(text) {
+  const blocks = String(text || '').replace(/\r/g, '').split(/\n\s*\n+/).map(b => b.trim()).filter(Boolean);
+  const out = [];
+  blocks.forEach(block => {
+    const it = { type: 'essay', title: '', score: 1, timer: 0, targetStudentId: '', options: [], correctEssayAnswer: '', explanation: '' };
+    let hasTitle = false;
+    block.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      let m;
+      if ((m = line.match(/^(?:وقت|time)\s*[:：]\s*(\d+)/i))) { it.timer = Math.min(600, Math.max(5, +m[1])); return; }
+      if ((m = line.match(/^(?:درجة|الدرجة|score)\s*[:：]\s*(\d+)/i))) { it.score = Math.max(1, +m[1]); return; }
+      if ((m = line.match(/^(?:إجابة|اجابة|الإجابة|الاجابة|answer)\s*[:：]\s*(.+)/i))) { it.correctEssayAnswer = m[1].trim(); return; }
+      if ((m = line.match(/^(?:شرح|الشرح)\s*[:：]\s*(.+)/))) { it.explanation = m[1].trim(); return; }
+      if (!hasTitle) {
+        it.title = line.replace(/^(?:س|سؤال|q)?\s*\d*\s*[:：\.\-\)]\s*/i, '').trim() || line;
+        hasTitle = true; return;
+      }
+      if ((m = line.match(OPT_RE))) {
+        it.options.push({ text: m[2].trim(), correct: !!(m[1] || m[3]) });
+        return;
+      }
+      it.title += '\n' + line; // سطر إضافي من نص السؤال
+    });
+    if (!it.title) return;
+    if (it.options.length >= 2) {
+      if (!it.options.some(o => o.correct)) return; // اختياري بدون إجابة صحيحة = نتجاهله
+      it.type = 'mcq';
+    } else { it.options = []; it.type = 'essay'; }
+    out.push(it);
+  });
+  return out;
+}
+function bulkInfo() {
+  const text = $('bankBulkText').value;
+  const total = String(text).split(/\n\s*\n+/).filter(b => b.trim()).length;
+  const ok = parseBulk(text).length;
+  $('bankBulkInfo').textContent = ok + ' سؤال جاهز للإضافة' + (total > ok ? ` — ⚠️ ${total - ok} كتلة تم تجاهلها (تأكد من علامة * على الإجابة الصحيحة)` : '');
+}
+$('bankBulkText').addEventListener('input', bulkInfo);
+$('bankToggleBulk').addEventListener('click', () => { $('bankBulk').classList.toggle('show'); if ($('bankBulk').classList.contains('show')) $('bankBulkText').focus(); });
+$('bankBulkAdd').addEventListener('click', async () => {
+  const items = parseBulk($('bankBulkText').value).map(x => ({ ...x, id: newBankId() }));
+  if (!items.length) return showToast('لا توجد أسئلة صالحة للإضافة', 'warning');
+  const ok = await mutBank(cur => [...cur, ...items]);
+  if (ok) { $('bankBulkText').value = ''; bulkInfo(); showToast(`✅ أُضيف ${items.length} سؤال للبنك`, 'success'); }
+});
 
 // ➕ عرض المزيد لأوقات الإجابة (أكثر من 3)
 const expandedChips = new Set();
