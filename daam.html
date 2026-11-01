@@ -1084,6 +1084,154 @@
   .quick-chips button:active { transform: scale(0.96); }
   .msg-text a { color: var(--info); text-decoration: underline; word-break: break-all; font-weight: 700; }
   .msg.user .msg-text a { color: inherit; }
+
+  /* =====================================================
+     ✨ إضافات: المحفظة + الهدايا + الوسائط + الريكورد
+     ===================================================== */
+  :root { --gold: #C9A961; }
+
+  .wal { display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#0B3D2E,#145A43); color:#F3E2B0; border-radius:12px; padding:9px 12px; font-weight:900; font-size:13px; text-decoration:none; white-space:nowrap; flex-shrink:0; box-shadow:0 4px 12px var(--shadow); transition:transform .2s; }
+  .wal:hover { transform:translateY(-2px); }
+  .wal[hidden] { display:none; }
+  .wal i { color:var(--gold); }
+  .wal.bump { animation:walBump .5s; }
+  @keyframes walBump { 50% { transform:scale(1.12); } }
+
+  .gift-btn { color:var(--gold); }
+  .gift-btn:hover { background:var(--gold); color:#2b2208; border-color:var(--gold); }
+  .mic-btn { background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); }
+  .chat-input-area { position:relative; }
+
+  /* --- شريط التسجيل --- */
+  .rec-panel { position:absolute; inset:0; background:var(--bg-card); border-radius:inherit; display:none; align-items:center; gap:10px; padding:8px 10px; z-index:5; animation:gsf .15s; }
+  .rec-panel.show { display:flex; }
+  .rec-del, .rec-ok { width:44px; height:44px; border-radius:12px; border:none; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .2s; }
+  .rec-del { background:rgba(192,57,43,.12); color:var(--error); }
+  .rec-ok { background:linear-gradient(135deg,var(--primary),var(--primary-lighter)); color:#fff; box-shadow:0 4px 12px var(--shadow); }
+  [data-theme="dark"] .rec-ok { color:var(--bg-page); }
+  .rec-del:active, .rec-ok:active { transform:scale(.92); }
+  .rec-dot { width:11px; height:11px; border-radius:50%; background:#E74C3C; flex-shrink:0; animation:recPulse 1s infinite; }
+  @keyframes recPulse { 50% { opacity:.25; transform:scale(.8); } }
+  .rec-time { font-weight:800; font-size:14px; min-width:40px; font-variant-numeric:tabular-nums; color:var(--text-main); }
+  .rec-bars { flex:1; height:34px; display:flex; align-items:center; gap:2px; overflow:hidden; direction:rtl; }
+  .rec-bars i { flex:none; width:3px; height:8%; border-radius:2px; background:var(--gold); transition:height .09s; }
+
+  /* --- قائمة الإرفاق --- */
+  .am-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px; }
+  .am-b { display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px 8px; border:2px solid var(--border); border-radius:16px; background:var(--bg-input); color:var(--text-main); font-family:'Cairo',sans-serif; font-weight:800; font-size:13px; cursor:pointer; transition:all .2s; }
+  .am-b i { font-size:25px; }
+  .am-b:hover { border-color:var(--gold); transform:translateY(-2px); box-shadow:0 8px 20px var(--shadow); }
+  .am-b.img i { color:#2ECC71; } .am-b.vid i { color:#E74C3C; } .am-b.fil i { color:#3498DB; } .am-b.lnk i { color:var(--gold); }
+
+  /* --- مشغّل الصوت (ريكورد) --- */
+  .vm { display:flex; align-items:center; gap:10px; min-width:215px; max-width:290px; direction:rtl; }
+  .vm-play { width:42px; height:42px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; background:var(--primary); color:#fff; border:none; font-size:15px; cursor:pointer; box-shadow:0 4px 10px var(--shadow); transition:transform .15s; }
+  [data-theme="dark"] .vm-play { color:var(--bg-page); }
+  .vm-play:active { transform:scale(.9); }
+  .msg.user .vm-play { background:#fff; color:var(--primary); }
+  [data-theme="dark"] .msg.user .vm-play { background:var(--bg-page); color:var(--primary); }
+  .vm-mid { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .vm-wave { height:32px; display:flex; align-items:center; gap:2px; cursor:pointer; direction:rtl; color:var(--primary); }
+  .msg.user .vm-wave { color:inherit; }
+  .vm-wave i { flex:1; min-width:2px; border-radius:2px; background:currentColor; opacity:.3; transition:opacity .12s; }
+  .vm-wave i.on { opacity:1; }
+  .vm-time { font-size:11px; font-weight:700; opacity:.85; font-variant-numeric:tabular-nums; }
+  .vm-spd { flex:none; font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:800; padding:4px 7px; border-radius:10px; background:rgba(127,127,127,.2); color:inherit; border:none; cursor:pointer; }
+
+  /* --- كارت الملف --- */
+  .fm { display:flex; align-items:center; gap:10px; min-width:210px; max-width:285px; padding:8px; border-radius:12px; background:rgba(127,127,127,.13); color:inherit; cursor:pointer; direction:rtl; }
+  .fm-ic { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--gold); color:#2b2208; flex:none; }
+  .fm-i { min-width:0; flex:1; }
+  .fm-i b { display:block; font-size:13px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; direction:ltr; text-align:right; }
+  .fm-i small { font-size:11px; opacity:.78; font-weight:700; }
+  .fm-dl { width:34px; height:34px; border-radius:50%; background:rgba(127,127,127,.22); display:flex; align-items:center; justify-content:center; flex:none; font-size:14px; }
+
+  /* --- الصور والفيديو --- */
+  .msg-media.loading { min-height:120px; min-width:170px; background:linear-gradient(90deg,rgba(127,127,127,.12),rgba(127,127,127,.25),rgba(127,127,127,.12)); background-size:200% 100%; animation:mshim 1.2s linear infinite; }
+  @keyframes mshim { to { background-position:-200% 0; } }
+  .vload { width:100%; min-width:210px; min-height:135px; border-radius:10px; background:#111; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:none; font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .vload i { font-size:40px; color:var(--gold); }
+
+  /* --- فقاعة الهدية --- */
+  .msg-content.gift-bub { background:linear-gradient(135deg,#0B3D2E,#145A43) !important; border-color:var(--gold) !important; color:#F3E2B0 !important; }
+  .msg-content.gift-bub .msg-meta { color:#F3E2B0 !important; }
+  .msg-content.gift-bub .msg-sender-name { color:var(--gold) !important; }
+  .gm { display:flex; align-items:center; gap:12px; min-width:220px; padding:6px 4px; cursor:pointer; direction:rtl; }
+  .gm-ic { width:58px; height:58px; border-radius:16px; background:rgba(201,169,97,.16); border:2px dashed var(--gold); display:flex; align-items:center; justify-content:center; font-size:34px; flex:none; }
+  .gm-ic img { width:44px; height:44px; object-fit:contain; }
+  .gm-ic .ic { line-height:1; }
+  .gm-i { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .gm-i b { font-weight:900; font-size:15px; }
+  .gm-i small { font-weight:700; opacity:.85; font-size:11.5px; }
+  .gm-rp { color:var(--gold); font-size:15px; opacity:.85; }
+
+  /* --- فقاعة قيد الإرسال --- */
+  .pend .msg-media { position:relative; }
+  .pend .msg-media img, .pend .msg-media video { filter:blur(1.5px) brightness(.72); }
+  .pov { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.28); }
+  .ring-w { --p:0; width:54px; height:54px; border-radius:50%; background:conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(255,255,255,.3) 0); display:flex; align-items:center; justify-content:center; position:relative; }
+  .ring-w::before { content:''; position:absolute; inset:4px; border-radius:50%; background:rgba(0,0,0,.68); }
+  .ring-w span { position:relative; color:#fff; font-weight:800; font-size:12px; }
+  .ring-x { position:absolute; top:6px; left:6px; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,.6); color:#fff; border:none; font-size:11px; cursor:pointer; }
+  .pbar { height:4px; border-radius:3px; background:rgba(127,127,127,.3); overflow:hidden; margin-top:8px; }
+  .pbar i { display:block; height:100%; width:0; background:var(--gold); transition:width .2s; }
+  .pend .pm { display:inline-flex; align-items:center; gap:5px; }
+  .pend .pm.err { color:#FFB4A8; }
+  .pend.fail .msg-content { border-color:var(--error); }
+  .pend .pbtn { background:rgba(255,255,255,.2); color:inherit; border:none; border-radius:10px; font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:800; padding:2px 8px; cursor:pointer; margin-right:6px; }
+
+  /* --- معاينة الصور --- */
+  .lbx { position:fixed; inset:0; z-index:12000; background:rgba(0,0,0,.93); display:flex; align-items:center; justify-content:center; padding:16px; animation:gsf .2s; }
+  .lbx img, .lbx video { max-width:100%; max-height:100%; border-radius:10px; }
+  .lbx button { position:absolute; top:16px; left:16px; width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.18); color:#fff; border:none; font-size:18px; cursor:pointer; }
+
+  @media (max-width: 700px) {
+    .wal { padding:8px 10px; font-size:12px; }
+    .vm { min-width:195px; }
+    .fm, .gm { min-width:190px; }
+  }
+  @media (max-width: 380px) { .wal .cur { display:none; } }
+
+  /* =====================================================
+     🎁 نافذة الهدايا + مؤثرات الهدية (منقولة من صفحة المنشورات)
+     ===================================================== */
+  :where(.gsx) button { font-family:'Cairo',sans-serif; cursor:pointer; border:none; background:none; color:inherit; }
+.gsx{position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;animation:gsf .2s}
+@keyframes gsf{from{opacity:0}to{opacity:1}}@keyframes gsup{from{transform:translateY(60px);opacity:.4}to{transform:none;opacity:1}}
+.gsh{width:min(560px,100%);max-height:88dvh;background:var(--bg-card);color:var(--text-main);border-radius:26px 26px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;animation:gsup .26s}
+.gsh-h{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;background:linear-gradient(135deg,#0B3D2E,#145A43);color:#F3E2B0}
+.gsh-t{flex:1;font-weight:900;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gsh-t i{color:var(--gold);margin-left:6px}
+.gsh-w{font-weight:800;font-size:13px;background:rgba(255,255,255,.12);padding:6px 12px;border-radius:20px;white-space:nowrap}
+.gsh-x{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;flex:none}
+.gsh-s{padding:9px 16px;background:rgba(201,169,97,.14);font-size:13px;font-weight:700;border-bottom:1px solid var(--border)}.gsh-s i{color:var(--gold);margin-left:6px}
+.gsh-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px;padding:14px;overflow:auto;flex:1;min-height:150px}
+.gsg{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px 10px;border:2px solid var(--border);border-radius:18px;background:var(--bg-input);transition:.16s;text-align:center;font-size:12.5px;color:var(--text-main)}
+.gsg:active{transform:scale(.95)}.gsg .ic{font-size:42px;line-height:50px}.gsg img{width:50px;height:50px;object-fit:contain}
+.gsg b{font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gsg .gsp{font-size:11.5px;font-weight:900;background:var(--gold);color:#2b2208;padding:2px 9px;border-radius:20px}
+.gsg.on{border-color:var(--gold);background:linear-gradient(160deg,rgba(201,169,97,.28),rgba(201,169,97,.06));transform:translateY(-3px) scale(1.05);box-shadow:0 8px 22px rgba(201,169,97,.38)}
+.gs-empty{grid-column:1/-1;text-align:center;color:var(--text-sub);padding:30px 0;font-weight:700}
+.gsh-q{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid var(--border);background:var(--bg-card);display:flex;flex-direction:column;gap:10px;animation:gsup .2s}
+.gsh-q[hidden]{display:none}
+.gq-top{display:flex;align-items:center;gap:12px}.gq-pv{width:58px;height:58px;border-radius:16px;border:2px dashed var(--gold);display:flex;align-items:center;justify-content:center;background:rgba(201,169,97,.08);flex:none}
+.gq-pv .ic{font-size:36px;line-height:1}.gq-pv img{width:44px;height:44px;object-fit:contain}.gq-i{display:flex;flex-direction:column;flex:1;min-width:0}.gq-i small{color:var(--text-sub);font-weight:700}
+.gq-n{display:flex;align-items:center;gap:8px}.gq-n button{width:42px;height:42px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);font-size:20px;font-weight:900;color:var(--text-main)}
+.gq-n input{flex:1;min-width:0;text-align:center;font-size:18px;font-weight:900;border:2px solid var(--border);border-radius:12px;height:42px;background:var(--bg-input);outline:none}.gq-n input:focus{border-color:var(--gold)}
+.gq-chips{display:flex;gap:6px;flex-wrap:wrap}.gq-chips button{flex:1;min-width:48px;padding:7px 4px;border-radius:20px;background:var(--bg-input);border:2px solid var(--border);font-weight:800;font-size:13px;color:var(--text-main)}
+.gq-chips button.on{background:var(--gold);border-color:var(--gold);color:#2b2208}
+.gq-sum{display:flex;align-items:baseline;gap:8px;font-weight:800;flex-wrap:wrap}.gq-sum b{font-size:20px;color:var(--primary-lighter)}.gq-sum small{color:var(--text-sub);font-weight:700;margin-right:auto}
+.gq-go{padding:14px;border-radius:16px;background:linear-gradient(135deg,var(--gold),#e8d190);color:#2b2208;font-weight:900;font-size:16px;box-shadow:0 6px 18px rgba(201,169,97,.4)}.gq-go:active{transform:scale(.97)}
+.gq-go.pulse{animation:gqp .25s}@keyframes gqp{50%{transform:scale(1.04)}}
+
+#gfxBox{position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden}
+.gfx{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;text-shadow:0 2px 10px rgba(0,0,0,.8);font-weight:900;text-align:center;color:#fff;max-width:92vw;background:none}
+.gfx .ga{width:min(78vmin,520px);height:min(78vmin,520px);object-fit:contain;background:transparent;display:block}
+.gfx .ic{font-size:96px;line-height:1}.gfx img.gs{width:110px;height:110px;object-fit:contain}.gfx .gt{font-size:16px}
+
+.gsh-x,.gq-n button,.gq-go,.gq-chips button{display:flex;align-items:center;justify-content:center;gap:8px}.gq-chips button{padding:7px 4px}
+.gsg{font-family:'Cairo',sans-serif}
+.gq-go{width:100%}
+
 </style>
 </head>
 <body>
@@ -1151,6 +1299,7 @@
       </div>
 
       <div class="header-actions">
+        <a class="wal" id="walChip" href="stor.html" aria-label="المحفظة" title="المحفظة" hidden><i class="fas fa-wallet"></i><span id="bal">0</span><small class="cur">ج.م</small></a>
         <button class="btn-transfer" id="transferBtn" title="تحويل للدعم الفني">
           <i class="fas fa-headset"></i>
           <span id="transferBtnText">تحويل للدعم</span>
@@ -1191,23 +1340,54 @@
     <div class="quick-chips" id="quickChips" style="display:none;"></div>
 
     <div class="chat-input-area">
-      <button class="attach-btn" id="attachBtn" title="إرفاق">
+      <button class="attach-btn" id="attachBtn" title="إرفاق صورة / فيديو / ملف">
         <i class="fas fa-paperclip"></i>
       </button>
+      <button class="attach-btn gift-btn" id="giftBtn" title="إرسال هدية">
+        <i class="fas fa-gift"></i>
+      </button>
       <textarea class="chat-input" id="chatInput" placeholder="اكتب رسالتك..." rows="1"></textarea>
-      <button class="send-btn" id="sendBtn" title="إرسال">
+      <button class="send-btn" id="sendBtn" title="إرسال" style="display:none;">
         <i class="fas fa-paper-plane"></i>
       </button>
+      <button class="send-btn mic-btn" id="micBtn" title="تسجيل رسالة صوتية">
+        <i class="fas fa-microphone"></i>
+      </button>
+
+      <div class="rec-panel" id="recPanel">
+        <button type="button" class="rec-del" id="recCancel" title="إلغاء التسجيل"><i class="fas fa-trash"></i></button>
+        <span class="rec-dot"></span>
+        <span class="rec-time" id="recTime">0:00</span>
+        <div class="rec-bars" id="recBars"></div>
+        <button type="button" class="rec-ok" id="recSend" title="إرسال"><i class="fas fa-paper-plane"></i></button>
+      </div>
     </div>
   </div>
 </div>
+
+<div class="modal-overlay" id="attachMenu">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-paperclip"></i></div>
+    <h2 class="modal-title">إرفاق</h2>
+    <p class="modal-message">اختار اللي عايز تبعته</p>
+    <div class="am-grid">
+      <button type="button" class="am-b img" data-am="image"><i class="fas fa-image"></i>صورة</button>
+      <button type="button" class="am-b vid" data-am="video"><i class="fas fa-video"></i>فيديو</button>
+      <button type="button" class="am-b fil" data-am="file"><i class="fas fa-file-lines"></i>ملف</button>
+      <button type="button" class="am-b lnk" data-am="link"><i class="fas fa-link"></i>رابط</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="fImage" accept="image/*" multiple hidden>
+<input type="file" id="fVideo" accept="video/*" hidden>
+<input type="file" id="fFile" multiple hidden>
 
 <div class="modal-overlay" id="attachModal">
   <div class="modal-box">
     <div class="modal-icon">
       <i class="fas fa-link"></i>
     </div>
-    <h2 class="modal-title">إرسال صورة / فيديو</h2>
+    <h2 class="modal-title">إرسال رابط صورة / فيديو</h2>
     <p class="modal-message">أدخل رابط الصورة أو الفيديو</p>
 
     <div class="modal-error" id="attachError"></div>
@@ -1278,7 +1458,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
-  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, onSnapshot, setDoc, getDoc, runTransaction, arrayUnion, serverTimestamp 
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, onSnapshot, setDoc, getDoc, runTransaction, arrayUnion, serverTimestamp, collection, writeBatch, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1296,6 +1476,535 @@ let db;
 try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), experimentalAutoDetectLongPolling: true }); }
 catch (e) { db = getFirestore(app); }
 const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 🎁🎙️📎 المحفظة + الهدايا + رفع الوسائط في الخلفية + الريكورد
+// (نفس نظام صفحة المنشورات: وسائط Base64 في post_media + هدايا live_gifts + المحفظة wallets)
+// ============================================================
+const arN = n => Number(n || 0).toLocaleString('ar-EG');
+const r2 = n => Math.round(n * 100) / 100;
+const X = { wal: 0, gifts: [], started: false };
+const LIMITS = { image: 30, gif: 10, video: 20, audio: 5, file: 10 }; // MB
+const isGiftMsg = m => !!m && (m.type === 'gift' || m.isGift === true || !!m.giftName);
+const newId = () => 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+
+function fmtDur(s) { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function fmtSize(b) {
+  b = Number(b) || 0; if (!b) return '';
+  if (b < 1024) return arN(b) + ' B';
+  if (b < 1048576) return arN(Math.round(b / 1024)) + ' KB';
+  return arN(+(b / 1048576).toFixed(1)) + ' MB';
+}
+function fileIcon(name, mime) {
+  const e = (String(name || '').split('.').pop() || '').toLowerCase(), mm = String(mime || '');
+  if (e === 'pdf') return 'fa-file-pdf';
+  if (/^(docx?|rtf|odt)$/.test(e)) return 'fa-file-word';
+  if (/^(xlsx?|csv|ods)$/.test(e)) return 'fa-file-excel';
+  if (/^(pptx?|odp)$/.test(e)) return 'fa-file-powerpoint';
+  if (/^(zip|rar|7z|tar|gz)$/.test(e)) return 'fa-file-zipper';
+  if (/^audio\//.test(mm)) return 'fa-file-audio';
+  if (/^video\//.test(mm)) return 'fa-file-video';
+  if (/^image\//.test(mm)) return 'fa-file-image';
+  if (/^(txt|md|json|xml|log)$/.test(e)) return 'fa-file-lines';
+  return 'fa-file';
+}
+
+/* ---------- 💾 كاش المتصفح (نفس قاعدة صفحة المنشورات) ---------- */
+const IDB = (() => { let p;
+  const open = () => p || (p = new Promise((res, rej) => { try { const r = indexedDB.open('meezan_posts_cache', 1); r.onupgradeneeded = () => { r.result.createObjectStore('kv'); r.result.createObjectStore('media'); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }).catch(() => null));
+  return {
+    get: (st, k) => open().then(d => d ? new Promise(res => { try { const q = d.transaction(st).objectStore(st).get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); } catch (e) { res(undefined); } }) : undefined),
+    set: (st, k, v) => open().then(d => { if (d) try { d.transaction(st, 'readwrite').objectStore(st).put(v, k); } catch (e) {} })
+  };
+})();
+
+/* ---------- 📤 وسائط Base64 داخل مستندات Firestore (post_media) ---------- */
+const MCH = 800000, mediaCache = new Map(), memUrl = new Map();
+const b2d = b => new Promise((r, j) => { const f = new FileReader(); f.onload = () => r(f.result); f.onerror = j; f.readAsDataURL(b); });
+function shrinkImg(file) {
+  return new Promise((res, rej) => {
+    const im = new Image(), u = URL.createObjectURL(file);
+    im.onload = () => { const k = Math.min(1, 1280 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', .78)); };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('img')); };
+    im.src = u;
+  });
+}
+async function saveMedia(d, onp, job) {
+  const id = 'm' + Date.now() + Math.random().toString(36).slice(2, 7), parts = [];
+  for (let i = 0; i < d.length; i += MCH) parts.push(d.slice(i, i + MCH));
+  const ptr = `fsm:${id}:${parts.length}`; if (job) job.ptr = ptr;
+  const groups = []; for (let i = 0; i < parts.length; i += 3) groups.push(parts.slice(i, i + 3).map((p, j) => [i + j, p]));
+  let done = 0, next = 0;
+  const worker = async () => {
+    while (next < groups.length) {
+      if (job && job.cancelled) throw new Error('cancelled');
+      const g = groups[next++], b = writeBatch(db);
+      g.forEach(([i, p]) => b.set(doc(db, 'post_media', `${id}_${i}`), { data: p, i, mid: id, createdAt: serverTimestamp() }));
+      await b.commit(); done += g.length; onp && onp(done / parts.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, groups.length) }, worker));
+  return ptr;
+}
+function delPtr(ptr) { const a = String(ptr || '').split(':'); if (a[0] === 'fsm') for (let i = 0; i < (+a[2] || 1); i++) deleteDoc(doc(db, 'post_media', `${a[1]}_${i}`)).catch(() => {}); }
+const mLoad = ptr => {
+  if (mediaCache.has(ptr)) return mediaCache.get(ptr);
+  const r = (async () => {
+    if (memUrl.has(ptr)) return memUrl.get(ptr);
+    const hit = await IDB.get('media', 'm:' + ptr);
+    if (hit && (hit.b || hit.d)) { const u = hit.b ? URL.createObjectURL(hit.b) : hit.d; memUrl.set(ptr, u); return u; }
+    const a = ptr.split(':'), m = ptr.startsWith('fsm:');
+    const parts = await Promise.all(Array.from({ length: +(m ? a[2] : a[4]) || 1 }, (_, i) => getDoc(m ? doc(db, 'post_media', `${a[1]}_${i}`) : doc(db, a[1], `avatar_${a[2]}_${a[3]}_${i}`)).then(x => x.exists() ? x.data().data : null)));
+    if (parts.some(x => x == null)) return '';
+    const d = parts.join(''); let blob = null; try { blob = await (await fetch(d)).blob(); } catch (e) {}
+    IDB.set('media', 'm:' + ptr, blob ? { b: blob, t: Date.now() } : { d, t: Date.now() });
+    const u = blob ? URL.createObjectURL(blob) : d; memUrl.set(ptr, u); return u;
+  })().catch(() => '').then(u => { if (!u) mediaCache.delete(ptr); return u; });
+  mediaCache.set(ptr, r); return r;
+};
+const resolveUrl = u => /^fs(m|av):/.test(String(u || '')) ? mLoad(u) : Promise.resolve(u || '');
+/* أي <img src="fsm:..."> يتحمّل تلقائياً (صور الهدايا / الصور الشخصية المخزّنة كمؤشر) */
+function fixM(el) {
+  const s = el.getAttribute('src') || ''; if (!/^fs(m|av):/.test(s) || el._b === s) return;
+  el._b = s; el.removeAttribute('onerror'); el.removeAttribute('src');
+  const u = memUrl.get(s); if (u) { el.src = u; el.style.display = ''; return; }
+  mLoad(s).then(d => { if (d) { el.src = d; el.style.display = ''; } });
+}
+const MSEL = 'img[src^="fsm:"],img[src^="fsav:"],video[src^="fsm:"],audio[src^="fsm:"]';
+new MutationObserver(ms => ms.forEach(m => {
+  if (m.type === 'attributes') { if (/^(IMG|VIDEO|AUDIO)$/.test(m.target.tagName)) fixM(m.target); return; }
+  m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (/^(IMG|VIDEO|AUDIO)$/.test(n.tagName)) fixM(n); else n.querySelectorAll && n.querySelectorAll(MSEL).forEach(fixM); });
+})).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+
+/* ---------- 🔊 مؤثرات الهدايا (نفس محرّك صفحة المنشورات بالظبط) ---------- */
+let AC;
+const SFX = (() => {
+  const on = () => localStorage.getItem('meezan_snd') !== '0';
+  const ctx = () => { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
+  const env = (g, t, a, d, pk) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(pk, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + d); };
+  const tone = (c, type, f1, f2, t, d, pk = .2) => { const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f1, t); if (f2 && f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + d); env(g, t, Math.min(.02, d / 4), d, pk); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + .05); };
+  const noise = (c, t, d, f1, f2, q, pk = .25, type = 'bandpass') => { const n = Math.ceil(c.sampleRate * d), b = c.createBuffer(1, n, c.sampleRate), x = b.getChannelData(0); for (let i = 0; i < n; i++) x[i] = Math.random() * 2 - 1;
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + d); env(g, t, Math.min(.06, d / 3), d, pk); s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + d + .05); };
+  const lfoGain = (c, o, rate, depth, t, d) => { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = rate; lg.gain.value = depth; l.connect(lg); lg.connect(o); l.start(t); l.stop(t + d + .05); };
+  const K = {
+    lion(c, t) { const o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(75, t); o.frequency.linearRampToValueAtTime(155, t + .3); o.frequency.exponentialRampToValueAtTime(52, t + 1.8);
+      lp.type = 'lowpass'; lp.Q.value = 5; lp.frequency.setValueAtTime(450, t); lp.frequency.linearRampToValueAtTime(1500, t + .3); lp.frequency.exponentialRampToValueAtTime(280, t + 1.8);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.38, t + .1); g.gain.setValueAtTime(.38, t + .9); g.gain.exponentialRampToValueAtTime(.0001, t + 1.9);
+      lfoGain(c, g.gain, 26, .14, t, 1.9); o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 2);
+      noise(c, t, 1.6, 500, 140, .9, .22); },
+    elephant(c, t) { const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(260, t); o.frequency.exponentialRampToValueAtTime(620, t + .35); o.frequency.exponentialRampToValueAtTime(380, t + 1.1);
+      f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.4; env(g, t, .06, 1.2, .3); lfoGain(c, o.frequency, 18, 22, t, 1.2); o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 1.3); },
+    eagle(c, t) { [0, .38].forEach(k => { tone(c, 'sawtooth', 2700, 1500, t + k, .32, .14); noise(c, t + k, .3, 4000, 2500, 3, .06); }); },
+    rocket(c, t) { noise(c, t, 1.5, 180, 3200, .7, .35, 'lowpass'); tone(c, 'sawtooth', 90, 900, t, 1.4, .1); },
+    car(c, t) { const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(55, t); o.frequency.exponentialRampToValueAtTime(210, t + .9); o.frequency.exponentialRampToValueAtTime(90, t + 1.3);
+      f.type = 'lowpass'; f.frequency.value = 900; env(g, t, .08, 1.3, .22); lfoGain(c, o.frequency, 24, 12, t, 1.3); o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 1.4); },
+    heart(c, t) { [0, .2].forEach(k => tone(c, 'sine', 110, 55, t + k, .18, .45)); [1046, 1568].forEach((f, i) => tone(c, 'sine', f, f, t + .45 + i * .1, .35, .12)); },
+    crown(c, t) { [523, 659, 784, 1047].forEach((f, i) => tone(c, 'triangle', f, f, t + i * .1, .3, .17)); [523, 659, 784, 1047].forEach(f => tone(c, 'triangle', f, f, t + .46, .8, .1)); },
+    gem(c, t) { [2093, 2637, 3136].forEach((f, i) => tone(c, 'sine', f, f, t + i * .07, .6, .1)); tone(c, 'sine', 1568, 1568, t, .8, .12); },
+    gift(c, t, seed = 0) { const sh = [1, 1.122, 1.26, 1.335, 1.498, 1.682][seed % 6]; [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(c, 'triangle', f * sh, f * sh, t + i * .08, .28, .13)); }
+  };
+  const kind = (name, icon) => { const x = String((name || '') + ' ' + (icon || '')).toLowerCase().replace(/[أإآ]/g, 'ا');
+    if (/اسد|ليث|🦁|🐯|lion/.test(x)) return 'lion'; if (/فيل|🐘|elephant/.test(x)) return 'elephant'; if (/نسر|صقر|عقاب|🦅|eagle|falcon/.test(x)) return 'eagle';
+    if (/صاروخ|🚀|rocket/.test(x)) return 'rocket'; if (/سيار|🏎|🚗|🚘|car/.test(x)) return 'car'; if (/قلب|حب|❤|💖|💝|💗|heart|love/.test(x)) return 'heart';
+    if (/تاج|ملك|👑|crown|king/.test(x)) return 'crown'; if (/الماس|ماس|💎|ذهب|💰|🪙|gem|diamond|gold/.test(x)) return 'gem'; return 'gift'; };
+  const play = (k, seed = 0) => { if (!on() || !K[k]) return; try { const c = ctx(); K[k](c, c.currentTime + .02, seed); } catch (_) {} };
+  const hash = x => { let h = 0; String(x || '').split('').forEach(ch => h = (h * 31 + ch.charCodeAt(0)) >>> 0); return h; };
+  return { on, play, kind, gift: (name, icon, price) => { const gg = (X.gifts || []).find(x => x.name === name); if (gg && gg.sound && on()) { try { new Audio(gg.sound).play().catch(() => {}); return 'custom'; } catch (_) {} } let k = kind(name, icon); if (k === 'gift' && Number(price) >= 100) k = 'crown'; play(k, hash(name)); return k; } };
+})();
+/* المتصفح بيمنع الصوت قبل أول لمسة — بنفتحه عند أول تفاعل */
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} }, { once: true, passive: true }));
+
+/* ---------- 🎬 ظهور الهدية: مدة الظهور = مدة الصوت + أنيميشن شفاف ---------- */
+const giftIco = g => g.img ? `<img src="${escapeHtml(g.img)}" alt="">` : `<span class="ic">${escapeHtml(g.icon || '🎁')}</span>`;
+const gOf = m => { const cat = (X.gifts || []).find(x => (m.giftId && x.id === m.giftId) || (m.giftName && x.name === m.giftName)) || {}; return { ...cat, name: m.giftName || cat.name || '', icon: m.giftIcon || cat.icon || '', img: m.giftImg || cat.img || '' }; };
+const soundDur = src => new Promise(res => { try { const a = new Audio(); a.preload = 'metadata'; a.onloadedmetadata = () => res(isFinite(a.duration) ? a.duration : 0); a.onerror = () => res(0); a.src = src; } catch (_) { res(0); } });
+const gfxBlobs = new Map();
+async function gfxVideoUrl(ptr) { const k = ptr.length < 120 ? ptr : ''; if (k && gfxBlobs.has(k)) return gfxBlobs.get(k);
+  const d = ptr.startsWith('fsm:') ? await mLoad(ptr) : ptr; if (!d) return ''; let u = d; if (d.startsWith('data:')) { try { u = URL.createObjectURL(await (await fetch(d)).blob()); } catch (_) {} } if (k) gfxBlobs.set(k, u); return u; }
+function startKey(v, cv, mode, thr) {
+  const ctx = cv.getContext('2d', { willReadFrequently: true }); let w = 0, h = 0, stop = false; const lo = (Number(thr) || 40) * .5, hi = (Number(thr) || 40) * 1.6, sp = Math.max(1, hi - lo);
+  const frame = () => { if (stop) return; if (v.videoWidth && v.readyState >= 2) {
+      if (!w) { const k = Math.min(1, 512 / Math.max(v.videoWidth, v.videoHeight)); w = cv.width = Math.round(v.videoWidth * k); h = cv.height = Math.round(v.videoHeight * k); }
+      ctx.drawImage(v, 0, 0, w, h); const im = ctx.getImageData(0, 0, w, h), d = im.data;
+      for (let i = 0; i < d.length; i += 4) { const r = d[i], g = d[i + 1], b = d[i + 2]; let a = 255;
+        if (mode === 'black') { const m = Math.max(r, g, b); a = m <= lo ? 0 : m >= hi ? 255 : (m - lo) * 255 / sp; }
+        else if (mode === 'white') { const m = 255 - Math.min(r, g, b); a = m <= lo ? 0 : m >= hi ? 255 : (m - lo) * 255 / sp; }
+        else { const mx = Math.max(r, b), dm = g - mx; a = dm <= lo ? 255 : dm >= hi ? 0 : 255 * (1 - (dm - lo) / sp); if (dm > 0) d[i + 1] = mx + dm * .25; }
+        d[i + 3] = a; }
+      ctx.putImageData(im, 0, 0); }
+    if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(frame); else requestAnimationFrame(frame); };
+  frame(); return () => { stop = true; };
+}
+let gfxQ = Promise.resolve(), gfxN = 0;
+function giftFx(g, text, price) { g = g || {};
+  if (g.anim) { if (gfxN >= 6) return; gfxN++; gfxQ = gfxQ.then(() => gfxPlay(g, text, price)).catch(e => console.error(e)).then(() => { gfxN--; }); }
+  else gfxPlay(g, text, price).catch(e => console.error(e)); }
+async function gfxPlay(g, text, price) {
+  const box = document.getElementById('gfxBox') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'gfxBox' }));
+  const el = document.createElement('div'); el.className = 'gfx'; let media = null, v = null, cv = null, stopKey = null, aud = null;
+  if (g.anim) {
+    if (g.animType === 'image') { const d = g.anim.startsWith('fsm:') ? await mLoad(g.anim) : g.anim; if (d) { media = document.createElement('img'); media.className = 'ga'; media.src = d; } }
+    else { const u = await gfxVideoUrl(g.anim); if (u) { v = document.createElement('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.src = u; v.className = 'ga';
+        if ((g.animBg || 'alpha') === 'alpha') media = v; else { cv = document.createElement('canvas'); cv.className = 'ga'; media = cv; } } }
+  }
+  if (media) el.appendChild(media); else el.innerHTML = g.img ? `<img class="gs" src="${escapeHtml(g.img)}" alt="">` : `<span class="ic">${escapeHtml(g.icon || '🎁')}</span>`;
+  if (text) { const t = document.createElement('div'); t.className = 'gt'; t.textContent = text; el.appendChild(t); }
+  const snd0 = SFX.on() ? (g.sound || '') : '';
+  let dur = 0; if (snd0) dur = (await soundDur(snd0)) || Number(g.sndDur) || 0;
+  if (!dur) dur = Number(g.dur) || (g.anim ? 3 : 2.8);
+  if (v) await new Promise(r => { if (v.readyState >= 2) return r(); v.onloadeddata = r; v.onerror = r; setTimeout(r, 2500); });
+  box.appendChild(el); if (cv) stopKey = startKey(v, cv, g.animBg, g.animThr);
+  if (snd0) { aud = new Audio(snd0); aud.play().catch(() => {}); } else SFX.gift(g.name, g.icon, price);
+  if (v) v.play().catch(() => {});
+  const f = Math.min(.3, dur * .15) / dur, T = 'translate(-50%,-50%) scale(', an = el.animate([{ opacity: 0, transform: T + '.7)' }, { opacity: 1, transform: T + '1)', offset: f }, { opacity: 1, transform: T + '1)', offset: 1 - f }, { opacity: 0, transform: T + '1)' }], { duration: dur * 1000, fill: 'forwards' });
+  await new Promise(r => { an.onfinish = r; if (aud) aud.onended = r; });
+  stopKey && stopKey(); v && v.pause(); aud && aud.pause(); el.remove();
+}
+function playGiftMsg(m, incoming) {
+  const g = gOf(m), q = Number(m.qty) || 1;
+  const who = incoming ? ((m.senderName || 'الدعم الفني') + ' أرسل لك') : 'أرسلت';
+  giftFx(g, `${who} ${q > 1 ? q + '× ' : ''}${g.name || 'هدية'}`, Number(m.unitPrice || g.price) || 0);
+}
+/* هدية جديدة وصلت من الأدمن → تظهر بصوتها فوراً (أول تحميل للشات ما يشغّلش القديم) */
+const seenGifts = new Set(); let giftsInit = false;
+function detectGifts(messages) {
+  const gs = messages.filter(isGiftMsg);
+  if (!giftsInit) { gs.forEach(m => seenGifts.add(m.id)); giftsInit = true; return; }
+  gs.forEach(m => {
+    if (seenGifts.has(m.id)) return; seenGifts.add(m.id);
+    if (m.sender === 'user') return;
+    if (Date.now() - new Date(m.createdAt || 0).getTime() > 90000) return;
+    playGiftMsg(m, true);
+  });
+}
+
+/* ---------- 🎁 فقاعة الهدية داخل الشات ---------- */
+function giftBubbleHtml(msg, type) {
+  const g = gOf(msg), q = Number(msg.qty) || 1, mine = type === 'user';
+  const total = Number(msg.total) || (Number(msg.unitPrice || g.price) || 0) * q;
+  return `<div class="gm" role="button" title="اضغط لإعادة التشغيل"><div class="gm-ic">${giftIco(g)}</div><div class="gm-i"><small>${mine ? 'أرسلت هدية' : 'أرسل لك هدية 🎁'}</small><b>${escapeHtml(g.name || 'هدية')}${q > 1 ? ' ×' + arN(q) : ''}</b>${total ? `<small>${arN(total)} ج.م</small>` : ''}</div><i class="fas fa-rotate-right gm-rp"></i></div>`;
+}
+
+/* ---------- 🖼️ عرض الوسائط داخل الرسائل ---------- */
+function openLightbox(kind, src) {
+  const o = document.createElement('div'); o.className = 'lbx';
+  o.innerHTML = `${kind === 'video' ? `<video src="${escapeHtml(src)}" controls autoplay playsinline></video>` : `<img src="${escapeHtml(src)}" alt="">`}<button type="button" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>`;
+  const close = () => { o.remove(); document.removeEventListener('keydown', onK, true); };
+  const onK = e => { if (e.key === 'Escape') close(); };
+  o.addEventListener('click', e => { if (e.target === o || e.target.closest('button')) close(); });
+  document.addEventListener('keydown', onK, true); document.body.appendChild(o);
+}
+let curAudio = null;
+function waveBars(wave, id, n = 30) {
+  if (Array.isArray(wave) && wave.length) { const out = []; for (let i = 0; i < n; i++) out.push(Math.max(16, Math.min(100, Number(wave[Math.floor(i * wave.length / n)]) || 0))); return out; }
+  let h = 2166136261; String(id || 'x').split('').forEach(c => { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; });
+  const out = []; for (let i = 0; i < n; i++) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; h ^= h >>> 13; out.push(22 + (h % 70)); } return out;
+}
+function buildVoice({ id, wave, duration, resolve }) {
+  const el = document.createElement('div'); el.className = 'vm';
+  const bars = waveBars(wave, id, 30);
+  el.innerHTML = `<button type="button" class="vm-play" aria-label="تشغيل"><i class="fas fa-play"></i></button><div class="vm-mid"><div class="vm-wave">${bars.map(h => `<i style="height:${h}%"></i>`).join('')}</div><div class="vm-time">${duration ? fmtDur(duration) : '🎤'}</div></div><button type="button" class="vm-spd" title="سرعة التشغيل">1×</button>`;
+  const btn = el.querySelector('.vm-play'), ic = btn.querySelector('i'), wv = el.querySelector('.vm-wave'), tm = el.querySelector('.vm-time'), sp = el.querySelector('.vm-spd'), bs = [...wv.children];
+  let au = null, loading = false, rate = 1; const total = Number(duration) || 0;
+  const paint = r => { const n = Math.round(r * bs.length); bs.forEach((b, i) => b.classList.toggle('on', i < n)); };
+  const ensure = async () => {
+    if (au) return au; if (loading) return null;
+    loading = true; ic.className = 'fas fa-spinner fa-spin';
+    const u = await resolve(); loading = false;
+    if (!u) { ic.className = 'fas fa-triangle-exclamation'; showToast('تعذّر تحميل الصوت', 'error'); return null; }
+    au = new Audio(); au.preload = 'auto'; au.src = u;
+    au.addEventListener('play', () => { ic.className = 'fas fa-pause'; });
+    au.addEventListener('pause', () => { ic.className = 'fas fa-play'; });
+    au.addEventListener('timeupdate', () => { const d = total || (isFinite(au.duration) ? au.duration : 0); paint(d ? Math.min(1, au.currentTime / d) : 0); tm.textContent = fmtDur(au.currentTime); });
+    au.addEventListener('ended', () => { ic.className = 'fas fa-play'; paint(0); tm.textContent = total ? fmtDur(total) : '🎤'; if (curAudio === au) curAudio = null; });
+    return au;
+  };
+  btn.addEventListener('click', async () => {
+    const a = await ensure(); if (!a) { ic.className = 'fas fa-play'; return; }
+    if (a.paused) { if (curAudio && curAudio !== a) curAudio.pause(); curAudio = a; a.playbackRate = rate; a.play().catch(() => {}); } else a.pause();
+  });
+  wv.addEventListener('click', async e => {
+    const a = await ensure(); if (!a) return; const rc = wv.getBoundingClientRect(), r = Math.min(1, Math.max(0, (rc.right - e.clientX) / rc.width)), d = total || a.duration;
+    if (isFinite(d) && d) { a.currentTime = r * d; paint(r); }
+  });
+  sp.addEventListener('click', () => { rate = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1; sp.textContent = rate + '×'; if (au) au.playbackRate = rate; });
+  return el;
+}
+function mountMsgMedia(box, msg, url) {
+  if (!box) return;
+  let kind = msg.mediaType || (msg.audioUrl ? 'audio' : msg.fileUrl ? 'file' : 'image');
+  if (kind === 'voice') kind = 'audio';
+  const isHttp = /^https?:/i.test(url), isPtr = /^fsm:/.test(url);
+  box.className = 'msg-media mx-' + kind;
+  const fail = txt => { box.classList.remove('loading'); box.innerHTML = `<div style="padding:12px;text-align:center;font-size:12px;color:var(--error);">${txt}</div>`; };
+  const openLink = label => { if (!isHttp) return; const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'msg-link'; a.innerHTML = `<i class="fas fa-external-link-alt"></i> ${label}`; box.after(a); };
+  if (kind === 'audio') {
+    box.appendChild(buildVoice({ id: msg.id, wave: msg.wave, duration: msg.duration, resolve: () => resolveUrl(url) }));
+  } else if (kind === 'file') {
+    const name = msg.fileName || 'ملف', sz = fmtSize(msg.fileSize);
+    const c = document.createElement('div'); c.className = 'fm';
+    c.innerHTML = `<div class="fm-ic"><i class="fas ${fileIcon(name, msg.mime)}"></i></div><div class="fm-i"><b>${escapeHtml(name)}</b><small>${sz}${sz && msg.mime ? ' • ' : ''}${escapeHtml((name.split('.').pop() || '').toUpperCase())}</small></div><div class="fm-dl"><i class="fas fa-download"></i></div>`;
+    if (!msg._pending) c.addEventListener('click', async () => {
+      const di = c.querySelector('.fm-dl i'); di.className = 'fas fa-spinner fa-spin';
+      const u = await resolveUrl(url); di.className = 'fas fa-download';
+      if (!u) return showToast('تعذّر تحميل الملف', 'error');
+      const a = document.createElement('a'); a.href = u; a.download = name; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+    });
+    box.appendChild(c);
+  } else if (kind === 'video') {
+    const mkVideo = () => { const v = document.createElement('video'); v.controls = !msg._pending; v.muted = !!msg._pending; v.preload = 'metadata'; v.playsInline = true; v.setAttribute('playsinline', ''); return v; };
+    if (!isPtr || memUrl.has(url) || msg._pending) {
+      const v = mkVideo(); box.classList.add('loading'); box.appendChild(v);
+      resolveUrl(url).then(u => { if (!u) return fail('تعذّر تحميل الفيديو'); v.src = u; box.classList.remove('loading'); });
+    } else {
+      const c = document.createElement('button'); c.type = 'button'; c.className = 'vload';
+      c.innerHTML = `<i class="fas fa-circle-play"></i><span>تشغيل الفيديو${msg.fileSize ? ' • ' + fmtSize(msg.fileSize) : ''}</span>`;
+      c.addEventListener('click', async () => {
+        c.disabled = true; c.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التحميل…</span>';
+        const u = await mLoad(url);
+        if (!u) { c.disabled = false; c.innerHTML = '<i class="fas fa-rotate-right"></i><span>فشل التحميل — اضغط للمحاولة</span>'; return; }
+        const v = mkVideo(); v.src = u; c.replaceWith(v); v.play().catch(() => {});
+      });
+      box.appendChild(c);
+    }
+    openLink('فتح الفيديو');
+  } else {
+    const img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; box.classList.add('loading'); box.appendChild(img);
+    img.addEventListener('load', () => box.classList.remove('loading'));
+    img.addEventListener('error', () => fail('تعذّر تحميل الصورة'));
+    if (!msg._pending) img.addEventListener('click', () => img.src && openLightbox('image', img.src));
+    resolveUrl(url).then(u => { if (!u) return fail('تعذّر تحميل الصورة'); img.src = u; });
+    openLink('فتح الصورة');
+  }
+}
+function lastTextFor(m) {
+  if (isGiftMsg(m)) return `🎁 هدية: ${m.giftName || ''}${Number(m.qty) > 1 ? ' ×' + m.qty : ''}`;
+  if (m.mediaType === 'audio') return '🎤 رسالة صوتية';
+  if (m.mediaType === 'file') return '📎 ' + (m.fileName || 'ملف');
+  if (m.mediaType === 'video') return '🎥 فيديو';
+  return '📷 صورة';
+}
+
+/* ---------- ⏳ الرفع في الخلفية (الشات يفضل شغال) ---------- */
+const PEND = new Map();
+function queueUpload(o) {
+  if (isClosed) return showToast('المحادثة مغلقة', 'warning');
+  const blob = o.file || o.blob; if (!blob) return;
+  const job = { id: newId(), ...o, size: o.size || blob.size, progress: 0, status: 'sending', cancelled: false, preview: '' };
+  if (o.kind !== 'file') job.preview = URL.createObjectURL(blob);
+  PEND.set(job.id, job); renderPending(job); scrollToBottom(); runUpload(job);
+}
+function pendMsg(job) { return { id: job.id, sender: 'user', text: '', mediaUrl: job.preview || ('local:' + job.id), mediaType: job.kind, fileName: job.name, fileSize: job.size, mime: job.mime, duration: job.duration, wave: job.wave, createdAt: new Date().toISOString(), _pending: true }; }
+function renderPending(job) {
+  const c = $('chatMessages'), tmp = document.createElement('div');
+  renderMessage(pendMsg(job), tmp);
+  const el = tmp.firstElementChild; if (!el) return; el.classList.add('pend'); job.el = el;
+  const box = el.querySelector('.msg-media');
+  if (job.kind === 'image' || job.kind === 'video') {
+    const ov = document.createElement('div'); ov.className = 'pov';
+    ov.innerHTML = '<div class="ring-w"><span class="pp">0%</span></div><button type="button" class="ring-x" title="إلغاء"><i class="fas fa-xmark"></i></button>';
+    box.appendChild(ov); job.ov = ov;
+    ov.querySelector('.ring-x').addEventListener('click', () => cancelUpload(job));
+  } else {
+    const pb = document.createElement('div'); pb.className = 'pbar'; pb.innerHTML = '<i></i>'; box.after(pb); job.pb = pb;
+  }
+  job.meta = el.querySelector('.msg-meta');
+  c.appendChild(el); updPending(job);
+}
+function updPending(job) {
+  if (!job.el) return;
+  const pct = Math.min(100, Math.round(job.progress || 0));
+  if (job.ov) { job.ov.querySelector('.ring-w').style.setProperty('--p', pct); job.ov.querySelector('.pp').textContent = pct + '%'; job.ov.style.display = job.status === 'failed' ? 'none' : ''; }
+  if (job.pb) job.pb.firstElementChild.style.width = pct + '%';
+  job.el.classList.toggle('fail', job.status === 'failed');
+  if (job.meta) {
+    job.meta.innerHTML = job.status === 'failed'
+      ? '<span class="pm err"><i class="fas fa-circle-exclamation"></i> فشل الإرسال</span><button type="button" class="pbtn" data-a="retry">إعادة</button><button type="button" class="pbtn" data-a="del">حذف</button>'
+      : `<span class="pm"><i class="fas fa-spinner fa-spin"></i> جاري الإرسال… <b>${pct}%</b></span><button type="button" class="pbtn" data-a="del">إلغاء</button>`;
+    job.meta.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => b.dataset.a === 'retry' ? runUpload(job) : cancelUpload(job)));
+  }
+}
+function removePending(job) { try { job.el && job.el.remove(); } catch (e) {} job.el = null; PEND.delete(job.id); }
+function cancelUpload(job) { job.cancelled = true; if (job.ptr) { delPtr(job.ptr); job.ptr = ''; } removePending(job); }
+function donePending(id) { const j = PEND.get(id); if (j) removePending(j); }
+async function runUpload(job) {
+  job.status = 'sending'; job.progress = 0; job.cancelled = false; updPending(job);
+  try {
+    let d;
+    if (job.kind === 'image' && !/gif|svg/i.test(job.mime || '')) { d = await shrinkImg(job.file); job.preview = d; }
+    else d = await b2d(job.file || job.blob);
+    if (job.cancelled) throw new Error('cancelled');
+    job.progress = 8; updPending(job);
+    const ptr = await saveMedia(d, p => { job.progress = 8 + p * 92; updPending(job); }, job);
+    if (job.cancelled) throw new Error('cancelled');
+    /* نحتفظ بنسخة محلية عشان رسالتي ما تتحمّل تاني من السيرفر */
+    const local = job.kind === 'file' ? URL.createObjectURL(job.file) : (job.preview || URL.createObjectURL(job.file || job.blob));
+    memUrl.set(ptr, local); mediaCache.set(ptr, Promise.resolve(local));
+    const extra = { mediaUrl: ptr, mediaType: job.kind, fileName: job.name || '', fileSize: job.size || 0, mime: job.mime || '' };
+    if (job.kind === 'audio') { extra.duration = job.duration || 0; extra.wave = job.wave || []; }
+    await saveMessage({ id: job.id, sender: 'user', text: '', ...extra });
+    updateLastSeen(); donePending(job.id);
+  } catch (e) {
+    if (job.ptr) { delPtr(job.ptr); job.ptr = ''; }
+    if (job.cancelled || (e && e.message === 'cancelled')) { removePending(job); return; }
+    console.error('upload error:', e); job.status = 'failed'; updPending(job);
+    showToast('فشل إرسال المرفق — تقدر تعيد المحاولة', 'error');
+  }
+}
+window.addEventListener('beforeunload', e => { if ([...PEND.values()].some(j => j.status === 'sending') || REC.on) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- 📎 اختيار الملفات ---------- */
+function pickFiles(kind, files) {
+  files.forEach(f => {
+    let k = kind;
+    if (k === 'image' && !/^image\//.test(f.type)) return showToast('الملف المختار مش صورة', 'error');
+    if (k === 'video' && !/^video\//.test(f.type)) return showToast('الملف المختار مش فيديو', 'error');
+    const lim = k === 'image' && /gif|svg/i.test(f.type) ? LIMITS.gif : LIMITS[k];
+    if (f.size > lim * 1048576) return showToast(`«${f.name}» أكبر من ${lim}MB`, 'error');
+    queueUpload({ kind: k, file: f, name: f.name, mime: f.type || '', size: f.size });
+  });
+}
+
+/* ---------- 🎙️ الريكورد ---------- */
+const REC = { on: false, mr: null, stream: null, chunks: [], t0: 0, dur: 0, timer: null, tick: null, ac: null, an: null, levels: [], cancelled: false, mime: '' };
+function recBarsInit() { const b = $('recBars'); if (b && !b.children.length) for (let i = 0; i < 46; i++) b.appendChild(document.createElement('i')); }
+async function startRec() {
+  if (REC.on) return;
+  if (isClosed) return showToast('المحادثة مغلقة', 'warning');
+  if (!navigator.mediaDevices || !window.MediaRecorder) return showToast('متصفحك لا يدعم التسجيل الصوتي', 'error');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported(m)) || '';
+    const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    Object.assign(REC, { on: true, mr, stream, chunks: [], t0: Date.now(), dur: 0, cancelled: false, levels: [], mime: mr.mimeType || mime || 'audio/webm', ac: null, an: null });
+    mr.ondataavailable = e => { if (e.data && e.data.size) REC.chunks.push(e.data); };
+    mr.onstop = finishRec; mr.start(250);
+    try { const A = window.AudioContext || window.webkitAudioContext, ac = new A(), src = ac.createMediaStreamSource(stream), an = ac.createAnalyser(); an.fftSize = 256; src.connect(an); REC.ac = ac; REC.an = an; } catch (e) {}
+    recBarsInit(); $('recTime').textContent = '0:00'; $('recPanel').classList.add('show');
+    REC.tick = setInterval(recTick, 90);
+    REC.timer = setInterval(() => { const s = (Date.now() - REC.t0) / 1000; $('recTime').textContent = fmtDur(s); if (s >= 180) stopRec(false); }, 250);
+  } catch (e) { console.error(e); showToast('تعذّر الوصول إلى الميكروفون', 'error'); }
+}
+function recTick() {
+  let lv = 10;
+  if (REC.an) { const d = new Uint8Array(REC.an.fftSize); REC.an.getByteTimeDomainData(d); let s = 0; for (const v of d) { const x = (v - 128) / 128; s += x * x; } lv = Math.min(100, Math.max(10, Math.sqrt(s / d.length) * 280)); }
+  else lv = 15 + Math.random() * 40;
+  REC.levels.push(lv);
+  const bars = $('recBars').children, n = bars.length, tail = REC.levels.slice(-n);
+  for (let i = 0; i < n; i++) bars[i].style.height = (tail[tail.length - 1 - i] || 8) + '%';
+}
+function stopRec(cancel) {
+  if (!REC.on) return;
+  REC.cancelled = !!cancel; REC.on = false; REC.dur = (Date.now() - REC.t0) / 1000;
+  clearInterval(REC.timer); clearInterval(REC.tick);
+  try { if (REC.mr && REC.mr.state !== 'inactive') REC.mr.stop(); } catch (e) {}
+  try { REC.stream && REC.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  try { REC.ac && REC.ac.close(); } catch (e) {}
+  $('recPanel').classList.remove('show');
+}
+function finishRec() {
+  if (REC.cancelled) return;
+  if (REC.dur < 1) return showToast('التسجيل قصير جداً', 'warning');
+  const blob = new Blob(REC.chunks, { type: REC.mime }), L = REC.levels, wave = [];
+  for (let i = 0; i < 30; i++) { const a = Math.floor(i * L.length / 30), b = Math.max(a + 1, Math.floor((i + 1) * L.length / 30)); let m = 0; for (let k = a; k < b && k < L.length; k++) m = Math.max(m, L[k]); wave.push(Math.round(m || 12)); }
+  if (blob.size > LIMITS.audio * 1048576) return showToast(`التسجيل أكبر من ${LIMITS.audio}MB`, 'error');
+  queueUpload({ kind: 'audio', blob, name: 'voice', mime: REC.mime, duration: Math.round(REC.dur), wave });
+}
+window.addEventListener('pagehide', () => stopRec(true));
+function syncSendMic() {
+  const has = $('chatInput').value.trim().length > 0;
+  $('sendBtn').style.display = has ? '' : 'none'; $('micBtn').style.display = has ? 'none' : '';
+}
+
+/* ---------- 💰 المحفظة + 🎁 الهدايا ---------- */
+const GQ = { cost: 0 };
+let giftsCb = null, walCb = null;
+function startExtras() {
+  if (X.started) return; X.started = true;
+  onSnapshot(collection(db, 'live_gifts'), s => {
+    X.gifts = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.price || 0) - (b.price || 0));
+    X.gifts.forEach(g => { if (g.anim && String(g.anim).startsWith('fsm:')) { mLoad(g.anim); if (g.animType !== 'image') gfxVideoUrl(g.anim); } });
+    giftsCb && giftsCb();
+  }, () => {});
+  if (currentRole !== 'guest' && currentUserId) {
+    $('walChip').hidden = false;
+    let first = true;
+    onSnapshot(doc(db, 'wallets', currentUserId), s => {
+      const old = X.wal; X.wal = s.exists() ? Number(s.data().balance || 0) : 0;
+      $('bal').textContent = arN(X.wal);
+      if (!first && X.wal !== old) { const w = $('walChip'); w.classList.remove('bump'); void w.offsetWidth; w.classList.add('bump'); }
+      first = false; walCb && walCb();
+    }, () => {});
+  }
+}
+function askCharge() {
+  const ov = document.createElement('div'); ov.className = 'modal-overlay show'; ov.style.zIndex = 12500;
+  ov.innerHTML = '<div class="modal-box"><div class="modal-icon"><i class="fas fa-wallet"></i></div><h2 class="modal-title">رصيد المحفظة لا يكفي</h2><p class="modal-message">رصيدك الحالي لا يكفي لإرسال هذه الهدية — اشحن المحفظة أولاً.</p><div class="modal-actions"><button type="button" class="btn btn-cancel" data-x="0"><i class="fas fa-times"></i> إلغاء</button><button type="button" class="btn btn-confirm" data-x="1"><i class="fas fa-wallet"></i> شحن المحفظة</button></div></div>';
+  ov.addEventListener('click', e => { if (e.target === ov) return ov.remove(); const b = e.target.closest('[data-x]'); if (!b) return; ov.remove(); if (b.dataset.x === '1') location.href = 'stor.html'; });
+  document.body.appendChild(ov);
+}
+function giftSheet(o) {
+  const prevG = giftsCb, ov = document.createElement('div'); ov.className = 'gsx'; let sel = null, qty = 1;
+  const avail = () => r2(X.wal - GQ.cost);
+  ov.innerHTML = `<div class="gsh"><div class="gsh-h"><div class="gsh-t"><i class="fas fa-gift"></i>${escapeHtml(o.title || 'أرسل هدية')}</div><span class="gsh-w"><i class="fas fa-wallet"></i> <b id="gsW"></b> ج.م</span><button class="gsh-x" data-g="close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div>${o.sub ? `<div class="gsh-s">${o.sub}</div>` : ''}<div class="gsh-g" id="gsG"></div><div class="gsh-q" id="gsQ" hidden></div></div>`;
+  document.body.appendChild(ov);
+  const G = ov.querySelector('#gsG'), Q = ov.querySelector('#gsQ'), q$ = x => ov.querySelector(x);
+  const upd = () => { q$('#gsW').textContent = arN(avail()); if (!sel) return; const total = r2((Number(sel.price) || 0) * qty), t = q$('#gsT'); if (t) t.textContent = arN(total); };
+  const grid = () => { G.innerHTML = X.gifts.map(g => `<button class="gsg ${sel && sel.id === g.id ? 'on' : ''}" data-g="pick:${escapeHtml(g.id)}">${giftIco(g)}<b>${escapeHtml(g.name)}</b><span class="gsp">${arN(g.price)} ج.م</span></button>`).join('') || '<div class="gs-empty">لا توجد هدايا متاحة حالياً</div>'; };
+  const panel = () => { if (!sel) { Q.hidden = true; return; } Q.hidden = false;
+    Q.innerHTML = `<div class="gq-top"><div class="gq-pv">${giftIco(sel)}</div><div class="gq-i"><b>${escapeHtml(sel.name)}</b><small>${arN(sel.price)} ج.م للواحدة</small></div></div>
+      <div class="gq-n"><button data-g="dec" aria-label="أقل">−</button><input id="gsN" type="number" min="1" max="999" value="${qty}" inputmode="numeric"><button data-g="inc" aria-label="أكثر">+</button></div>
+      <div class="gq-chips">${[1, 5, 10, 20, 50, 100].map(n => `<button class="${qty === n ? 'on' : ''}" data-g="set:${n}">×${arN(n)}</button>`).join('')}</div>
+      <div class="gq-sum">الإجمالي <b id="gsT"></b> ج.م</div>
+      <button class="gq-go" id="gsGo" data-g="send"><i class="fas fa-paper-plane"></i> إرسال</button>`; upd(); };
+  const setQty = n => { qty = Math.max(1, Math.min(999, Math.floor(Number(n)) || 1)); panel(); };
+  const close = () => { ov.remove(); giftsCb = prevG; walCb = null; document.removeEventListener('keydown', onK, true); };
+  const onK = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
+  document.addEventListener('keydown', onK, true);
+  giftsCb = () => { if (sel) sel = X.gifts.find(x => x.id === sel.id) || null; grid(); panel(); }; walCb = upd;
+  ov.addEventListener('click', e => {
+    if (e.target === ov) return close(); const b = e.target.closest('[data-g]'); if (!b) return; const [a, v] = b.dataset.g.split(':');
+    if (a === 'close') close();
+    else if (a === 'pick') { sel = X.gifts.find(x => x.id === v) || null; qty = 1; grid(); panel(); }
+    else if (a === 'inc') setQty(qty + 1); else if (a === 'dec') setQty(qty - 1); else if (a === 'set') setQty(v);
+    else if (a === 'send' && sel) { const price = Number(sel.price) || 0, total = r2(price * qty); if (!(price > 0)) return; if (avail() < total) { askCharge(); return; } o.onSend(sel, qty, total); close(); }
+  });
+  ov.addEventListener('input', e => { if (e.target.id === 'gsN') { qty = Math.max(1, Math.min(999, Math.floor(Number(e.target.value)) || 1)); upd(); ov.querySelectorAll('.gq-chips button').forEach(b => b.classList.toggle('on', b.dataset.g === 'set:' + qty)); } });
+  grid(); upd();
+}
+/* خصم من المحفظة + إضافة رسالة الهدية للمحادثة في معاملة واحدة (يا الاتنين يتنفذوا يا ولا واحد) */
+async function sendGiftToSupport(g, qty, total) {
+  const id = newId(), txid = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), now = new Date().toISOString();
+  const wRef = doc(db, 'wallets', currentUserId), tRef = doc(db, 'wallet_transactions', txid), cRef = doc(db, 'support_chats', sessionId);
+  const lbl = `${g.name}${qty > 1 ? ' ×' + qty : ''}`;
+  const m = { id, sender: 'user', type: 'gift', text: '', mediaUrl: '', mediaType: '', actions: [], senderName: '', userName: currentUserName, userRole: currentRole, giftId: g.id, giftName: g.name, giftIcon: g.icon || '', giftImg: g.img || '', qty, unitPrice: Number(g.price) || 0, total, createdAt: now };
+  seenGifts.add(id);
+  await runTransaction(db, async tx => {
+    const s = await tx.get(wRef), bal = s.exists() ? Number(s.data().balance || 0) : 0, nb = r2(bal - total);
+    if (nb < 0) throw new Error(`رصيدك (${bal}) لا يكفي`);
+    const rl = (s.exists() && s.data().role) || currentRole;
+    tx.set(wRef, { userId: currentUserId, userName: currentUserName, role: rl, balance: nb, updatedAt: now }, { merge: true });
+    tx.set(tRef, { userId: currentUserId, userName: currentUserName, role: rl, type: 'debit', amount: total, balanceAfter: nb, label: `هدية للدعم الفني: ${lbl}`, note: '', source: 'support_gift', by: currentUserName, createdAt: now, giftId: g.id, qty });
+    tx.set(cRef, { sessionId, userId: currentUserId, userName: currentUserName, userRole: currentRole, userAvatar: currentUser?.avatarUrl || '', userCode: currentUser?.code || '', isUserOnline: true, isReadByAdmin: false, lastMessageText: '🎁 هدية: ' + lbl, updatedAt: serverTimestamp(), messages: arrayUnion(m) }, { merge: true });
+  });
+  return m;
+}
+function openGiftSheet() {
+  if (currentRole === 'guest' || !currentUserId) return showToast('سجّل الدخول عشان تبعت هدية', 'warning');
+  if (isClosed) return showToast('المحادثة مغلقة', 'warning');
+  giftSheet({
+    title: 'أرسل هدية للدعم الفني',
+    sub: '<i class="fas fa-circle-info"></i> تُخصم قيمة الهدية من محفظتك فوراً',
+    onSend: (g, qty, total) => {
+      giftFx(g, `${qty > 1 ? arN(qty) + '× ' : ''}${g.name} ← الدعم الفني`, g.price);
+      GQ.cost = r2(GQ.cost + total);
+      sendGiftToSupport(g, qty, total).then(() => { showToast(`تم إرسال «${g.name}» وخصم ${arN(total)} ج.م`, 'success'); scrollToBottom(); })
+        .catch(err => { console.error(err); if (/لا يكفي/.test(err.message || '')) askCharge(); else showToast('تعذّر إرسال الهدية', 'error'); })
+        .finally(() => { GQ.cost = Math.max(0, r2(GQ.cost - total)); walCb && walCb(); });
+    }
+  });
+}
 
 // ============================================================
 // 🧹 التنظيف
@@ -1584,7 +2293,7 @@ document.addEventListener('click', () => { if (audioCtx && audioCtx.state === 's
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { unreadTitle = 0; document.title = baseTitle; } });
 function checkIncoming(messages) {
   const l = [...messages].reverse().find(m => m.sender !== 'user' && !m.isSystem); if (!l) { incomingInit = true; return; }
-  if (incomingInit && l.id !== lastIncomingId) { if (l.sender === 'support' || document.hidden) beep(); if (document.hidden) { unreadTitle++; document.title = `(${unreadTitle}) رسالة جديدة | MEEZAN`; notifyIncoming(l); } }
+  if (incomingInit && l.id !== lastIncomingId) { if ((l.sender === 'support' && !isGiftMsg(l)) || document.hidden) beep(); if (document.hidden) { unreadTitle++; document.title = `(${unreadTitle}) رسالة جديدة | MEEZAN`; notifyIncoming(l); } }
   lastIncomingId = l.id; incomingInit = true;
 }
 function logoFrom(d) { return d.logoUrl || d.logo || d.siteLogo || d.logoURL || d.siteLogoUrl || d.logoImage || d.iconUrl || ''; }
@@ -1626,17 +2335,19 @@ function startPlatformLive() {
   [['users', 'users', 'all'], ['teachers', 'teachers', 'all'], ['exams', 'exams', 'all'], ['homeworks', 'homeworks', 'all'], ['examSubs', 'exam_subs', 'all'], ['hwSubs', 'homework_subs', 'all'], ['courses', 'courses', 'all'], ['codes', 'payment_codes', 'all'], ['library', 'settings', 'library'], ['contests', 'contests', 'all']].forEach(([k, c, d]) =>
     onSnapshot(doc(db, c, d), sn => { if (platformDataCache) { platformDataCache[k] = sn.exists() ? (sn.data().items || []) : []; platformDataTime = Date.now(); } }, () => {}));
 }
-function msgSig(m) { return [m.text, m.edited, m.mediaUrl, m.actionsUsed, isBotAvailable(), siteLogo, botSettings.botAvatarUrl, botSettings.botName, currentUser?.avatarUrl].join('|'); }
+function msgSig(m) { return [m.text, m.edited, m.mediaUrl, m.audioUrl, m.fileUrl, m.type, m.giftName, m.qty, m.fileName, m.duration, m.actionsUsed, isBotAvailable(), siteLogo, botSettings.botAvatarUrl, botSettings.botName, currentUser?.avatarUrl].join('|'); }
 function renderIncremental(messages) {
   const c = $('chatMessages'); const near = c.scrollHeight - c.scrollTop - c.clientHeight < 140;
   const keys = new Set(messages.map(m => m.id));
   for (const [k, o] of msgCache) if (!keys.has(k)) { o.el.remove(); msgCache.delete(k); }
   let prev = null, added = false;
   messages.forEach(m => {
+    if (PEND.has(m.id)) donePending(m.id);
     let o = msgCache.get(m.id); const sig = msgSig(m);
     if (!o || o.sig !== sig) { const tmp = document.createElement('div'); renderMessage(m, tmp); const el = tmp.firstElementChild; if (!el) return; if (o) o.el.replaceWith(el); else added = true; o = { el, sig }; msgCache.set(m.id, o); }
     const want = prev ? prev.nextSibling : c.firstChild; if (o.el !== want) c.insertBefore(o.el, want); prev = o.el;
   });
+  try { PEND.forEach(j => { if (j.el) c.appendChild(j.el); }); } catch (e) {}
   if (closedEl) { closedEl.remove(); closedEl = null; }
   if (isClosed) { closedEl = document.createElement('div'); closedEl.className = 'msg system'; closedEl.innerHTML = '<div class="msg-content"><i class="fas fa-lock"></i> هذه المحادثة مغلقة</div>'; c.appendChild(closedEl); }
   if (!firstRenderDone || (added && (near || messages[messages.length - 1].sender !== 'user'))) { firstRenderDone = true; requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; }); }
@@ -2051,6 +2762,7 @@ function loadMessages() {
     if (!botTyping) $('typingIndicator').classList.toggle('hidden', !adminTyping);
 
     checkIncoming(messages);
+    detectGifts(messages);
     renderIncremental(messages);
     localMessages = messages;
 
@@ -2148,7 +2860,7 @@ function renderMessage(msg, target) {
   }
 
   const text = msg.text || '';
-  const mediaUrl = msg.mediaUrl || '';
+  const mediaUrl = msg.mediaUrl || msg.audioUrl || msg.fileUrl || '';
   const mediaType = msg.mediaType || '';
   const actions = msg.actions || [];
   const time = msg.createdAt ? new Date(msg.createdAt) : new Date();
@@ -2186,19 +2898,17 @@ function renderMessage(msg, target) {
 
   if (text) html += `<div class="msg-text">${formatText(text)}</div>`;
 
-  if (mediaUrl) {
-    if (mediaType === 'video') {
-      html += `<div class="msg-media"><video src="${escapeHtml(mediaUrl)}" controls preload="metadata"></video></div>`;
-      html += `<a href="${escapeHtml(mediaUrl)}" target="_blank" rel="noopener" class="msg-link"><i class="fas fa-external-link-alt"></i> فتح الفيديو</a>`;
-    } else {
-      html += `<div class="msg-media"><img src="${escapeHtml(mediaUrl)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div style=\\'padding:12px;text-align:center;font-size:12px;color:var(--error);\\'>تعذّر تحميل الصورة</div>'"></div>`;
-      html += `<a href="${escapeHtml(mediaUrl)}" target="_blank" rel="noopener" class="msg-link"><i class="fas fa-external-link-alt"></i> فتح الصورة</a>`;
-    }
-  }
+  const gift = isGiftMsg(msg);
+  if (gift) html += giftBubbleHtml(msg, type);
+  else if (mediaUrl) html += '<div class="msg-media mx"></div>';
 
   html += `<div class="msg-meta"><i class="far fa-clock"></i> ${formatTimeAgo(time)}${msg.edited ? ' <span style="font-size:10px;opacity:.7">(معدّلة)</span>' : ''}</div>`;
 
   contentDiv.innerHTML = html;
+  if (gift) {
+    contentDiv.classList.add('gift-bub');
+    const gm = contentDiv.querySelector('.gm'); if (gm) gm.addEventListener('click', () => playGiftMsg(msg, type !== 'user'));
+  } else if (mediaUrl) mountMsgMedia(contentDiv.querySelector('.mx'), msg, mediaUrl);
 
   if (type === 'bot' && actions.length > 0 && !msg.actionsUsed && isBotAvailable()) {
     const actionsDiv = document.createElement('div');
@@ -2255,11 +2965,12 @@ async function saveMessage(message) {
     actions: message.actions || [], senderName: message.senderName || '', userName: currentUserName, userRole: currentRole,
     createdAt: new Date().toISOString()
   };
+  ['type', 'fileName', 'fileSize', 'mime', 'duration', 'wave', 'giftId', 'giftName', 'giftIcon', 'giftImg', 'qty', 'unitPrice', 'total'].forEach(k => { if (message[k] !== undefined && message[k] !== null) m[k] = message[k]; });
   const base = {
     sessionId, userId: currentUserId, userName: currentUserName, userRole: currentRole,
     userAvatar: currentUser?.avatarUrl || '', userCode: currentUser?.code || '',
     userPhone: currentUser?.phone || sessionStorage.getItem('meezan_guest_phone') || '',
-    isUserOnline: true, lastMessageText: m.text || (m.mediaType === 'video' ? '🎥 فيديو' : '📷 صورة'), updatedAt: serverTimestamp()
+    isUserOnline: true, lastMessageText: m.text || lastTextFor(m), updatedAt: serverTimestamp()
   };
   if (m.sender === 'user') base.isReadByAdmin = false;
   try {
@@ -3264,6 +3975,7 @@ $('sendBtn').addEventListener('click', () => {
   sendMessage(text);
   input.value = '';
   input.style.height = 'auto';
+  syncSendMic();
 });
 
 $('chatInput').addEventListener('keydown', (e) => {
@@ -3284,12 +3996,46 @@ $('chatInput').addEventListener('input', function() {
 // ============================================================
 let attachType = 'image';
 
-$('attachBtn').addEventListener('click', () => {
+function openLinkModal() {
   $('attachModal').classList.add('show');
   $('attachError').classList.remove('show');
   $('attachUrl').value = '';
   attachType = 'image';
   updateAttachTypeBtns();
+}
+
+// 📎 قائمة الإرفاق: صورة / فيديو / ملف / رابط
+$('attachBtn').addEventListener('click', () => $('attachMenu').classList.add('show'));
+$('attachMenu').addEventListener('click', (e) => {
+  if (e.target === $('attachMenu')) { $('attachMenu').classList.remove('show'); return; }
+  const b = e.target.closest('[data-am]'); if (!b) return;
+  $('attachMenu').classList.remove('show');
+  const k = b.dataset.am;
+  if (k === 'image') $('fImage').click();
+  else if (k === 'video') $('fVideo').click();
+  else if (k === 'file') $('fFile').click();
+  else if (k === 'link') openLinkModal();
+});
+[['fImage', 'image'], ['fVideo', 'video'], ['fFile', 'file']].forEach(([id, kind]) => {
+  $(id).addEventListener('change', (e) => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) pickFiles(kind, fs); });
+});
+
+// 🎁 هدية
+$('giftBtn').addEventListener('click', openGiftSheet);
+
+// 🎙️ ريكورد
+$('micBtn').addEventListener('click', startRec);
+$('recCancel').addEventListener('click', () => stopRec(true));
+$('recSend').addEventListener('click', () => stopRec(false));
+
+// تبديل زر الإرسال / المايك حسب وجود نص
+$('chatInput').addEventListener('input', syncSendMic);
+syncSendMic(); recBarsInit();
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if ($('attachMenu').classList.contains('show')) $('attachMenu').classList.remove('show');
+  if (REC.on) stopRec(true);
 });
 
 function updateAttachTypeBtns() {
@@ -3334,6 +4080,7 @@ $('attachSend').addEventListener('click', async () => {
 // 📡 مراقبة المستخدم
 // ============================================================
 function startUserMonitoring() {
+  try { startExtras(); } catch (e) { console.error('extras error:', e); }
   if (currentRole === 'guest') return;
   const collectionName = currentRole === 'teacher' ? 'teachers' : 'users';
 
@@ -3487,7 +4234,7 @@ async function showSystemNotification(title, body) {
 
 function notifyIncoming(m) {
   const title = (m.sender === 'support' || m.sender === 'admin') ? (m.senderName || 'الدعم الفني') : (botSettings.botName || 'ميزان الذكي');
-  const body = (m.text || (m.mediaUrl ? '📎 أرسل لك مرفقاً' : 'رسالة جديدة')).slice(0, 140);
+  const body = (m.text || (isGiftMsg(m) ? '🎁 أرسل لك هدية' : m.mediaType === 'audio' ? '🎤 رسالة صوتية' : (m.mediaUrl ? '📎 أرسل لك مرفقاً' : 'رسالة جديدة'))).slice(0, 140);
   showSystemNotification(title, body);
 }
 
