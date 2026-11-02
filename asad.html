@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#07241b">
+<title>من سيربح الأسد | MEEZAN</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+:root{--gold:#C9A961;--gold2:#F3E2B0;--g1:#05180f;--g2:#0B3D2E;--g3:#145A43;--ok:#1E9E62;--bad:#D63B2B;--org:#E67E22;--card:#0d2a20;--line:rgba(201,169,97,.35)}
+html,body{font-family:'Cairo',sans-serif;min-height:100%;overflow-x:hidden;color:#fff}
+body{background:radial-gradient(circle at 50% -10%,#1b6a4d 0%,var(--g2) 35%,var(--g1) 100%) fixed;min-height:100dvh}
+button,input{font-family:inherit;color:inherit}button{cursor:pointer;border:none;background:none}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(5,24,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top h1{flex:1;font-size:18px;font-weight:900;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.08);border:1.5px solid var(--line);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-size:16px;text-decoration:none;flex-shrink:0}
+.wrap{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+.card{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1.5px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 24px;border-radius:30px;font-weight:900;font-size:16px;transition:.2s}
+.btn:active{transform:scale(.96)}.btn:disabled{opacity:.5;pointer-events:none}
+.btn.gold{background:linear-gradient(135deg,var(--gold),#F3E2B0);color:#2b2208;box-shadow:0 8px 24px rgba(201,169,97,.4)}
+.btn.out{background:rgba(255,255,255,.08);border:1.5px solid var(--line);color:var(--gold2)}
+.btn.red{background:var(--bad)}
+.btn.big{width:100%;padding:16px;font-size:18px}
+.hero{text-align:center;padding:26px 16px}
+.lion{font-size:76px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5));animation:fl 3s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.hero h2{font-size:30px;font-weight:900;color:var(--gold2);margin-bottom:6px;text-shadow:0 3px 14px rgba(0,0,0,.5)}
+.hero p{color:rgba(255,255,255,.85);font-weight:600;line-height:1.8;margin-bottom:12px}
+.rules{background:rgba(0,0,0,.25);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.9;text-align:right;margin:14px 0;font-weight:600}
+.info{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid var(--line);font-size:12.5px;font-weight:800}
+.chip.g{background:rgba(201,169,97,.18);color:var(--gold2)}
+.msg{background:rgba(214,59,43,.18);border:1.5px solid var(--bad);color:#ffb4aa;border-radius:14px;padding:12px;font-weight:800;text-align:center;margin-bottom:12px;line-height:1.8}
+.sec-t{font-weight:900;font-size:16px;margin-bottom:12px;color:var(--gold2);display:flex;gap:9px;align-items:center}
+.brow{display:flex;align-items:center;gap:11px;padding:9px 12px;background:rgba(0,0,0,.22);border-radius:12px;margin-bottom:8px}
+.brow .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--g3),var(--ok));display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.brow b{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow small{color:var(--gold2);font-weight:800}
+/* اللعب */
+.gm{display:grid;grid-template-columns:1fr 250px;gap:16px;align-items:start}
+.gtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lvtag{padding:4px 14px;border-radius:20px;font-weight:900;font-size:13px;color:#fff}
+.qn{font-weight:900;color:var(--gold2)}
+.tim{margin-right:auto;display:flex;align-items:center;gap:8px;font-weight:900;font-size:20px}
+.tim .ring{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--gold);background:rgba(0,0,0,.3);font-size:18px}
+.tim.low .ring{border-color:var(--bad);color:#ffb4aa;animation:pl .6s infinite}
+@keyframes pl{50%{transform:scale(1.12)}}
+.tbar{height:6px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:14px}
+.tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold),var(--org))}
+.lifes{display:flex;gap:10px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.life{position:relative;width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#0f4a38,#072b1f);border:2.5px solid var(--gold);color:var(--gold2);font-size:22px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.life:active{transform:scale(.92)}
+.life .n{position:absolute;top:-4px;left:-4px;min-width:21px;height:21px;border-radius:11px;background:var(--gold);color:#2b2208;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.life:disabled{opacity:.35;border-color:#777;pointer-events:none}
+.life small{position:absolute;bottom:-18px;font-size:10px;font-weight:800;color:rgba(255,255,255,.8);white-space:nowrap}
+.qbox{background:linear-gradient(135deg,rgba(0,0,0,.45),rgba(11,61,46,.7));border:2.5px solid var(--gold);border-radius:60px / 36px;padding:24px 28px;text-align:center;font-size:22px;font-weight:900;line-height:1.8;margin-bottom:16px;min-height:100px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 26px rgba(201,169,97,.25);word-break:break-word}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:40px / 28px;border:2.5px solid var(--gold);background:linear-gradient(135deg,rgba(0,0,0,.45),rgba(11,61,46,.65));font-size:17px;font-weight:800;text-align:right;transition:.2s;min-height:60px;word-break:break-word}
+.opt b{color:var(--gold);font-size:18px;flex-shrink:0}
+.opt:active{transform:scale(.98)}
+.opt.sel{background:linear-gradient(135deg,#d6761b,#F39C12);border-color:#ffd9a0;color:#fff}.opt.sel b{color:#fff}
+.opt.ok{background:linear-gradient(135deg,#127a47,#25c27a);border-color:#9cf0c6;color:#fff;animation:blink .45s 4}.opt.ok b{color:#fff}
+.opt.no{background:linear-gradient(135deg,#9d261a,#e5503e);border-color:#ffb4aa;color:#fff}.opt.no b{color:#fff}
+.opt.gone{visibility:hidden;pointer-events:none}
+.opts.lock .opt{pointer-events:none}
+@keyframes blink{50%{filter:brightness(1.7)}}
+.confirm{display:flex;gap:10px;justify-content:center;margin-top:16px;min-height:52px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap}
+.ladder{position:sticky;top:70px}
+.lad{display:flex;flex-direction:column-reverse;gap:6px;max-height:calc(100dvh - 150px);overflow:auto}
+.rung{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;background:rgba(0,0,0,.28);border:1.5px solid transparent;font-size:12.5px;font-weight:800}
+.rung .no{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;color:#fff}
+.rung .gf{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rung.cur{background:rgba(201,169,97,.25);border-color:var(--gold);transform:scale(1.03)}
+.rung.done{opacity:.55}.rung.done::after{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;color:#5ef0a8}
+.rung.safe .no{outline:2px solid #fff}
+.giftic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0}.giftic img{width:22px;height:22px;object-fit:contain}.giftic .ic{font-size:17px;line-height:1}
+.ladbtn{display:none}
+/* نوافذ */
+.ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;animation:fi .2s}
+@keyframes fi{from{opacity:0}}
+.md{width:min(480px,100%);background:linear-gradient(160deg,#0f3f30,#07241b);border:2px solid var(--gold);border-radius:22px;padding:22px;max-height:90dvh;overflow:auto;text-align:center}
+.md h3{font-size:19px;font-weight:900;color:var(--gold2);margin-bottom:12px}
+.bars{display:flex;gap:14px;align-items:flex-end;justify-content:center;height:190px;margin:14px 0 6px}
+.bar{flex:1;max-width:70px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px;font-weight:900}
+.bar i{display:block;width:100%;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--gold),#a8812b);height:0;transition:height 1.3s cubic-bezier(.2,.8,.2,1)}
+.bar span{font-size:13px}.bar b{font-size:18px;color:var(--gold2)}
+.friend{display:flex;gap:12px;align-items:flex-start;text-align:right;background:rgba(0,0,0,.3);border-radius:16px;padding:14px}
+.friend .fa{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--g3),var(--ok));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.dots span{display:inline-block;animation:dt 1s infinite}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dt{50%{opacity:.2}}
+/* النتيجة */
+.res{text-align:center;padding:30px 16px;position:relative;overflow:hidden}
+.res .big{font-size:84px;line-height:1;margin-bottom:8px}
+.res h2{font-size:30px;font-weight:900;margin-bottom:8px}
+.res.win h2{color:#7dffbf}.res.lose h2{color:#ffb4aa}
+.prz{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:14px 0}
+.pz{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:30px;background:rgba(201,169,97,.2);border:1.5px solid var(--gold);font-weight:900}
+.cf{position:absolute;top:-20px;width:10px;height:16px;opacity:.9;animation:cf linear forwards;pointer-events:none}
+@keyframes cf{to{transform:translateY(110vh) rotate(720deg)}}
+.shake{animation:shk .5s}@keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:#0d2a20;border:1.5px solid var(--gold);padding:12px 22px;border-radius:14px;font-weight:800;font-size:14px;z-index:999;opacity:0;transition:.35s;max-width:92vw;text-align:center}
+.toast.show{transform:translateX(-50%);opacity:1}
+.splash{text-align:center;padding:60px 10px}.splash .lion{font-size:96px}.splash h2{font-size:26px;color:var(--gold2);font-weight:900}
+@media(max-width:820px){
+ .gm{grid-template-columns:1fr}.ladder{position:static;display:none}.ladder.show{display:block}.ladbtn{display:inline-flex}
+ .qbox{font-size:18px;padding:18px 18px;border-radius:40px / 26px}.opts{grid-template-columns:1fr}.opt{font-size:16px;min-height:54px}
+ .hero h2{font-size:25px}.life{width:58px;height:58px;font-size:20px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ib" href="index.html" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
+  <h1 id="tName">من سيربح الأسد</h1>
+  <button class="ib" id="muteBtn" aria-label="الصوت"><i class="fas fa-volume-high" id="muteIc"></i></button>
+</header>
+<main class="wrap" id="app"><div class="splash"><div class="lion">🦁</div><h2>جارٍ التحميل…</h2></div></main>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, limit, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
+const $ = id => document.getElementById(id);
+
+/* 🔒 حماية */
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') location.replace('login.html');
+const uid = sessionStorage.getItem('meezan_user_id') || '';
+let meData = {}; try { meData = JSON.parse(sessionStorage.getItem('meezan_user_data') || '{}') || {}; } catch(e){}
+
+/* ============ ثوابت وأدوات ============ */
+const LV = ['easy','medium','hard','veryhard','explosive'];
+const LETTERS = ['أ','ب','ج','د'];
+const DEF = {
+  name:'من سيربح الأسد', tagline:'اختبر معلوماتك واربح الأسد 🦁', enabled:true, rules:'', showBoard:true,
+  levels:{easy:{label:'سهل',color:'#2ECC71',timer:30,count:5,ai:90,aud:85},medium:{label:'متوسط',color:'#F1C40F',timer:30,count:4,ai:75,aud:70},hard:{label:'صعب',color:'#E67E22',timer:45,count:3,ai:55,aud:55},veryhard:{label:'صعب جداً',color:'#E74C3C',timer:60,count:2,ai:35,aud:40},explosive:{label:'انفجاري 💥',color:'#8E44AD',timer:60,count:1,ai:15,aud:25}},
+  shuffleQ:true, shuffleO:true, prizeMode:'safe', safePoints:'5,10', showCorrectOnLose:true,
+  lifelines:{fifty:{on:true,uses:1,label:'حذف إجابتين'},ai:{on:true,uses:1,label:'استشر الذكاء الاصطناعي',name:'المساعد الذكي',msg:'أعتقد أن الإجابة الصحيحة هي'},audience:{on:true,uses:1,label:'رأي الجمهور'}},
+  replay:{afterWin:true,afterLose:true,cooldown:0,maxPerDay:0}
+};
+const merge = (d, s) => { const o = Array.isArray(d) ? [...d] : {...d}; if (!s || typeof s !== 'object') return o; Object.keys(s).forEach(k => { o[k] = (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k]) && s[k] && typeof s[k] === 'object') ? merge(d[k], s[k]) : s[k]; }); return o; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ar = n => Number(n||0).toLocaleString('ar-EG');
+const tms = t => { if (!t) return 0; if (typeof t === 'number') return t; if (t.toMillis) return t.toMillis(); if (t.seconds) return t.seconds*1000; return 0; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rnd = n => Math.floor(Math.random()*n);
+const shuf = a => { a = [...a]; for (let i = a.length-1; i > 0; i--){ const j = rnd(i+1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+let toastT; const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('show'), 3200); };
+
+const S = {cfg:merge(DEF,{}), snd:{}, qs:[], gifts:[], plays:[], users:{}, board:[], mute:localStorage.getItem('mm_mute') === '1', ready:false};
+const lvl = k => S.cfg.levels[k] || DEF.levels[k];
+const giftOf = id => S.gifts.find(g => g.id === id);
+
+/* صور الهدايا (post_media) */
+const fsmC = new Map();
+const fsmLoad = p => { if (fsmC.has(p)) return fsmC.get(p); const a = p.split(':'); const r = Promise.all(Array.from({length:+a[2]||1}, (_,i) => getDoc(doc(db,'post_media',`${a[1]}_${i}`)).then(s => s.exists() ? s.data().data : ''))).then(x => x.join('')).catch(() => ''); fsmC.set(p, r); return r; };
+const fixFsm = () => document.querySelectorAll('img[data-fsm]:not([data-ok])').forEach(im => { im.dataset.ok = '1'; fsmLoad(im.dataset.fsm).then(d => { if (d) im.src = d; }); });
+const giftIco = g => !g ? '' : `<span class="giftic">${g.img ? (String(g.img).startsWith('fsm:') ? `<img data-fsm="${esc(g.img)}" alt="">` : `<img src="${esc(g.img)}" alt="">`) : `<span class="ic">${esc(g.icon||'🎁')}</span>`}</span>`;
+
+/* ============ الصوت ============ */
+const audC = new Map(); let live = [];
+function loadAudio(ptr){ if (audC.has(ptr)) return audC.get(ptr); const a = ptr.split(':');
+  const p = Promise.all(Array.from({length:+a[2]||1}, (_,i) => getDoc(doc(db,'mm_media',`${a[1]}_${i}`)).then(s => s.exists() ? s.data().data : null))).then(x => x.some(v => v == null) ? '' : x.join('')).catch(() => '');
+  audC.set(ptr, p); p.then(v => { if (!v) audC.delete(ptr); }); return p; }
+async function play(item){ if (S.mute || !item || !item.ptr) return null; const d = await loadAudio(item.ptr); if (!d || S.mute) return null;
+  const a = new Audio(d); live.push(a); a.addEventListener('ended', () => { live = live.filter(x => x !== a); }); try { await a.play(); } catch(e){ return null; } return a; }
+const stopAll = () => { live.forEach(a => { try { a.pause(); } catch(e){} }); live = []; };
+const stopA = a => { if (!a) return; try { a.pause(); } catch(e){} live = live.filter(x => x !== a); };
+function waitEnd(a, max){ return new Promise(res => { if (!a) return res(); const t = setTimeout(done, max); function done(){ clearTimeout(t); a.removeEventListener('ended', done); a.removeEventListener('pause', done); res(); } a.addEventListener('ended', done); a.addEventListener('pause', done); }); }
+const pick = arr => arr && arr.length ? arr[rnd(arr.length)] : null;
+function setMute(m){ S.mute = m; localStorage.setItem('mm_mute', m ? '1' : '0'); $('muteIc').className = m ? 'fas fa-volume-xmark' : 'fas fa-volume-high'; if (m) stopAll(); }
+$('muteBtn').onclick = () => setMute(!S.mute); setMute(S.mute);
+
+/* ============ تحميل البيانات ============ */
+const dayStart = () => { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); };
+async function load(){
+  const [c, s, qs, gf, pl] = await Promise.all([
+    getDoc(doc(db,'settings','millionaire')), getDoc(doc(db,'settings','millionaire_sounds')), getDocs(collection(db,'mm_questions')), getDocs(collection(db,'live_gifts')),
+    uid ? getDocs(query(collection(db,'mm_plays'), where('uid','==',uid))) : Promise.resolve({docs:[]})]);
+  S.cfg = merge(DEF, c.exists() ? c.data() : {}); S.snd = s.exists() ? s.data() : {};
+  S.qs = qs.docs.map(d => ({id:d.id, ...d.data()})).filter(q => q.active !== false && q.text && (q.options||[]).length === 4);
+  S.gifts = gf.docs.map(d => ({id:d.id, ...d.data()}));
+  S.plays = pl.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => tms(b.startedAt) - tms(a.startedAt));
+  // أي جولة غير منتهية (تحديث الصفحة أثناء اللعب) تُحسب خسارة
+  for (const p of S.plays.filter(p => p.status === 'playing')){ p.status = 'lost'; p.endedAt = Timestamp.now(); updateDoc(doc(db,'mm_plays',p.id), {status:'lost', endedAt:serverTimestamp(), abandoned:true}).catch(() => {}); }
+  document.title = `${S.cfg.name} | MEEZAN`; $('tName').textContent = S.cfg.name;
+  // الأسماء الكاملة
+  try { for (const col of ['users','teachers']){ const x = await getDoc(doc(db,col,'all')); (x.exists() ? x.data().items||[] : []).forEach(u => S.users[u.id] = u); } } catch(e){}
+  if (S.cfg.showBoard){ try { const b = await getDocs(query(collection(db,'mm_plays'), orderBy('startedAt','desc'), limit(150)));
+      const seen = new Set(); S.board = b.docs.map(d => d.data()).filter(p => p.status === 'won' && !seen.has(p.uid) && seen.add(p.uid)).slice(0,8); } catch(e){} }
+  S.ready = true; preload(); }
+function preload(){ ['start','suspense','end'].forEach(k => S.snd[k]?.ptr && loadAudio(S.snd[k].ptr)); (S.snd.correct||[]).forEach(x => loadAudio(x.ptr)); (S.snd.wrong||[]).forEach(x => loadAudio(x.ptr)); }
+const myName = () => { const u = S.users[uid]; return (u && (u.fullName || u.name || u.displayName)) || meData.fullName || meData.name || meData.username || 'مستخدم'; };
+
+/* ============ قواعد اللعب ============ */
+function canPlay(){ const c = S.cfg, r = c.replay;
+  if (!c.enabled) return {ok:false, msg:'اللعبة متوقفة حالياً — عد لاحقاً'};
+  if (!buildRound(true).length) return {ok:false, msg:'لا توجد أسئلة كافية حالياً — عد لاحقاً'};
+  const last = S.plays[0];
+  if (last){ if (last.status === 'won' && !r.afterWin) return {ok:false, msg:'لقد فزت بالفعل — لا يمكن إعادة اللعب 🏆'};
+    if (last.status !== 'won' && !r.afterLose) return {ok:false, msg:'لا يمكن إعادة اللعب بعد الخسارة'};
+    if (+r.cooldown > 0){ const end = tms(last.endedAt) || tms(last.startedAt), left = end + r.cooldown*60000 - Date.now(); if (left > 0) return {ok:false, msg:`يمكنك اللعب مجدداً بعد ${ar(Math.ceil(left/60000))} دقيقة ⏳`}; } }
+  if (+r.maxPerDay > 0){ const n = S.plays.filter(p => tms(p.startedAt) >= dayStart()).length; if (n >= r.maxPerDay) return {ok:false, msg:`وصلت للحد اليومي (${ar(r.maxPerDay)} جولات) — عد غداً`}; }
+  return {ok:true}; }
+
+/* كل جولة تسحب أسئلة جديدة: غير المشاهَدة أولاً ثم الأقدم مشاهدة */
+const seenKey = 'mm_seen_' + uid;
+const seenMap = () => { try { return JSON.parse(localStorage.getItem(seenKey) || '{}') || {}; } catch(e){ return {}; } };
+function buildRound(dry){
+  const sm = seenMap(), out = [];
+  LV.forEach(l => { const n = +lvl(l).count || 0; if (!n) return; let pool = S.qs.filter(q => q.level === l);
+    pool = shuf(pool).sort((a,b) => (sm[a.id]||0) - (sm[b.id]||0)); let take = pool.slice(0, n);
+    if (!S.cfg.shuffleQ) take.sort((a,b) => tms(a.ts||a.createdAt) - tms(b.ts||b.createdAt)); else take = shuf(take);
+    take.forEach(q => out.push({q, level:l})); });
+  if (dry) return out;
+  const t = Date.now(); out.forEach(x => sm[x.q.id] = t); const ks = Object.keys(sm); if (ks.length > 2500) ks.sort((a,b) => sm[a]-sm[b]).slice(0, ks.length-2000).forEach(k => delete sm[k]); try { localStorage.setItem(seenKey, JSON.stringify(sm)); } catch(e){}
+  return out.map(({q, level}) => { let opts = q.options.map((t,i) => ({t, ok:i === q.correct})); if (S.cfg.shuffleO) opts = shuf(opts);
+    return {id:q.id, text:q.text, opts, correct:opts.findIndex(o => o.ok), level, audio:q.audio||null, giftId:q.giftId||'', giftQty:q.giftQty||1}; }); }
+const safeList = () => String(S.cfg.safePoints||'').split(/[,،\s]+/).map(Number).filter(n => n > 0);
+
+/* ============ الواجهة: الشاشة الرئيسية ============ */
+const app = $('app');
+let tick = null;
+function showIntro(){
+  clearInterval(tick); stopAll(); const c = S.cfg, chk = canPlay(), rounds = LV.reduce((a,l) => a + (+lvl(l).count||0), 0);
+  const wins = S.plays.filter(p => p.status === 'won').length;
+  app.innerHTML = `<div class="card hero"><div class="lion">🦁</div><h2>${esc(c.name)}</h2><p>${esc(c.tagline)}</p>
+    <div class="info"><span class="chip g"><i class="fas fa-list-ol"></i> ${ar(rounds)} سؤال</span>${LV.filter(l => +lvl(l).count).map(l => `<span class="chip" style="border-color:${esc(lvl(l).color)}"><i class="fas fa-circle" style="color:${esc(lvl(l).color)};font-size:8px"></i> ${esc(lvl(l).label)} ×${ar(lvl(l).count)}</span>`).join('')}</div>
+    ${c.rules ? `<div class="rules"><i class="fas fa-scroll" style="color:var(--gold)"></i> ${esc(c.rules)}</div>` : ''}
+    <div class="info">${Object.entries(c.lifelines).filter(([k,v]) => v.on).map(([k,v]) => `<span class="chip g"><i class="fas ${{fifty:'fa-scissors',ai:'fa-robot',audience:'fa-people-group'}[k]}"></i> ${esc(v.label)}</span>`).join('')}</div>
+    ${S.plays.length ? `<div class="info"><span class="chip"><i class="fas fa-gamepad"></i> لعبت ${ar(S.plays.length)} مرة</span><span class="chip"><i class="fas fa-trophy" style="color:var(--gold)"></i> فزت ${ar(wins)}</span></div>` : ''}
+    ${chk.ok ? '' : `<div class="msg">${esc(chk.msg)}</div>`}
+    <button class="btn gold big" id="goBtn" ${chk.ok ? '' : 'disabled'}><i class="fas fa-play"></i> ${S.plays.length ? 'العب مرة أخرى' : 'ابدأ اللعب'}</button></div>
+    ${c.showBoard && S.board.length ? `<div class="card"><div class="sec-t"><i class="fas fa-trophy"></i> أبطال اللعبة</div>${S.board.map(p => { const u = S.users[p.uid], n = (u && (u.fullName || u.name)) || p.name || 'مستخدم'; return `<div class="brow"><div class="av">${esc(String(n).charAt(0))}</div><b>${esc(n)}</b><small>${(p.giftNames||[]).length ? esc(p.giftNames.join('، ')) : 'فائز 🏆'}</small></div>`; }).join('')}</div>` : ''}`;
+  $('goBtn').onclick = startGame;
+  if (!chk.ok && S.ready){ tick = setInterval(() => { if (canPlay().ok) showIntro(); }, 20000); } }
+
+/* ============ اللعبة ============ */
+let G = null;
+const timer = {iv:null, end:0, total:0, left:0, run:false, onEnd:null};
+function tStart(sec, onEnd){ tStop(); timer.total = sec; timer.left = sec*1000; timer.onEnd = onEnd; timer.run = true; timer.end = Date.now() + timer.left; timer.iv = setInterval(tTick, 200); tTick(); }
+function tStop(){ clearInterval(timer.iv); timer.iv = null; timer.run = false; }
+function tPause(){ if (!timer.run) return; timer.left = Math.max(0, timer.end - Date.now()); clearInterval(timer.iv); timer.iv = null; timer.run = false; timer.paused = true; }
+function tResume(){ if (!timer.paused) return; timer.paused = false; timer.run = true; timer.end = Date.now() + timer.left; timer.iv = setInterval(tTick, 200); }
+function tTick(){ const left = Math.max(0, timer.end - Date.now()), s = Math.ceil(left/1000), n = $('tNum'), bar = $('tBar'), box = $('tBox'); if (n) n.textContent = ar(s); if (bar) bar.style.width = (left/(timer.total*1000)*100) + '%'; if (box) box.classList.toggle('low', s <= 5);
+  if (left <= 0){ tStop(); timer.onEnd && timer.onEnd(); } }
+
+async function startGame(){
+  const chk = canPlay(); if (!chk.ok){ toast(chk.msg); return showIntro(); }
+  const round = buildRound(false); if (!round.length) return toast('لا توجد أسئلة');
+  const tok = {}; G = {tok, round, i:0, correct:0, earned:[], lives:{}, locked:false, sel:-1, playId:null, qAud:null, over:false, t0:Date.now()};
+  Object.entries(S.cfg.lifelines).forEach(([k,v]) => G.lives[k] = v.on ? (+v.uses||1) : 0);
+  app.innerHTML = `<div class="card splash"><div class="lion">🦁</div><h2>${esc(S.cfg.name)}</h2><p style="margin:10px 0;font-weight:700">استعد… الجولة ستبدأ الآن</p><button class="btn out" id="skipB"><i class="fas fa-forward"></i> تخطي</button></div>`;
+  let skip; const sk = new Promise(r => skip = r); $('skipB').onclick = () => skip();
+  try { const ref = await addDoc(collection(db,'mm_plays'), {uid, name:myName(), grade:S.users[uid]?.grade || meData.grade || '', avatar:/^https?:/.test(S.users[uid]?.avatarUrl||'') ? S.users[uid].avatarUrl : '', status:'playing', reached:0, total:round.length, levelLabel:'', giftNames:[], startedAt:serverTimestamp()});
+    G.playId = ref.id; S.plays.unshift({id:ref.id, uid, status:'playing', startedAt:Timestamp.now()}); } catch(e){ console.error(e); toast('تعذر بدء الجولة — تحقق من الاتصال'); return showIntro(); }
+  const a = await play(S.snd.start); await Promise.race([waitEnd(a, 7000), a ? sk : sleep(1800), sk]); stopA(a); if (G.tok !== tok) return;
+  showQ(); }
+
+const rungHtml = () => G.round.map((x, i) => { const g = x.giftId ? giftOf(x.giftId) : null, safe = safeList().includes(i+1);
+  return `<div class="rung ${i === G.i ? 'cur' : ''} ${i < G.i ? 'done' : ''} ${safe ? 'safe' : ''}"><span class="no" style="background:${esc(lvl(x.level).color)}">${ar(i+1)}</span><span class="gf">${g ? giftIco(g) + esc(g.name) + (x.giftQty > 1 ? ' ×' + ar(x.giftQty) : '') : '<span style="opacity:.5">—</span>'}</span></div>`; }).join('');
+const lifeBtns = () => Object.entries(S.cfg.lifelines).filter(([k,v]) => v.on).map(([k,v]) => `<button class="life" data-life="${k}" ${G.lives[k] > 0 && !G.locked ? '' : 'disabled'} title="${esc(v.label)}"><i class="fas ${{fifty:'fa-scissors',ai:'fa-robot',audience:'fa-people-group'}[k]}"></i><span class="n">${ar(G.lives[k])}</span><small>${esc(v.label.length > 14 ? v.label.slice(0,13)+'…' : v.label)}</small></button>`).join('');
+
+function showQ(){
+  if (!G || G.over) return; const q = G.round[G.i], L = lvl(q.level); G.locked = false; G.sel = -1; G.removed = new Set();
+  app.innerHTML = `<div class="gm"><div>
+    <div class="gtop"><span class="lvtag" style="background:${esc(L.color)}">${esc(L.label)}</span><span class="qn">السؤال ${ar(G.i+1)} من ${ar(G.round.length)}</span>
+      <button class="btn out ladbtn" id="ladBtn" style="padding:6px 14px;font-size:13px"><i class="fas fa-ranking-star"></i> الجوائز</button>
+      ${+L.timer ? `<div class="tim" id="tBox"><span class="ring" id="tNum">${ar(L.timer)}</span></div>` : ''}</div>
+    ${+L.timer ? '<div class="tbar"><i id="tBar"></i></div>' : ''}
+    <div class="lifes" id="lifes" style="margin-bottom:26px">${lifeBtns()}</div>
+    <div class="qbox" id="qBox">${esc(q.text)}</div>
+    <div class="opts" id="opts">${q.opts.map((o,i) => `<button class="opt" data-o="${i}"><b>${LETTERS[i]}:</b><span>${esc(o.t)}</span></button>`).join('')}</div>
+    <div class="confirm" id="conf"></div>
+    <div class="foot"><button class="btn out" id="quitB" style="padding:9px 18px;font-size:14px"><i class="fas fa-door-open"></i> انسحاب بالهدايا</button>${q.audio ? '<button class="btn out" id="skipA" style="padding:9px 18px;font-size:14px"><i class="fas fa-forward"></i> تخطي الصوت</button>' : ''}</div></div>
+    <aside class="ladder card" id="ladder" style="padding:12px"><div class="sec-t" style="font-size:14px;margin-bottom:8px"><i class="fas fa-ranking-star"></i> سلم الجوائز</div><div class="lad">${rungHtml()}</div></aside></div>`;
+  fixFsm();
+  if ($('ladBtn')) $('ladBtn').onclick = () => $('ladder').classList.toggle('show');
+  $('opts').addEventListener('click', e => { const b = e.target.closest('[data-o]'); if (!b || G.locked) return; selectOpt(+b.dataset.o); });
+  $('lifes').addEventListener('click', e => { const b = e.target.closest('[data-life]'); if (b) useLife(b.dataset.life); });
+  $('quitB').onclick = quit;
+  const tok = G.tok, qi = G.i;
+  const startT = () => { if (G.tok !== tok || G.i !== qi || G.locked) return; if (+L.timer) tStart(+L.timer, () => finish('lost', 'time')); };
+  if (q.audio){ play(q.audio).then(a => { if (G.tok !== tok || G.i !== qi){ stopA(a); return; } G.qAud = a; if (!a) return startT();
+      waitEnd(a, 60000).then(() => { if (G.qAud === a) G.qAud = null; startT(); }); if ($('skipA')) $('skipA').onclick = () => { stopA(a); }; }); }
+  else startT(); }
+
+function selectOpt(i){ if (G.locked || G.removed.has(i)) return; G.sel = i;
+  document.querySelectorAll('.opt').forEach((b, k) => b.classList.toggle('sel', k === i));
+  $('conf').innerHTML = `<button class="btn gold" id="cfB"><i class="fas fa-check"></i> تأكيد الإجابة (${LETTERS[i]})</button>`; $('cfB').onclick = confirmAns; }
+
+async function confirmAns(){
+  if (G.locked || G.sel < 0) return; G.locked = true; const tok = G.tok, q = G.round[G.i], sel = G.sel; tStop(); stopA(G.qAud); G.qAud = null;
+  $('opts').classList.add('lock'); $('conf').innerHTML = '<span class="chip g"><i class="fas fa-hourglass-half"></i> إجابتك نهائية… انتظر</span>'; document.querySelectorAll('.life').forEach(b => b.disabled = true);
+  const sa = await play(S.snd.suspense); await Promise.all([sleep(2400), sa ? waitEnd(sa, 6500) : sleep(0)]); stopA(sa); if (G.tok !== tok) return;
+  const ok = sel === q.correct, btns = document.querySelectorAll('.opt');
+  if (ok){ btns[sel].classList.add('ok'); } else { btns[sel].classList.add('no'); if (S.cfg.showCorrectOnLose) btns[q.correct].classList.add('ok'); $('app').classList.add('shake'); setTimeout(() => $('app').classList.remove('shake'), 600); }
+  $('conf').innerHTML = ok ? '<span class="chip g"><i class="fas fa-circle-check"></i> إجابة صحيحة! 🎉</span>' : '<span class="chip" style="border-color:var(--bad)"><i class="fas fa-circle-xmark"></i> للأسف إجابة خاطئة</span>';
+  const ra = await play(pick(ok ? S.snd.correct : S.snd.wrong)); await Promise.all([sleep(2200), ra ? waitEnd(ra, 5000) : sleep(0)]); stopA(ra); if (G.tok !== tok) return;
+  if (!ok) return finish('lost', 'wrong');
+  G.correct++; if (q.giftId) G.earned.push({qn:G.i+1, giftId:q.giftId, qty:q.giftQty||1});
+  updateDoc(doc(db,'mm_plays',G.playId), {reached:G.correct, giftNames:prizeNames(keptPrizes('quit'))}).catch(() => {});
+  if (G.i + 1 >= G.round.length) return finish('won'); G.i++; showQ(); }
+
+/* ============ وسائل المساعدة ============ */
+async function useLife(k){ if (G.locked || !(G.lives[k] > 0)) return; const q = G.round[G.i], L = lvl(q.level), cfg = S.cfg.lifelines[k]; G.lives[k]--; $('lifes').innerHTML = lifeBtns(); tPause();
+  const remain = [0,1,2,3].filter(i => !G.removed.has(i)), wrongs = remain.filter(i => i !== q.correct);
+  if (k === 'fifty'){ shuf(wrongs).slice(0,2).forEach(i => { G.removed.add(i); document.querySelectorAll('.opt')[i].classList.add('gone'); });
+    if (G.removed.has(G.sel)){ G.sel = -1; $('conf').innerHTML = ''; document.querySelectorAll('.opt').forEach(b => b.classList.remove('sel')); } tResume(); return; }
+  if (k === 'ai'){ const acc = (+L.ai || 0)/100, right = Math.random() < acc, ans = right ? q.correct : (wrongs.length ? pick(wrongs) : q.correct);
+    const ov = modal(`<h3><i class="fas fa-robot"></i> ${esc(cfg.name || 'المساعد')}</h3><div class="friend"><div class="fa"><i class="fas fa-robot"></i></div><div style="flex:1;font-weight:800;line-height:1.9" id="aiTx">يفكر<span class="dots"><span>.</span><span>.</span><span>.</span></span></div></div><button class="btn gold" id="mClose" style="margin-top:14px;display:none">حسناً</button>`);
+    await sleep(1800); ov.querySelector('#aiTx').innerHTML = `${esc(cfg.msg || 'أعتقد أن الإجابة هي')} <b style="color:var(--gold2)">${LETTERS[ans]}: ${esc(q.opts[ans].t)}</b>`; const b = ov.querySelector('#mClose'); b.style.display = 'inline-flex'; b.onclick = () => { ov.remove(); tResume(); }; return; }
+  if (k === 'audience'){ const acc = (+L.aud || 0)/100, right = Math.random() < acc; let top = right ? q.correct : (wrongs.length ? pick(wrongs) : q.correct), pct = {};
+    remain.forEach(i => pct[i] = 0); let rest = 100, tp = right ? 42 + rnd(40) : 34 + rnd(26); if (remain.length === 2) tp = right ? 62 + rnd(30) : 55 + rnd(20); pct[top] = tp; rest -= tp;
+    const others = remain.filter(i => i !== top); others.forEach((i, idx) => { const v = idx === others.length-1 ? rest : rnd(rest + 1); pct[i] = v; rest -= v; });
+    const ov = modal(`<h3><i class="fas fa-people-group"></i> رأي الجمهور</h3><div class="bars">${[0,1,2,3].map(i => `<div class="bar"><b>${G.removed.has(i) ? '' : ar(pct[i]) + '٪'}</b><i data-h="${G.removed.has(i) ? 0 : pct[i]}"></i><span>${LETTERS[i]}</span></div>`).join('')}</div><button class="btn gold" id="mClose" style="margin-top:12px">حسناً</button>`);
+    requestAnimationFrame(() => requestAnimationFrame(() => ov.querySelectorAll('.bar i').forEach(e => e.style.height = (e.dataset.h * 1.6) + 'px'))); ov.querySelector('#mClose').onclick = () => { ov.remove(); tResume(); }; } }
+function modal(html){ const ov = document.createElement('div'); ov.className = 'ov'; ov.innerHTML = `<div class="md">${html}</div>`; document.body.appendChild(ov); return ov; }
+
+/* ============ النهاية ============ */
+function keptPrizes(mode){ const c = S.cfg;
+  if (mode === 'quit' || mode === 'each' && true) { /* الكل المكتسب */ }
+  if (mode === 'quit') return G.earned;
+  if (mode === 'won') return G.earned;
+  const pm = c.prizeMode; if (pm === 'each') return G.earned; if (pm === 'final') return [];
+  const lastSafe = Math.max(0, ...safeList().filter(n => n <= G.correct)); return G.earned.filter(e => e.qn <= lastSafe); }
+const prizeNames = list => { const m = new Map(); list.forEach(e => m.set(e.giftId, (m.get(e.giftId)||0) + e.qty)); return [...m.entries()].map(([id, n]) => { const g = giftOf(id); return `${g ? g.name : 'هدية'}${n > 1 ? ' ×' + n : ''}`; }); };
+async function quit(){ if (!G || G.locked) return; const ov = modal(`<h3>الانسحاب</h3><p style="font-weight:700;line-height:1.9;margin-bottom:14px">ستنهي الجولة وتحتفظ بهداياك التي ربحتها حتى الآن (${ar(G.earned.length)} هدية). هل أنت متأكد؟</p><div style="display:flex;gap:10px;justify-content:center"><button class="btn out" id="qN">أكمل اللعب</button><button class="btn gold" id="qY">انسحاب</button></div>`);
+  tPause(); ov.querySelector('#qN').onclick = () => { ov.remove(); tResume(); }; ov.querySelector('#qY').onclick = () => { ov.remove(); finish('quit'); }; }
+async function finish(status, reason){
+  if (!G || G.over) return; G.over = true; tStop(); stopAll(); document.querySelectorAll('.ov').forEach(o => o.remove());
+  const kept = status === 'won' ? G.earned : keptPrizes(status), names = prizeNames(kept), L = G.round[Math.min(G.i, G.round.length-1)], win = status === 'won';
+  const sa = play(S.snd.end);
+  try { await updateDoc(doc(db,'mm_plays',G.playId), {status, reached:G.correct, levelLabel:lvl(L.level).label, giftNames:names, endedAt:serverTimestamp(), reason:reason||''});
+    const p = S.plays.find(x => x.id === G.playId); if (p){ p.status = status; p.endedAt = Timestamp.now(); }
+    if (kept.length){ const b = writeBatch(db), m = new Map(); kept.forEach(e => m.set(e.giftId, (m.get(e.giftId)||0) + e.qty));
+      m.forEach((qty, gid) => { const g = giftOf(gid) || {}; b.set(doc(collection(db,'mm_prizes')), {uid, name:myName(), playId:G.playId, giftId:gid, giftName:g.name||'', giftIcon:g.icon||'', giftImg:g.img||'', qty, price:Number(g.price)||0, status:'won', createdAt:serverTimestamp()}); }); await b.commit(); }
+  } catch(e){ console.error(e); toast('تعذر حفظ النتيجة'); }
+  const total = G.round.length, reasonTx = reason === 'time' ? 'انتهى الوقت ⏰' : reason === 'wrong' ? 'إجابة خاطئة' : '';
+  app.innerHTML = `<div class="card res ${win ? 'win' : 'lose'}"><div class="big">${win ? '🦁🏆' : status === 'quit' ? '🚪' : '😢'}</div>
+    <h2>${win ? 'مبروك! لقد ربحت الأسد 🎉' : status === 'quit' ? 'انسحبت بهداياك' : 'حظاً أوفر هذه المرة'}</h2>
+    <p style="font-weight:700;line-height:1.9">${win ? 'أجبت عن كل الأسئلة بنجاح!' : reasonTx}${!win ? ` — وصلت إلى السؤال ${ar(Math.min(G.correct + (status === 'lost' ? 1 : 0), total))} من ${ar(total)}` : ''}</p>
+    ${names.length ? `<div class="sec-t" style="justify-content:center;margin-top:14px"><i class="fas fa-gift"></i> هداياك</div><div class="prz">${(() => { const m = new Map(); kept.forEach(e => m.set(e.giftId, (m.get(e.giftId)||0) + e.qty)); return [...m.entries()].map(([id, n]) => { const g = giftOf(id); return `<span class="pz">${giftIco(g)}${esc(g ? g.name : 'هدية')}${n > 1 ? ' ×' + ar(n) : ''}</span>`; }).join(''); })()}</div>` : `<div class="chip" style="margin:12px 0">لا هدايا في هذه الجولة</div>`}
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"><button class="btn gold" id="again"><i class="fas fa-rotate-right"></i> العب مرة أخرى</button><a class="btn out" href="index.html" style="text-decoration:none"><i class="fas fa-home"></i> الرئيسية</a></div></div>`;
+  fixFsm(); if (win) confetti();
+  $('again').onclick = () => { const c = canPlay(); if (c.ok) startGame(); else { toast(c.msg); showIntro(); } };
+  await sa; G = null; }
+function confetti(){ const r = document.querySelector('.res'); if (!r) return; const cols = ['#C9A961','#F3E2B0','#2ECC71','#E74C3C','#3498DB','#fff']; for (let i = 0; i < 60; i++){ const d = document.createElement('i'); d.className = 'cf'; d.style.left = rnd(100) + '%'; d.style.background = cols[rnd(cols.length)]; d.style.animationDuration = (2.5 + Math.random()*2.5) + 's'; d.style.animationDelay = (Math.random()*1.2) + 's'; r.appendChild(d); setTimeout(() => d.remove(), 7000); } }
+
+/* مغادرة أثناء اللعب = خسارة (محاولة أخيرة) */
+addEventListener('pagehide', () => { if (G && !G.over && G.playId) updateDoc(doc(db,'mm_plays',G.playId), {status:'lost', endedAt:serverTimestamp(), abandoned:true}).catch(() => {}); });
+
+load().then(showIntro).catch(e => { console.error(e); app.innerHTML = '<div class="card hero"><div class="lion">⚠️</div><h2>تعذر التحميل</h2><p>تحقق من الاتصال ثم أعد المحاولة</p><button class="btn gold" onclick="location.reload()">إعادة المحاولة</button></div>'; });
+</script>
+</body>
+</html>
