@@ -138,72 +138,137 @@ function waitTick(r){const sv=srv(),w=(sv.waitSeconds||180)*1000,n=Object.keys(r
  if(r.joinedAt&&t)t.textContent=fmt(Math.max(0,Math.round((r.joinedAt+w-Date.now())/1000)));
  if(r.host!==pk||S.busy||!sv.id)return;
  if(n>=(sv.maxPlayers||99)||(r.joinedAt&&Date.now()-r.joinedAt>=w&&n>=1)){S.busy=1;start(true).catch(()=>toast('تعذّر بدء الجلسة')).finally(()=>S.busy=0)}}
-async function bgPlan(c,id){if(!AIC?.enabled||!AIC.apiKey)return;try{const p=await mkPlan(c);await updateDoc(doc(db,'crime_rooms',id),{plan:p})}catch(e){}}
+async function bgPlan(c,id){if(!aiOn())return;try{const p=await mkPlan(c);await updateDoc(doc(db,'crime_rooms',id),{plan:p})}catch(e){}}
 /* ===== الذكاء الاصطناعي والخفايا ===== */
-async function ai(prompt){const c=AIC;if(!c?.enabled||!c.apiKey)throw 0;let t;
- if(c.provider==='gemini'){const u=(c.apiUrl||'').replace('{model}',c.model||'gemini-2.0-flash'),j=await(await fetch(u+(u.includes('?')?'&':'?')+'key='+encodeURIComponent(c.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:.9}})})).json();t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('')}
- else{const j=await(await fetch(c.apiUrl,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.apiKey},body:JSON.stringify({model:c.model,temperature:.9,messages:[{role:'user',content:prompt}]})})).json();t=j.choices?.[0]?.message?.content}
- if(!t)throw 0;return t}
-const aiJ=async p=>{const t=(await ai(p)).replace(/```json|```/g,'');return JSON.parse(t.slice(t.indexOf('{'),t.lastIndexOf('}')+1))};
+const aiOn=()=>!!(AIC&&AIC.apiKey);
+const SAFE=['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH','HARM_CATEGORY_SEXUALLY_EXPLICIT','HARM_CATEGORY_DANGEROUS_CONTENT'].map(category=>({category,threshold:'BLOCK_ONLY_HIGH'}));
+const TO=(ms)=>new Promise((_,j)=>setTimeout(()=>j(new Error('انتهت المهلة')),ms));
+async function ai(prompt,json){const c=AIC;if(!aiOn())throw new Error('مفتاح الذكاء الاصطناعي غير مضبوط');let t;
+ if(c.provider==='gemini'){const u=(c.apiUrl||'').replace('{model}',c.model||'gemini-2.0-flash'),body={contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:.85},safetySettings:SAFE};if(json)body.generationConfig.responseMimeType='application/json';
+  const r=await fetch(u+(u.includes('?')?'&':'?')+'key='+encodeURIComponent(c.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),j=await r.json();if(!r.ok)throw new Error(j.error?.message||('خطأ '+r.status));t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('')}
+ else{const r=await fetch(c.apiUrl,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.apiKey},body:JSON.stringify({model:c.model,temperature:.85,messages:[{role:'user',content:prompt}]})}),j=await r.json();if(!r.ok)throw new Error(j.error?.message||('خطأ '+r.status));t=j.choices?.[0]?.message?.content}
+ if(!t)throw new Error('رد فارغ من الذكاء الاصطناعي');return t}
+const aiT=(p,ms=22000)=>Promise.race([ai(p),TO(ms)]);
+const aiWarn=er=>{console.warn('AI',er);if(!S.aiW){S.aiW=1;toast('⚠️ تعذّر الاتصال بالذكاء الاصطناعي ('+(er&&er.message||er)+') — يُستخدم رد احتياطي')}};
+const aiJ=async(p,ms=40000)=>{const t=(await Promise.race([ai(p,true),TO(ms)])).replace(/```json|```/g,'');return JSON.parse(t.slice(t.indexOf('{'),t.lastIndexOf('}')+1))};
 const fbPlan=c=>{const o=sh(c.characters.filter(x=>x.id!==c.accusedId)),a=c.characters.find(x=>x.id===c.accusedId)||{},v=c.victim||{},p=o[0]||{},q=o[1]||p;
  return {intel:{officer:`أثناء المعاينة: ${v.causeOfDeath||'لا تفاصيل'}. وتردد أن ${p.name} شوهد قرب المكان.`,investigator:`بلغك أن ${p.name} له دافع: ${p.motive||'غير معلوم'}.`,prosecutor:`مصدر يقول إن ${a.name} كان على خلاف مع المجني عليه.`,judge:'الشك يُفسَّر لصالح المتهم، وقد تخفي الأوراق ما لم يُقدَّم بعد.',counselor:`لاحظت ثغرة في حجة ${q.name}: ${q.alibi||'—'}.`,government:`وصلتك معلومة عن ${v.name}: ${v.bio||'—'}.`,lawyer:`موكلك ${a.name} يقول إنه كان: ${a.alibi||'—'}. ابحث عمّن يثبت ذلك.`,witness:'لا تقل كل ما تعرف دفعة واحدة، وانتبه لمن يستدرجك.',accused:'تذكّر ما فعلت تلك الليلة، ولا تتكلم إلا بعد تفكير.'},
  items:[{when:'investigation',kind:'doc',doc:{type:'letter',title:'خطاب مجهول',content:`إلى من يهمه الأمر: ${p.name} لم يكن في بيته تلك الليلة كما يدّعي. تحرّوا عن حجته.`,visibleTo:['investigator','prosecutor','officer']}},{when:'prosecution',kind:'witness',witness:{name:q.name,job:q.job,text:`رأيت ${p.name} يتحدث مع المجني عليه بحدّة قبل الواقعة.`}},{when:'defense',kind:'doc',doc:{type:'phone',title:'سجل مكالمات مستجد',content:`اتصال من هاتف ${p.name} إلى المجني عليه قبل الحادث بساعة.`,visibleTo:['lawyer','judge']}},{when:'trial',kind:'witness',witness:{name:'مواطن',job:'جار المتهم',text:`أقسم أنني رأيت ${a.name} أمام بيته في تلك الساعة.`}}]}};
-async function mkPlan(c){const f=fbPlan(c);try{if(!AIC?.enabled)return f;const k=c.characters.find(x=>x.id===c.killerId)||{},a=c.characters.find(x=>x.id===c.accusedId)||{},cx={title:c.title,summary:c.summary,crime:c.crimeType,place:c.location,victim:c.victim,chars:c.characters.map(x=>({name:x.name,job:x.job,relation:x.relation,motive:x.motive,alibi:x.alibi})),docs:(c.documents||[]).map(d=>d.title)};
- const j=await aiJ(`أنت مخرج لعبة محاكمة واقعية تدور في مصر: شرطة ونيابة ومحاكم وأسماء وأماكن مصرية فقط، وعملة الجنيه المصري. القضية: ${JSON.stringify(cx)}. القاتل الحقيقي: ${k.name}. المتهم في القفص: ${a.name}${k.id===a.id?' (هو القاتل)':' (بريء)'}. أخرج JSON فقط بالشكل: {"intel":{"officer":"","investigator":"","prosecutor":"","judge":"","counselor":"","government":"","lawyer":"","witness":"","accused":""},"items":[{"when":"investigation","kind":"doc","doc":{"type":"letter","title":"","content":"","visibleTo":["prosecutor"]}},{"when":"prosecution","kind":"witness","witness":{"name":"","job":"","text":""}},{"when":"defense","kind":"doc","doc":{"type":"phone","title":"","content":"","visibleTo":[]}},{"when":"trial","kind":"witness","witness":{"name":"","job":"","text":""}}]}. القواعد: لكل دور معلومة سرية قصيرة مفيدة للتحقيق دون كشف القاتل صراحة؛ الأوراق والشهود خيوط جديدة متسقة مع القضية وبعضها مضلل؛ عربية واقعية؛ أنواع الأوراق: ${Object.keys(DT).join(',')}.`);
+async function mkPlan(c){const f=fbPlan(c);try{if(!aiOn())return f;const k=c.characters.find(x=>x.id===c.killerId)||{},a=c.characters.find(x=>x.id===c.accusedId)||{},cx={title:c.title,summary:c.summary,crime:c.crimeType,place:c.location,victim:c.victim,chars:c.characters.map(x=>({name:x.name,job:x.job,relation:x.relation,motive:x.motive,alibi:x.alibi})),docs:(c.documents||[]).map(d=>d.title)};
+ const j=await aiJ(`أنت مخرج لعبة محاكمة واقعية تدور في مصر: شرطة ونيابة ومحاكم وأسماء وأماكن مصرية فقط، وعملة الجنيه المصري. القضية: ${JSON.stringify(cx)}. الجاني الحقيقي: ${k.name}. المتهم في القفص: ${a.name}${k.id===a.id?' (هو الجاني)':' (بريء)'}. أخرج JSON فقط بالشكل: {"intel":{"officer":"","investigator":"","prosecutor":"","judge":"","counselor":"","government":"","lawyer":"","witness":"","accused":""},"items":[{"when":"investigation","kind":"doc","doc":{"type":"letter","title":"","content":"","visibleTo":["prosecutor"]}},{"when":"prosecution","kind":"witness","witness":{"name":"","job":"","text":""}},{"when":"defense","kind":"doc","doc":{"type":"phone","title":"","content":"","visibleTo":[]}},{"when":"trial","kind":"witness","witness":{"name":"","job":"","text":""}}]}. القواعد: لكل دور معلومة سرية قصيرة مفيدة للتحقيق دون كشف الجاني صراحة؛ الأوراق والشهود خيوط جديدة متسقة مع القضية وبعضها مضلل؛ عربية واقعية؛ أنواع الأوراق: ${Object.keys(DT).join(',')}.`);
  return j.intel&&Array.isArray(j.items)?{intel:{...f.intel,...j.intel},items:j.items}:f}catch(e){return f}}
-async function fire(r){const it=(r.plan.items||[]).find(x=>x.when===r.phase),up={['fired.'+r.phase]:true},M=[],now=Date.now(),pm=(t,n,to)=>M.push({k:'sys',n,t,to:to||null,kind:to?'hint':'event',ts:now+M.length});
- if(it?.kind==='doc'&&it.doc){const x=it.doc,vt=Array.isArray(x.visibleTo)?x.visibleTo:[];up.extraDocs=arrayUnion({id:uid(),type:DT[x.type]?x.type:'other',number:'م/'+(100+Math.random()*899|0),date:new Date().toLocaleDateString('ar-EG'),title:x.title||'',content:x.content||'',stamp:'مستجد',blood:'none',coffee:false,aged:false,hand:x.type==='letter',phase:'all',visibleTo:vt});
-  const to=vt.length?Object.entries(r.players).filter(([,p])=>vt.includes(p.roleKey)).map(([k])=>k):[];to.length?to.forEach(k=>pm('وصلتك ورقة جديدة سرّية: افتح تبويب الأوراق.','مصدر مجهول',k)):pm('📄 وصلت إلى الجلسة ورقة جديدة، راجعوا الأوراق.','المحكمة')}
- if(it?.kind==='witness'&&it.witness){const w=it.witness;pm(`🚪 اقتحم القاعة ${w.name} (${w.job||'مواطن'}) وهو يصيح: «يا فندم… أنا عندي شهادة!»`,'القاعة');pm(w.text,w.name+' (شاهد مفاجئ)')}
- await updateDoc(rr(),up);for(const m of M)await setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),m)}
+/* ===== مستجدّات سرّية تُولَّد في منتصف كل مرحلة ===== */
+const humRoles=r=>[...new Set(Object.values(r.players||{}).map(p=>p.roleKey).filter(Boolean))];
+const rlName=k=>S.roles.find(x=>x.key===k)?.name||k;
+const cleanDoc=(x,vt)=>({id:uid(),type:DT[x.type]?x.type:'other',number:'م/'+(100+Math.random()*899|0),date:new Date().toLocaleDateString('ar-EG'),title:String(x.title||'').slice(0,80),content:String(x.content||'').slice(0,1200),stamp:String(x.stamp||'مستجد').slice(0,24),blood:'none',coffee:false,aged:false,hand:x.type==='letter',phase:'all',visibleTo:vt});
+function fbLive(r,hum){const c=cs(),g=c.accusedId===c.killerId,k=ch(c.killerId)||{},a=ch(c.accusedId)||{},v=c.victim?.name||'المجني عليه';
+ const D={
+ judge:g?{type:'forensic',title:'تقرير فني مكمّل — قرائن إدانة',content:`خلص الفحص الفني المكمّل إلى وجود آثار تخص ${a.name} في موضع الواقعة، وتبيّن تناقض أقواله بشأن مكان وجوده وقت الحادث مع سجلات الاتصالات. وترجّح هذه القرائن مجتمعةً ارتكابه الواقعة.`}:{type:'forensic',title:'تقرير فني مكمّل — شبهة في الاتهام',content:`لم يسفر الفحص الفني المكمّل عن أي أثر يربط ${a.name} بموضع الواقعة، وظهرت آثار تخص شخصًا آخر من محيط ${v} (${k.name}) لم يُستجوب بعد. ويثير ذلك شكًّا جديًّا في الاتهام.`},
+ investigator:{type:'phone',title:'بيان مكالمات مستجد',content:g?`تبيّن من بيان الاتصالات أن ${a.name} اتصل بـ${v} قبل الواقعة بساعة، ثم أُغلق هاتفه حتى الصباح.`:`تبيّن من بيان الاتصالات أن ${k.name} تواصل مع ${v} قبل الواقعة بساعة، ولم يُسجَّل أي اتصال من ${a.name}.`},
+ officer:{type:'cctv',title:'تفريغ كاميرات الشارع المجاور',content:g?`أظهرت كاميرا الشارع المجاور شخصًا يشبه ${a.name} يغادر محيط الواقعة مسرعًا بعد الحادث بدقائق.`:`لم تُظهر كاميرات الشارع المجاور ${a.name} في محيط الواقعة وقت الحادث، بينما ظهر شخص آخر يغادر المكان مسرعًا لم تتضح ملامحه.`},
+ prosecutor:{type:'witness',title:'أقوال شاهد مستجد',content:g?`أفاد أحد الجيران بأنه سمع مشادة حادة بين ${a.name} و${v} قبل الواقعة بوقت قصير.`:`أفاد أحد الجيران بأنه رأى ${a.name} بعيدًا عن مكان الواقعة وقت حدوثها، وسمع مشادة بين ${v} وشخص آخر.`},
+ lawyer:{type:'letter',title:'ورقة وصلت إلى الدفاع',content:g?`وصل إلى الدفاع ما يضعف حجة ${a.name} بشأن مكان وجوده وقت الواقعة، فاستعد لمواجهته أو لتفنيده.`:`وصل إلى الدفاع إيصال ورسالة تثبتان وجود ${a.name} في مكان آخر وقت الواقعة، فاحرص على تقديمهما للمحكمة.`},
+ counselor:{type:'other',title:'ملاحظة على الإجراءات',content:`لاحظت أن إجراءات ضبط ${a.name} شابها تأخر في إخطار النيابة، وقد يُثار ذلك كدفع إجرائي.`},
+ government:{type:'other',title:'تقرير رسمي',content:g?`ورد تقرير رسمي يفيد بسوابق سلوك عنيف مسجلة ضد ${a.name}.`:`ورد تقرير رسمي يفيد بخلو صحيفة ${a.name} من السوابق، وبأن شخصًا آخر من محيط ${v} له وقائع مشابهة.`},
+ accused:{type:'letter',title:'ورقة صغيرة',content:'تذكّر ما قلته في أقوالك الأولى ولا تناقض نفسك، فكل كلمة تُسجَّل.'},
+ witness:{type:'letter',title:'ورقة وصلتك',content:'يتردد أن أحدهم يحاول التأثير على أقوال الشهود؛ اثبت على ما رأيت فقط.'}};
+ const ks=hum.filter(x=>D[x]),pick=[...ks.filter(x=>x==='judge'),...sh(ks.filter(x=>x!=='judge'))].slice(0,3);
+ return pick.map(x=>({kind:'doc',doc:{...D[x],visibleTo:[x],stamp:'سري'}}))}
+async function mkLive(r,hum){if(!aiOn())return [];const c=cs(),k=ch(c.killerId)||{},a=ch(c.accusedId)||{},g=c.accusedId===c.killerId,ph=PHS.find(x=>x[0]===r.phase)?.[1]||'';
+ const chat=[...(r.chat||[]),...S.msgs].filter(m=>!m.to).sort((x,y)=>(x.ts||0)-(y.ts||0)).slice(-20).map(m=>(m.n||'')+': '+m.t).join('\n');
+ const j=await aiJ(`أنت مخرج لعبة محاكمة جنائية مصرية (شرطة ونيابة ومحكمة جنايات؛ أسماء وأماكن وعملة مصرية فقط). نحن الآن في منتصف مرحلة «${ph}».
+${brief(c)}
+أوراق القضية الحالية:
+${digest(c,r,10)}
+الحقيقة المخفية (لا تكتبها كما هي في أي ورقة): الجاني الحقيقي هو ${k.name}. المتهم في القفص هو ${a.name} (${g?'وهو الجاني فعلًا':'وهو بريء'}).
+ما دار في الجلسة حتى الآن:
+${chat||'لا شيء بعد'}
+الأدوار التي يمثلها لاعبون حقيقيون الآن (مفتاح: اسم): ${hum.map(x=>x+': '+rlName(x)).join('، ')}.
+المطلوب: ولّد من 3 إلى 4 أوراق سرّية مستجدّة، كل ورقة موجّهة لدور واحد أو دورين فقط من الأدوار أعلاه (في visibleTo بمفاتيحها الإنجليزية)، بحيث:
+- إن وُجد القاضي (judge) فله ورقة حاسمة ${g?'تثبت إدانة المتهم بقرائن وأدلة قوية (تحليل، كاميرات، شهادة، اتصالات) دون اعتراف صريح':'تثبت براءة المتهم أو تضع شكًّا قويًّا في الاتهام وتشير إلى الجاني الحقيقي بقرائن'}.
+- إن وُجد المحقق (investigator) والضابط (officer) فلكلٍّ منهما ورقة بخيط جديد (اتصالات، كاميرات، حرز، أقوال، تقرير) متسق مع الحقيقة المخفية.
+- بقية الأوراق لأي أدوار أخرى مناسبة (prosecutor, lawyer, counselor, government, witness, accused).
+- الأوراق واقعية ومحددة (أرقام، أوقات، أماكن مصرية)، قصيرة (من 3 إلى 6 أسطر)، متسقة مع أوراق القضية وما قيل في الجلسة، ولا تتناقض مع بعضها.
+أخرج JSON فقط بالشكل: {"items":[{"kind":"doc","doc":{"type":"forensic","title":"","content":"","visibleTo":["judge"],"stamp":"سري"},"alert":"جملة قصيرة تصل اللاعب صاحب الورقة"}]}
+أنواع الأوراق المسموحة: ${Object.keys(DT).join(',')}.`,28000);
+ return (Array.isArray(j.items)?j.items:[]).filter(x=>x&&x.doc&&String(x.doc.content||'').trim()).slice(0,4).map(x=>({kind:'doc',doc:x.doc,alert:x.alert}))}
+async function fire(r){const now=Date.now(),M=[],pm=(t,n,to)=>M.push({k:'sys',n,t,to:to||null,kind:to?'hint':'event',ts:now+M.length}),hum=humRoles(r),docs=[];
+ await updateDoc(rr(),{['fired.'+r.phase]:true});
+ const planIt=(r.plan?.items||[]).filter(x=>x.when===r.phase);let items=[];
+ try{items=await mkLive(r,hum)}catch(e){aiWarn(e)}
+ items=items.length?[...items,...planIt.filter(x=>x.kind==='witness')]:[...planIt,...fbLive(r,hum)];
+ for(const it of items){
+  if(it.kind==='doc'&&it.doc){const x=it.doc,want=Array.isArray(x.visibleTo)?x.visibleTo:[],vt=want.filter(k=>hum.includes(k));if(want.length&&!vt.length)continue;
+   docs.push(cleanDoc(x,vt))}
+  else if(it.kind==='witness'&&it.witness){const w=it.witness;pm(`🚪 اقتحم القاعة ${w.name} (${w.job||'مواطن'}) وهو يصيح: «يا فندم… أنا عندي شهادة!»`,'القاعة');pm(w.text,w.name+' (شاهد مفاجئ)')}}
+ if(docs.length)await updateDoc(rr(),{extraDocs:arrayUnion(...docs)});
+ for(const m of M)await setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),m)}
 /* ===== الاستدعاء والانشغال ===== */
 const SUM=['judge','prosecutor','investigator','officer'];
 const ACT={officer:['يحرر محضر المعاينة','يراجع كاميرات المنطقة','يؤمّن قاعة المحكمة'],investigator:['يفحص الأحراز','يراجع أقوال الشهود','يعدّ أسئلة الاستجواب'],prosecutor:['يصوغ مذكرة الاتهام','يراجع ملف القضية','يجهّز مرافعته'],judge:['يطالع أوراق الدعوى','يراجع سوابق قضائية','يدوّن ملاحظاته'],counselor:['يراجع سلامة الإجراءات','يبحث عن ثغرات قانونية','يدوّن رأيه'],government:['يتابع التقارير الرسمية','يتصل بالجهات المعنية','يراجع تقرير الوزارة'],lawyer:['يعدّ مذكرة الدفاع','يبحث عن شاهد نفي','يقابل موكله'],witness:['ينتظر في الممر','يراجع ما رآه','يتوتر في الانتظار'],accused:['في الحجز ينتظر','يفكر في حجته','يقلّب أيامه الأخيرة']};
 const act=(k,i)=>{const a=ACT[k]||['حاضر'];return a[i%a.length]};
 function sumList(r){const c=cs(),pl=Object.entries(r.players).filter(([k])=>k!==pk).map(([k,x])=>({k,l:x.label})),npc=c.characters.filter(x=>x.id!==c.accusedId&&!Object.values(r.players).some(p=>p.charId===x.id)).map(x=>({k:'n_'+x.id,l:x.name+' — '+x.job})),ab=(r.bots||[]).find(b=>b.roleKey==='accused');return [...pl,...npc,...(ab?[{k:'b_accused',l:ab.label}]:[])]}
-function sumUI(r,p){const h=r.hearing,mine=h?.on&&h.by===pk;return `${h?.on?`<div class="note">🔔 ${esc(nmOf(r,h.by))} يحقق الآن مع «${esc(h.name)}»${h.to===pk?' — أنت المطلوب، أجب عن أسئلته':''}</div>`:''}${SUM.includes(p.roleKey)?`<div class="chips"><select id="smn" style="flex:1;padding:8px;border-radius:10px;border:2px solid var(--border);background:var(--bg-input);color:var(--text-main);font:600 13px Cairo"><option value="">استدعاء للتحقيق…</option>${sumList(r).map(o=>`<option value="${esc(o.k)}" ${S.sm===o.k?'selected':''}>${esc(o.l)}</option>`).join('')}</select><button class="btn sm p" data-a="summon">استدعِ</button>${mine?'<button class="btn sm d" data-a="endh">إنهاء التحقيق</button>':''}</div>`:''}`}
+const hearBanner=r=>{const h=r.hearing;return h?.on?`<div class="note" style="margin:0 0 8px">🔔 ${esc(nmOf(r,h.by))} يحقق الآن مع «${esc(h.name)}»${h.to===pk?' — أنت المطلوب، أجب عن أسئلته':''}</div>`:''};
+function sumUI(r,p){const h=r.hearing,mine=h?.on&&h.by===pk;return `${SUM.includes(p.roleKey)?`<div class="chips"><select id="smn" style="flex:1;padding:8px;border-radius:10px;border:2px solid var(--border);background:var(--bg-input);color:var(--text-main);font:600 13px Cairo"><option value="">استدعاء للتحقيق…</option>${sumList(r).map(o=>`<option value="${esc(o.k)}" ${S.sm===o.k?'selected':''}>${esc(o.l)}</option>`).join('')}</select><button class="btn sm p" data-a="summon">استدعِ</button>${mine?'<button class="btn sm d" data-a="endh">إنهاء التحقيق</button>':''}</div>`:''}`}
 async function summon(){const r=S.room,k=$('#smn').value,o=sumList(r).find(x=>x.k===k);if(!o)return toast('اختر من تستدعيه');S.dm=k;
  await updateDoc(rr(),{hearing:{id:uid(),by:pk,to:k,name:o.l,on:true}});await setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:'sys',n:'المحكمة',t:`استدعى ${r.players[pk].label} «${o.l}» إلى غرفة التحقيق… وأُغلقت الأبواب.`,to:null,kind:'event',ts:Date.now()});log('msg','استدعاء '+o.l);
  if(k.startsWith('n_')||k==='b_accused')setTimeout(()=>setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k,n:o.l.split(' — ')[0],t:'حاضر يا فندم، اسألني عمّا تشاء.',to:pk,kind:'dm',ts:Date.now()}),1500)}
 async function endh(){const r=S.room,h=r.hearing;await updateDoc(rr(),{'hearing.on':false});S.dm='';await setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:'sys',n:'المحكمة',t:`انتهى التحقيق مع «${h.name}» وغادر غرفة التحقيق.`,to:null,kind:'event',ts:Date.now()})}
-const aiT=p=>Promise.race([ai(p),new Promise((_,j)=>setTimeout(()=>j(0),14000))]);
-function brief(c){const v=c.victim||{};return `القضية: ${c.title}. ${c.summary}. نوع الجريمة: ${c.crimeType}. المكان: ${c.location}. الوقت: ${c.dateTime}. المجني عليه: ${v.name} (${v.age} سنة) ${v.job}، سبب الوفاة: ${v.causeOfDeath}. الشخصيات: ${(c.characters||[]).map(x=>x.name+' ('+x.job+' — '+x.relation+')').join('، ')}.`}
-function localReply(ca,c,q,kil){const v=c.victim?.name||'المجني عليه',s=String(q||'');
+function brief(c){const v=c.victim||{};return `القضية: ${c.title}. ${c.summary}. نوع الجريمة: ${c.crimeType}. المكان: ${c.location}. الوقت: ${c.dateTime}. المجني عليه: ${v.name} (${v.age} سنة) ${v.job}، سبب الوفاة أو الإصابة أو الضرر: ${v.causeOfDeath}. الشخصيات: ${(c.characters||[]).map(x=>x.name+' ('+x.job+' — '+x.relation+')').join('، ')}.`}
+const digest=(c,r,n=8)=>[...(c.documents||[]),...(r.extraDocs||[])].filter(d=>!(d.visibleTo||[]).length).slice(0,n).map(d=>'- '+(d.title||DT[d.type]||'ورقة')+': '+String(d.content||'').replace(/\s+/g,' ').slice(0,220)).join('\n')||'—';
+const norm=s=>String(s||'').replace(/[ً-ْ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي');
+const STOPW=new Set(['كنت','زرت','عندك','معاك','منذ','يومين','قبل','بعد','انت','انتي','ده','دي','هذا','هذه','كان','كانت','يكون','اللي','الذي','التي']);
+function localReply(ca,c,q,kil){const v=c.victim?.name||'المجني عليه',s=norm(q);
  if(/(اسمك|سنك|عمرك|شغلك|بتشتغل|وظيفتك|مهنتك)/.test(s))return `أنا ${ca.name}، عندي ${ca.age||'—'} سنة، وبشتغل ${ca.job||'—'}.`;
- if(/(فين|كنت|حجتك|ليلة|وقت الحادث|الساعة)/.test(s))return `وقت الحادثة كنت ${ca.alibi||'في بيتي'}، واللي كان معايا أو شافني يقدر يأكد كلامي.`;
- if(/(علاقت|تعرف|قرابة|صلتك|بتعرفه|كنت تعرف)/.test(s))return `${ca.relation||'معرفة عادية'}. ده كل اللي بيني وبين ${v}.`;
- if(/(ليه|دافع|مصلحة|كره|خلاف|مشكلة|عداوة|خناق)/.test(s))return kil?`مفيش بيني وبينه حاجة توصل لكده، وأي كلام عن خلاف مبالغ فيه.`:`${ca.motive?'سمعت إن في كلام عن '+ca.motive+'، ':''}بس أنا مالي ومال الدم ده، وأنا مش اللي عملتها.`;
- if(/(قتل|قاتل|عملت|اتهم|ضربت|انت اللي|هددت|اعترف)/.test(s))return kil?'أنا؟! حرام عليكم، أنا ما أعرفش حاجة عن الحكاية دي، ودوّروا على الفاعل الحقيقي.':'والله العظيم ما عملتها ولا أعرف مين عملها، وكل اللي أعرفه قلته في أقوالي.';
+ if(/(^|\s)هل\s/.test(s)&&!/(^|\s)(فين|وين|امتي|متي|مين|ايه|ماذا|ليه|لماذا|ازاي|كيف|كام|اين)(\s|$|[؟?])/.test(s)){const ws=s.replace(/[؟?!.,،]/g,' ').split(/\s+/).map(w=>w.replace(/^(ال|و|ب|ل|ف)/,'')).filter(w=>w.length>2&&!STOPW.has(w)),pool=norm([ca.alibi,ca.statement,ca.bio,ca.relation].join(' ')),hit=ws.filter(w=>pool.includes(w)).length;
+  return hit>0?`أيوه يا فندم، زي ما قلت في أقوالي: ${(ca.alibi||ca.statement||'').slice(0,120)}`:`لا يا فندم، ${kil?'ما حصلش ده خالص.':'ما حصلش، ولو كان حصل كنت قلته من الأول.'}`}
+ if(/(فين|كنت|حجتك|ليله|وقت الحادث|الساعه)/.test(s))return `وقت الحادثة كنت ${String(ca.alibi||'في بيتي').replace(/^كنت\s+/,'')}، واللي كان معايا أو شافني يقدر يأكد كلامي.`;
+ if(/(علاقت|تعرف|قرابه|صلتك|بتعرفه|كنت تعرف)/.test(s))return `${ca.relation||'معرفة عادية'}. ده كل اللي بيني وبين ${v}.`;
+ if(/(ليه|دافع|مصلحه|كره|خلاف|مشكله|عداوه|خناق)/.test(s))return kil?`مفيش بيني وبينه حاجة توصل لكده، وأي كلام عن خلاف مبالغ فيه.`:`${ca.motive?'سمعت إن في كلام عن '+ca.motive+'، ':''}بس أنا مالي ومال الموضوع ده، وأنا مش اللي عملتها.`;
+ if(/(قتل|قاتل|عملت|اتهم|ضربت|انت اللي|هددت|اعترف|سرقت|اغتصبت|تحرشت)/.test(s))return kil?'أنا؟! حرام عليكم، أنا ما أعرفش حاجة عن الحكاية دي، ودوّروا على الفاعل الحقيقي.':'والله العظيم ما عملتها ولا أعرف مين عملها، وكل اللي أعرفه قلته في أقوالي.';
  if(/(شفت|سمعت|لاحظت|شاهد|حصل|قول|احكي|ايه اللي)/.test(s))return ca.statement||'اللي شفته قلته في المحضر ومعنديش زيادة.';
- if(/(سلاح|سكين|مسدس|بصمات|دليل|حرز|موبايل|تليفون|مكالمة|كاميرا)/.test(s))return 'معرفش حاجة عن الدليل ده، ولو في حاجة تخصني فاسألوني فيها بالتفصيل.';
+ if(/(سلاح|سكين|مسدس|بصمات|دليل|حرز|موبايل|تليفون|مكالمه|كاميرا)/.test(s))return 'معرفش حاجة عن الدليل ده، ولو في حاجة تخصني فاسألوني فيها بالتفصيل.';
  return ca.statement?`زي ما قلت في أقوالي: ${ca.statement.slice(0,160)}`:'ممكن توضّح سؤالك أكتر عشان أقدر أجاوبك؟'}
-async function npcSay(r,key,txt){const c=cs(),ca=key==='b_accused'?c.characters.find(x=>x.id===c.accusedId):c.characters.find(x=>'n_'+x.id===key);if(!ca)return;const kil=ca.id===c.killerId;let t;
- try{const h=S.msgs.filter(m=>(m.k===pk&&m.to===key)||(m.k===key&&m.to===pk)).sort((a,b)=>a.ts-b.ts).slice(-8).map(m=>(m.k===pk?'السائل: ':ca.name+': ')+m.t).join('\n');
-  t=await aiT(`أنت ${ca.name}، ${ca.age||''} سنة، ${ca.job||''}، وتخضع الآن لتحقيق جنائي حقيقي في مصر أمام النيابة العامة المصرية.
+const histOf=(r,key,txt,self,n=10)=>{const L=S.msgs.filter(m=>m.to===key||(m.k===key&&m.to)).sort((a,b)=>(a.ts||0)-(b.ts||0)).slice(-n);if(L.length&&L[L.length-1].k===pk&&L[L.length-1].t===txt.slice(0,400))L.pop();return L.map(m=>(m.k===key?self:'السائل ('+nmOf(r,m.k)+')')+': '+m.t).join('\n')||'لا شيء بعد'};
+const polish=(t,name)=>String(t).trim().replace(/^["«»]+|["«»]+$/g,'').replace(new RegExp('^'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*(\\([^)]*\\))?\\s*[:：]\\s*'),'').slice(0,600);
+async function npcSay(r,key,txt){const c=cs(),ca=key==='b_accused'?c.characters.find(x=>x.id===c.accusedId):c.characters.find(x=>'n_'+x.id===key);if(!ca)return;const kil=ca.id===c.killerId,isAcc=ca.id===c.accusedId;let t;
+ try{t=await aiT(`أنت تؤدي دور «${ca.name}» (${ca.age||''} سنة، ${ca.job||''}) في لعبة محاكمة جنائية تدور في مصر، وتخضع الآن للتحقيق أمام النيابة العامة المصرية. تتكلم دائمًا بصيغة المتكلم وبالعامية المصرية الطبيعية.
 ${brief(c)}
-بياناتك: علاقتك بالمجني عليه: ${ca.relation}. نبذة عنك: ${ca.bio||'—'}. الدافع المحتمل (قد تنكره): ${ca.motive||'—'}. حجتك: ${ca.alibi||'—'}. أقوالك الرسمية: ${ca.statement||'—'}.
-${kil?'أنت القاتل الحقيقي: أنكر وراوغ وتمسّك بحجتك بثقة، ولا تعترف إلا إذا حوصرت بدليل قاطع.':'أنت لست القاتل ولا تعرف من هو؛ قل ما تعرفه فقط ولا تخترع أدلة جديدة تناقض بياناتك.'}
-قواعد الرد: افهم سؤال السائل (${r.players[pk]?.label||'المحقق'}) بدقة وأجب عنه هو تحديدًا (لو سأل عن مكانك فأجب عن مكانك، لو سأل عن علاقتك فأجب عنها، وهكذا). ردك منطقي ومتسق مع بياناتك ومع ما قلته سابقًا، بالعامية المصرية، من جملة إلى ثلاث جمل، دون تكرار نفس الجملة، ودون الخروج من الدور أو ذكر أنك ذكاء اصطناعي.
-المحادثة السابقة:
-${h}
-السائل: ${txt}
-${ca.name}:`)}
- catch(e){t=localReply(ca,c,txt,kil)}
- setTimeout(()=>setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:key,n:ca.name+' (استدعاء)',t:String(t).trim().replace(/^[^:]{1,20}:\s*/,m=>m.length<22&&m.includes(ca.name)?'':m).slice(0,500),to:pk,kind:'dm',ts:Date.now()}),1000+Math.min(String(t).length*25,4000))}
-async function botTalk(r,b,txt){const c=cs(),a=c.characters.find(x=>x.id===c.accusedId)||{};let t;
- try{const h=S.msgs.filter(m=>(m.k===pk&&m.to===b.k)||(m.k===b.k&&m.to===pk)).sort((x,y)=>x.ts-y.ts).slice(-6).map(m=>(m.k===pk?'اللاعب: ':b.label+': ')+m.t).join('\n');
-  t=await aiT(`أنت ${b.label} في قاعة محاكمة جنائية مصرية (النيابة العامة المصرية ومحكمة الجنايات). ${brief(c)} المتهم في القفص: ${a.name}. المرحلة الحالية: ${PHS.find(x=>x[0]===r.phase)?.[1]||''}.
-اللاعب (${r.players[pk]?.label||''}) أرسل لك رسالة خاصة. افهمها وأجب عنها مباشرة بما يناسب دورك ومعلومات القضية، بجملة إلى ثلاث جمل بلهجة مهذبة قريبة من المصرية، دون أن تكشف الحقيقة أو تخرج من دورك.
-${h}
-اللاعب: ${txt}
-${b.label}:`)}
- catch(e){t=`سمعت سؤالك، وبما إني ${b.label.split(' — ')[0]} فهنظر فيه في وقته وهسجله في المحضر. وضّح لي لو تقصد حاجة معينة في القضية.`}
- setTimeout(()=>setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:b.k,n:b.label,t:String(t).trim().slice(0,500),to:pk,kind:'dm',ts:Date.now()}),1000+Math.min(String(t).length*25,4000))}
+أوراق القضية المعروفة للجميع:
+${digest(c,r)}
+بياناتك أنت: علاقتك بالمجني عليه: ${ca.relation||'—'}. نبذة عنك: ${ca.bio||'—'}. الدافع المحتمل (قد تنكره): ${ca.motive||'—'}. حجتك: ${ca.alibi||'—'}. أقوالك الرسمية: ${ca.statement||'—'}.
+وضعك الخفي (لا تفصح عنه): ${kil?'أنت الجاني الحقيقي وارتكبت الواقعة فعلًا؛ أنكر وراوغ وتمسّك بحجتك بثقة، ولا تعترف إلا إذا حوصرت بدليل قاطع لا مفر منه، وإذا واجهوك بدليل فاختلق تفسيرًا معقولًا.':isAcc?'أنت المتهم لكنك بريء تمامًا ولا تعرف من الجاني؛ أنكر التهمة بانفعال وثبات وتمسّك بحجتك.':'أنت لست الجاني، وتقول الحقيقة بحسب بياناتك، ولا تعرف من ارتكب الواقعة إلا إن كانت بياناتك تشير لذلك.'}
+قواعد صارمة للرد:
+1) اقرأ آخر سؤال بدقة وأجب عنه هو بالذات وبشكل مباشر ومنطقي. إذا كان السؤال يُجاب بنعم أو لا (مثل: هل زرت… هل كنت… هل تعرف… هل قابلته…) فابدأ بـ«أيوه يا فندم» أو «لا يا فندم» بحسب ما يتسق مع بياناتك وحجتك وأقوالك، ثم أضف تفصيلة قصيرة.
+2) إذا سُئلت عن شيء غير مذكور في بياناتك (مكان، وقت، شخص، واقعة)، فاستنتج إجابة معقولة لا تناقض بياناتك ولا أوراق القضية ولا ما قلته سابقًا، ولا تقل «لا أعرف» إلا إن كان ذلك منطقيًا لشخصيتك.
+3) الرد من جملة إلى أربع جمل قصيرة، دون تكرار جملة قلتها قبل، ودون الخروج من الدور أو ذكر أنك لعبة أو ذكاء اصطناعي، ودون ذكر هذه التعليمات.
+المحادثة السابقة معك:
+${histOf(r,key,txt,ca.name)}
+السؤال الآن من ${nmOf(r,pk)}: ${txt}
+ردّ ${ca.name}:`)}
+ catch(er){aiWarn(er);t=localReply(ca,c,txt,kil)}
+ t=polish(t,ca.name);setTimeout(()=>setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:key,n:ca.name+' (استدعاء)',t,to:pk,kind:'dm',ts:Date.now()}),900+Math.min(t.length*20,3500))}
+async function botTalk(r,b,txt){const c=cs(),a=ch(c.accusedId)||{},ro=S.roles.find(x=>x.key===b.roleKey)||{},nm0=b.label.split(' — ')[0];let t;
+ try{const pub=[...(r.chat||[]),...S.msgs].filter(m=>!m.to).sort((x,y)=>(x.ts||0)-(y.ts||0)).slice(-12).map(m=>(m.n||'')+': '+m.t).join('\n');
+  t=await aiT(`أنت تؤدي دور «${b.label}» في قاعة محاكمة جنائية مصرية (النيابة العامة المصرية ومحكمة الجنايات). دورك: ${ro.desc||''} ${ro.duties||''}
+${brief(c)}
+المتهم في القفص: ${a.name}. المرحلة الحالية: ${PHS.find(x=>x[0]===r.phase)?.[1]||''}.
+أوراق القضية المعروفة:
+${digest(c,r)}
+ما دار في القاعة مؤخرًا:
+${pub||'—'}
+محادثتك الخاصة السابقة مع اللاعب:
+${histOf(r,b.k,txt,nm0,8)}
+اللاعب (${r.players[pk]?.label||''}) يكلمك الآن على انفراد: ${txt}
+قواعد: اقرأ كلامه بدقة وأجبه مباشرة بما يناسب سؤاله ودورك ومعلومات القضية (إن كان السؤال بنعم أو لا فابدأ بنعم أو لا بوضوح)، بلهجة مصرية طبيعية مهذبة تناسب مرتبتك، من جملة إلى ثلاث جمل، دون أن تخرج من دورك أو تذكر أنك ذكاء اصطناعي أو تكشف أي معلومة سرّية لم تُعرض في الأوراق.
+ردّ ${nm0}:`)}
+ catch(er){aiWarn(er);t=`سمعت سؤالك، وبما إني ${nm0} فهنظر فيه في وقته وهسجله في المحضر. وضّح لي لو تقصد حاجة معينة في القضية.`}
+ t=polish(t,nm0);setTimeout(()=>setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:b.k,n:b.label,t,to:pk,kind:'dm',ts:Date.now()}),900+Math.min(t.length*20,3500))}
 getDoc(doc(db,'crime_settings','ai')).then(a=>{if(a.exists())AIC=a.data()}).catch(()=>{});
 
 /* ===== الواجهات ===== */
 const vLobby=()=>{const now=Date.now(),rooms=sv=>S.wait.filter(x=>x.serverId===sv.id&&!x.private&&Object.keys(x.players||{}).length<sv.maxPlayers&&(!x.joinedAt||now-x.joinedAt<((sv.waitSeconds||180)+120)*1000));
-return `<div class="sec"><h3><i class="fas fa-gavel"></i> قاعة المحكمة</h3><p class="sub">ادخل قضية، واستلم دورك الحقيقي: ضابط، محقق، نيابة، قاضٍ، دفاع، شاهد أو متهم. داخل الجلسة لا يظهر اسمك الشخصي — يظهر دورك فقط. الجلسات مراقبة ومسجّلة من الإدارة. القضية والمتهم والقاتل يُحدَّدون عشوائيًا في كل جلسة.</p></div>${friendsUI()}<div class="grid">${S.servers.filter(s=>s.status==='open').map(s=>{const L=s.mode==='ai'?[]:rooms(s);return `<div class="card"><h3><i class="fas ${s.mode==='ai'?'fa-robot':'fa-users'}"></i> ${esc(s.name)}</h3><p>${esc(s.desc||'')}</p><div class="chips"><span class="chip">${s.mode==='ai'?'فردي مع بوتات':'أونلاين جماعي'}</span><span class="chip">${s.minPlayers}–${s.maxPlayers} لاعبين</span><span class="chip">${s.phaseSeconds} ث للمرحلة</span></div>
+return `<div class="sec"><h3><i class="fas fa-gavel"></i> قاعة المحكمة</h3><p class="sub">ادخل قضية، واستلم دورك الحقيقي: ضابط، محقق، نيابة، قاضٍ، دفاع، شاهد أو متهم. داخل الجلسة لا يظهر اسمك الشخصي — يظهر دورك فقط. الجلسات مراقبة ومسجّلة من الإدارة. القضية والمتهم والجاني يُحدَّدون عشوائيًا في كل جلسة.</p></div>${friendsUI()}<div class="grid">${S.servers.filter(s=>s.status==='open').map(s=>{const L=s.mode==='ai'?[]:rooms(s);return `<div class="card"><h3><i class="fas ${s.mode==='ai'?'fa-robot':'fa-users'}"></i> ${esc(s.name)}</h3><p>${esc(s.desc||'')}</p><div class="chips"><span class="chip">${s.mode==='ai'?'فردي مع بوتات':'أونلاين جماعي'}</span><span class="chip">${s.minPlayers}–${s.maxPlayers} لاعبين</span><span class="chip">${s.phaseSeconds} ث للمرحلة</span></div>
 ${L.map((x,i)=>`<div class="chips" style="justify-content:space-between"><span class="chip">غرفة ${i+1} — ${Object.keys(x.players||{}).length}/${s.maxPlayers} لاعبين</span><button class="btn sm p" data-a="join" data-id="${s.id}" data-rid="${x.id}"><i class="fas fa-door-open"></i> دخول</button></div>`).join('')}
 ${L.length?'':`<button class="btn p" data-a="join" data-id="${s.id}"><i class="fas fa-door-open"></i> ${s.mode==='ai'?'دخول القضية':'فتح غرفة جديدة'}</button>`}</div>`}).join('')||'<div class="empty"><i class="fas fa-server"></i><br>لا توجد سيرفرات مفتوحة الآن</div>'}</div>`}
 function vWait(){const r=S.room,sv=srv(),n=Object.keys(r.players).length,need=r.private?Math.min(2,sv.minPlayers||2):sv.minPlayers,mine=r.players[pk]||{},host=r.host===pk,taken=Object.values(r.players).map(p=>p.pick);
@@ -213,21 +278,27 @@ function vWait(){const r=S.room,sv=srv(),n=Object.keys(r.players).length,need=r.
  <div class="acts">${host?`<button class="btn p" data-a="start" ${n<need&&sv.mode!=='ai'?'disabled':''}><i class="fas fa-gavel"></i> افتح الجلسة</button>`:`<button class="btn ${mine.ready?'':'p'}" data-a="ready">${mine.ready?'إلغاء الجاهزية':'✅ أنا جاهز'}</button>`}<button class="btn" data-a="leave">خروج</button></div></div>`}
 function vGame(){const r=S.room,c=cs();if(!c)return '<div class="empty">جارٍ تحميل القضية…</div>';
  const p=r.players[pk]||{},ro=S.roles.find(x=>x.key===p.roleKey)||{},mc=ch(p.charId),pi=PHS.findIndex(x=>x[0]===r.phase),t=S.tab,acc=p.roleKey==='accused',v=c.victim||{};
- const docs=[...(c.documents||[]),...(r.extraDocs||[])].filter(d=>(PHI[d.phase||'all']??0)<=pi&&(!(d.visibleTo||[]).length||d.visibleTo.includes(p.roleKey)));
+ const docs=visDocs(r),dmN=S.dm?((sumList(r).find(o=>o.k===S.dm)||{}).l||nmOf(r,S.dm)):'';
  const body=t==='file'?`<div class="sec"><h3><i class="fas fa-folder-open"></i> ${esc(c.title)}</h3><p class="sub">${esc(c.summary)}</p><div class="chips"><span class="chip">${esc(c.crimeType)}</span><span class="chip">${esc(c.location)}</span><span class="chip">${esc(c.dateTime)}</span></div><p class="sub">المجني عليه: <b>${esc(v.name)}</b> (${esc(v.age)}) — ${esc(v.job)}. ${esc(v.causeOfDeath)}</p></div>
- <div class="sec"><h3><i class="fas ${ro.icon||'fa-user'}"></i> دورك: ${esc(ro.name)}</h3><p class="sub">${esc(ro.desc)} ${esc(ro.duties||'')}</p>${mc?`<div class="note">${mc.id===c.killerId?'🔪 <b>أنت القاتل الحقيقي.</b> لا أحد يعرف — أنكر بذكاء أو اعترف إن شئت.<br>':''}شخصيتك: <b>${esc(mc.name)}</b>، ${esc(mc.age)} سنة، ${esc(mc.job)}.<br>علاقتك بالمجني عليه: ${esc(mc.relation)}<br>حجتك: ${esc(mc.alibi)}<br>أقوالك: ${esc(mc.statement)}</div>`:''}</div>
+ <div class="sec"><h3><i class="fas ${ro.icon||'fa-user'}"></i> دورك: ${esc(ro.name)}</h3><p class="sub">${esc(ro.desc)} ${esc(ro.duties||'')}</p>${mc?`<div class="note">${mc.id===c.killerId?'🔪 <b>أنت الجاني الحقيقي.</b> لا أحد يعرف — أنكر بذكاء أو اعترف إن شئت.<br>':''}شخصيتك: <b>${esc(mc.name)}</b>، ${esc(mc.age)} سنة، ${esc(mc.job)}.<br>علاقتك بالمجني عليه: ${esc(mc.relation)}<br>حجتك: ${esc(mc.alibi)}<br>أقوالك: ${esc(mc.statement)}</div>`:''}</div>
  ${r.plan?.intel?.[p.roleKey]?`<div class="sec"><h3><i class="fas fa-user-secret"></i> معلومة سرّية تخصّك</h3><p class="sub">${esc(r.plan.intel[p.roleKey])}</p></div>`:''}<div class="sec"><h3><i class="fas fa-users"></i> الحاضرون</h3><div class="chips">${[...Object.values(r.players),...(r.bots||[])].map(x=>`<span class="chip">${esc(x.label)}${x.roleKey==='accused'?' ⛓️':''} <small>— ${esc(act(x.roleKey,pi))}</small></span>`).join('')}</div></div>`
  :t==='docs'?(docs.map(paper).join('')||'<div class="empty">لا أوراق متاحة لك الآن</div>')
  :`<div class="sec"><div id="ms" class="ms">${feed(r)}</div>
  ${r.phase==='verdict'&&!acc?`<div class="note">صوّت على الحكم: ${r.votes?.[pk]?'تم تسجيل صوتك ✓':'<button class="btn sm d" data-a="vote" data-k="g">مذنب</button> <button class="btn sm p" data-a="vote" data-k="i">بريء</button>'}</div>`:''}
- <div class="chips">${(SAY[p.roleKey]||[]).map(s=>`<button class="btn sm" data-a="say" data-t="${esc(s)}">${esc(s)}</button>`).join('')}</div>${sumUI(r,p)}${acc&&!r.escaped?'<button class="btn sm d" data-a="run" style="margin-bottom:8px"><i class="fas fa-person-running"></i> حاول الهروب</button>':''}${dmSel(r)}<div style="display:flex;gap:6px"><input id="ci" placeholder="تكلّم بصفتك ${esc(ro.name)}…" autocomplete="off"><button class="btn p" data-a="send"><i class="fas fa-paper-plane"></i></button></div></div>`;
+ <div class="chips">${(SAY[p.roleKey]||[]).map(s=>`<button class="btn sm" data-a="say" data-t="${esc(s)}">${esc(s)}</button>`).join('')}</div>${hearBanner(r)}${S.gear?`<div class="note" style="margin:0 0 8px">${sumUI(r,p)}${acc&&!r.escaped?'<button class="btn sm d" data-a="run" style="margin-bottom:8px"><i class="fas fa-person-running"></i> حاول الهروب</button>':''}${dmSel(r)}</div>`:''}<div style="display:flex;gap:6px"><button class="ib" data-a="gear" title="أدوات الجلسة (استدعاء، رسالة خاصة…)" style="flex:none;${S.gear?'background:var(--primary);color:var(--on-primary)':''}"><i class="fas fa-gear"></i></button><input id="ci" placeholder="${dmN?'🔒 رسالة خاصة إلى '+esc(dmN)+'…':'تكلّم بصفتك '+esc(ro.name)+'…'}" autocomplete="off"><button class="btn p" data-a="send"><i class="fas fa-paper-plane"></i></button></div></div>`;
  return `<div class="ph"><i class="fas fa-gavel"></i><b>مرحلة ${PHS[pi][1]}</b><span id="tm"></span>${c.audio?.[r.phase]?'<button class="btn sm" data-a="aud" title="إعادة تشغيل صوت المرحلة"><i class="fas fa-headphones"></i></button>':''}${r.host===pk?'<button class="btn sm" data-a="next">التالي</button>':''}</div>
- <div class="tabs">${[['file','الملف'],['docs','الأوراق'],['chat','الجلسة']].map(([k,n])=>`<button class="tab ${t===k?'on':''}" data-tab="${k}">${n}</button>`).join('')}</div>${body}`}
+ <div class="tabs">${[['file','الملف'],['docs','الأوراق'],['chat','الجلسة']].map(([k,n])=>`<button class="tab ${t===k?'on':''}" data-tab="${k}">${n}${k==='docs'&&S.nd>0&&t!=='docs'?` <span class="chip" style="background:var(--error);color:#fff;border:0">${S.nd}</span>`:''}</button>`).join('')}</div>${body}`}
 function vDone(){const r=S.room,c=cs();if(!c)return '';const a=ch(c.accusedId),k=ch(c.killerId),truth=c.accusedId===c.killerId,R=r.result,ok=R.guilty===truth;
  return `<div class="sec"><h3><i class="fas fa-gavel"></i> نطقت المحكمة</h3><p class="sub">حكمت المحكمة ${R.guilty?'بإدانة':'ببراءة'} <b>${esc(a?.name)}</b> (${R.g} مذنب / ${R.i} بريء).</p>
- <div class="note">الحقيقة: القاتل هو <b>${esc(k?.name)}</b>، و${truth?'المتهم هو القاتل فعلًا':'المتهم كان بريئًا'}. ${ok?'⚖️ تحققت العدالة.':'❌ أخطأت المحكمة.'}<br>قوة أوراق البراءة في القضية: ${esc(c.innocencePct)}%${r.escaped?'<br>⚠️ حاول المتهم الهروب، وأضرّ ذلك بموقفه.':''}</div>
+ <div class="note">الحقيقة: الجاني هو <b>${esc(k?.name)}</b>، و${truth?'المتهم هو الجاني فعلًا':'المتهم كان بريئًا'}. ${ok?'⚖️ تحققت العدالة.':'❌ أخطأت المحكمة.'}<br>قوة أوراق البراءة في القضية: ${esc(c.innocencePct)}%${r.escaped?'<br>⚠️ حاول المتهم الهروب، وأضرّ ذلك بموقفه.':''}</div>
  <div class="chips">${Object.values(r.players).map(x=>`<span class="chip">${esc(x.label)} ← ${esc(x.real)}</span>`).join('')}</div><div class="acts"><button class="btn p" data-a="leave">قضية جديدة</button></div></div>`}
-function render(){const v=$('#ci')?.value||'',f=document.activeElement?.id==='ci',fcv=$('#fc')?.value||'',ff=document.activeElement?.id==='fc',fsv=$('#fsv')?.value,r=S.room;if(r&&r.phase!==S.lp){const nf=S.lp;S.lp&&r.status==='playing'&&gavel();S.lp=r.phase;if(r.status==='playing')setTimeout(()=>playPhase(S.room),nf?700:0)}
+const visDocs=r=>{const c=cs(),p=r.players?.[pk]||{},pi=PHS.findIndex(x=>x[0]===r.phase);return [...(c?.documents||[]),...(r.extraDocs||[])].filter(d=>(PHI[d.phase||'all']??0)<=pi&&(!(d.visibleTo||[]).length||d.visibleTo.includes(p.roleKey)))};
+function docWatch(r){if(!r||r.status!=='playing'||!cs()||!r.players?.[pk]?.roleKey)return;const ds=visDocs(r),key=d=>d.id||d.title||d.content;
+ if(S.dseen?.rid!==r.id){S.dseen={rid:r.id,set:new Set(ds.map(key))};S.local=[];S.nd=0;return}
+ const nw=ds.filter(d=>!S.dseen.set.has(key(d)));if(!nw.length)return;
+ nw.forEach(d=>{S.dseen.set.add(key(d));S.local.push({k:'sys',n:'المحكمة',t:'📄 ملف جديد: «'+(d.title||DT[d.type]||'ورقة')+'» — انتقل إلى تبويب الأوراق لرؤية الورقة الجديدة.',go:1,ts:Date.now()+S.local.length})});
+ if(S.tab!=='docs'){S.nd=(S.nd||0)+nw.length;toast('📄 وصلت ورقة جديدة — افتح تبويب الأوراق');bell()}}
+function render(){const v=$('#ci')?.value||'',f=document.activeElement?.id==='ci',fcv=$('#fc')?.value||'',ff=document.activeElement?.id==='fc',fsv=$('#fsv')?.value,r=S.room;docWatch(r);if(r&&r.phase!==S.lp){const nf=S.lp;S.lp&&r.status==='playing'&&gavel();S.lp=r.phase;if(r.status==='playing')setTimeout(()=>playPhase(S.room),nf?700:0)}
  if(r?.status==='done'&&!AUD.a.paused)stopAud();
  $('#v').innerHTML=!r?vLobby():r.status==='waiting'?vWait():r.status==='done'?vDone():vGame();
  const i=$('#ci');if(i){i.value=v;if(f)i.focus()}const fi=$('#fc');if(fi){fi.value=fcv;if(ff)fi.focus()}const fs=$('#fsv');if(fs&&fsv)fs.value=fsv;const m=$('#ms');if(m)m.scrollTop=m.scrollHeight}
@@ -246,7 +317,7 @@ async function join(sid,rid){const sv=S.servers.find(x=>x.id===sid);if(!sv)retur
  log('join','');enter(id)}
 async function leave(){log('leave','');const r=S.room;if(r&&r.status==='waiting'){const o=Object.keys(r.players).filter(k=>k!==pk);if(!o.length)await deleteDoc(rr());else await updateDoc(rr(),{['players.'+pk]:deleteField(),...(r.host===pk?{host:o[0]}:{})})}out()}
 function botSay(p,c,bots){const a=c.characters.find(x=>x.id===c.accusedId)||{},v=c.victim||{};
- const B={investigation:['officer',`تلقّينا بلاغًا بوفاة ${v.name} في ${c.location}. جرت المعاينة وضُبط ${a.name} للتحقيق.`],prosecution:['prosecutor',`أتهم ${a.name} بجريمة ${c.crimeType}، وأطلب من عدالة المحكمة أقصى العقوبة.`],defense:['lawyer',`موكلي ${a.name} ينكر، وأتمسك بأقواله: «${(a.statement||'').slice(0,120)}»`],trial:['judge','الجلسة منعقدة. اعرضوا ما لديكم قبل أن ننطق بالحكم.'],verdict:['judge','المحكمة تطلب التصويت: مذنب أم بريء؟']}[p],now=Date.now();
+ const B={investigation:['officer',`تلقّينا بلاغًا بواقعة (${c.crimeType}) بحق ${v.name} في ${c.location}. جرت المعاينة وضُبط ${a.name} للتحقيق.`],prosecution:['prosecutor',`أتهم ${a.name} بجريمة ${c.crimeType}، وأطلب من عدالة المحكمة أقصى العقوبة.`],defense:['lawyer',`موكلي ${a.name} ينكر، وأتمسك بأقواله: «${(a.statement||'').slice(0,120)}»`],trial:['judge','الجلسة منعقدة. اعرضوا ما لديكم قبل أن ننطق بالحكم.'],verdict:['judge','المحكمة تطلب التصويت: مذنب أم بريء؟']}[p],now=Date.now();
  const out=[{k:'sys',n:'المحكمة',t:'بدأت مرحلة '+PHS.find(x=>x[0]===p)[1],ts:now}],b=bots.find(x=>x.roleKey===B[0]);if(b)out.push({k:b.k,n:b.label,t:B[1],ts:now+1});return out}
 async function start(force){const r=S.room,sv=srv();if(r.status!=='waiting')return;const act=S.cases.filter(x=>x.active&&(x.characters||[]).length>=2);if(!act.length)return toast('لا توجد قضايا مفعّلة');
  const seen=lastCases(),fresh=act.filter(x=>!seen.includes(x.id)),c0=sh(fresh.length?fresh:act)[0],T=draw(c0),c={...c0,...T};noteCase(c0.id);
@@ -264,7 +335,7 @@ async function finish(){const r=S.room,c=cs();let g=0,i=0;Object.values(r.votes|
  (r.bots||[]).forEach(b=>{if(b.roleKey!=='accused')Math.random()*100<(c.innocencePct??50)-(r.escaped?30:0)?i++:g++});await updateDoc(rr(),{status:'done',result:{g,i,guilty:g>i}})}
 const log=(type,text)=>{const p=S.room?.players?.[pk]||{};setDoc(doc(db,'crime_logs',uid()),{ts:Date.now(),k:pk,real,label:p.label||'',type,text:String(text||'').slice(0,200)}).catch(()=>{})};
 const nmOf=(r,k)=>r.players?.[k]?.label||(r.bots||[]).find(b=>b.k===k)?.label||'—';
-function feed(r){return [...(r.chat||[]),...S.msgs].filter(m=>!m.to||m.to===pk||m.k===pk).sort((a,b)=>(a.ts||0)-(b.ts||0)).slice(-100).map(m=>`<div class="m ${m.k===pk?'me':m.k==='sys'?'sys':''}"><b>${m.to?'🔒 خاص — ':''}${esc(m.n)}${m.to&&m.to!==pk?' ← '+esc(nmOf(r,m.to)):''}</b>${esc(m.t)}</div>`).join('')}
+function feed(r){return [...(r.chat||[]),...S.msgs,...(S.local||[])].filter(m=>!m.to||m.to===pk||m.k===pk).sort((a,b)=>(a.ts||0)-(b.ts||0)).slice(-100).map(m=>`<div class="m ${m.k===pk?'me':m.k==='sys'?'sys':''}"><b>${m.to?'🔒 خاص — ':''}${esc(m.n)}${m.to&&m.to!==pk?' ← '+esc(nmOf(r,m.to)):''}</b>${esc(m.t)}${m.go?'<div style="margin-top:6px"><button class="btn sm p" data-tab="docs"><i class="fas fa-file-lines"></i> فتح الأوراق</button></div>':''}</div>`).join('')}
 function dmSel(r){const o=[...Object.entries(r.players).filter(([k])=>k!==pk).map(([k,x])=>[k,x.label]),...(r.bots||[]).map(b=>[b.k,b.label])];return `<select id="cto" style="width:100%;margin-bottom:6px;padding:8px;border-radius:10px;border:2px solid var(--border);background:var(--bg-input);color:var(--text-main);font:600 13px Cairo"><option value="">الكلام للجميع في القاعة</option>${o.map(([k,l])=>`<option value="${esc(k)}" ${S.dm===k?'selected':''}>رسالة خاصة إلى ${esc(l)}</option>`).join('')}</select>`}
 const BR=['هذا كلام لا يليق، وسأسجّله في المحضر.','أنت تعرّض نفسك للمساءلة، لا تكرر هذا.','سأنظر في الأمر… لكن لا تعد إلى هذا ثانية.'];
 const say=async t=>{t=(t||'').trim();if(!t)return;const r=S.room,p=r.players[pk]||{},to=S.dm||null;if(r.muted?.[pk])return toast('كتمتك الإدارة عن الكلام');
@@ -272,9 +343,9 @@ const say=async t=>{t=(t||'').trim();if(!t)return;const r=S.room,p=r.players[pk]
  const b=to&&(r.bots||[]).find(x=>x.k===to);if(to&&(to.startsWith('n_')||to==='b_accused'))npcSay(r,to,t);else if(b)botTalk(r,b,t)};
 async function run(){const r=S.room;if(r.escaped)return;await updateDoc(rr(),{escaped:true});const p=r.players[pk]||{};log('msg','محاولة هروب');await setDoc(doc(db,'crime_rooms',r.id,'messages',uid()),{k:'sys',n:'المحكمة',t:`حاول ${p.label} الفرار من القسم، فأطلق الحرس النار وأُعيد القبض عليه — وسيُحتسب ذلك قرينة ضده.`,to:null,kind:'sys',ts:Date.now()})}
 document.addEventListener('change',e=>{if(e.target.id==='cto')S.dm=e.target.value;if(e.target.id==='smn')S.sm=e.target.value});
-document.addEventListener('click',async e=>{const b=e.target.closest('[data-a],[data-tab]');if(!b)return;const d=b.dataset,a=d.a;if(d.tab){S.tab=d.tab;if(d.tab==='docs')log('doc','فتح الأوراق');return render()}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-a],[data-tab]');if(!b)return;const d=b.dataset,a=d.a;if(d.tab){S.tab=d.tab;if(d.tab==='docs'){S.nd=0;log('doc','فتح الأوراق')};return render()}
  try{if(a==='join')await join(d.id,d.rid);else if(a==='ready')await updateDoc(rr(),{[`players.${pk}.ready`]:!S.room.players[pk]?.ready});else if(a==='pick'){await updateDoc(rr(),{[`players.${pk}.pick`]:d.k});log('pick',d.k)}else if(a==='start')await start();else if(a==='leave')await leave();else if(a==='next')await next();
- else if(a==='send'){const i=$('#ci');await say(i.value);i.value=''}else if(a==='say')await say(d.t);else if(a==='vote'){await updateDoc(rr(),{[`votes.${pk}`]:d.k});log('vote',d.k==='g'?'مذنب':'بريء')}else if(a==='run')await run();else if(a==='summon')await summon();else if(a==='endh')await endh();else if(a==='aud')await playPhase(S.room,true);else if(a==='invite')await invite();else if(a==='accept')await accept(d.id);else if(a==='decline')await decline(d.id)}
+ else if(a==='gear'){S.gear=!S.gear;render()}else if(a==='send'){const i=$('#ci'),tx=i.value;i.value='';try{await say(tx)}catch(er){const j=$('#ci');if(j&&!j.value)j.value=tx;throw er}}else if(a==='say')await say(d.t);else if(a==='vote'){await updateDoc(rr(),{[`votes.${pk}`]:d.k});log('vote',d.k==='g'?'مذنب':'بريء')}else if(a==='run')await run();else if(a==='summon')await summon();else if(a==='endh')await endh();else if(a==='aud')await playPhase(S.room,true);else if(a==='invite')await invite();else if(a==='accept')await accept(d.id);else if(a==='decline')await decline(d.id)}
  catch(er){toast(er.code==='permission-denied'?'لا توجد صلاحية — أضف قاعدة Firestore للمجموعة crime_rooms':(er.message||er))}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ci')$('[data-a=send]').click()});
 setInterval(()=>{const r=S.room;if(r&&r.status==='waiting'){waitTick(r);return}if(!r||r.status!=='playing')return;const l=Math.max(0,Math.round((r.phaseEnd-Date.now())/1000)),t=$('#tm');if(t)t.textContent=fmt(l);
