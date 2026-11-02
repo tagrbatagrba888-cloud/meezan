@@ -51,7 +51,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:auto;padding:14px 14px 
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--gold);color:#2b2208;padding:10px 20px;border-radius:12px;font-weight:800;z-index:99;display:none}
 @media(max-width:860px){.g{grid-template-columns:1fr}.g>.lad{display:none}.mlad{display:grid}.as{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style></head><body>
+.rnd{width:130px;height:130px;margin:14px auto;border-radius:50%;display:grid;place-items:center;border:3px solid var(--gold);box-shadow:0 0 40px rgba(201,169,97,.5);animation:pu 1.2s ease-in-out infinite}.rnd b{font-size:60px;color:var(--gl)}@keyframes pu{50%{transform:scale(1.08);box-shadow:0 0 70px rgba(224,38,47,.55)}}.ld span{animation:dt 1.2s infinite;opacity:.2}.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}@keyframes dt{50%{opacity:1}}</style></head><body>
 <header class="tb"><a class="ib" href="index.html" title="الرئيسية"><i class="fas fa-house"></i></a><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><div class="tt" id="gt">المسابقة</div><button class="ib mlad" id="lb" title="سلم الجوائز"><i class="fas fa-ranking-star"></i></button><button class="ib" id="mu" title="الصوت"><i class="fas fa-volume-high"></i></button></header>
 <main id="st"></main><div id="pp"></div><div id="toast"></div>
 <script type="module">
@@ -68,18 +68,22 @@ const LV=['easy','medium','hard','vhard','boom'],LT=['A','B','C','D'],AL=['أ','
 const MODES={general:['الأسئلة العامة','fa-earth-africa'],curric:['أسئلة المنهج','fa-graduation-cap']};
 let NAME='من سيربح المليون',CF=null,GIFTS={},G=null,muted=localStorage.getItem('wwm_mute')==='1';
 
-/* ===== الصوت ===== */
-const SN={};let bg=null,voice=null,think=null,duck=0;
-async function aurl(p){const a=p.split(':'),parts=await Promise.all(Array.from({length:+a[2]||1},(_,i)=>getDoc(doc(db,'post_media',`${a[1]}_${i}`)).then(x=>x.exists()?x.data().data:null)));if(parts.some(x=>x==null))throw 0;const d=parts.join('');try{return URL.createObjectURL(await(await fetch(d)).blob())}catch(e){return d}}
+/* ===== الصوت (قناة صوت واحدة منظّمة) ===== */
+const SN={};let bg=null,voice=null,think=null,wantThink=false,vtok=0;
+const idb=new Promise(r=>{try{const q=indexedDB.open('wwm',1);q.onupgradeneeded=()=>q.result.createObjectStore('b');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+const iget=async k=>{const d=await idb;return d?new Promise(r=>{try{const q=d.transaction('b').objectStore('b').get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)}catch(e){r(null)}}):null};
+const iset=async(k,v)=>{const d=await idb;if(d)try{d.transaction('b','readwrite').objectStore('b').put(v,k)}catch(e){}};
+async function aurl(p){const h=await iget(p);if(h)return URL.createObjectURL(h);const a=p.split(':'),parts=await Promise.all(Array.from({length:+a[2]||1},(_,i)=>getDoc(doc(db,'post_media',`${a[1]}_${i}`)).then(x=>x.exists()?x.data().data:null)));if(parts.some(x=>x==null))throw 0;const d=parts.join('');try{const b=await(await fetch(d)).blob();iset(p,b);return URL.createObjectURL(b)}catch(e){return d}}
 const sUrl=k=>{const p=CF?.snd?.[k];return p?(SN[k]||(SN[k]=aurl(p).catch(()=>null))):Promise.resolve(null)};
 const vol=(a,v)=>{if(a)a.volume=muted?0:v};
-const setBg=()=>vol(bg,duck>0?.1:.32);
-async function sfx(k,o={}){const u=await sUrl(k);if(!u){o.end&&o.end();return null}const a=new Audio(u);a.loop=!!o.loop;a._v=o.vol??1;vol(a,a._v);if(o.end)a.onended=o.end;a.play().catch(()=>o.end&&o.end());return a}
-async function playBg(){if(bg)return;const a=await sfx('bg',{loop:true,vol:.32});if(!a)return;bg=a;a.addEventListener('ended',()=>{a.currentTime=0;a.play().catch(()=>{})});setBg()}
-async function say(k,end){stopVoice();duck++;setBg();let done=false;const f=()=>{if(done)return;done=true;duck=Math.max(0,duck-1);setBg();end&&end()};voice=await sfx(k,{end:f});if(!voice)f();return voice}
-const stopVoice=()=>{if(voice){voice.onended=null;voice.pause();voice=null;if(duck>0){duck--;setBg()}}};
-async function startThink(){stopThink();think=await sfx('think',{loop:true,vol:.7})}const stopThink=()=>{if(think){think.pause();think=null}};
-const stopAll=()=>{stopVoice();stopThink()};
+const setBg=()=>vol(bg,(voice||wantThink)?.1:.32);
+async function sfx(k,o={}){const u=await Promise.race([sUrl(k),sleep(o.wait??4000).then(()=>null)]);if(!u){o.end&&o.end();return null}const a=new Audio(u);a.loop=!!o.loop;a._v=o.vol??1;vol(a,a._v);if(o.end){a.onended=o.end;a.onerror=o.end}a.play().catch(()=>o.end&&o.end());return a}
+async function playBg(){if(bg)return;const a=await sfx('bg',{loop:true,vol:.32,wait:8000});if(!a)return;if(bg){a.pause();return}bg=a;a.addEventListener('ended',()=>{a.currentTime=0;a.play().catch(()=>{})});setBg()}
+const stopVoice=()=>{vtok++;if(voice&&voice.pause){voice.onended=null;voice.onerror=null;voice.pause()}voice=null;setBg()};
+async function say(k,end){stopVoice();const t=vtok;voice={};setBg();syncThink();let done=false;const f=()=>{if(done||t!==vtok)return;done=true;voice=null;setBg();syncThink();end&&end()};
+ const a=await sfx(k,{end:f});if(t!==vtok){a&&a.pause();return}if(a)voice=a;else f()}
+async function syncThink(){const on=wantThink&&!voice;if(on){if(think)think.play().catch(()=>{});else{const a=await sfx('think',{loop:true,vol:.7,wait:2500});if(a){if(think||!wantThink||voice)a.pause();else think=a}}}else if(think)think.pause();setBg()}
+const startThink=()=>{wantThink=true;syncThink()},stopThink=()=>{wantThink=false;if(think){think.pause();think=null}setBg()},stopAll=()=>{stopVoice();stopThink()};
 $('#mu').onclick=()=>{muted=!muted;localStorage.setItem('wwm_mute',muted?'1':'0');[bg,voice,think].forEach(a=>a&&vol(a,a._v));setBg();mi()};
 const mi=()=>$('#mu').innerHTML=`<i class="fas fa-volume-${muted?'xmark':'high'}"></i>`;mi();
 
@@ -94,7 +98,7 @@ async function pick(m){show(`<div class="c"><div class="lion">⏳</div><p class=
  try{const s=await getDoc(doc(db,'wwtbam_cfg',m)),v=s.exists()?s.data():{},d={fifty:{on:true,uses:1},phone:{on:true,uses:1,acc:80},aud:{on:true,uses:1,acc:80}};
   CF={snd:{},map:[0,0,0,1,1,1,2,2,2,3,3,3,4,4,4],prize:[],send:true,shuffleQ:true,shuffleA:true,time:30,safe:'5,10',...v,life:{fifty:{...d.fifty,...v.life?.fifty},phone:{...d.phone,...v.life?.phone},aud:{...d.aud,...v.life?.aud}}};
   const pools={};await Promise.all([...new Set(CF.map)].map(async j=>{const r=await getDocs(query(collection(db,'wwtbam_q'),where('ml','==',m+'_'+LV[j]),limit(300)));pools[j]=r.docs.map(x=>({id:x.id,...x.data()}))}));
-  const Q=build(pools);if(!Q)return;const pre=['bg','welcome','think','correct','wrong',...Array.from({length:15},(_,i)=>'q'+(i+1))];pre.forEach(sUrl);
+  const Q=build(pools);if(!Q)return;const pre=['welcome','q1','bg','think','correct','wrong','fifty','phone','aud','score','win','lose',...Array.from({length:15},(_,i)=>'q'+(i+1))];pre.forEach(sUrl);
   G={m,Q,i:0,used:{fifty:0,phone:0,aud:0},sid:uid+'_'+Date.now(),sel:null,locked:false,rem:CF.time,gone:[]};welcome()}catch(e){console.error(e);show(`<div class="c"><p class="sub">تعذر تحميل اللعبة: ${esc(e.message||e)}</p><button class="btn" data-a="home">رجوع</button></div>`)}}
 function build(pools){const used=new Set(),Q=[],all=shuf(Object.values(pools).flat());
  for(let i=0;i<15;i++){const pl=shuf(pools[CF.map[i]]||[]);let q=pl.find(x=>!used.has(x.id))||all.find(x=>!used.has(x.id));
@@ -110,40 +114,44 @@ const gIco=g=>g?.img?`<img src="${esc(g.img)}" alt="">`:`<span>${esc(g?.icon||'�
 function lad(){const sf=safes();return `<ol>${Array.from({length:15},(_,k)=>{const n=k+1,p=P(n),cls=[n===G.i+1?'on':n<=G.i?'done':'',sf.includes(n)||n===15?'sf':''].join(' ');return `<li class="${cls}"><b>${n}</b><span>${esc(p.name)}</span>${p.g?gIco(p.g):''}</li>`}).join('')}</ol>`}
 
 /* ===== السؤال ===== */
-function ask(){stopAll();const i=G.i,q=G.Q[i];G.sel=null;G.locked=false;G.gone=[];G.rem=CF.time;const lf=k=>CF.life[k],n=k=>Math.max(0,lf(k).uses-G.used[k]);
+const ORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر','الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر'];
+function intro(){stopAll();const i=G.i,k='q'+(i+1),sid=G.sid;G.wait=false;
+ show(`<div class="c"><p class="sub" style="margin:0 auto">الجائزة: ${esc(P(i+1).name)}</p><div class="rnd"><b>${i+1}</b></div><h1 class="big" style="font-size:clamp(24px,6vw,40px)">السؤال ${ORD[i]}</h1><p class="sub ld">جارٍ جلب السؤال<span>.</span><span>.</span><span>.</span></p></div>`);
+ let d=false;const go=()=>{if(d)return;d=true;if(G&&G.sid===sid&&G.i===i)ask()};say(k,go);if(!CF.snd[k])setTimeout(go,900);setTimeout(go,45000)}
+function ask(){stopAll();const i=G.i,q=G.Q[i];G.sel=null;G.locked=false;G.gone=[];G.rem=CF.time;G.pauseSnd=false;G.pausePop=false;G.wait=true;const lf=k=>CF.life[k],n=k=>Math.max(0,lf(k).uses-G.used[k]);
  show(`<div class="g"><div><div class="hud"><div class="inf"><b>السؤال ${i+1} من 15</b>الجائزة: ${esc(P(i+1).name)}</div>
  <div class="lf">${[['fifty','fa-scissors'],['phone','fa-phone'],['aud','fa-users']].filter(([k])=>lf(k).on&&lf(k).uses>0).map(([k,ic])=>`<button class="lb" data-l="${k}" ${n(k)<1?'disabled':''}><i class="fas ${ic}"></i><i class="n">${n(k)}</i></button>`).join('')}</div>
  ${CF.time>0?`<div class="tm" id="tm"><svg width="62" height="62"><circle class="bk" cx="31" cy="31" r="26"/><circle class="fg" id="fg" cx="31" cy="31" r="26" stroke-dasharray="163.4" stroke-dashoffset="0"/></svg><span id="ts">${CF.time}</span></div>`:''}</div>
  <div class="qb">${esc(q.q)}</div><div class="as">${q.a.map((a,j)=>`<button class="a" data-s="${j}"><b>${AL[j]}</b>${esc(a.t)}</button>`).join('')}</div>
  <div style="text-align:center;margin-top:14px"><button class="btn p" id="cf" data-a="confirm" disabled><i class="fas fa-lock"></i> تأكيد الإجابة</button><button class="btn" data-a="quit"><i class="fas fa-door-open"></i> انسحاب</button></div></div>
- <div class="lad">${lad()}</div></div>`);
- let t0=false;const go=()=>{if(t0||G.locked)return;t0=true;startThink();tick()};say('q'+(i+1),go);setTimeout(go,9000)}
+ <div class="lad">${lad()}</div></div>`);startThink();tick()}
 let tmr=null;const stopT=()=>{clearInterval(tmr);tmr=null};
 function tick(){stopT();if(!(CF.time>0))return;draw();tmr=setInterval(()=>{G.rem=Math.max(0,G.rem-.25);draw();if(G.rem<=0){stopT();timeout()}},250)}
 function draw(){const f=$('#fg'),s=$('#ts'),t=$('#tm');if(!f)return;f.style.strokeDashoffset=163.4*(1-G.rem/CF.time);s.textContent=Math.ceil(G.rem);t.classList.toggle('lo',G.rem<=10)}
 function sel(j){if(G.locked||G.gone.includes(j))return;G.sel=j;document.querySelectorAll('.a').forEach((b,x)=>b.classList.toggle('sel',x===j));$('#cf').disabled=false}
-async function confirmA(){if(G.locked||G.sel==null)return;G.locked=true;stopT();stopVoice();if(!think)startThink();document.querySelectorAll('.a,.lb').forEach(b=>b.disabled=true);$('#cf').disabled=true;
- await sleep(2400);stopThink();const q=G.Q[G.i],ok=q.a[G.sel].c;reveal(ok)}
-async function timeout(){G.locked=true;G.sel=-1;stopThink();document.querySelectorAll('.a,.lb').forEach(b=>b.disabled=true);toast('انتهى الوقت!');await sleep(800);reveal(false)}
+async function confirmA(){if(G.locked||G.sel==null||G.pauseSnd||G.pausePop)return;G.locked=true;G.wait=false;stopT();stopVoice();startThink();document.querySelectorAll('.a,.lb').forEach(b=>b.disabled=true);$('#cf').disabled=true;
+ await sleep(2400);stopThink();const q=G.Q[G.i];reveal(q.a[G.sel].c)}
+async function timeout(){G.locked=true;G.wait=false;G.sel=-1;stopThink();document.querySelectorAll('.a,.lb').forEach(b=>b.disabled=true);toast('انتهى الوقت!');await sleep(800);reveal(false)}
 async function reveal(ok){const q=G.Q[G.i];document.querySelectorAll('.a').forEach((b,x)=>{b.classList.remove('sel');if(q.a[x].c)b.classList.add('ok');else if(x===G.sel)b.classList.add('no')});
- if(ok){await new Promise(r=>{say('correct',r);setTimeout(r,4500)});await sleep(500);if(G.i===14){G.i=15;return end('win')}logG({reached:G.i+1});G.i++;ask()}
- else{await new Promise(r=>{say('wrong',r);setTimeout(r,4500)});await sleep(1500);end('lose')}}
+ if(ok){await new Promise(r=>{say('correct',r);setTimeout(r,10000)});await sleep(400);if(G.i===14){G.i=15;return end('win')}logG({reached:G.i+1});G.i++;intro()}
+ else{await new Promise(r=>{say('wrong',r);setTimeout(r,10000)});await sleep(1200);end('lose')}}
 
 /* ===== المساعدات ===== */
-const pop=h=>{$('#pp').innerHTML=`<div class="pop"><div class="pb">${h}</div></div>`},closePop=()=>{$('#pp').innerHTML='';if(G&&!G.locked&&CF.time>0&&$('#fg'))tick()};
+const resume=()=>{if(G&&G.wait&&!G.locked&&!G.pauseSnd&&!G.pausePop&&CF.time>0&&$('#fg'))tick()};
+const pop=h=>{if(G){G.pausePop=true;stopT()}$('#pp').innerHTML=`<div class="pop"><div class="pb">${h}</div></div>`},closePop=()=>{$('#pp').innerHTML='';if(G){G.pausePop=false;resume()}};
 const left=()=>G.Q[G.i].a.map((a,j)=>j).filter(j=>!G.gone.includes(j));
-function life(k){if(G.locked||G.used[k]>=CF.life[k].uses)return;G.used[k]++;stopT();say(k);const q=G.Q[G.i],c=q.a.findIndex(a=>a.c),L=left(),acc=CF.life[k].acc??100,right=Math.random()*100<acc;
- const wrongs=L.filter(j=>j!==c),lead=right?c:(wrongs[Math.random()*wrongs.length|0]??c);
- if(k==='fifty'){shuf(wrongs).slice(0,2).forEach(j=>G.gone.push(j));document.querySelectorAll('.a').forEach((b,j)=>b.classList.toggle('gone',G.gone.includes(j)));if(G.gone.includes(G.sel)){G.sel=null;$('#cf').disabled=true;document.querySelectorAll('.a').forEach(b=>b.classList.remove('sel'))}refLb();if(CF.time>0)tick();return}
+function life(k){if(G.locked||G.pauseSnd||G.used[k]>=CF.life[k].uses)return;G.used[k]++;G.pauseSnd=true;stopT();say(k,()=>{if(G){G.pauseSnd=false;resume()}});
+ const q=G.Q[G.i],c=q.a.findIndex(a=>a.c),L=left(),acc=CF.life[k].acc??100,right=Math.random()*100<acc,wrongs=L.filter(j=>j!==c),lead=right?c:(wrongs[Math.random()*wrongs.length|0]??c);
+ if(k==='fifty'){shuf(wrongs).slice(0,2).forEach(j=>G.gone.push(j));document.querySelectorAll('.a').forEach((b,j)=>b.classList.toggle('gone',G.gone.includes(j)));if(G.gone.includes(G.sel)){G.sel=null;$('#cf').disabled=true;document.querySelectorAll('.a').forEach(b=>b.classList.remove('sel'))}refLb();return}
  if(k==='phone'){const sure=right?70+Math.random()*28|0:35+Math.random()*25|0,lines=['ألو؟ أهلًا يا '+uname+'… سأقرأ السؤال بسرعة.','همم… دعني أفكر قليلًا…',right?`أنا واثق بنسبة ${sure}% أن الإجابة (${AL[lead]}): ${q.a[lead].t}`:`مش متأكد… أميل إلى (${AL[lead]}): ${q.a[lead].t}، لكن ثقتي ${sure}% فقط.`];
-  pop(`<h3><i class="fas fa-phone"></i> مكالمة صديق</h3><div class="ph" id="phl"></div><button class="btn" data-a="close" style="margin-top:8px">إنهاء المكالمة</button>`);lines.forEach((t,x)=>setTimeout(()=>{const e=$('#phl');if(e)e.insertAdjacentHTML('beforeend',`<p>${esc(t)}</p>`)},900+x*1700))}
- else{const v={};let rest=100,ld=L.length>2?45+Math.random()*28|0:58+Math.random()*27|0;v[lead]=ld;rest-=ld;const o=L.filter(j=>j!==lead);o.forEach((j,x)=>{const s=x===o.length-1?rest:Math.round(Math.random()*rest*.7);v[j]=s;rest-=s});
+  pop(`<h3><i class="fas fa-phone"></i> مكالمة صديق</h3><div class="ph" id="phl"></div><button class="btn" data-a="close" style="margin-top:8px">إنهاء المكالمة</button>`);lines.forEach((x,i)=>setTimeout(()=>{const e=$('#phl');if(e)e.insertAdjacentHTML('beforeend',`<p>${esc(x)}</p>`)},900+i*1700))}
+ else{const v={};let rest=100;const ld=L.length>2?45+Math.random()*28|0:58+Math.random()*27|0;v[lead]=ld;rest-=ld;const o=L.filter(j=>j!==lead);o.forEach((j,x)=>{const s=x===o.length-1?rest:Math.round(Math.random()*rest*.7);v[j]=s;rest-=s});
   pop(`<h3><i class="fas fa-users"></i> رأي الجمهور</h3><div class="bars">${L.map(j=>`<div>${v[j]}%<i data-h="${v[j]}"></i>${AL[j]}</div>`).join('')}</div><button class="btn" data-a="close">تم</button>`);setTimeout(()=>document.querySelectorAll('.bars i').forEach(e=>e.style.height=e.dataset.h*.9+'%'),150)}
  refLb()}
 function refLb(){document.querySelectorAll('.lb').forEach(b=>{const k=b.dataset.l,r=Math.max(0,CF.life[k].uses-G.used[k]);b.querySelector('.n').textContent=r;b.disabled=r<1})}
 
 /* ===== النهاية والجائزة ===== */
-async function end(kind){stopAll();stopT();const reached=kind==='win'?15:G.i,sf=safes(),won=kind==='lose'?Math.max(0,...sf.filter(n=>n<=reached)):reached,pz=won>0?P(won):null;let info='',wallet=0;
+async function end(kind){G.wait=false;stopAll();stopT();const reached=kind==='win'?15:G.i,sf=safes(),won=kind==='lose'?Math.max(0,...sf.filter(n=>n<=reached)):reached,pz=won>0?P(won):null;let info='',wallet=0;
  if(pz&&pz.has&&CF.send&&pz.value>0){try{wallet=await award(pz,won)}catch(e){console.error(e);info=e==='dup'?'':'تعذر إضافة الهدية للمحفظة — تواصل مع الإدارة.'}}
  const real=wallet>0,sym=!!pz&&!real;logG({kind,reached,won,prize:pz?pz.name:'',value:pz?pz.value:0,received:wallet,sent:real,endedAt:serverTimestamp()});say(kind==='win'?'win':kind==='quit'?'score':'lose');
  const ttl=kind==='win'?'🎉 مبروك! كسبت الجائزة الكبرى':kind==='quit'?'انسحبت بذكاء':kind==='lose'?'للأسف… إجابة خاطئة':'';
@@ -160,14 +168,14 @@ async function award(pz,n){const half=r2(pz.value/2),id=Date.now()+'_'+Math.rand
   const s=await getDoc(doc(db,'user_notifications',uid)),d=s.exists()?s.data():{};let ids=d.notifIds||[],u=d.unreadCount||0;ids=[nid,...ids].slice(0,100);u++;await setDoc(doc(db,'user_notifications',uid),{userId:uid,notifIds:ids,unreadCount:u,updatedAt:serverTimestamp()},{merge:true})}catch(e){}
  return half}
 
-const logG=x=>{try{setDoc(doc(db,'wwtbam_games',G.sid),{uid,name:uname,mode:G.m,gameName:NAME,...x},{merge:true}).catch(()=>{})}catch(e){}};
+const logG=x=>{try{setDoc(doc(db,'wwtbam_games',G.sid),{uid,name:uname,mode:G.m,gameName:NAME,...x},{merge:true}).catch(e=>console.error('wwtbam_games',e))}catch(e){}};
 /* ===== الأحداث ===== */
 document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;const d=b.dataset;
  if(d.m)pick(d.m);else if(d.s!=null)sel(+d.s);else if(d.l)life(d.l);
- else if(d.a==='start'){logG({kind:'playing',reached:0,createdAt:serverTimestamp()});ask()}else if(d.a==='confirm')confirmA();else if(d.a==='close')closePop();else if(d.a==='home'){G=null;if(bg){bg.pause();bg=null}home()}
+ else if(d.a==='start'){logG({kind:'playing',reached:0,createdAt:serverTimestamp()});intro()}else if(d.a==='confirm')confirmA();else if(d.a==='close')closePop();else if(d.a==='home'){G=null;if(bg){bg.pause();bg=null}home()}
  else if(d.a==='quit'&&!G.locked){stopT();pop(`<h3>الانسحاب؟</h3><p class="sub">ستأخذ جائزة السؤال ${G.i}: <b>${G.i?esc(P(G.i).name):'لا شيء'}</b></p><button class="btn p" data-a="yes">نعم، انسحب</button><button class="btn" data-a="close">أكمل اللعب</button>`)}
  else if(d.a==='yes'){$('#pp').innerHTML='';G.locked=true;end('quit')}
  else if(b.id==='lb'&&G){pop(`<h3>سلم الجوائز</h3><div class="lad" style="position:static;border:0;text-align:right">${lad()}</div><button class="btn" data-a="close">إغلاق</button>`)}});
-document.addEventListener('visibilitychange',()=>{[bg,think].forEach(a=>a&&(document.hidden?a.pause():a.play().catch(()=>{})))});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){bg&&bg.pause();think&&think.pause()}else{bg&&bg.play().catch(()=>{});syncThink()}});
 boot();
 </script></body></html>
