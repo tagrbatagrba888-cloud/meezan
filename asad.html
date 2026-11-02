@@ -126,7 +126,7 @@ async function confirmA(){if(G.locked||G.sel==null)return;G.locked=true;stopT();
  await sleep(2400);stopThink();const q=G.Q[G.i],ok=q.a[G.sel].c;reveal(ok)}
 async function timeout(){G.locked=true;G.sel=-1;stopThink();document.querySelectorAll('.a,.lb').forEach(b=>b.disabled=true);toast('انتهى الوقت!');await sleep(800);reveal(false)}
 async function reveal(ok){const q=G.Q[G.i];document.querySelectorAll('.a').forEach((b,x)=>{b.classList.remove('sel');if(q.a[x].c)b.classList.add('ok');else if(x===G.sel)b.classList.add('no')});
- if(ok){await new Promise(r=>{say('correct',r);setTimeout(r,4500)});await sleep(500);if(G.i===14){G.i=15;return end('win')}G.i++;ask()}
+ if(ok){await new Promise(r=>{say('correct',r);setTimeout(r,4500)});await sleep(500);if(G.i===14){G.i=15;return end('win')}logG({reached:G.i+1});G.i++;ask()}
  else{await new Promise(r=>{say('wrong',r);setTimeout(r,4500)});await sleep(1500);end('lose')}}
 
 /* ===== المساعدات ===== */
@@ -145,7 +145,7 @@ function refLb(){document.querySelectorAll('.lb').forEach(b=>{const k=b.dataset.
 /* ===== النهاية والجائزة ===== */
 async function end(kind){stopAll();stopT();const reached=kind==='win'?15:G.i,sf=safes(),won=kind==='lose'?Math.max(0,...sf.filter(n=>n<=reached)):reached,pz=won>0?P(won):null;let info='',wallet=0;
  if(pz&&pz.has&&CF.send&&pz.value>0){try{wallet=await award(pz,won)}catch(e){console.error(e);info=e==='dup'?'':'تعذر إضافة الهدية للمحفظة — تواصل مع الإدارة.'}}
- const real=wallet>0,sym=!!pz&&!real;say(kind==='win'?'win':kind==='quit'?'score':'lose');
+ const real=wallet>0,sym=!!pz&&!real;logG({kind,reached,won,prize:pz?pz.name:'',value:pz?pz.value:0,received:wallet,sent:real,endedAt:serverTimestamp()});say(kind==='win'?'win':kind==='quit'?'score':'lose');
  const ttl=kind==='win'?'🎉 مبروك! كسبت الجائزة الكبرى':kind==='quit'?'انسحبت بذكاء':kind==='lose'?'للأسف… إجابة خاطئة':'';
  show(`<div class="c"><h1 class="big" style="font-size:clamp(24px,6vw,40px)">${ttl}</h1><p class="sub">${won>0?'أنا كسبان لحد:':'لم تصل إلى جائزة هذه المرة.'}</p>
  ${pz?`<div class="prz">${real?(pz.g?gIco(pz.g):'🎁'):'🦁'}</div><h2 style="color:var(--gl);font-size:26px">${esc(pz.name)}</h2><p class="sub">أجبت على ${reached} من 15 سؤالًا${kind==='lose'&&won<reached?` — ونزلت إلى نقطة الأمان (السؤال ${won})`:''}.</p>
@@ -160,10 +160,11 @@ async function award(pz,n){const half=r2(pz.value/2),id=Date.now()+'_'+Math.rand
   const s=await getDoc(doc(db,'user_notifications',uid)),d=s.exists()?s.data():{};let ids=d.notifIds||[],u=d.unreadCount||0;ids=[nid,...ids].slice(0,100);u++;await setDoc(doc(db,'user_notifications',uid),{userId:uid,notifIds:ids,unreadCount:u,updatedAt:serverTimestamp()},{merge:true})}catch(e){}
  return half}
 
+const logG=x=>{try{setDoc(doc(db,'wwtbam_games',G.sid),{uid,name:uname,mode:G.m,gameName:NAME,...x},{merge:true}).catch(()=>{})}catch(e){}};
 /* ===== الأحداث ===== */
 document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;const d=b.dataset;
  if(d.m)pick(d.m);else if(d.s!=null)sel(+d.s);else if(d.l)life(d.l);
- else if(d.a==='start')ask();else if(d.a==='confirm')confirmA();else if(d.a==='close')closePop();else if(d.a==='home'){G=null;if(bg){bg.pause();bg=null}home()}
+ else if(d.a==='start'){logG({kind:'playing',reached:0,createdAt:serverTimestamp()});ask()}else if(d.a==='confirm')confirmA();else if(d.a==='close')closePop();else if(d.a==='home'){G=null;if(bg){bg.pause();bg=null}home()}
  else if(d.a==='quit'&&!G.locked){stopT();pop(`<h3>الانسحاب؟</h3><p class="sub">ستأخذ جائزة السؤال ${G.i}: <b>${G.i?esc(P(G.i).name):'لا شيء'}</b></p><button class="btn p" data-a="yes">نعم، انسحب</button><button class="btn" data-a="close">أكمل اللعب</button>`)}
  else if(d.a==='yes'){$('#pp').innerHTML='';G.locked=true;end('quit')}
  else if(b.id==='lb'&&G){pop(`<h3>سلم الجوائز</h3><div class="lad" style="position:static;border:0;text-align:right">${lad()}</div><button class="btn" data-a="close">إغلاق</button>`)}});
