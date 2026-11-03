@@ -416,7 +416,7 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 .rl-it{height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;background:#000;overflow:hidden}
 .rl-it video,.rl-it iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border:0;background:#000}
 .rl-it video.cv{object-fit:cover}
-.rl-tap{position:absolute;inset:0;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.rl-tap{position:absolute;inset:0;z-index:2;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .rl-shade{position:absolute;left:0;right:0;bottom:0;height:48%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none;z-index:3}
 .rl-ld{position:absolute;left:50%;top:50%;z-index:3;width:38px;height:38px;margin:-19px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:rls .8s linear infinite;pointer-events:none}@keyframes rls{to{transform:rotate(360deg)}}
 .rl-info{position:absolute;right:14px;left:82px;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:5;display:flex;flex-direction:column;gap:8px;text-shadow:0 1px 6px #000}
@@ -445,6 +445,7 @@ body{line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
 if(S.getItem('meezan_logged_in')==='true'){var o={};KS.forEach(function(k){var v=S.getItem(k);if(v!==null)o[k]=v;});localStorage.setItem(K,JSON.stringify(o));}
 else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in==='true'&&r.meezan_user_id){KS.forEach(function(k){if(r[k]!=null)S.setItem(k,r[k]);});}}}catch(e){}})();
 </script>
+<link rel="preconnect" href="https://www.youtube.com"><link rel="preconnect" href="https://i.ytimg.com"><link rel="preconnect" href="https://s.ytimg.com">
 </head>
 <body>
 
@@ -1782,8 +1783,8 @@ const vidsOf = p => (p.media||[]).filter(m => m.type === 'video' || m.type === '
 const reelsPosts = () => S.posts.filter(p => (p.status||'published') === 'published' && !p.isAd && !p.deleted && vidsOf(p).length);
 const rlFind = pid => S.posts.find(p => p.id === pid);
 const rlIt = (p, m, i) => { const a = authorOf(p), id = p.id, yt = m.type === 'link' ? ytId(m.url) : '', own = !a.official && p.authorId === uid, canF = !a.official && !own && p.authorId, canG = !a.official && !own && p.authorId, rs = rsum(p);
-  const media = yt ? `<iframe class="rl-m" data-yt="${yt}" allow="autoplay; encrypted-media" allowfullscreen></iframe>` : `<video class="rl-m" playsinline loop preload="metadata" data-vk="${esc(m.url)}" data-src="${esc(m.url)}"></video>`;
-  return `<section class="rl-it" data-pid="${id}" data-i="${i}">${media}<div class="rl-ld"></div><div class="rl-tap"></div><div class="rl-shade"></div>
+  const media = yt ? `<iframe class="rl-m" data-yt="${yt}" style="opacity:0" allow="autoplay; encrypted-media" allowfullscreen></iframe>` : `<video class="rl-m" playsinline loop preload="metadata" data-vk="${esc(m.url)}" data-src="${esc(m.url)}"></video>`;
+  return `<section class="rl-it" data-pid="${id}" data-i="${i}"${yt?` style="background:#000 url(https://i.ytimg.com/vi/${yt}/hqdefault.jpg) center/contain no-repeat"`:''}>${media}<div class="rl-ld"></div><div class="rl-tap"></div><div class="rl-shade"></div>
     <div class="rl-info"><div class="rl-au">${avatarLink(a,'av34')}<span>${nameLink(a)}${badge(a)}</span>${canF?`<button class="fbtn ${isF(a.id)?'on':''}" data-rl="follow" data-id="${esc(a.id)}">${isF(a.id)?'<i class="fas fa-check"></i> متابَع':'<i class="fas fa-plus"></i> متابعة'}</button>`:''}</div>
       ${p.text?`<div class="rl-tx" data-rl="ex">${fmt(p.text)}</div>`:''}</div>
     <div class="rl-side"><div><button class="rl-btn rl-lk ${rs.mine?'on':''}" data-rl="like" data-id="${id}" aria-label="أعجبني">${rs.mine?(RMAP[rs.mine]?.emoji||'👍'):'<i class="far fa-thumbs-up"></i>'}</button><small class="rl-lc">${compact(rs.total)}</small><div class="rl-pk"></div></div>
@@ -1793,11 +1794,18 @@ const rlIt = (p, m, i) => { const a = authorOf(p), id = p.id, yt = m.type === 'l
       <div><button class="rl-btn" data-rl="more" data-id="${id}" aria-label="المزيد"><i class="fas fa-ellipsis"></i></button></div></div>
     <div class="rl-pb" data-rl="seek"><i></i></div></section>`; };
 function rlCmd(f, fn, args = []){ try { f.contentWindow.postMessage(JSON.stringify({event:'command', func:fn, args}), '*'); } catch(_){} }
-function rlLoad(it){ if (!it || it._ld) return; it._ld = true; const v = it.querySelector('video'); if (v){ v.setAttribute('src', v.dataset.src); } }
-function rlStop(it){ const v = it.querySelector('video'), f = it.querySelector('iframe'); it._want = false; if (v){ v._byUs = true; v.pause(); setTimeout(() => { v._byUs = false; }, 60); } if (f && f.getAttribute('src')){ f.removeAttribute('src'); } }
+function rlLoad(it){ if (!it || !it.querySelector || it._ld) return; it._ld = true; const v = it.querySelector('video'), f = it.querySelector('iframe');
+  if (v){ v.preload = 'auto'; v.setAttribute('src', v.dataset.src); }
+  else if (f && !f.getAttribute('src')){ f.onload = () => { f._ok = true; f.style.opacity = 1; it.querySelector('.rl-ld')?.remove(); try { f.contentWindow.postMessage(JSON.stringify({event:'listening', id:1, channel:'widget'}), '*'); } catch(_){} if (it._want && !it._paused){ rlCmd(f, 'playVideo'); rlCmd(f, S.rlMuted ? 'mute' : 'unMute'); } };
+    f.setAttribute('src', `https://www.youtube.com/embed/${f.dataset.yt}?enablejsapi=1&autoplay=0&mute=1&playsinline=1&controls=0&disablekb=1&fs=0&rel=0&modestbranding=1&iv_load_policy=3&loop=1&playlist=${f.dataset.yt}`); } }
+function rlPause(it){ const v = it.querySelector('video'), f = it.querySelector('iframe'); it._want = false; if (v){ v._byUs = true; v.pause(); setTimeout(() => { v._byUs = false; }, 60); } if (f && f._ok) rlCmd(f, 'pauseVideo'); }
+function rlStop(it){ rlPause(it); const v = it.querySelector('video'), f = it.querySelector('iframe'); if (v && it._ld){ v.removeAttribute('src'); v._b = null; try { v.load(); } catch(_){} } if (f){ f.removeAttribute('src'); f._ok = false; f.style.opacity = 0; } it._ld = false; }
 function rlPlay(it){ if (!it) return; const v = it.querySelector('video'), f = it.querySelector('iframe'); it._want = true; it._paused = false;
   if (v){ rlLoad(it); v.muted = S.rlMuted; const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.muted = true; S.rlMuted = true; rlMuteIc(); v.play().catch(() => {}); }); }
-  else if (f){ f._pl = true; if (!f.getAttribute('src')){ f.setAttribute('src', `https://www.youtube.com/embed/${f.dataset.yt}?enablejsapi=1&autoplay=1&mute=${S.rlMuted?1:0}&playsinline=1&controls=0&rel=0&modestbranding=1&loop=1&playlist=${f.dataset.yt}`); f.onload = () => { it.querySelector('.rl-ld')?.remove(); if (!S.rlMuted) rlCmd(f, 'unMute'); }; } else rlCmd(f, 'playVideo'); } }
+  else if (f){ f._pl = true; rlLoad(it); if (f._ok){ rlCmd(f, 'playVideo'); rlCmd(f, S.rlMuted ? 'mute' : 'unMute'); } } }
+addEventListener('message', e => { if (e.origin !== 'https://www.youtube.com' || typeof e.data !== 'string' || e.data[0] !== '{') return; let d; try { d = JSON.parse(e.data); } catch(_){ return; } if (d.event !== 'infoDelivery' || !d.info) return;
+  const f = [...document.querySelectorAll('.rlx iframe.rl-m')].find(x => x.contentWindow === e.source); if (!f) return; if (d.info.currentTime != null) f._t = d.info.currentTime; if (d.info.duration) f._d = d.info.duration;
+  const pb = f.closest('.rl-it')?.querySelector('.rl-pb i'); if (pb && f._d) pb.style.width = (f._t/f._d*100) + '%'; });
 function rlToggle(it){ if (!it) return; const v = it.querySelector('video'), f = it.querySelector('iframe'); let pl;
   if (v){ if (v.paused){ it._paused = false; rlPlay(it); pl = true; } else { it._paused = true; it._want = false; v._byUs = true; v.pause(); setTimeout(() => { v._byUs = false; }, 60); pl = false; } }
   else if (f){ const playing = f._pl !== false; f._pl = !playing; rlCmd(f, playing ? 'pauseVideo' : 'playVideo'); it._paused = playing; pl = !playing; }
@@ -1805,8 +1813,9 @@ function rlToggle(it){ if (!it) return; const v = it.querySelector('video'), f =
 function rlMuteIc(){ const b = document.querySelector('.rlx [data-rl="mute"] i'); if (b) b.className = 'fas ' + (S.rlMuted ? 'fa-volume-xmark' : 'fa-volume-high'); }
 function rlPauseAll(){ document.querySelectorAll('.rlx video').forEach(v => { v._byUs = true; v.pause(); }); document.querySelectorAll('.rlx iframe[src]').forEach(f => rlCmd(f, 'pauseVideo')); }
 function rlResume(){ const it = S.rlCur; if (it && it.isConnected && !it._paused && document.querySelector('.rlx')) rlPlay(it); }
-function rlSetActive(it){ if (!it || S.rlCur === it) return; const old = S.rlCur; S.rlCur = it; document.querySelectorAll('.rlx .rl-it').forEach(x => { if (x !== it) rlStop(x); });
-  const prev = it.previousElementSibling, next = it.nextElementSibling; rlLoad(prev); rlLoad(next); rlPlay(it); const p = rlFind(it.dataset.pid);
+function rlSetActive(it){ if (!it || S.rlCur === it) return; const old = S.rlCur; S.rlCur = it; const prev = it.previousElementSibling, next = it.nextElementSibling, next2 = next && next.nextElementSibling;
+  document.querySelectorAll('.rlx .rl-it').forEach(x => { if (x === it) return; if (x === prev || x === next || x === next2) rlPause(x); else rlStop(x); });
+  rlPlay(it); rlLoad(next); rlLoad(prev); rlLoad(next2); const p = rlFind(it.dataset.pid);
   clearTimeout(S.rlVt); S.rlVt = setTimeout(() => { if (S.rlCur === it && p){ markSeen(p.id); track(p, 'view'); } }, 1500); }
 async function rlLike(it, ev){ const p = rlFind(it.dataset.pid); if (!p) return; const r = it.getBoundingClientRect(), b = document.createElement('div'); b.className = 'rl-burst'; b.textContent = '👍';
   b.style.left = ((ev?.clientX ?? (r.left + r.width/2)) - r.left) + 'px'; b.style.top = ((ev?.clientY ?? (r.top + r.height/2)) - r.top) + 'px'; it.appendChild(b); setTimeout(() => b.remove(), 900);
@@ -1837,8 +1846,15 @@ function openReels(){
     if (v){ const pb = it.querySelector('.rl-pb i'); v.addEventListener('loadeddata', () => { it.querySelector('.rl-ld')?.remove(); v.classList.toggle('cv', v.videoHeight > v.videoWidth*1.15); if (it._want && !it._paused) rlPlay(it); });
       v.addEventListener('waiting', () => { if (!it.querySelector('.rl-ld') && it === S.rlCur){ const d = document.createElement('div'); d.className = 'rl-ld'; it.insertBefore(d, it.querySelector('.rl-tap')); } }); v.addEventListener('playing', () => it.querySelector('.rl-ld')?.remove());
       v.addEventListener('timeupdate', () => { if (v.duration) pb.style.width = (v.currentTime/v.duration*100) + '%'; }); }
-    const tap = it.querySelector('.rl-tap'); tap.addEventListener('click', e => { const n = Date.now();
-      if (n - (it._lt||0) < 320){ clearTimeout(it._tt); it._lt = 0; rlLike(it, e); } else { it._lt = n; it._tt = setTimeout(() => { it._lt = 0; rlToggle(it); }, 320); } });
+    const tap = it.querySelector('.rl-tap'); let lp = 0, held = false, lt = 0, ls = 0, tt = 0, hb = null;
+    const vf = () => [it.querySelector('video'), it.querySelector('iframe')], sideOf = e => e.clientX - tap.getBoundingClientRect().left > tap.offsetWidth/2 ? 1 : -1;
+    const rate = r => { const [v, f] = vf(); if (v) v.playbackRate = r; else if (f) rlCmd(f, 'setPlaybackRate', [r]); };
+    const badge = (t, keep) => { const e = document.createElement('div'); e.className = 'rl-pp'; e.textContent = t; e.style.cssText = 'font-size:24px;font-weight:900;' + (keep ? 'animation:none' : ''); it.appendChild(e); if (!keep) setTimeout(() => e.remove(), 650); return e; };
+    const skip = d => { const [v, f] = vf(); if (v && v.duration) v.currentTime = Math.max(0, Math.min(v.duration - .2, v.currentTime + d)); else if (f && f._t != null) rlCmd(f, 'seekTo', [Math.max(0, f._t + d), true]); else return; badge((d > 0 ? '+' : '−') + '10'); };
+    const endHold = () => { clearTimeout(lp); if (!held) return false; held = false; rate(1); hb?.remove(); hb = null; return true; };
+    tap.addEventListener('pointerdown', e => { held = false; try { tap.setPointerCapture(e.pointerId); } catch(_){} lp = setTimeout(() => { held = true; rate(2); hb = badge('2x', true); }, 420); });
+    tap.addEventListener('pointerup', e => { if (endHold()) return; const sd = sideOf(e), n = Date.now(); if (n - lt < 330 && sd === ls){ clearTimeout(tt); lt = n; skip(sd*10); } else { lt = n; ls = sd; clearTimeout(tt); tt = setTimeout(() => { lt = 0; rlToggle(it); }, 330); } });
+    tap.addEventListener('pointercancel', endHold); tap.addEventListener('contextmenu', e => e.preventDefault());
     const lk = it.querySelector('.rl-lk'), pk = it.querySelector('.rl-pk'); let lpT = 0, lpD = false;
     pk.innerHTML = REACTIONS.map(r => `<button data-rl="react" data-id="${it.dataset.pid}" data-t="${r.id}" title="${r.label}">${r.emoji}</button>`).join('');
     lk.addEventListener('pointerdown', () => { lpD = false; lpT = setTimeout(() => { lpD = true; pk.classList.add('show'); }, 420); });
@@ -1859,7 +1875,7 @@ function openReels(){
     else if (k === 'ex') b.classList.toggle('ex');
     else if (k === 'more' && p) { const o = openModal(`${mh('خيارات الفيديو','fa-ellipsis')}<div class="mb" style="display:flex;flex-direction:column;gap:8px"><button class="btn" data-m="copy"><i class="fas fa-link"></i> نسخ رابط المنشور</button>${p.authorId !== uid && !isOff(p) ? '<button class="btn danger" data-m="rep"><i class="fas fa-flag"></i> إبلاغ عن الفيديو</button>' : ''}</div>`);
       o.addEventListener('click', async ev => { const mb = ev.target.closest('[data-m]'); if (!mb) return; if (mb.dataset.m === 'copy'){ await navigator.clipboard.writeText(postUrl(p.id)).catch(() => {}); toast('تم نسخ رابط المنشور'); o._close(); } else { o._close(); reportModal(p); } }); }
-    else if (k === 'seek'){ const v = it?.querySelector('video'); if (v && v.duration){ const r = b.getBoundingClientRect(); v.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)) * v.duration; } } });
+    else if (k === 'seek'){ const v = it?.querySelector('video'); const r = b.getBoundingClientRect(), fr = Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)); if (v && v.duration) v.currentTime = fr * v.duration; else { const f = it?.querySelector('iframe'); if (f && f._d) rlCmd(f, 'seekTo', [fr * f._d, true]); } } });
   sc.addEventListener('scroll', () => { ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show')); }, {passive:true});
 }
 function closeReels(fromPop){ const ov = document.querySelector('.rlx'); if (!ov) return; clearTimeout(S.rlVt); ov.querySelectorAll('.rl-it').forEach(rlStop); rlSheetClose(); S.rlCur = null; ov.remove(); if (!modals.length) document.body.style.overflow = ''; if (!fromPop && history.state && history.state.rl) history.back(); draw(); }
