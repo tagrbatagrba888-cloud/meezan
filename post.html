@@ -511,6 +511,18 @@ body:has(.rlx) #bnav{max-width:none;background:var(--bg-card)}
 /* ===== شريط (صورة/فيديو/صوت) يختفي من الخارج ===== */
 .trig-btns{display:none!important}
 /* ===== بث مباشر بشكل فيديو ===== */
+.lvx .xlstage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+.lvx .xlbox{position:relative;width:min(100%,calc(100vh*16/9));aspect-ratio:16/9;overflow:hidden;background:#000}
+.lvx .xlbox iframe{position:absolute;left:0;width:100%;top:-60px;height:calc(100% + 120px);border:0;background:#000}
+.lvx .xlbox video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.xlshield{position:absolute;inset:0;z-index:2}.xlshield.off{pointer-events:none}
+.xlm{position:absolute;left:0;right:0;height:34px;z-index:3;pointer-events:none}.xlm.t{top:0;background:linear-gradient(#000,transparent)}.xlm.b{bottom:0;background:linear-gradient(transparent,#000)}
+.xlwm{position:absolute;z-index:4;pointer-events:none;color:#fff;font-weight:900;text-shadow:0 1px 6px #000;opacity:.5;display:flex;align-items:center;gap:5px}.xlwm img{width:22px;height:22px;border-radius:6px;object-fit:cover}
+.xlwm.w1{left:10px;bottom:12px;font-size:13px}.xlwm.w2{font-size:12px;white-space:nowrap;animation:xlmv 24s linear infinite}
+@keyframes xlmv{0%{top:18%;right:-40%}25%{top:62%;right:30%}50%{top:30%;right:70%}75%{top:70%;right:10%}100%{top:18%;right:-40%}}
+.lvx .xlbrand{position:absolute;z-index:4;left:12px;top:calc(env(safe-area-inset-top,0px) + 70px);display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border-radius:20px;background:rgba(0,0,0,.45);font-size:12.5px;font-weight:900;color:#E0C888;pointer-events:none}.xlbrand img{width:20px;height:20px;border-radius:6px;object-fit:cover}
+.xlpv{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:#000}.xlpv iframe{position:absolute;left:0;width:100%;top:-60px;height:calc(100% + 120px);border:0;pointer-events:none}.xlpv video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.xl-th>span{z-index:2}.xl-th .tt{background:linear-gradient(transparent,rgba(0,0,0,.6));left:0;right:0;bottom:0;padding:14px 12px 10px}
 .xl-th{position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/9;margin-top:4px;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505);color:#fff;cursor:pointer;overflow:hidden;border:0}
 .xl-th .pl{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .2s}
 .xl-th:active .pl{transform:scale(.92)}
@@ -824,7 +836,7 @@ function mediaHtml(p){
   if (imgs.length){ const n = Math.min(imgs.length,5);
     h += `<div class="grid g${n}">${imgs.slice(0,5).map((x,i) => `<div class="gi" data-a="lightbox" data-url="${esc(x.url)}"><img loading="lazy" src="${esc(x.url)}" alt="">${i===4&&imgs.length>5?`<div class="more">+${imgs.length-5}</div>`:''}</div>`).join('')}</div>`; }
   vids.forEach(v => h += `<div class="vp" data-src="${esc(v.url)}"></div>`);
-  m.filter(x => x.type==='link').forEach(l => h += l.live ? `<button class="xl-th" data-a="extLive" data-url="${esc(l.url)}" data-title="${esc((p.text||'').slice(0,80))}"><span class="bd"><i class="fas fa-circle"></i>بث مباشر</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc((p.text||'بث مباشر').split('\n')[0].slice(0,80))}</span></button>` : ytId(l.url) ? ytFrame(ytId(l.url)) : `<div class="vp" data-link="${esc(l.url)}"></div>`);
+  m.filter(x => x.type==='link').forEach(l => h += l.live ? `<button class="xl-th" data-pv="1" data-a="extLive" data-id="x_${p.id}" data-url="${esc(l.url)}" data-title="${esc((p.text||'').slice(0,80))}"><span class="bd"><i class="fas fa-circle"></i>بث مباشر</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc((p.text||'بث مباشر').split('\n')[0].slice(0,80))}</span></button>` : ytId(l.url) ? ytFrame(ytId(l.url)) : `<div class="vp" data-link="${esc(l.url)}"></div>`);
   auds.forEach(a => h += `<div class="aud"><i class="fas fa-microphone-lines"></i><audio controls preload="none" src="${esc(a.url)}"></audio></div>`);
   return h; }
 function sharedHtml(p){ const s = p.sharedPost; if (!s) return '';
@@ -1359,7 +1371,7 @@ async function openVideoTrimmer(src, {maxLen = Infinity} = {}){
 
 
 const b64Blob = (d, type) => { d = String(d||''); const i = d.indexOf(';base64,'), bin = atob(i >= 0 ? d.slice(i+8) : d.split(',').pop()), u = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k); return new Blob([u], {type}); };
-const liveOn = L => L.status === 'live' && (Date.now() - (tsd(L.lastAt || L.startedAt)?.getTime() || Date.now())) < 45000;
+const liveOn = L => L.status === 'live' && (L.external || Date.now() - (tsd(L.lastAt || L.startedAt)?.getTime() || Date.now())) < 45000;
 const liveBase = L => String(L.mime || 'video/webm').split(';')[0];
 const chunkQ = id => query(collection(db,'live_chunks'), where('sid','==',id));
 async function loadLiveBlob(id, type){
@@ -1599,24 +1611,24 @@ function pollForm(){
 const liveCard = L => { const on = liveOn(L), cut = L.status==='live' && !on;
   return `<div class="card lvc"><div style="display:flex;align-items:center;gap:8px"><span class="lvb ${on?'on':''}"><i class="fas fa-circle" style="font-size:8px"></i> ${on?'مباشر الآن':cut?'انقطع':'انتهى'}</span><small style="flex:1;text-align:left;color:var(--text-sub)">${ago(L.startedAt)}</small></div>
   <b style="font-size:16px">${esc(L.title||'بث مباشر')}</b><small style="color:var(--text-sub)">${esc(L.hostName||ADMIN_NAME)}${L.duration?` · المدة ${clk(L.duration)}`:''}</small>
-  <button class="btn xs primary" data-a="liveOpen" data-id="${L.id}" style="align-self:flex-start"><i class="fas ${on?'fa-tower-broadcast':'fa-play'}"></i> ${on?'شاهد البث':'مشاهدة الإعادة'}</button></div>`; };
+  <button class="btn xs primary" data-a="${L.external?'extLive':'liveOpen'}" data-id="${L.id}" data-url="${esc(L.url||'')}" data-title="${esc(L.title||'بث مباشر')}" style="align-self:flex-start"><i class="fas ${on?'fa-tower-broadcast':'fa-play'}"></i> ${on?'شاهد البث':'مشاهدة الإعادة'}</button></div>`; };
 const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.chunks > 0 || L.status==='ended'), out = [...extLives().map(x => ({key:'xl'+x.p.id, html:extLiveCard(x)})), ...l.map(L => ({key:'lv'+L.id, html:liveCard(L)}))];
   if (!out.length) out.push({key:'le', html:emptyBox('fa-tower-broadcast','لا توجد بثوث حالياً','سيصلك إشعار عند بدء بث مباشر جديد')}); return out; };
 
-async function liveView(id){
-  const L0 = S.lives.find(x => x.id === id); if (!L0) return;
-  let vwStop = null, vwList = [], vMode = false, vwFill = null; const live = liveOn(L0), base = liveBase(L0), full = L0.mime || 'video/webm'; let dead = false, objUrl = null, iv = null, unsub = null, unsubC = null, replyTo = null, msgs = [], first = true, sending = false, cvIv = null, lastCv = null;
+async function liveView(id, X){
+  const L0 = X ? {id, external:true, status:'live', title:X.title||'بث مباشر', hostName:X.host||'ميزان', url:X.url} : S.lives.find(x => x.id === id); if (!L0) return;
+  let vwStop = null, vwList = [], vMode = false, vwFill = null; const live = X ? true : liveOn(L0), base = liveBase(L0), full = L0.mime || 'video/webm'; let dead = false, objUrl = null, iv = null, unsub = null, unsubC = null, replyTo = null, msgs = [], first = true, sending = false, cvIv = null, lastCv = null;
   const ov = document.createElement('div'); ov.className = 'lvx';
-  ov.innerHTML = `<video id="lrV" playsinline autoplay></video>${L0.audioOnly?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505)"><i class="fas fa-headphones" id="lvPh" style="font-size:72px;color:#C9A961"></i><img id="lvCvI" alt="" style="display:none;max-width:100%;max-height:100%;object-fit:contain"></div>':''}<div class="lvshade"></div>
+  ov.innerHTML = `${X ? xlStage(X.url, uName(uid)) : '<video id="lrV" playsinline autoplay></video>'}${L0.audioOnly?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505)"><i class="fas fa-headphones" id="lvPh" style="font-size:72px;color:#C9A961"></i><img id="lvCvI" alt="" style="display:none;max-width:100%;max-height:100%;object-fit:contain"></div>':''}<div class="lvshade"></div>
     <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt ${live?'live':''}" id="lrB">${live?'● مباشر':'إعادة'}</span><button class="lvvw" id="lvVw" title="المشاهدون" style="border:0;color:#fff;font:inherit;cursor:pointer"><i class="fas fa-eye"></i> <b id="lvVn">٠</b></button><span style="flex:1;min-width:0;font-weight:800;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L0.title||'بث مباشر')}</span><span class="lvchip" id="lvTot"></span></div>
     <div class="lvst" id="lrS">جارٍ التحميل…</div>
-    <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button></div>
+    <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button>${X ? xlSide(X.url) : ''}</div>
     <div class="lvcm" id="lvCm"></div><div class="lvrp" id="lvRp"></div>
     <div class="lvbar"><div class="lvin"><input id="lvCi" placeholder="اكتب تعليقاً…" maxlength="300"><button id="lvCs" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div><div class="lvsh" id="lvSh"></div>`;
   document.body.appendChild(ov); document.body.style.overflow = 'hidden'; if (live) SFX.play('ping');
-  const $$ = s => ov.querySelector(s), v = $$('#lrV'), ST = $$('#lrS'), B = $$('#lrB'), feed = $$('#lvCm'), sh = $$('#lvSh');
+  const $$ = s => ov.querySelector(s), v = $$('#lrV') || document.createElement('video'), ST = $$('#lrS'), B = $$('#lrB'), feed = $$('#lvCm'), sh = $$('#lvSh');
   if (L0.audioOnly){ const syncCv = () => { const L = S.lives.find(x => x.id===id) || L0, i = $$('#lvCvI'), p = $$('#lvPh'); if (!i || L.cover === lastCv) return; lastCv = L.cover; if (L.cover){ i.src = L.cover; i.style.display = 'block'; p.style.display = 'none'; } else { i.style.display = 'none'; p.style.display = ''; } }; syncCv(); cvIv = setInterval(syncCv, 1500); }
-  const closeAll = () => { if (dead) return; dead = true; clearInterval(iv); clearInterval(cvIv); unsub?.(); unsubC?.(); giftsCb = null; document.removeEventListener('keydown', onKey); if (objUrl) URL.revokeObjectURL(objUrl); v.pause(); ov.remove(); draw(); vwStop && vwStop(); if (!modals.length) document.body.style.overflow = ''; };
+  const closeAll = () => { if (dead) return; dead = true; clearInterval(iv); clearInterval(cvIv); unsub?.(); unsubC?.(); giftsCb = null; document.removeEventListener('keydown', onKey); if (objUrl) URL.revokeObjectURL(objUrl); v.pause(); try { ov._hls && ov._hls.destroy(); } catch(_){} ov.remove(); draw(); vwStop && vwStop(); if (!modals.length) document.body.style.overflow = ''; };
   const onKey = e => { if (e.key==='Escape' && !modals.length){ if (sh.style.display==='flex') sh.style.display = 'none'; else closeAll(); } };
   document.addEventListener('keydown', onKey); $$('#lvX').onclick = closeAll;
   { const chipV = $$('#lvVw'), nEl = $$('#lvVn'); let vw = [], vok = false, hb = null, tk = null, vu = null; const vdoc = uid ? doc(db,'live_viewers', id+'_'+uid) : null;
@@ -1693,6 +1705,10 @@ async function liveView(id){
       snd('react'); toast(`تم إرسال هدية «${g.name}» وخصم ${ar(price)} ج.م`); sh.style.display = 'none'; }
     catch(err){ if (/لا يكفي/.test(err.message||'')) await needCharge(); else { console.error(err); toast('تعذر إرسال الهدية','error'); } }
     gbusy = false; });
+  if (X){ ST.style.display = 'none'; xlAttach(ov, X.url); const sh0 = $$('#xlSh'), ct = $$('#xlCt'), mu = $$('#xlMu'), fr = ov.querySelector('iframe[data-xl]'), vd = ov.querySelector('video[data-xl]');
+    if (ct) ct.onclick = () => { ct.classList.toggle('on', sh0.classList.toggle('off')); };
+    if (mu){ let mt = false; mu.onclick = () => { mt = !mt; mu.innerHTML = `<i class=\"fas fa-volume-${mt?'xmark':'high'}\"></i>`; if (fr && fr.contentWindow) fr.contentWindow.postMessage(JSON.stringify({event:'command', func:mt?'mute':'unMute', args:''}), '*'); if (vd) vd.muted = mt; }; }
+    return; }
     const fixDur = () => { v.onloadedmetadata = () => { if (v.duration === Infinity){ v.currentTime = 1e101; v.ontimeupdate = () => { v.ontimeupdate = null; v.currentTime = 0; }; } }; };
   const load = async keep => { try { const {blob, n, total} = await loadLiveBlob(id, base); if (dead) return;
       if (!n){ ST.textContent = 'لا توجد بيانات محفوظة لهذا البث'; return; }
@@ -1777,7 +1793,7 @@ Object.assign(H, {
         await notify(p.authorId, 'هدية جديدة 🎁', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} على منشورك${snip?` «${snip}${(p.text||'').length>40?'…':''}»`:''} — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid});
         toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
   tab:t => { S.tab = t.dataset.t; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); },
-  extLive:t => extLiveView(t.dataset.url, t.dataset.title), sqToggle:() => { S.tab = 'posts'; const on = !document.body.classList.contains('sq-on'); document.body.classList.toggle('sq-on', on); if (!on) S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); if (on) setTimeout(() => { const i = $('sq'); if (i) i.focus(); }, 160); navPaint(); },
+  extLive:t => extLiveView(t.dataset.url, t.dataset.title, t.dataset.id), sqToggle:() => { S.tab = 'posts'; const on = !document.body.classList.contains('sq-on'); document.body.classList.toggle('sq-on', on); if (!on) S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); if (on) setTimeout(() => { const i = $('sq'); if (i) i.focus(); }, 160); navPaint(); },
   sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
   stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
   liveOpen:t => liveView(t.dataset.id),
@@ -1922,24 +1938,32 @@ function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!s
 /* ===== بث خارجي + بطاقة بث بشكل فيديو + فتح فيديو في الريلز ===== */
 function extLives(){ const out = []; S.posts.forEach(p => { if ((p.status||'published') !== 'published' || p.deleted) return; const m = (p.media||[]).find(x => x.type === 'link' && x.live); if (m) out.push({p, url:m.url}); }); return out.sort((a,b) => (tsd(b.p.createdAt)||Date.now()) - (tsd(a.p.createdAt)||Date.now())); }
 function extLiveCard(x){ const p = x.p, a = authorOf(p), t = (p.text||'بث مباشر').split('\n')[0].slice(0,80);
-  return `<div class="card lvv"><div class="lvv-h">${avatarLink(a,'av40')}<div style="flex:1;min-width:0"><b>${nameLink(a)}${badge(a)}</b><small>${ago(p.createdAt)}</small></div></div><button class="xl-th" data-a="extLive" data-url="${esc(x.url)}" data-title="${esc(t)}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(t)}</span></button></div>`; }
-function liveVideoCard(L){ return `<article class="card lvv"><div class="lvv-h"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b>${esc(L.hostName||ADMIN_NAME)}</b><small>${ago(L.startedAt)}</small></div></div><div class="xl-th" data-a="liveOpen" data-id="${L.id}" role="button"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(L.title||'بث مباشر')}</span></div></article>`; }
-function extLiveView(url, title){
-  if (document.querySelector('.xlv')) return; try { window.__stopAll && window.__stopAll(); } catch(_){}
-  const yt = ytId(url), hls = /\.m3u8(\?|$)/i.test(url), file = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url); let media;
-  if (yt) media = `<iframe src="https://www.youtube.com/embed/${yt}?autoplay=1&playsinline=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
-  else if (hls || file) media = `<video id="xlV" controls autoplay playsinline></video>`;
-  else media = `<iframe src="${esc(url)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
-  const ov = document.createElement('div'); ov.className = 'xlv';
-  ov.innerHTML = `<div class="xlt"><button data-x="close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button><span class="bd">● مباشر</span><b>${esc(title||'بث مباشر')}</b><a href="${esc(url)}" target="_blank" rel="noopener" aria-label="فتح في صفحة جديدة"><i class="fas fa-arrow-up-right-from-square"></i></a></div><div class="xlb">${media}</div>${(yt||hls||file)?'':`<div class="xlf">لو البث مش بيظهر هنا، <a href="${esc(url)}" target="_blank" rel="noopener">افتحه في صفحة جديدة</a></div>`}`;
-  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
-  const close = () => { document.removeEventListener('keydown', onKey); try { ov.querySelectorAll('video').forEach(v => v.pause()); } catch(_){} ov.remove(); if (!modals.length && !document.querySelector('.rlx,.lvx,.stvx')) document.body.style.overflow = ''; };
-  const onKey = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', onKey);
-  ov.querySelector('[data-x="close"]').onclick = close;
-  const v = ov.querySelector('#xlV'); if (v){
-    const go = () => { if (v.canPlayType('application/vnd.apple.mpegurl') || !hls){ v.src = url; v.play().catch(() => {}); return; }
-      const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js'; sc.onload = () => { if (window.Hls && Hls.isSupported()){ const h = new Hls(); h.loadSource(url); h.attachMedia(v); h.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(() => {})); } else v.src = url; }; sc.onerror = () => { v.src = url; }; document.head.appendChild(sc); };
-    go(); } }
+  return `<div class="card lvv"><div class="lvv-h">${avatarLink(a,'av40')}<div style="flex:1;min-width:0"><b>${nameLink(a)}${badge(a)}</b><small>${ago(p.createdAt)}</small></div></div><button class="xl-th" data-a="extLive" data-id="x_${x.p.id}" data-url="${esc(x.url)}" data-title="${esc(t)}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(t)}</span></button></div>`; }
+function liveVideoCard(L){ const hd = `<div class="lvv-h"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b>${esc(L.hostName||ADMIN_NAME)}</b><small>${ago(L.startedAt)}</small></div></div>`;
+  if (L.external && L.url) return `<article class="card lvv">${hd}<button class="xl-th" data-pv="1" data-a="extLive" data-id="${L.id}" data-url="${esc(L.url)}" data-title="${esc(L.title||'بث مباشر')}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(L.title||'بث مباشر')}</span></button></article>`;
+  return `<article class="card lvv">${hd}<div class="xl-th" data-a="liveOpen" data-id="${L.id}" role="button"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-tower-broadcast"></i></span><span class="tt">انقر لمشاهدة البث</span></div></article>`; }
+/* ===== بث الرابط: مدمج بالكامل داخل منصة ميزان ===== */
+const xlKind = url => { const yt = ytId(url); return yt ? {k:'yt', yt} : /\.m3u8(\?|$)/i.test(url) ? {k:'hls'} : /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) ? {k:'file'} : {k:'web'}; };
+const XL_SB = 'allow-scripts allow-same-origin allow-presentation';
+function xlMedia(url, pv){ const K = xlKind(url);
+  if (K.k==='yt') return `<iframe data-xl="yt" sandbox="${XL_SB}" referrerpolicy="no-referrer" allow="autoplay; encrypted-media" src="https://www.youtube-nocookie.com/embed/${K.yt}?autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1${pv?'&mute=1':''}"></iframe>`;
+  if (K.k==='web') return `<iframe data-xl="web" sandbox="${XL_SB}" referrerpolicy="no-referrer" allow="autoplay; encrypted-media" src="${esc(url)}"></iframe>`;
+  return `<video data-xl="${K.k}" playsinline autoplay ${pv?'muted':''} disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>`; }
+function xlAttach(root, url){ const v = root.querySelector('video[data-xl]'); if (!v) return; if (v.hasAttribute('muted')) v.muted = true;
+  if (xlKind(url).k==='file' || v.canPlayType('application/vnd.apple.mpegurl')){ v.src = url; v.play().catch(() => {}); return; }
+  const go = () => { if (window.Hls && Hls.isSupported()){ const h = new Hls(); h.loadSource(url); h.attachMedia(v); h.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(() => {})); root._hls = h; } else v.src = url; };
+  if (window.Hls) return go(); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js'; sc.onload = go; sc.onerror = () => { v.src = url; }; document.head.appendChild(sc); }
+const xlStage = (url, name) => `<div class="xlstage"><div class="xlbox">${xlMedia(url)}<div class="xlshield" id="xlSh"></div><i class="xlm t"></i><i class="xlm b"></i><div class="xlwm w1"><img src="${LOGO}" alt=""><span>ميزان</span></div><div class="xlwm w2">${esc(name||'')} · منصة ميزان</div></div></div><div class="xlbrand"><img src="${LOGO}" alt=""><b>منصة ميزان</b></div>`;
+const xlSide = url => `<button class="rb" id="xlCt" title="تفعيل التحكم بالمشغّل"><i class="fas fa-hand-pointer"></i></button>${xlKind(url).k==='web'?'':'<button class="rb" id="xlMu" title="كتم / تشغيل الصوت"><i class="fas fa-volume-high"></i></button>'}`;
+function extLiveView(url, title, sid){ if (document.querySelector('.lvx')) return; try { window.__stopAll && window.__stopAll(); } catch(_){}
+  if (!url) return; let h = 0; for (const c of url) h = (h*31 + c.charCodeAt(0)) | 0;
+  liveView(sid || ('x_' + Math.abs(h).toString(36)), {url, title, host:'منصة ميزان'}); }
+/* معاينة تعمل تلقائياً داخل المنشورات فقط (كأن البث شغّال) */
+const xlIO = new IntersectionObserver(es => es.forEach(e => { const b = e.target;
+  if (e.isIntersecting){ if (b._pv && b.contains(b._pv)) return; const d = document.createElement('div'); d.className = 'xlpv'; d.innerHTML = xlMedia(b.dataset.url, true); b.prepend(d); b._pv = d; xlAttach(d, b.dataset.url); }
+  else if (b._pv){ try { b._pv._hls && b._pv._hls.destroy(); } catch(_){} b._pv.remove(); b._pv = null; } }), {rootMargin:'120px', threshold:.35});
+const xlScan = () => document.querySelectorAll('.xl-th[data-pv]').forEach(b => { if (!b.dataset.ob){ b.dataset.ob = '1'; xlIO.observe(b); } else if (b._pv && !b.contains(b._pv)){ b._pv = null; xlIO.unobserve(b); xlIO.observe(b); } });
+new MutationObserver(xlScan).observe(document.body, {childList:true, subtree:true}); xlScan();
 window.__rlFromVp = el => { try { if (el.closest('.modal,.modal-ov,.cm-list,.rlx')) return false; const card = el.closest('[data-post]'); if (!card) return false; const p = P(card.dataset.post); if (!p) return false;
   if (!reelsPosts().some(x => x.id === p.id)) return false; const vs = vidsOf(p), key = el.dataset.yt || el.dataset.src || el.dataset.link;
   const i = vs.findIndex(m => el.dataset.yt ? ytId(m.url) === key : m.url === key); if (i < 0) return false; try { window.__stopAll && window.__stopAll(); } catch(_){} openReels(false, {pid:p.id, i}); return true; } catch(_){ return false; } };
