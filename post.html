@@ -483,33 +483,49 @@ body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important}
 
 .lvx .lvside .rb{animation:mzFl 2.6s ease-in-out infinite}
 .act,.ic,.ib{transition:transform .18s,background .2s,color .2s}.act:active,.ic:active,.ib:active{transform:scale(.9)}
-/* ===== أزرار البث السفلية: أصغر وأجمل ===== */
-.lvx .lvbar{padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);gap:8px}
-.lvx .lvgo{flex:0 1 220px;margin:0 auto;padding:10px 18px;border-radius:22px;font-size:14.5px;background:linear-gradient(135deg,#e11d48,#be123c);box-shadow:0 6px 18px rgba(225,29,72,.35);transition:transform .2s}
-.lvx .lvgo:active{transform:scale(.96)}
-.lvx .lvin{gap:6px}
-.lvx .lvin input{padding:9px 14px;font-size:13.5px;border-radius:20px;background:rgba(0,0,0,.45);border:1px solid rgba(201,169,97,.45);backdrop-filter:blur(6px)}
-.lvx .lvin input:focus{border-color:var(--gold)}
-.lvx .lvin button{width:38px;height:38px;font-size:14px;background:linear-gradient(135deg,var(--gold),#E8D190);box-shadow:0 4px 12px rgba(0,0,0,.3);transition:transform .2s}
-.lvx .lvin button:active{transform:scale(.9)}
-.lvx .rb{width:38px;height:38px;font-size:15px;border:1px solid rgba(255,255,255,.14)}
-.lvx .lvcm{bottom:calc(env(safe-area-inset-bottom,0px) + 62px)}
-.lvx .lvrp{bottom:calc(env(safe-area-inset-bottom,0px) + 54px)}
+
 
 .react-wrap,.react-wrap .act,.rl-lk,.rl-btn{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .react-wrap .act{touch-action:manipulation}
 .picker{z-index:200;animation:mzUp .2s backwards}
 .react-wrap.pk .picker{display:flex!important}
-/* ===== شريط التنقل السفلي: أصغر وأجمل ===== */
-#bnav{height:calc(46px + env(safe-area-inset-bottom,0px));margin:0 auto 6px;left:0;right:0;width:calc(100% - 20px);max-width:420px;border:1px solid var(--border);border-radius:24px;padding:0 6px env(safe-area-inset-bottom,0px);box-shadow:0 8px 26px -6px var(--shadow)}
-#bnav button{font-size:10px;gap:1px;border-radius:18px;transition:background .25s,color .25s}
-#bnav button i{font-size:16px}
+
+
+/* ===== شريط التنقل السفلي: صغير، مصمت، ومتوافق مع الريلز ===== */
+#bnav{height:calc(50px + env(safe-area-inset-bottom,0px));margin:auto;width:100%;max-width:740px;border:0;border-top:1px solid var(--border);border-radius:0;background:var(--bg-card);-webkit-backdrop-filter:none;backdrop-filter:none;padding:0 6px env(safe-area-inset-bottom,0px);box-shadow:0 -4px 16px -8px var(--shadow)}
+#bnav button{font-size:10px;gap:1px;border-radius:14px;margin:4px 2px;transition:background .25s,color .25s,transform .15s}
+#bnav button i{font-size:17px}
 #bnav button.on{background:color-mix(in srgb,var(--gold) 16%,transparent)}
-#bnav button.on::before{top:2px;left:36%;right:36%;height:2px}
+#bnav button.on::before{top:-4px;left:34%;right:34%;height:2px}
 #bnav button:active{transform:scale(.94)}
-#bnav .dot{top:4px;width:7px;height:7px}
-.rlx{bottom:calc(52px + env(safe-area-inset-bottom,0px))}
-.toast{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}#jobs{bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+#bnav .dot{top:3px;width:7px;height:7px}
+.rlx{bottom:calc(50px + env(safe-area-inset-bottom,0px));background:#000}
+body:has(.rlx){background:#000}
+body:has(.rlx) #bnav{max-width:none;background:var(--bg-card)}
+.toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}#jobs{bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+/* ===== قائمة التفاعل ===== */
+.react-wrap.done .picker{display:none!important}
+@media(hover:none){.react-wrap:not(.pk) .picker{display:none!important}}
+/* ===== البحث كأيقونة ===== */
+.srch{display:none}body.sq-on .srch{display:flex}
+/* ===== شريط (صورة/فيديو/صوت) يختفي من الخارج ===== */
+.trig-btns{display:none!important}
+/* ===== بث مباشر بشكل فيديو ===== */
+.xl-th{position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/9;margin-top:4px;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505);color:#fff;cursor:pointer;overflow:hidden;border:0}
+.xl-th .pl{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .2s}
+.xl-th:active .pl{transform:scale(.92)}
+.xl-th .bd{position:absolute;top:10px;right:10px;background:#e11d48;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:900}
+.xl-th .bd i{font-size:7px;margin-left:5px;animation:pls 1.2s infinite}
+.xl-th .tt{position:absolute;bottom:10px;left:12px;right:12px;font-weight:800;font-size:13.5px;text-align:right;text-shadow:0 1px 6px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvv{overflow:hidden;margin-bottom:14px}.lvv .lvv-h{display:flex;align-items:center;gap:10px;padding:12px 14px}.lvv .lvv-h img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#fff}.lvv .lvv-h b{display:block;font-size:14.5px}.lvv .lvv-h small{color:var(--text-sub)}
+.xlv{position:fixed;inset:0;z-index:960;background:#000;color:#fff;display:flex;flex-direction:column;animation:lvin .25s backwards}
+.xlv .xlt{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 8px}
+.xlv .xlt button,.xlv .xlt a{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;flex:none}
+.xlv .xlt b{flex:1;min-width:0;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xlv .xlt .bd{background:#e11d48;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:900;flex:none}
+.xlv .xlb{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.xlv iframe,.xlv video{width:100%;height:100%;border:0;background:#000;max-height:100%}
+.xlv .xlf{padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 10px);text-align:center;font-size:12.5px;color:#cfd8d3}.xlv .xlf a{color:#E0C888;font-weight:800}
 </style>
 </head>
 <body>
@@ -520,6 +536,7 @@ body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important}
     <img class="tb-logo" src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
     <div class="tb-title"><span>ميزان</span><small>المنشورات</small></div>
   </div>
+  <button class="ib" data-a="sqToggle" title="بحث" aria-label="بحث"><i class="fas fa-magnifying-glass"></i></button>
   <a class="wal" href="stor.html" aria-label="المحفظة"><i class="fas fa-wallet"></i><span id="bal">0</span> ج.م</a>
   <button class="ib" data-a="myAds" title="إعلاناتي" aria-label="إعلاناتي"><i class="fas fa-rectangle-ad"></i><span class="cnt" id="adCnt" hidden>0</span></button>
   <div class="menu-wrap tb-menu">
@@ -807,7 +824,7 @@ function mediaHtml(p){
   if (imgs.length){ const n = Math.min(imgs.length,5);
     h += `<div class="grid g${n}">${imgs.slice(0,5).map((x,i) => `<div class="gi" data-a="lightbox" data-url="${esc(x.url)}"><img loading="lazy" src="${esc(x.url)}" alt="">${i===4&&imgs.length>5?`<div class="more">+${imgs.length-5}</div>`:''}</div>`).join('')}</div>`; }
   vids.forEach(v => h += `<div class="vp" data-src="${esc(v.url)}"></div>`);
-  m.filter(x => x.type==='link').forEach(l => h += ytId(l.url) ? ytFrame(ytId(l.url)) : `<div class="vp" data-link="${esc(l.url)}"></div>`);
+  m.filter(x => x.type==='link').forEach(l => h += l.live ? `<button class="xl-th" data-a="extLive" data-url="${esc(l.url)}" data-title="${esc((p.text||'').slice(0,80))}"><span class="bd"><i class="fas fa-circle"></i>بث مباشر</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc((p.text||'بث مباشر').split('\n')[0].slice(0,80))}</span></button>` : ytId(l.url) ? ytFrame(ytId(l.url)) : `<div class="vp" data-link="${esc(l.url)}"></div>`);
   auds.forEach(a => h += `<div class="aud"><i class="fas fa-microphone-lines"></i><audio controls preload="none" src="${esc(a.url)}"></audio></div>`);
   return h; }
 function sharedHtml(p){ const s = p.sharedPost; if (!s) return '';
@@ -918,12 +935,14 @@ function feedItems(){
   const rot = ads.length ? Math.floor(S.orderAt/60000) % ads.length : 0, ordAds = ads.slice(rot).concat(ads.slice(0,rot)), topAds = ordAds.slice(0,2), restAds = ordAds.slice(2);
   const rnd = (() => { let t = (S.orderAt||1) >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ t>>>15, 1|t); r ^= r + Math.imul(r ^ r>>>7, 61|r); return ((r ^ r>>>14)>>>0)/4294967296; }; })();
   const GAPS = [3,5,4,8,5,10,6,12,20,7,4,9], gap = () => rnd() < .12 ? 25 + Math.floor(rnd()*35) : GAPS[Math.floor(rnd()*GAPS.length)];   // كل كم منشور يظهر منشور الأدمن (5/10/20 وأحياناً 50-60)
-  const show = rest.slice(0, S.limit); let k = 0, oi = 0, cnt = 0, nextOff = 2 + Math.floor(rnd()*2);
+  const lvq = searching ? [] : liveNow().slice(); const show = rest.slice(0, S.limit); let k = 0, oi = 0, cnt = 0, nextOff = 2 + Math.floor(rnd()*2);
   topAds.forEach(ad => items.push({key:ad.id+':top',html:card(ad)}));
   if (offs.length && !show.length) offs.slice(0, S.limit).forEach(p => items.push({key:p.id,html:card(p)}));
   show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); cnt++;
+    if (lvq.length && (i === 2 || (i > 2 && (i-2) % 6 === 0))){ const LV = lvq.shift(); items.push({key:'lvf'+LV.id, html:liveVideoCard(LV)}); }
     if (offs.length && cnt >= nextOff){ const o = offs[oi % offs.length]; items.push({key:o.id+':o'+oi,html:card(o)}); oi++; cnt = 0; nextOff = gap(); }
     if (restAds.length && A.adEvery > 0 && (i+1)%A.adEvery===0){ const ad = restAds[k++ % restAds.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
+  lvq.forEach(LV => items.push({key:'lvf'+LV.id, html:liveVideoCard(LV)}));
   if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
   if (rest.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(rest.length-show.length)})</button>`});
   return items; }
@@ -971,7 +990,7 @@ function openComposer({pick=null}={}){
       <textarea class="inp" id="cText" placeholder="بم تفكر يا ${esc(uName(uid).split(' ')[0])}؟"></textarea>
       <div class="bgs" id="cBgs"></div><div class="prev" id="cPrev"></div>
       <div class="emorow" id="cEmo">${EMOJIS.map(e => `<button type="button" data-c="emo" data-e="${e}">${e}</button>`).join('')}</div>
-      <div class="addbar"><span>أضف إلى منشورك</span>${c.allowImages!==false?'<button data-c="pick" data-k="image" title="صور" style="color:#2ECC71"><i class="fas fa-images"></i></button>':''}${c.allowVideo!==false?'<button data-c="pick" data-k="video" title="فيديو" style="color:#E74C3C"><i class="fas fa-video"></i></button>':''}${c.allowVideoLink!==false?'<button data-c="link" title="رابط فيديو" style="color:#E67E22"><i class="fas fa-link"></i></button>':''}${c.allowAudio!==false?'<button data-c="pick" data-k="audio" title="مقطع صوتي" style="color:#3498DB"><i class="fas fa-microphone"></i></button>':''}<button data-c="emoT" title="رموز" style="color:#F5B041"><i class="far fa-face-smile"></i></button></div>
+      <div class="addbar"><span>أضف إلى منشورك</span>${c.allowImages!==false?'<button data-c="pick" data-k="image" title="صور" style="color:#2ECC71"><i class="fas fa-images"></i></button>':''}${c.allowVideo!==false?'<button data-c="pick" data-k="video" title="فيديو" style="color:#E74C3C"><i class="fas fa-video"></i></button>':''}${c.allowVideoLink!==false?'<button data-c="link" title="رابط فيديو" style="color:#E67E22"><i class="fas fa-link"></i></button>':''}${c.allowAudio!==false?'<button data-c="pick" data-k="audio" title="مقطع صوتي" style="color:#3498DB"><i class="fas fa-microphone"></i></button>':''}<button data-a="newPoll" title="استطلاع" style="color:#9B59B6"><i class="fas fa-square-poll-vertical"></i></button><button data-c="emoT" title="رموز" style="color:#F5B041"><i class="far fa-face-smile"></i></button></div>
       <input type="file" id="fimage" accept="image/*" multiple hidden><input type="file" id="fvideo" accept="video/*" hidden><input type="file" id="faudio" accept="audio/*" hidden>
       <div class="prog" id="cProg" hidden><div></div><span></span></div></div>
     <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="cGo" style="min-width:150px"><i class="fas fa-paper-plane"></i> نشر</button></div>`, {wide:true});
@@ -1004,7 +1023,7 @@ function openComposer({pick=null}={}){
   ov.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; const k = b.dataset.c;
     if (k==='pick') $$('#f'+b.dataset.k).click();
     else if (k==='bg'){ C.bg = b.dataset.b; paintC(); }
-    else if (k==='link') dialog({title:'رابط فيديو', body:'ألصق رابط يوتيوب أو رابط فيديو مباشر', input:'https://', confirm:'إضافة'}).then(u => { if (!u) return; if (!safe(u)) return toast('الرابط غير صالح','error'); C.existing = C.existing.filter(x => x.type!=='link'); C.existing.push({type:'link',url:u}); paintC(); });
+    else if (k==='link') dialog({title:'رابط فيديو', body:'ألصق رابط يوتيوب أو رابط فيديو أو بث مباشر', input:'https://', confirm:'إضافة'}).then(async u => { if (!u) return; if (!safe(u)) return toast('الرابط غير صالح','error'); const lv = await dialog({title:'نوع الرابط', body:'هل هذا الرابط بث مباشر؟ (مثل بث مباراة من موقع آخر)', confirm:'نعم، بث مباشر', cancel:'لا، فيديو عادي'}); C.existing = C.existing.filter(x => x.type!=='link'); C.existing.push(lv ? {type:'link',url:u,live:true} : {type:'link',url:u}); paintC(); });
     else if (k==='emoT') $$('#cEmo').classList.toggle('show');
     else if (k==='emo'){ const s = tx.selectionStart ?? tx.value.length; tx.value = tx.value.slice(0,s)+b.dataset.e+tx.value.slice(s); tx.focus(); tx.setSelectionRange(s+2,s+2); }
     else if (k==='edit') editMedia(b.dataset.k, +b.dataset.i);
@@ -1023,7 +1042,7 @@ function publishJob(job){
   const c = S.cfg, box = $('jobs'), el = document.createElement('div'); el.className = 'job';
   const set = (ic, t, sub, p) => { el.innerHTML = `<div class="ji"><i class="fas ${ic}"></i></div><div class="jt">${t}${sub?`<small>${sub}</small>`:''}</div>${job.failed?'<button class="btn xs primary" data-j="retry">إعادة المحاولة</button><button class="ic xs" data-j="drop" aria-label="إلغاء"><i class="fas fa-xmark"></i></button>':''}<div class="jb" style="width:${Math.round((p||0)*100)}%"></div>`; };
   el.addEventListener('click', e => { const b = e.target.closest('[data-j]'); if (!b) return; if (b.dataset.j==='retry') run(); else { job.files.forEach(f => URL.revokeObjectURL(f.url)); jobs.delete(job); el.remove(); } });
-  box.appendChild(el); jobs.add(job); job.media = job.media || job.existing.map(({type,url}) => ({type,url})); job.up = job.up || {};
+  box.appendChild(el); jobs.add(job); job.media = job.media || job.existing.map(({type,url,live}) => live ? {type,url,live:true} : {type,url}); job.up = job.up || {};
   async function run(){
     job.failed = false; el.className = 'job'; set('fa-spinner fa-spin','جاري النشر…','يمكنك متابعة التصفح',.02);
     try {
@@ -1171,7 +1190,7 @@ const H = {
     try { const cs = await getDocs(collection(db,'posts',p.id,'comments')); await Promise.all(cs.docs.map(d => deleteDoc(d.ref))); delFiles(p.media); await deleteDoc(doc(db,'posts',p.id)); toast('تم الحذف'); if (S.one) location.replace(LIST); } catch(e){ toast('فشل الحذف','error'); } },
   like:async t => { const p = P(t.dataset.id), m = p.reactions?.[uid]; const r = await setReaction(p, m ? m : 'like');
     if (r){ snd('like'); track(p,'react'); notify(p.authorId,'تفاعل جديد',`${uName(uid)} أعجبه منشورك`,{postId:p.id}); } },
-  react:async t => { const p = P(t.dataset.id), r = await setReaction(p, t.dataset.t); t.closest('.react-wrap')?.classList.remove('pk');
+  react:async t => { const p = P(t.dataset.id), r = await setReaction(p, t.dataset.t); { const w = t.closest('.react-wrap'); w?.classList.remove('pk'); w?.classList.add('done'); }
     if (r){ snd('react'); track(p,'react'); notify(p.authorId,'تفاعل جديد',`${uName(uid)} تفاعل ${RMAP[r].emoji} مع منشورك`,{postId:p.id}); } },
   rxList:t => { const p = P(t.dataset.id), e = Object.entries(p.reactions||{}); if (!e.length) return;
     openModal(`${mh('التفاعلات')}<div class="mb">${e.map(([id,tp]) => { const a = authorOf({authorId:id}); return `<div class="rxl">${avatar(a.avatar,a.name,'av34',a.official)}<span style="flex:1">${esc(a.name)}</span><em>${RMAP[tp]?.emoji||'👍'}</em></div>`; }).join('')}</div>`); },
@@ -1435,7 +1454,6 @@ const topBar = () => { const ln = liveNow().length, T = (k,ic,t) => `<button cla
   if (S.tab === 'posts') items.push({key:'srch', html:`<div class="card srch"><i class="fas fa-magnifying-glass"></i><input id="sq" type="search" placeholder="ابحث عن منشور (نص، اسم، تصنيف)…" autocomplete="off" enterkeyhint="search"><button id="sqx" data-a="sqClear" hidden aria-label="مسح"><i class="fas fa-xmark"></i></button></div>`});
   return items; };
 const feedExtras = () => { const out = [];
-  liveNow().forEach(L => out.push({key:'lvn'+L.id, html:liveCard(L)}));
   S.polls.filter(p => pollVisible(p) && pOpen(p)).slice(0,2).forEach(p => out.push({key:'pl'+p.id, html:pollCard(p)}));
   return out; };
 
@@ -1582,7 +1600,7 @@ const liveCard = L => { const on = liveOn(L), cut = L.status==='live' && !on;
   return `<div class="card lvc"><div style="display:flex;align-items:center;gap:8px"><span class="lvb ${on?'on':''}"><i class="fas fa-circle" style="font-size:8px"></i> ${on?'مباشر الآن':cut?'انقطع':'انتهى'}</span><small style="flex:1;text-align:left;color:var(--text-sub)">${ago(L.startedAt)}</small></div>
   <b style="font-size:16px">${esc(L.title||'بث مباشر')}</b><small style="color:var(--text-sub)">${esc(L.hostName||ADMIN_NAME)}${L.duration?` · المدة ${clk(L.duration)}`:''}</small>
   <button class="btn xs primary" data-a="liveOpen" data-id="${L.id}" style="align-self:flex-start"><i class="fas ${on?'fa-tower-broadcast':'fa-play'}"></i> ${on?'شاهد البث':'مشاهدة الإعادة'}</button></div>`; };
-const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.chunks > 0 || L.status==='ended'), out = l.map(L => ({key:'lv'+L.id, html:liveCard(L)}));
+const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.chunks > 0 || L.status==='ended'), out = [...extLives().map(x => ({key:'xl'+x.p.id, html:extLiveCard(x)})), ...l.map(L => ({key:'lv'+L.id, html:liveCard(L)}))];
   if (!out.length) out.push({key:'le', html:emptyBox('fa-tower-broadcast','لا توجد بثوث حالياً','سيصلك إشعار عند بدء بث مباشر جديد')}); return out; };
 
 async function liveView(id){
@@ -1759,6 +1777,7 @@ Object.assign(H, {
         await notify(p.authorId, 'هدية جديدة 🎁', `${uName(uid)} أرسل لك ${q>1?ar(q)+'× ':''}${g.name} على منشورك${snip?` «${snip}${(p.text||'').length>40?'…':''}»`:''} — أُضيف ${ar(half)} ج.م لمحفظتك`, {postId:pid});
         toast(`تم إرسال الهدية — وصل ${ar(half)} ج.م إلى ${a.name}`); } }); } }); },
   tab:t => { S.tab = t.dataset.t; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); },
+  extLive:t => extLiveView(t.dataset.url, t.dataset.title), sqToggle:() => { S.tab = 'posts'; const on = !document.body.classList.contains('sq-on'); document.body.classList.toggle('sq-on', on); if (!on) S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); if (on) setTimeout(() => { const i = $('sq'); if (i) i.focus(); }, 160); navPaint(); },
   sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
   stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
   liveOpen:t => liveView(t.dataset.id),
@@ -1819,8 +1838,8 @@ async function gfxPlay(g, text, price){
 /* ============ 💬 صندوق التعليقات: سكرول داخلي بعد ٥ تعليقات ============ */
 function cmSave(){ const m = new Map(); try { document.querySelectorAll('#root .cm-list').forEach(l => { const k = l.closest('[data-post]')?.dataset.post; if (k) m.set(k, {t:l.scrollTop, bot:l.scrollTop + l.clientHeight >= l.scrollHeight - 6}); }); } catch(_){} return m; }
 function fitCm(root = document){ try { root.querySelectorAll('.cm-list').forEach(l => { if (l.closest('.rlsh')) return; const rows = [...l.children].filter(x => x.classList.contains('cm'));
-    if (rows.length <= 5){ l.classList.remove('scr'); l.style.maxHeight = ''; return; }
-    const h = rows[5].offsetTop - rows[0].offsetTop; if (h > 80){ l.style.maxHeight = Math.min(Math.max(h, 220), 560) + 'px'; l.classList.add('scr'); } }); } catch(_){} }
+    if (rows.length <= 3){ l.classList.remove('scr'); l.style.maxHeight = ''; return; }
+    const h = rows[3].offsetTop - rows[0].offsetTop; if (h > 60){ l.style.maxHeight = Math.min(Math.max(h, 150), 560) + 'px'; l.classList.add('scr'); } }); } catch(_){} }
 function cmRestore(m){ try { document.querySelectorAll('#root .cm-list').forEach(l => { const k = l.closest('[data-post]')?.dataset.post, s = k && m.get(k), st = S.cmStick;
     if (st && st.pid === k && Number(l.dataset.n) > st.n){ l.scrollTop = l.scrollHeight; S.cmStick = null; } else if (s) l.scrollTop = s.t; }); } catch(_){} }
 addEventListener('resize', () => fitCm());
@@ -1845,7 +1864,7 @@ let hidAt = 0; document.addEventListener('visibilitychange', () => { if (documen
 
 /* ============ 🎞️ الريلز ============ */
 S.rlMuted = false;
-const vidsOf = p => (p.media||[]).filter(m => m.type === 'video' || m.type === 'link');
+const vidsOf = p => (p.media||[]).filter(m => (m.type === 'video' || m.type === 'link') && !m.live);
 const reelsPosts = () => S.posts.filter(p => (p.status||'published') === 'published' && !p.isAd && !p.deleted && vidsOf(p).length);
 const rlFind = pid => S.posts.find(p => p.id === pid);
 const rlIt = (p, m, i) => { const a = authorOf(p), id = p.id, yt = m.type === 'link' ? ytId(m.url) : '', own = !a.official && p.authorId === uid, canF = !a.official && !own && p.authorId, canG = !a.official && !own && p.authorId, rs = rsum(p);
@@ -1899,7 +1918,32 @@ function rlSheetPaint(){ const sh = document.querySelector('.rlx .rlsh'); if (!s
   if (l1){ if (st && st.pid === p.id && Number(l1.dataset.n) > st.n){ l1.scrollTop = l1.scrollHeight; S.cmStick = null; } else l1.scrollTop = t0; }
   if (aid){ const ni = document.getElementById(aid); if (ni){ ni.focus(); try { ni.setSelectionRange(pos, pos); } catch(_){} } } }
 function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; if (!sh._was) S.open.delete(sh.dataset.pid); sh.remove(); }
-function openReels(keep){
+
+/* ===== بث خارجي + بطاقة بث بشكل فيديو + فتح فيديو في الريلز ===== */
+function extLives(){ const out = []; S.posts.forEach(p => { if ((p.status||'published') !== 'published' || p.deleted) return; const m = (p.media||[]).find(x => x.type === 'link' && x.live); if (m) out.push({p, url:m.url}); }); return out.sort((a,b) => (tsd(b.p.createdAt)||Date.now()) - (tsd(a.p.createdAt)||Date.now())); }
+function extLiveCard(x){ const p = x.p, a = authorOf(p), t = (p.text||'بث مباشر').split('\n')[0].slice(0,80);
+  return `<div class="card lvv"><div class="lvv-h">${avatarLink(a,'av40')}<div style="flex:1;min-width:0"><b>${nameLink(a)}${badge(a)}</b><small>${ago(p.createdAt)}</small></div></div><button class="xl-th" data-a="extLive" data-url="${esc(x.url)}" data-title="${esc(t)}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(t)}</span></button></div>`; }
+function liveVideoCard(L){ return `<article class="card lvv"><div class="lvv-h"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b>${esc(L.hostName||ADMIN_NAME)}</b><small>${ago(L.startedAt)}</small></div></div><div class="xl-th" data-a="liveOpen" data-id="${L.id}" role="button"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(L.title||'بث مباشر')}</span></div></article>`; }
+function extLiveView(url, title){
+  if (document.querySelector('.xlv')) return; try { window.__stopAll && window.__stopAll(); } catch(_){}
+  const yt = ytId(url), hls = /\.m3u8(\?|$)/i.test(url), file = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url); let media;
+  if (yt) media = `<iframe src="https://www.youtube.com/embed/${yt}?autoplay=1&playsinline=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  else if (hls || file) media = `<video id="xlV" controls autoplay playsinline></video>`;
+  else media = `<iframe src="${esc(url)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
+  const ov = document.createElement('div'); ov.className = 'xlv';
+  ov.innerHTML = `<div class="xlt"><button data-x="close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button><span class="bd">● مباشر</span><b>${esc(title||'بث مباشر')}</b><a href="${esc(url)}" target="_blank" rel="noopener" aria-label="فتح في صفحة جديدة"><i class="fas fa-arrow-up-right-from-square"></i></a></div><div class="xlb">${media}</div>${(yt||hls||file)?'':`<div class="xlf">لو البث مش بيظهر هنا، <a href="${esc(url)}" target="_blank" rel="noopener">افتحه في صفحة جديدة</a></div>`}`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const close = () => { document.removeEventListener('keydown', onKey); try { ov.querySelectorAll('video').forEach(v => v.pause()); } catch(_){} ov.remove(); if (!modals.length && !document.querySelector('.rlx,.lvx,.stvx')) document.body.style.overflow = ''; };
+  const onKey = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', onKey);
+  ov.querySelector('[data-x="close"]').onclick = close;
+  const v = ov.querySelector('#xlV'); if (v){
+    const go = () => { if (v.canPlayType('application/vnd.apple.mpegurl') || !hls){ v.src = url; v.play().catch(() => {}); return; }
+      const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js'; sc.onload = () => { if (window.Hls && Hls.isSupported()){ const h = new Hls(); h.loadSource(url); h.attachMedia(v); h.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(() => {})); } else v.src = url; }; sc.onerror = () => { v.src = url; }; document.head.appendChild(sc); };
+    go(); } }
+window.__rlFromVp = el => { try { if (el.closest('.modal,.modal-ov,.cm-list,.rlx')) return false; const card = el.closest('[data-post]'); if (!card) return false; const p = P(card.dataset.post); if (!p) return false;
+  if (!reelsPosts().some(x => x.id === p.id)) return false; const vs = vidsOf(p), key = el.dataset.yt || el.dataset.src || el.dataset.link;
+  const i = vs.findIndex(m => el.dataset.yt ? ytId(m.url) === key : m.url === key); if (i < 0) return false; try { window.__stopAll && window.__stopAll(); } catch(_){} openReels(false, {pid:p.id, i}); return true; } catch(_){ return false; } };
+function openReels(keep, start){
   if (document.querySelector('.rlx')) return; document.querySelectorAll('#root video.vid').forEach(vStop);
   const ps = reelsPosts(), ord = rankIds(ps), map = new Map(ps.map(p => [p.id, p])), items = []; ord.forEach(id => { const p = map.get(id); vidsOf(p).forEach((m, i) => items.push(rlIt(p, m, i))); });
   const ov = document.createElement('div'); ov.className = 'rlx';
@@ -1928,10 +1972,10 @@ function openReels(keep){
     lk.addEventListener('pointerdown', () => { lpD = false; lpT = setTimeout(() => { lpD = true; pk.classList.add('show'); }, 420); });
     ['pointerup','pointerleave','pointercancel'].forEach(ev => lk.addEventListener(ev, () => clearTimeout(lpT)));
     lk.addEventListener('click', e => { if (lpD){ e.stopPropagation(); e.preventDefault(); lpD = false; } }, true); });
-  const first = ov.querySelector('.rl-it'); if (first){ rlLoad(first); requestAnimationFrame(() => rlSetActive(first)); }
+  const first = (start && ov.querySelector(`.rl-it[data-pid="${start.pid}"][data-i="${start.i}"]`)) || ov.querySelector('.rl-it'); if (first){ if (start && first !== ov.querySelector('.rl-it')) sc.scrollTop = first.offsetTop; rlLoad(first); requestAnimationFrame(() => rlSetActive(first)); }
   if (!keep) history.pushState({rl:1}, ''); ov._hist = true;
   ov.addEventListener('click', async e => { const b = e.target.closest('[data-rl]'); if (!b){ ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show')); return; } const k = b.dataset.rl, pid = b.dataset.id, p = pid && rlFind(pid), it = b.closest('.rl-it');
-    if (!['react','like'].includes(k)) ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show'));
+    if (!['like'].includes(k)) ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show'));
     if (k === 'close') closeReels(); else if (k === 'mute'){ S.rlMuted = !S.rlMuted; rlMuteIc(); const c = S.rlCur; if (c){ const v = c.querySelector('video'), f = c.querySelector('iframe'); if (v) v.muted = S.rlMuted; if (f && f.getAttribute('src')) rlCmd(f, S.rlMuted ? 'mute' : 'unMute'); } }
     else if (k === 'like' && p) H.like({dataset:{id:pid}}).catch(() => toast('تعذر تسجيل الإعجاب','error'));
     else if (k === 'react' && p) H.react(b).catch(() => {});
@@ -1973,7 +2017,7 @@ function rlRefresh(){ if (!document.querySelector('.rlx')) return; closeReels(tr
 PF.attach(document, () => window.scrollY <= 0 && !document.querySelector('.rlx,.modal-ov,.lvx,.stvx,.gsx'), refreshCur);
 function navPaint(){ try { const nb = document.getElementById('bnav'); if (!nb) return; const r = !!document.querySelector('.rlx');
   nb.querySelectorAll('button').forEach(b => b.classList.toggle('on', r ? b.dataset.t === 'reels' : b.dataset.t === (S.tab || 'posts')));
-  const d = nb.querySelector('.dot'); if (d) d.hidden = !liveNow().length; } catch(_){} }
+  const d = nb.querySelector('.dot'); if (d) d.hidden = !(liveNow().length || extLives().length); } catch(_){} }
 Object.assign(H, {bnav:t => { const k = t.dataset.t, r = !!document.querySelector('.rlx');
   if (k === 'reels'){ if (r) PR.run(rlRefresh); else { openReels(); } navPaint(); return; }
   if (r) closeReels();
@@ -1998,7 +2042,7 @@ paint();
 (()=>{
 /* ===== إعداد اختياري: خادم لتحويل روابط فيسبوك/تيك توك لفيديو مباشر (يرجع JSON فيه {url}) ===== */
 const RESOLVER='';
-const POS=(()=>{try{return JSON.parse(localStorage.vpPos||'{}')}catch(_){return{}}})(),players=new Set();
+const POS=(()=>{try{return JSON.parse(localStorage.vpPos||'{}')}catch(_){return{}}})(),players=new Set();window.__vpPauseAll=()=>players.forEach(p=>{try{p.pause()}catch(_){}});
 const fmt=s=>{s=Math.max(0,s|0);return(s/60|0)+':'+String(s%60).padStart(2,'0')};
 let sv=0;const setPos=(k,t)=>{POS[k]=t;if(Date.now()-sv>2500){sv=Date.now();const ks=Object.keys(POS);if(ks.length>300)delete POS[ks[0]];try{localStorage.vpPos=JSON.stringify(POS)}catch(_){}}};
 let ytP;const ytReady=()=>ytP||(ytP=new Promise(r=>{if(window.YT&&YT.Player)return r();const o=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{o&&o();r()};const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}));
@@ -2022,7 +2066,7 @@ function init(el){
   let lt=0,ls=0,tt,lp,held=false;const side=e=>e.clientX-o.getBoundingClientRect().left>o.offsetWidth/2?1:-1;
   o.onpointerdown=e=>{held=false;try{o.setPointerCapture(e.pointerId)}catch(_){}lp=setTimeout(()=>{held=true;A&&A.rate(2);flash('⏩ سرعة 2x',true)},420)};
   const rel=()=>{clearTimeout(lp);if(held){held=false;A&&A.rate(1);fl.classList.remove('on');return true}};
-  o.onpointerup=e=>{if(rel())return;const s=side(e),n=Date.now();if(n-lt<330&&s===ls){clearTimeout(tt);lt=n;skip(s*10)}else{lt=n;ls=s;clearTimeout(tt);tt=setTimeout(()=>{lt=0;toggle()},330)}};
+  o.onpointerup=e=>{if(rel())return;const s=side(e),n=Date.now();if(n-lt<330&&s===ls){clearTimeout(tt);lt=n;skip(s*10)}else{lt=n;ls=s;clearTimeout(tt);tt=setTimeout(()=>{lt=0;if(!(window.__rlFromVp&&window.__rlFromVp(el)))toggle()},330)}};
   o.onpointercancel=rel;o.oncontextmenu=e=>e.preventDefault();
   $('.pp').onclick=toggle;$('.mu').onclick=()=>{gM=!gM;players.forEach(p=>{p.mu&&p.mu()});el._fm=false;};api.mu=()=>{A&&A.mute(gM)};
   $('.fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():(el.requestFullscreen||el.webkitRequestFullscreen).call(el)};
@@ -2051,10 +2095,23 @@ new MutationObserver(ms=>ms.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType!==
 
 <script>
 (function(){
- var SEL='.rlx,.modal-ov,.lvx,.stvx,.gsx';
+ var SEL='.rlx,.modal-ov,.lvx,.stvx,.gsx,.xlv';
  function unlock(){ try{ if(!document.querySelector(SEL) && document.body.style.overflow==='hidden') document.body.style.overflow=''; }catch(e){} }
  setInterval(unlock,700); addEventListener('touchend',function(){setTimeout(unlock,300)},{passive:true});
  document.addEventListener('contextmenu',function(e){ if(e.target.closest&&e.target.closest('.react-wrap,.rl-lk')) e.preventDefault(); });
+})();
+</script>
+
+<script>
+(function(){
+ function stopAll(){ try{ document.querySelectorAll('video,audio').forEach(function(m){ try{m.pause()}catch(e){} }); document.querySelectorAll('iframe[src*="youtube"]').forEach(function(f){ try{ f.contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo',args:''}),'*'); }catch(e){} }); window.__vpPauseAll && window.__vpPauseAll(); }catch(e){} }
+ window.__stopAll = stopAll;
+ document.addEventListener('visibilitychange',function(){ if(document.hidden) stopAll(); });
+ addEventListener('pagehide',stopAll);
+ document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('#bnav button,[data-a="liveOpen"],[data-a="extLive"]'); if(b) stopAll(); },true);
+ document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.picker button'); if(b){ var w=b.closest('.react-wrap'); if(w){ w.classList.remove('pk'); w.classList.add('done'); } } },true);
+ document.addEventListener('mouseout',function(e){ var w=e.target.closest&&e.target.closest('.react-wrap.done'); if(w && !w.contains(e.relatedTarget)) w.classList.remove('done'); });
+ document.addEventListener('pointerdown',function(e){ document.querySelectorAll('.react-wrap.done').forEach(function(w){ if(!w.contains(e.target) || e.target.closest('.act')) w.classList.remove('done'); }); },true);
 })();
 </script>
 </body>
