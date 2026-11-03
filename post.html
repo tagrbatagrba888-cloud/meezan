@@ -514,7 +514,7 @@ function tickAgo(){ document.querySelectorAll('.ago').forEach(e => { const v = a
 setInterval(tickAgo, 30000);
 const fmt = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`).replace(/(^|\s)#([\w\u0600-\u06FF]+)/g, '$1<span class="tag">#$2</span>').replace(/(^|\s)@([\w\u0600-\u06FF.\-]+)/g, (m, p, h) => { const id = window.mnFind && window.mnFind(h); return id ? `${p}<a class="mn" href="${profHref(id)}">@${h}</a>` : m; });
 const ytId = u => { const m = String(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/); return m ? m[1] : ''; };
-const ytFrame = id => `<iframe class="yt" src="https://www.youtube.com/embed/${id}" allowfullscreen loading="lazy"></iframe>`;
+const ytFrame = id => `<div class="vp" data-yt="${id}"></div>`;
 const fk = s => String(s).replace(/[^\w-]/g, '_');
 const postUrl = id => new URL(`${SELF}?id=${encodeURIComponent(id)}`, location.href).href;
 let toastT;
@@ -702,20 +702,21 @@ const seenMap = (() => { try { return JSON.parse(localStorage.getItem('meezan_se
 function markSeen(id){ seenMap[id] = Date.now(); const ks = Object.keys(seenMap); if (ks.length > 600) ks.sort((a,b) => seenMap[a]-seenMap[b]).slice(0, ks.length-500).forEach(k => delete seenMap[k]); try { localStorage.setItem('meezan_seen', JSON.stringify(seenMap)); } catch(e){} }
 
 /* ترتيب الخلاصة (مثل فيسبوك): المتابَعون ← الأكثر مشاهدة/تفاعلاً ← الاهتمامات ← الأحدث، وغير المشاهَد قبل المشاهَد، مع لمسة عشوائية تتغير مع كل تحديث */
-function rankIds(posts){ const u = S.soc[uid]||{}, ints = u.interests||{}, types = u.interestTypes||{}, auth = u.authorInterests||{}, fol = u.following||{};
+const ALGO_DEF = {wAge:40, halfLife:48, wEng:8, wReact:1, wComment:2, wShare:3, wInt:60, wType:18, wMine:12, wPin:15, wGroup:20, wNew:15, newHours:2, repPenalty:25, repHide:5, divMax:2, adEvery:5};
+const algoCfg = () => ({...ALGO_DEF, ...(S.cfg.algo||{})});
+const myGrade = () => me.grade || S.users[uid]?.grade || '';
+function rankIds(posts){ const A = algoCfg(), g = myGrade(), u = S.soc[uid]||{}, ints = u.interests||{}, types = u.interestTypes||{}, auth = u.authorInterests||{}, fol = u.following||{};
   const tot = Object.values(ints).reduce((a,b) => a+b,0)||1, ttot = Object.values(types).reduce((a,b) => a+b,0)||1, amax = Math.max(1, ...Object.values(auth).map(Number)), now = Date.now();
-  const sc = posts.map(p => { const age = (now-(tsd(p.createdAt)?.getTime()||now))/36e5, eng = Object.keys(p.reactions||{}).length + 2*(p.commentsCount||0) + 3*(p.sharesCount||0), a = p.authorId, own = a === uid;
-    let s = 0;
-    if (!isOff(p) && fol[a]) s += 55;                                   // 1) من أتابعهم
-    s += 32 * Math.min(1, (Number(auth[fk(a||'')])||0) / amax);          // 2) من أشاهد وأتفاعل معهم دائماً
-    s += 28 * ((ints[p.category||'general']||0)/tot) + 10 * ((types[mediaType(p)]||0)/ttot); // 3) اهتماماتي
-    s += 44 * Math.exp(-age/24) + 6 * Math.log1p(eng);                   // 4) الأحدث والأكثر تفاعلاً
-    if (!isOff(p)) s += 22 * Math.min(1, Math.log10(1 + followersOf(a)) / 4); // 5) المشاهير (كثيرو المتابعين)
-    if (isOff(p)) s += 10; if (p.pinned) s += 15; if (own && age < 1) s += 20;
+  const sc = posts.map(p => { const age = (now-(tsd(p.createdAt)?.getTime()||now))/36e5, a = p.authorId, eng = A.wReact*Object.keys(p.reactions||{}).length + A.wComment*(p.commentsCount||0) + A.wShare*(p.sharesCount||0);
+    let s = A.wAge*Math.exp(-age/A.halfLife) + A.wEng*Math.log1p(eng) + A.wInt*((ints[p.category||'general']||0)/tot) + A.wType*((types[mediaType(p)]||0)/ttot)   // نفس معادلة الأدمن
+      + (isOff(p)?A.wMine:0) + (p.pinned?A.wPin:0) + ((g && (p.groups||[]).includes(g))?A.wGroup:0) + (age < A.newHours?A.wNew:0);
+    if (!isOff(p) && fol[a]) s += 25; s += 12 * Math.min(1, (Number(auth[fk(a||'')])||0) / amax);   // لمسة شخصية: من أتابعهم ومن أتفاعل معهم
+    if (a === uid && age < 1) s += 20;
     if (seenMap[p.id] && now - seenMap[p.id] < 3*864e5) s -= 45;         // شاهدته من قبل
-    s += Math.random() * 12;                                             // تنويع عند كل تحديث
+    s += Math.random() * 20;                                             // تنويع عند كل تحديث
     return {p, s}; }).sort((x,y) => y.s - x.s).map(x => x.p);
-  const out = []; while (sc.length){ const last = out[out.length-1]?.authorId, i = sc.findIndex(p => p.authorId !== last); out.push(sc.splice(i < 0 ? 0 : i, 1)[0]); } // لا منشورين متتاليين لنفس الشخص
+  const out = []; while (sc.length){ const last = out[out.length-1], run = out.slice(-A.divMax), blk = A.divMax > 0 && run.length === A.divMax && run.every(x => (x.category||'general') === (run[0].category||'general'));
+    const i = sc.findIndex(p => p.authorId !== last?.authorId && (!blk || (p.category||'general') !== (run[0].category||'general'))); out.push(sc.splice(i < 0 ? 0 : i, 1)[0]); }
   return out.map(p => p.id); }
 
 /* ============ 🪟 النوافذ ============ */
@@ -738,8 +739,8 @@ function mediaHtml(p){
   const m = p.media||[], imgs = m.filter(x => x.type==='image'), vids = m.filter(x => x.type==='video'), auds = m.filter(x => x.type==='audio'); let h = '';
   if (imgs.length){ const n = Math.min(imgs.length,5);
     h += `<div class="grid g${n}">${imgs.slice(0,5).map((x,i) => `<div class="gi" data-a="lightbox" data-url="${esc(x.url)}"><img loading="lazy" src="${esc(x.url)}" alt="">${i===4&&imgs.length>5?`<div class="more">+${imgs.length-5}</div>`:''}</div>`).join('')}</div>`; }
-  vids.forEach(v => h += `<video class="vid" data-vk="${esc(v.url)}" controls preload="metadata" playsinline src="${esc(v.url)}"></video>`);
-  m.filter(x => x.type==='link').forEach(l => h += ytId(l.url) ? ytFrame(ytId(l.url)) : `<video class="vid" data-vk="${esc(l.url)}" controls preload="metadata" playsinline src="${esc(l.url)}"></video>`);
+  vids.forEach(v => h += `<div class="vp" data-src="${esc(v.url)}"></div>`);
+  m.filter(x => x.type==='link').forEach(l => h += ytId(l.url) ? ytFrame(ytId(l.url)) : `<div class="vp" data-link="${esc(l.url)}"></div>`);
   auds.forEach(a => h += `<div class="aud"><i class="fas fa-microphone-lines"></i><audio controls preload="none" src="${esc(a.url)}"></audio></div>`);
   return h; }
 function sharedHtml(p){ const s = p.sharedPost; if (!s) return '';
@@ -838,23 +839,26 @@ function feedItems(){
     return [{key:'back',html:`<a class="btn xs" href="${LIST}" style="margin-bottom:12px"><i class="fas fa-arrow-right"></i> كل المنشورات</a>`}, p ? {key:p.id,html:card(p)} : {key:'gone',html:emptyBox('fa-ghost','المنشور غير متاح أو تم حذفه')}]; }
   if (!S.loaded.posts || !S.loaded.soc) { const sk = '<div class="card sk"><div class="h"><div class="c l" style="margin:0"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin:0"></div></div></div><div class="l" style="width:90%"></div><div class="l" style="width:65%"></div><div class="img"></div></div>'; return [{key:'trig',html:trigger()}, ...(S.stories.length ? [{key:'stories',html:storiesBar()}] : []), {key:'sk1',html:sk},{key:'sk2',html:sk}]; }
   if (S.tab==='live') return [...topBar(), ...liveItems()]; if (S.tab==='polls') return [...topBar(), ...pollItems()];
-  const org = S.posts.filter(p => !p.isAd || p.authorId === uid);
+  const org = S.posts.filter(p => (!p.isAd || p.authorId === uid) && (p.authorId === uid || !(p.groups||[]).length || p.groups.includes(myGrade())));
   if (!S.order){ S.order = rankIds(org); S.orderAt = Date.now(); }
   const map = new Map(org.map(p => [p.id,p])), known = new Set(S.order), byDate = (a,b) => (tsd(b.createdAt)||Date.now()) - (tsd(a.createdAt)||Date.now());
   const fresh = org.filter(p => !known.has(p.id)); S.pendingNew = fresh.filter(p => p.authorId !== uid).length;
   let ps = [...fresh.filter(p => p.authorId === uid).sort(byDate), ...S.order.map(i => map.get(i)).filter(Boolean)];
-  ps.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0)); if (S.q.trim()) ps = ps.filter(searchOk);
-  // الأولوية: 1) منشورات المنصة الرسمية  2) الإعلانات الممولة  3) الأحدث + من أتابعهم + المشاهير
-  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [{key:'trig',html:trigger()}, ...(S.q.trim()?[]:[{key:'stories',html:storiesBar()}]), ...topBar(), ...(S.q.trim()?[]:feedExtras())];
-  const WEEK = 7*864e5, isTop = p => isOff(p) && (p.pinned || Date.now() - (tsd(p.createdAt)?.getTime()||Date.now()) < WEEK);
-  const offTop = ps.filter(isTop).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || byDate(a,b)), rest = ps.filter(p => !isTop(p));
+  if (S.q.trim()) ps = ps.filter(searchOk);
+  const A = algoCfg(), searching = !!S.q.trim();
+  const ads = S.posts.filter(p => p.isAd && p.authorId !== uid && (p.status||'published')==='published' && adOn(p)), items = [{key:'trig',html:trigger()}, ...(searching?[]:[{key:'stories',html:storiesBar()}]), ...topBar(), ...(searching?[]:feedExtras())];
+  const offs = searching ? [] : ps.filter(isOff), rest = searching ? ps : ps.filter(p => !isOff(p));   // منشورات الأدمن غير مثبّتة: تظهر بأولوية وتتكرر بين المنشورات
   const rot = ads.length ? Math.floor(S.orderAt/60000) % ads.length : 0, ordAds = ads.slice(rot).concat(ads.slice(0,rot)), topAds = ordAds.slice(0,2), restAds = ordAds.slice(2);
-  const show = [...offTop, ...rest].slice(0, S.limit), nOff = Math.min(offTop.length, show.length); let k = 0;
-  show.slice(0,nOff).forEach(p => items.push({key:p.id,html:card(p)}));
+  const rnd = (() => { let t = (S.orderAt||1) >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ t>>>15, 1|t); r ^= r + Math.imul(r ^ r>>>7, 61|r); return ((r ^ r>>>14)>>>0)/4294967296; }; })();
+  const GAPS = [3,5,4,8,5,10,6,12,20,7,4,9], gap = () => rnd() < .12 ? 25 + Math.floor(rnd()*35) : GAPS[Math.floor(rnd()*GAPS.length)];   // كل كم منشور يظهر منشور الأدمن (5/10/20 وأحياناً 50-60)
+  const show = rest.slice(0, S.limit); let k = 0, oi = 0, cnt = 0, nextOff = 2 + Math.floor(rnd()*2);
   topAds.forEach(ad => items.push({key:ad.id+':top',html:card(ad)}));
-  show.slice(nOff).forEach((p,i) => { items.push({key:p.id,html:card(p)}); if (restAds.length && (i+1)%5===0){ const ad = restAds[k++ % restAds.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
+  if (offs.length && !show.length) offs.slice(0, S.limit).forEach(p => items.push({key:p.id,html:card(p)}));
+  show.forEach((p,i) => { items.push({key:p.id,html:card(p)}); cnt++;
+    if (offs.length && cnt >= nextOff){ const o = offs[oi % offs.length]; items.push({key:o.id+':o'+oi,html:card(o)}); oi++; cnt = 0; nextOff = gap(); }
+    if (restAds.length && A.adEvery > 0 && (i+1)%A.adEvery===0){ const ad = restAds[k++ % restAds.length]; items.push({key:ad.id+':'+i,html:card(ad)}); } });
   if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
-  if (ps.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(ps.length-show.length)})</button>`});
+  if (rest.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(rest.length-show.length)})</button>`});
   return items; }
 function morphBar(wrap, html){
   const t = document.createElement('div'); t.innerHTML = html.trim(); const nb = t.firstElementChild, ob = wrap.firstElementChild;
@@ -1160,7 +1164,7 @@ const mapDocs = s => s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'est
 onSnapshot(doc(db,'users','all'), s => { S.live.users = true; const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); saveCache(); });
 onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : []).forEach(u => S.users[u.id] = u); draw(); });
 onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
-onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; draw(); });
+onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; const na = JSON.stringify(S.cfg.algo||{}); if (S._na !== undefined && S._na !== na) S.order = null; S._na = na; draw(); });
 if (uid){
   onSnapshot(doc(db,'wallets',uid), s => { S.wal = s.exists() ? Number(s.data().balance||0) : 0; $('bal').textContent = ar(S.wal); walCb && walCb(); });
   onSnapshot(query(collection(db,'verifyRequests'), where('uid','==',uid)), s => { S.reqs = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); }, () => {});
@@ -1770,7 +1774,7 @@ function observeVids(){ try { document.querySelectorAll('#root video.vid:not([da
     v.addEventListener('pause', () => { if (!v._byUs && v._act && !v.ended) vUser.add(k); });
     v.addEventListener('volumechange', () => { if (v._prog === v.muted){ v._prog = undefined; return; } S.feedMuted = v.muted; });
     vio.observe(v); }); } catch(_){} }
-document.addEventListener('visibilitychange', () => { if (document.hidden){ document.querySelectorAll('#root video.vid').forEach(vStop); rlPauseAll(); } else rlResume(); });
+let hidAt = 0; document.addEventListener('visibilitychange', () => { if (document.hidden){ hidAt = Date.now(); document.querySelectorAll('#root video.vid').forEach(vStop); rlPauseAll(); } else { rlResume(); if (hidAt && Date.now()-hidAt > 60000 && !S.one && !document.querySelector('.rlx')){ S.order = null; draw(); } } });
 
 /* ============ 🎞️ الريلز ============ */
 S.rlMuted = false;
@@ -1866,5 +1870,70 @@ Object.assign(H, {reels:() => openReels()});
 
 paint();
 </script>
+<style>
+.vp{position:relative;width:100%;aspect-ratio:16/9;max-height:560px;background:#000;margin-top:4px;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;direction:ltr}
+.vp .vpm{position:absolute;inset:0;overflow:hidden}.vp .vpm video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.vp .vpm iframe{position:absolute;left:0;width:100%;top:-60px;height:calc(100% + 120px);border:0}.vp.emb .vpm iframe{top:0;height:100%}
+.vp .vpo{position:absolute;inset:0 0 44px 0;z-index:2;-webkit-tap-highlight-color:transparent}.vp.emb .vpo,.vp.emb .vpb,.vp.bad .vpo,.vp.bad .vpb{display:none}
+.vp .vpt{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:3;background:rgba(0,0,0,.65);color:#fff;padding:6px 14px;border-radius:20px;font:700 14px system-ui;opacity:0;transition:.2s;pointer-events:none}.vp .vpt.on{opacity:1}
+.vp .vpb{position:absolute;left:0;right:0;bottom:0;height:44px;z-index:4;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff;font:12px system-ui}
+.vp .vpb button{background:none;border:0;color:#fff;font-size:16px;width:30px;height:30px;cursor:pointer}.vp .sk{flex:1;accent-color:#C9A961;height:4px;cursor:pointer}
+.vp .vpc{position:absolute;inset:0 0 44px;z-index:1;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:46px;text-shadow:0 2px 10px #000;opacity:.9}.vp.pl .vpc{display:none}
+.vp .vpx{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:#ddd;font:14px system-ui;text-align:center;padding:14px}.vp .vpx a{color:#C9A961}
+</style>
+<script>
+(()=>{
+/* ===== إعداد اختياري: خادم لتحويل روابط فيسبوك/تيك توك لفيديو مباشر (يرجع JSON فيه {url}) ===== */
+const RESOLVER='';
+const POS=(()=>{try{return JSON.parse(localStorage.vpPos||'{}')}catch(_){return{}}})(),players=new Set();
+const fmt=s=>{s=Math.max(0,s|0);return(s/60|0)+':'+String(s%60).padStart(2,'0')};
+let sv=0;const setPos=(k,t)=>{POS[k]=t;if(Date.now()-sv>2500){sv=Date.now();const ks=Object.keys(POS);if(ks.length>300)delete POS[ks[0]];try{localStorage.vpPos=JSON.stringify(POS)}catch(_){}}};
+let ytP;const ytReady=()=>ytP||(ytP=new Promise(r=>{if(window.YT&&YT.Player)return r();const o=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{o&&o();r()};const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}));
+let gM=true;const io=new IntersectionObserver(es=>es.forEach(e=>{const el=e.target,p=el._p;if(!p)return;if(e.intersectionRatio<.25){el._want=false;el._try=false;p.pause()}else if(e.intersectionRatio>=.6)el._want=!!el._auto}),{threshold:[0,.25,.6,.9]});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)players.forEach(p=>p.pause())});
+function init(el){
+  if(el.dataset.i)return;el.dataset.i=1;
+  const yt=el.dataset.yt,link=el.dataset.link,src=el.dataset.src,key=yt?'yt:'+yt:(link||src);let A=null,tried=0;
+  el.innerHTML='<div class="vpm"></div><div class="vpc"><i class="fas fa-play"></i></div><div class="vpo"></div><div class="vpt"></div><div class="vpb"><button class="pp"><i class="fas fa-play"></i></button><span class="tm">0:00</span><input type="range" min="0" max="1000" value="0" class="sk"><span class="du">0:00</span><button class="mu"><i class="fas fa-volume-high"></i></button><button class="fs"><i class="fas fa-expand"></i></button></div>';
+  const $=s=>el.querySelector(s),m=$('.vpm'),o=$('.vpo'),fl=$('.vpt'),sk=$('.sk');let ft,drag=false;
+  const flash=(t,keep)=>{fl.textContent=t;fl.classList.add('on');clearTimeout(ft);if(!keep)ft=setTimeout(()=>fl.classList.remove('on'),700)};
+  const playing=()=>A&&!A.paused();
+  const api={mu:null,pause(){if(A&&playing()){A.pause();setPos(key,A.t())}}};el._p=api;players.add(api);
+  el._auto=!el.closest('.cm-list,.modal');const toggle=()=>{if(!A)return;if(playing()){el._u=true;A.pause()}else{el._u=false;players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}};
+  const skip=d=>{if(!A)return;const t=Math.max(0,Math.min(A.t()+d,(A.d()||1e9)-.2));A.seek(t);flash((d>0?'⏩ +':'⏪ −')+Math.abs(d)+' ث')};
+  const tick=setInterval(()=>{if(!el.isConnected){clearInterval(tick);players.delete(api);if(A&&A.t())setPos(key,A.t());return}
+    if(!A)return;if(el._want&&!el._try&&!el._u&&!playing()&&!document.querySelector('.rlx')){el._try=true;players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}$('.mu').innerHTML='<i class="fas fa-volume-'+(gM?'xmark':'high')+'"></i>';const pl=playing(),d=A.d(),t=A.t();el.classList.toggle('pl',pl);$('.pp').innerHTML='<i class="fas fa-'+(pl?'pause':'play')+'"></i>';
+    if(!drag){sk.value=d?t/d*1000:0}$('.tm').textContent=fmt(t);$('.du').textContent=fmt(d);if(pl&&t>1)setPos(key,t)},300);
+  /* لمس: ضغطتين يمين/يسار = تقديم/تأخير 10 ث — ضغط مطوّل = سرعة 2x */
+  let lt=0,ls=0,tt,lp,held=false;const side=e=>e.clientX-o.getBoundingClientRect().left>o.offsetWidth/2?1:-1;
+  o.onpointerdown=e=>{held=false;try{o.setPointerCapture(e.pointerId)}catch(_){}lp=setTimeout(()=>{held=true;A&&A.rate(2);flash('⏩ سرعة 2x',true)},420)};
+  const rel=()=>{clearTimeout(lp);if(held){held=false;A&&A.rate(1);fl.classList.remove('on');return true}};
+  o.onpointerup=e=>{if(rel())return;const s=side(e),n=Date.now();if(n-lt<330&&s===ls){clearTimeout(tt);lt=n;skip(s*10)}else{lt=n;ls=s;clearTimeout(tt);tt=setTimeout(()=>{lt=0;toggle()},330)}};
+  o.onpointercancel=rel;o.oncontextmenu=e=>e.preventDefault();
+  $('.pp').onclick=toggle;$('.mu').onclick=()=>{gM=!gM;players.forEach(p=>p.mu&&p.mu());};api.mu=()=>{A&&A.mute(gM)};
+  $('.fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():(el.requestFullscreen||el.webkitRequestFullscreen).call(el)};
+  sk.oninput=()=>{drag=true;if(A)$('.tm').textContent=fmt(sk.value/1000*A.d())};sk.onchange=()=>{if(A)A.seek(sk.value/1000*A.d());drag=false};
+  function native(u){const v=document.createElement('video');v.setAttribute('playsinline','');v.preload='metadata';v.setAttribute('src',u);m.appendChild(v);
+    v.onloadedmetadata=()=>{const p=POS[key];if(p>1&&p<v.duration-2)v.currentTime=p};
+    v.onerror=()=>{if(link&&u===link&&!tried){tried=1;m.innerHTML='';fallback(true)}};
+    A={play:()=>v.play().catch(()=>{}),pause:()=>v.pause(),t:()=>v.currentTime||0,d:()=>isFinite(v.duration)?v.duration:0,seek:s=>{v.currentTime=s},rate:r=>{v.playbackRate=r},mute:b=>{v.muted=b},paused:()=>v.paused};}
+  async function fallback(){const u=link;
+    if(RESOLVER){try{const j=await(await fetch(RESOLVER+encodeURIComponent(u))).json();if(j&&j.url)return native(j.url)}catch(_){}}
+    let e='';if(/facebook\.com|fb\.watch/.test(u))e='https://www.facebook.com/plugins/video.php?show_text=false&href='+encodeURIComponent(u);else{const t=u.match(/tiktok\.com\/.*?video\/(\d+)/);if(t)e='https://www.tiktok.com/embed/v2/'+t[1]}
+    if(e){el.classList.add('emb');m.innerHTML='<iframe src="'+e+'" allowfullscreen allow="autoplay;fullscreen;encrypted-media"></iframe>'}
+    else{el.classList.add('bad');m.innerHTML='<div class="vpx"><i class="fas fa-link-slash" style="font-size:30px"></i><div>تعذّر تشغيل هذا الرابط كفيديو مباشر</div><a target="_blank" rel="noopener noreferrer" href="'+u.replace(/"/g,'')+'">فتح الرابط</a></div>'}}
+  io.observe(el);
+  if(yt)ytReady().then(()=>{const h=document.createElement('div');m.appendChild(h);const st=Math.floor(POS[key]||0);
+    const p=new YT.Player(h,{videoId:yt,playerVars:{controls:0,disablekb:1,fs:0,modestbranding:1,rel:0,iv_load_policy:3,playsinline:1,cc_load_policy:0,start:st>1?st:0,origin:location.origin}});
+    A={play:()=>p.playVideo(),pause:()=>p.pauseVideo(),t:()=>p.getCurrentTime?p.getCurrentTime():0,d:()=>p.getDuration?p.getDuration():0,seek:s=>p.seekTo(s,true),rate:r=>p.setPlaybackRate(r),mute:b=>b?p.mute():p.unMute(),paused:()=>{const s=p.getPlayerState?p.getPlayerState():-1;return s!==1&&s!==3}}});
+  else if(link&&/facebook\.com|fb\.watch|fb\.com|tiktok\.com|instagram\.com/.test(link))fallback();
+  else native(link||src);
+}
+const scan=r=>(r.querySelectorAll?r.querySelectorAll('.vp:not([data-i])'):[]).forEach(init);
+new MutationObserver(ms=>ms.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType!==1)return;n.classList&&n.classList.contains('vp')?init(n):scan(n)})) ).observe(document.documentElement,{childList:true,subtree:true});
+
+})();
+</script>
+
 </body>
 </html>
