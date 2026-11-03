@@ -446,6 +446,26 @@ if(S.getItem('meezan_logged_in')==='true'){var o={};KS.forEach(function(k){var v
 else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in==='true'&&r.meezan_user_id){KS.forEach(function(k){if(r[k]!=null)S.setItem(k,r[k]);});}}}catch(e){}})();
 </script>
 <link rel="preconnect" href="https://www.youtube.com"><link rel="preconnect" href="https://i.ytimg.com"><link rel="preconnect" href="https://s.ytimg.com">
+<style>
+body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))!important;overscroll-behavior-y:contain}
+#bnav{position:fixed;left:0;right:0;bottom:0;z-index:850;height:calc(58px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;display:flex;max-width:740px;width:100%;margin:auto;background:color-mix(in srgb,var(--bg-card) 92%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--border);box-shadow:0 -8px 24px -12px var(--shadow);border-radius:18px 18px 0 0}
+#bnav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-sub);font-weight:800;font-size:11px;position:relative;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#bnav button i{font-size:20px;transition:transform .2s var(--ease)}
+#bnav button.on{color:var(--primary)}#bnav button.on i{transform:translateY(-2px) scale(1.14)}
+#bnav button.on::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--gold),var(--primary-lighter))}
+#bnav .dot{position:absolute;top:7px;left:calc(50% + 9px);width:9px;height:9px;border-radius:50%;background:#e11d48;animation:pls 1.2s infinite}#bnav .dot[hidden]{display:none}
+.rlx{bottom:calc(58px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important}#jobs{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+.ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:120;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;opacity:var(--o,0);transform:translate(-50%,calc(var(--y,0px) - 80px));transition:transform .28s var(--ease),opacity .2s}
+.ptr.rl{z-index:960;top:calc(env(safe-area-inset-top,0px) + 64px)}.ptr.drag{transition:none}
+.ptr .rg{width:54px;height:54px;border-radius:50%;padding:4px;box-sizing:border-box;background:conic-gradient(var(--gold) calc(var(--p,0)*1turn),var(--border) 0);box-shadow:0 10px 28px var(--shadow),0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent);display:flex}
+.ptr.rl .rg{background:conic-gradient(var(--gold) calc(var(--p,0)*1turn),rgba(255,255,255,.25) 0)}
+.ptr .rg img{width:100%;height:100%;border-radius:50%;background:var(--bg-card);object-fit:contain;padding:6px;box-sizing:border-box;transform:rotate(calc(var(--p,0)*300deg))}
+.ptr.go .rg{background:conic-gradient(from 0turn,transparent 0,var(--gold) 100%);animation:ptrs .85s linear infinite}.ptr.go .rg img{transform:none;animation:ptrs .85s linear infinite reverse}
+.ptr.ok .rg{background:var(--success);animation:none}.ptr.ok .rg img{animation:none;transform:none}
+.ptr small{font-weight:800;font-size:12px;color:var(--text-main);background:var(--bg-card);padding:3px 12px;border-radius:20px;box-shadow:0 4px 14px var(--shadow);border:1px solid var(--border)}.ptr.rl small{background:rgba(0,0,0,.65);color:#fff;border-color:transparent}
+@keyframes ptrs{to{transform:rotate(1turn)}}
+</style>
 </head>
 <body>
 
@@ -469,6 +489,7 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 
 <div class="col" id="root"></div>
 <button id="newPill" class="newpill" data-a="refreshFeed" hidden></button>
+<nav id="bnav" aria-label="التنقل"><button data-a="bnav" data-t="posts"><i class="fas fa-newspaper"></i><span>المنشورات</span></button><button data-a="bnav" data-t="reels"><i class="fas fa-clapperboard"></i><span>الريلز</span></button><button data-a="bnav" data-t="live"><i class="fas fa-tower-broadcast"></i><b class="dot" hidden></b><span>البث</span></button><button data-a="bnav" data-t="polls"><i class="fas fa-square-poll-vertical"></i><span>الاستطلاعات</span></button></nav>
 <div id="jobs" aria-live="polite"></div>
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIc"></i><span id="toastTx"></span></div>
 <input type="file" id="cmFile" accept="image/*" hidden>
@@ -878,7 +899,7 @@ function patch(R, items){
     const want = prev ? prev.nextElementSibling : R.firstElementChild; if (want !== el) R.insertBefore(el, want); prev = el; });
   ex.forEach(e => e.remove()); }
 let rt;
-const draw = () => { clearTimeout(rt); rt = setTimeout(paint, 50); };
+const draw = () => { clearTimeout(rt); rt = setTimeout(() => { paint(); navPaint(); }, 50); };
 function paint(){
   if (document.querySelector('.lvx')) return;
   if (document.querySelector('.rlx')){ rlSync(); return; }
@@ -1365,7 +1386,7 @@ const searchOk = p => { const q = norm(S.q).replace(/@/g,'').trim(); if (!q) ret
   return q.split(/\s+/).every(w => hay.includes(w)) || flat.includes(q.replace(/\s+/g,'')); };
 const liveNow = () => S.lives.filter(liveOn);
 const topBar = () => { const ln = liveNow().length, T = (k,ic,t) => `<button class="${S.tab===k?'on':''}" data-a="tab" data-t="${k}"><i class="fas ${ic}"></i>${t}${k==='live'&&ln?'<span class="dot"></span>':''}</button>`;
-  const items = [{key:'tabs', html:`<div class="tabs">${T('posts','fa-newspaper','المنشورات')}<button data-a="reels"><i class="fas fa-clapperboard"></i>الريلز</button>${T('live','fa-tower-broadcast','البث')}${T('polls','fa-square-poll-vertical','الاستطلاعات')}</div>`}];
+  const items = [];
   if (S.tab === 'posts') items.push({key:'srch', html:`<div class="card srch"><i class="fas fa-magnifying-glass"></i><input id="sq" type="search" placeholder="ابحث عن منشور (نص، اسم، تصنيف)…" autocomplete="off" enterkeyhint="search"><button id="sqx" data-a="sqClear" hidden aria-label="مسح"><i class="fas fa-xmark"></i></button></div>`});
   return items; };
 const feedExtras = () => { const out = [];
@@ -1817,9 +1838,9 @@ function rlSetActive(it){ if (!it || S.rlCur === it) return; const old = S.rlCur
   document.querySelectorAll('.rlx .rl-it').forEach(x => { if (x === it) return; if (x === prev || x === next || x === next2) rlPause(x); else rlStop(x); });
   rlPlay(it); rlLoad(next); rlLoad(prev); rlLoad(next2); const p = rlFind(it.dataset.pid);
   clearTimeout(S.rlVt); S.rlVt = setTimeout(() => { if (S.rlCur === it && p){ markSeen(p.id); track(p, 'view'); } }, 1500); }
-async function rlLike(it, ev){ const p = rlFind(it.dataset.pid); if (!p) return; const r = it.getBoundingClientRect(), b = document.createElement('div'); b.className = 'rl-burst'; b.textContent = '👍';
+async function rlLike(it, ev){ const p = rlFind(it.dataset.pid); if (!p) return; const r = it.getBoundingClientRect(), b = document.createElement('div'); b.className = 'rl-burst'; b.textContent = '❤️';
   b.style.left = ((ev?.clientX ?? (r.left + r.width/2)) - r.left) + 'px'; b.style.top = ((ev?.clientY ?? (r.top + r.height/2)) - r.top) + 'px'; it.appendChild(b); setTimeout(() => b.remove(), 900);
-  if (p.reactions?.[uid]) return; try { await setReaction(p, 'like'); snd('like'); track(p, 'react'); notify(p.authorId, 'تفاعل جديد', `${uName(uid)} أعجبه الفيديو في منشورك`, {postId:p.id}); } catch(_){ toast('تعذر تسجيل الإعجاب','error'); } }
+  if (p.reactions?.[uid]) return; try { await setReaction(p, 'love'); snd('like'); track(p, 'react'); notify(p.authorId, 'تفاعل جديد', `${uName(uid)} أعجبه الفيديو في منشورك`, {postId:p.id}); } catch(_){ toast('تعذر تسجيل الإعجاب','error'); } }
 function rlSync(){ const ov = document.querySelector('.rlx'); if (!ov) return;
   ov.querySelectorAll('.rl-it').forEach(it => { const p = rlFind(it.dataset.pid); if (!p){ if (!it.dataset.gone){ it.dataset.gone = '1'; rlStop(it); it.innerHTML = '<div class="rl-em"><i class="fas fa-ghost"></i>هذا الفيديو لم يعد متاحاً</div>'; } return; }
     const rs = rsum(p), lk = it.querySelector('.rl-lk'); if (lk){ const h = rs.mine ? (RMAP[rs.mine]?.emoji||'👍') : '<i class="far fa-thumbs-up"></i>'; if (lk.innerHTML !== h) lk.innerHTML = h; lk.classList.toggle('on', !!rs.mine); }
@@ -1832,28 +1853,29 @@ function rlSheetPaint(){ const sh = document.querySelector('.rlx .rlsh'); if (!s
   if (l1){ if (st && st.pid === p.id && Number(l1.dataset.n) > st.n){ l1.scrollTop = l1.scrollHeight; S.cmStick = null; } else l1.scrollTop = t0; }
   if (aid){ const ni = document.getElementById(aid); if (ni){ ni.focus(); try { ni.setSelectionRange(pos, pos); } catch(_){} } } }
 function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; if (!sh._was) S.open.delete(sh.dataset.pid); sh.remove(); }
-function openReels(){
+function openReels(keep){
   if (document.querySelector('.rlx')) return; document.querySelectorAll('#root video.vid').forEach(vStop);
   const ps = reelsPosts(), ord = rankIds(ps), map = new Map(ps.map(p => [p.id, p])), items = []; ord.forEach(id => { const p = map.get(id); vidsOf(p).forEach((m, i) => items.push(rlIt(p, m, i))); });
   const ov = document.createElement('div'); ov.className = 'rlx';
   ov.innerHTML = `<div class="rl-top"><button class="rl-btn" data-rl="close" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button><b><i class="fas fa-clapperboard" style="color:var(--accent,#C9A961);margin-left:8px"></i>الريلز</b><button class="rl-btn" data-rl="mute" aria-label="الصوت"><i class="fas ${S.rlMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i></button></div>
     <div class="rl-sc">${items.join('') || '<div class="rl-em"><i class="fas fa-film"></i>لا توجد فيديوهات منشورة بعد</div>'}</div>`;
-  document.body.appendChild(ov); document.body.style.overflow = 'hidden'; S.rlCur = null;
-  const sc = ov.querySelector('.rl-sc');
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden'; S.rlCur = null; navPaint();
+  const sc = ov.querySelector('.rl-sc'); PR.attach(sc, () => sc.scrollTop <= 1 && !ov.querySelector('.rlsh'), rlRefresh);
   const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && e.intersectionRatio >= .6) rlSetActive(e.target); }), {root:sc, threshold:[.6]});
   ov.querySelectorAll('.rl-it').forEach(it => {
     io2.observe(it); const v = it.querySelector('video');
     if (v){ const pb = it.querySelector('.rl-pb i'); v.addEventListener('loadeddata', () => { it.querySelector('.rl-ld')?.remove(); v.classList.toggle('cv', v.videoHeight > v.videoWidth*1.15); if (it._want && !it._paused) rlPlay(it); });
       v.addEventListener('waiting', () => { if (!it.querySelector('.rl-ld') && it === S.rlCur){ const d = document.createElement('div'); d.className = 'rl-ld'; it.insertBefore(d, it.querySelector('.rl-tap')); } }); v.addEventListener('playing', () => it.querySelector('.rl-ld')?.remove());
       v.addEventListener('timeupdate', () => { if (v.duration) pb.style.width = (v.currentTime/v.duration*100) + '%'; }); }
-    const tap = it.querySelector('.rl-tap'); let lp = 0, held = false, lt = 0, ls = 0, tt = 0, hb = null;
-    const vf = () => [it.querySelector('video'), it.querySelector('iframe')], sideOf = e => e.clientX - tap.getBoundingClientRect().left > tap.offsetWidth/2 ? 1 : -1;
+    const tap = it.querySelector('.rl-tap'); let lp = 0, held = false, lt = 0, ls = 0, tt = 0, hb = null, moved = false, px = 0, py = 0;
+    const vf = () => [it.querySelector('video'), it.querySelector('iframe')], sideOf = e => { const r = (e.clientX - tap.getBoundingClientRect().left) / tap.offsetWidth; return r > .67 ? 1 : r < .33 ? -1 : 0; };
     const rate = r => { const [v, f] = vf(); if (v) v.playbackRate = r; else if (f) rlCmd(f, 'setPlaybackRate', [r]); };
     const badge = (t, keep) => { const e = document.createElement('div'); e.className = 'rl-pp'; e.textContent = t; e.style.cssText = 'font-size:24px;font-weight:900;' + (keep ? 'animation:none' : ''); it.appendChild(e); if (!keep) setTimeout(() => e.remove(), 650); return e; };
     const skip = d => { const [v, f] = vf(); if (v && v.duration) v.currentTime = Math.max(0, Math.min(v.duration - .2, v.currentTime + d)); else if (f && f._t != null) rlCmd(f, 'seekTo', [Math.max(0, f._t + d), true]); else return; badge((d > 0 ? '+' : '−') + '10'); };
     const endHold = () => { clearTimeout(lp); if (!held) return false; held = false; rate(1); hb?.remove(); hb = null; return true; };
-    tap.addEventListener('pointerdown', e => { held = false; try { tap.setPointerCapture(e.pointerId); } catch(_){} lp = setTimeout(() => { held = true; rate(2); hb = badge('2x', true); }, 420); });
-    tap.addEventListener('pointerup', e => { if (endHold()) return; const sd = sideOf(e), n = Date.now(); if (n - lt < 330 && sd === ls){ clearTimeout(tt); lt = n; skip(sd*10); } else { lt = n; ls = sd; clearTimeout(tt); tt = setTimeout(() => { lt = 0; rlToggle(it); }, 330); } });
+    tap.addEventListener('pointerdown', e => { held = false; moved = false; px = e.clientX; py = e.clientY; try { tap.setPointerCapture(e.pointerId); } catch(_){} lp = setTimeout(() => { held = true; rate(2); hb = badge('2x', true); }, 420); });
+    tap.addEventListener('pointermove', e => { if (!held && Math.hypot(e.clientX - px, e.clientY - py) > 12){ moved = true; clearTimeout(lp); } });
+    tap.addEventListener('pointerup', e => { if (endHold()) return; if (moved){ moved = false; return; } const sd = sideOf(e), n = Date.now(); if (n - lt < 330 && sd === ls){ clearTimeout(tt); lt = n; if (sd === 0) rlLike(it, e); else skip(sd*10); } else { lt = n; ls = sd; clearTimeout(tt); tt = setTimeout(() => { lt = 0; rlToggle(it); }, 330); } });
     tap.addEventListener('pointercancel', endHold); tap.addEventListener('contextmenu', e => e.preventDefault());
     const lk = it.querySelector('.rl-lk'), pk = it.querySelector('.rl-pk'); let lpT = 0, lpD = false;
     pk.innerHTML = REACTIONS.map(r => `<button data-rl="react" data-id="${it.dataset.pid}" data-t="${r.id}" title="${r.label}">${r.emoji}</button>`).join('');
@@ -1861,7 +1883,7 @@ function openReels(){
     ['pointerup','pointerleave','pointercancel'].forEach(ev => lk.addEventListener(ev, () => clearTimeout(lpT)));
     lk.addEventListener('click', e => { if (lpD){ e.stopPropagation(); e.preventDefault(); lpD = false; } }, true); });
   const first = ov.querySelector('.rl-it'); if (first){ rlLoad(first); requestAnimationFrame(() => rlSetActive(first)); }
-  history.pushState({rl:1}, ''); ov._hist = true;
+  if (!keep) history.pushState({rl:1}, ''); ov._hist = true;
   ov.addEventListener('click', async e => { const b = e.target.closest('[data-rl]'); if (!b){ ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show')); return; } const k = b.dataset.rl, pid = b.dataset.id, p = pid && rlFind(pid), it = b.closest('.rl-it');
     if (!['react','like'].includes(k)) ov.querySelectorAll('.rl-pk.show').forEach(x => x.classList.remove('show'));
     if (k === 'close') closeReels(); else if (k === 'mute'){ S.rlMuted = !S.rlMuted; rlMuteIc(); const c = S.rlCur; if (c){ const v = c.querySelector('video'), f = c.querySelector('iframe'); if (v) v.muted = S.rlMuted; if (f && f.getAttribute('src')) rlCmd(f, S.rlMuted ? 'mute' : 'unMute'); } }
@@ -1883,6 +1905,35 @@ addEventListener('popstate', () => { if (document.querySelector('.rlx')) closeRe
 document.addEventListener('keydown', e => { const ov = document.querySelector('.rlx'); if (!ov || modals.length) return; if (e.key === 'Escape') closeReels(); else if (e.key === ' ' && !/INPUT|TEXTAREA/.test(e.target.tagName)){ e.preventDefault(); rlToggle(S.rlCur); }
   else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !/INPUT|TEXTAREA/.test(e.target.tagName)){ e.preventDefault(); const c = S.rlCur, n = c && (e.key === 'ArrowDown' ? c.nextElementSibling : c.previousElementSibling); if (n && n.classList.contains('rl-it')) n.scrollIntoView({behavior:'smooth'}); } });
 Object.assign(H, {reels:() => openReels()});
+
+/* ============ ⬇️ سحب للتحديث + شريط التنقل السفلي ============ */
+function makePtr(cls){ const el = document.createElement('div'); el.className = 'ptr ' + cls; el.innerHTML = `<div class="rg"><img src="${LOGO}" alt=""></div><small>اسحب للتحديث</small>`; document.body.appendChild(el);
+  const tx = el.querySelector('small'); let busy = false, tmr = 0; const TH = 78, MAX = 128;
+  const put = (y, p, t) => { el.style.setProperty('--y', y + 'px'); el.style.setProperty('--o', Math.min(1, y/36)); el.style.setProperty('--p', Math.min(1, p)); if (t) tx.textContent = t; };
+  const hide = () => { el.classList.remove('drag','go'); put(0, 0); };
+  const run = fn => { if (busy) return; busy = true; clearTimeout(tmr); el.classList.remove('drag'); el.classList.add('go'); put(72, 1, 'جارٍ التحديث…'); try { fn && fn(); } catch(_){}
+    tmr = setTimeout(() => { el.classList.remove('go'); tx.textContent = 'تم التحديث ✓'; el.classList.add('ok'); setTimeout(() => { el.classList.remove('ok'); hide(); busy = false; }, 550); }, 1000); };
+  const attach = (host, can, fn) => { let y0 = 0, pull = false, dy = 0;
+    host.addEventListener('touchstart', e => { y0 = 0; pull = false; if (busy || e.touches.length !== 1 || !can()) return; y0 = e.touches[0].clientY; }, {passive:true});
+    host.addEventListener('touchmove', e => { if (!y0 || busy) return; const d = e.touches[0].clientY - y0; if (d <= 0){ if (pull){ pull = false; hide(); } return; }
+      if (!pull){ if (!can()){ y0 = 0; return; } if (d < 8) return; pull = true; el.classList.add('drag'); }
+      dy = Math.min(MAX, d*.5); put(dy, dy/TH, dy >= TH ? 'اترك للتحديث' : 'اسحب للتحديث'); if (e.cancelable) e.preventDefault(); }, {passive:false});
+    const end = () => { if (!pull){ y0 = 0; return; } pull = false; y0 = 0; if (dy >= TH) run(fn); else hide(); };
+    host.addEventListener('touchend', end); host.addEventListener('touchcancel', end); };
+  return {attach, run}; }
+const PF = makePtr(''), PR = makePtr('rl');
+function refreshCur(){ if (!S.tab || S.tab === 'posts') S.order = null; draw(); scrollTo({top:0, behavior:'smooth'}); }
+function rlRefresh(){ if (!document.querySelector('.rlx')) return; closeReels(true); openReels(true); }
+PF.attach(document, () => window.scrollY <= 0 && !document.querySelector('.rlx,.modal-ov,.lvx,.stvx,.gsx'), refreshCur);
+function navPaint(){ try { const nb = document.getElementById('bnav'); if (!nb) return; const r = !!document.querySelector('.rlx');
+  nb.querySelectorAll('button').forEach(b => b.classList.toggle('on', r ? b.dataset.t === 'reels' : b.dataset.t === (S.tab || 'posts')));
+  const d = nb.querySelector('.dot'); if (d) d.hidden = !liveNow().length; } catch(_){} }
+Object.assign(H, {bnav:t => { const k = t.dataset.t, r = !!document.querySelector('.rlx');
+  if (k === 'reels'){ if (r) PR.run(rlRefresh); else { openReels(); } navPaint(); return; }
+  if (r) closeReels();
+  if (S.tab === k || (!S.tab && k === 'posts')) PF.run(refreshCur); else { S.tab = k; S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); }
+  navPaint(); }});
+navPaint();
 
 paint();
 </script>
