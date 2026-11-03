@@ -521,6 +521,9 @@ body:has(.rlx) #bnav{max-width:none;background:var(--bg-card)}
 .xlwm.w1{left:10px;bottom:12px;font-size:13px}.xlwm.w2{font-size:12px;white-space:nowrap;animation:xlmv 24s linear infinite}
 @keyframes xlmv{0%{top:18%;right:-40%}25%{top:62%;right:30%}50%{top:30%;right:70%}75%{top:70%;right:10%}100%{top:18%;right:-40%}}
 .lvx .xlbrand{position:absolute;z-index:4;left:12px;top:calc(env(safe-area-inset-top,0px) + 70px);display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border-radius:20px;background:rgba(0,0,0,.45);font-size:12.5px;font-weight:900;color:#E0C888;pointer-events:none}.xlbrand img{width:20px;height:20px;border-radius:6px;object-fit:cover}
+.lvx{overscroll-behavior:contain}
+.lvx .xlsv{position:absolute;z-index:4;left:12px;top:calc(env(safe-area-inset-top,0px) + 70px);display:flex;gap:6px;max-width:calc(100% - 90px);overflow-x:auto;scrollbar-width:none}
+.xlsv button{border:0;border-radius:18px;padding:6px 12px;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}.xlsv button.on{background:#C9A961;color:#2b2208}
 .xlpv{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:#000}.xlpv iframe{position:absolute;left:0;width:100%;top:-60px;height:calc(100% + 120px);border:0;pointer-events:none}.xlpv video{width:100%;height:100%;object-fit:cover;pointer-events:none}
 .xl-th>span{z-index:2}.xl-th .tt{background:linear-gradient(transparent,rgba(0,0,0,.6));left:0;right:0;bottom:0;padding:14px 12px 10px}
 .xl-th{position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/9;margin-top:4px;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505);color:#fff;cursor:pointer;overflow:hidden;border:0}
@@ -1002,7 +1005,7 @@ function openComposer({pick=null}={}){
       <textarea class="inp" id="cText" placeholder="بم تفكر يا ${esc(uName(uid).split(' ')[0])}؟"></textarea>
       <div class="bgs" id="cBgs"></div><div class="prev" id="cPrev"></div>
       <div class="emorow" id="cEmo">${EMOJIS.map(e => `<button type="button" data-c="emo" data-e="${e}">${e}</button>`).join('')}</div>
-      <div class="addbar"><span>أضف إلى منشورك</span>${c.allowImages!==false?'<button data-c="pick" data-k="image" title="صور" style="color:#2ECC71"><i class="fas fa-images"></i></button>':''}${c.allowVideo!==false?'<button data-c="pick" data-k="video" title="فيديو" style="color:#E74C3C"><i class="fas fa-video"></i></button>':''}${c.allowVideoLink!==false?'<button data-c="link" title="رابط فيديو" style="color:#E67E22"><i class="fas fa-link"></i></button>':''}${c.allowAudio!==false?'<button data-c="pick" data-k="audio" title="مقطع صوتي" style="color:#3498DB"><i class="fas fa-microphone"></i></button>':''}<button data-a="newPoll" title="استطلاع" style="color:#9B59B6"><i class="fas fa-square-poll-vertical"></i></button><button data-c="emoT" title="رموز" style="color:#F5B041"><i class="far fa-face-smile"></i></button></div>
+      <div class="addbar"><span>أضف إلى منشورك</span>${c.allowImages!==false?'<button data-c="pick" data-k="image" title="صور" style="color:#2ECC71"><i class="fas fa-images"></i></button>':''}${c.allowVideo!==false?'<button data-c="pick" data-k="video" title="فيديو" style="color:#E74C3C"><i class="fas fa-video"></i></button>':''}${c.allowVideoLink!==false?'<button data-c="link" title="رابط فيديو" style="color:#E67E22"><i class="fas fa-link"></i></button><button data-c="liveLink" title="رابط بث مباشر" style="color:#E11D48"><i class="fas fa-tower-broadcast"></i></button>':''}${c.allowAudio!==false?'<button data-c="pick" data-k="audio" title="مقطع صوتي" style="color:#3498DB"><i class="fas fa-microphone"></i></button>':''}<button data-a="newPoll" title="استطلاع" style="color:#9B59B6"><i class="fas fa-square-poll-vertical"></i></button><button data-c="emoT" title="رموز" style="color:#F5B041"><i class="far fa-face-smile"></i></button></div>
       <input type="file" id="fimage" accept="image/*" multiple hidden><input type="file" id="fvideo" accept="video/*" hidden><input type="file" id="faudio" accept="audio/*" hidden>
       <div class="prog" id="cProg" hidden><div></div><span></span></div></div>
     <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn primary" id="cGo" style="min-width:150px"><i class="fas fa-paper-plane"></i> نشر</button></div>`, {wide:true});
@@ -1035,7 +1038,7 @@ function openComposer({pick=null}={}){
   ov.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; const k = b.dataset.c;
     if (k==='pick') $$('#f'+b.dataset.k).click();
     else if (k==='bg'){ C.bg = b.dataset.b; paintC(); }
-    else if (k==='link') dialog({title:'رابط فيديو', body:'ألصق رابط يوتيوب أو رابط فيديو أو بث مباشر', input:'https://', confirm:'إضافة'}).then(async u => { if (!u) return; if (!safe(u)) return toast('الرابط غير صالح','error'); const lv = await dialog({title:'نوع الرابط', body:'هل هذا الرابط بث مباشر؟ (مثل بث مباراة من موقع آخر)', confirm:'نعم، بث مباشر', cancel:'لا، فيديو عادي'}); C.existing = C.existing.filter(x => x.type!=='link'); C.existing.push(lv ? {type:'link',url:u,live:true} : {type:'link',url:u}); paintC(); });
+    else if (k==='link' || k==='liveLink'){ const lv = k==='liveLink'; dialog({title: lv?'رابط بث مباشر':'رابط فيديو', body: lv?'ألصق رابط البث المباشر (يوتيوب أو أي رابط بث)':'ألصق رابط يوتيوب أو رابط فيديو', input:'https://', confirm:'إضافة'}).then(u => { if (!u) return; if (!safe(u)) return toast('الرابط غير صالح','error'); C.existing = C.existing.filter(x => x.type!=='link' || !!x.live !== lv); C.existing.push(lv ? {type:'link',url:u,live:true} : {type:'link',url:u}); paintC(); }); }
     else if (k==='emoT') $$('#cEmo').classList.toggle('show');
     else if (k==='emo'){ const s = tx.selectionStart ?? tx.value.length; tx.value = tx.value.slice(0,s)+b.dataset.e+tx.value.slice(s); tx.focus(); tx.setSelectionRange(s+2,s+2); }
     else if (k==='edit') editMedia(b.dataset.k, +b.dataset.i);
@@ -1705,9 +1708,15 @@ async function liveView(id, X){
       snd('react'); toast(`تم إرسال هدية «${g.name}» وخصم ${ar(price)} ج.م`); sh.style.display = 'none'; }
     catch(err){ if (/لا يكفي/.test(err.message||'')) await needCharge(); else { console.error(err); toast('تعذر إرسال الهدية','error'); } }
     gbusy = false; });
-  if (X){ ST.style.display = 'none'; xlAttach(ov, X.url); const sh0 = $$('#xlSh'), ct = $$('#xlCt'), mu = $$('#xlMu'), fr = ov.querySelector('iframe[data-xl]'), vd = ov.querySelector('video[data-xl]');
-    if (ct) ct.onclick = () => { ct.classList.toggle('on', sh0.classList.toggle('off')); };
-    if (mu){ let mt = false; mu.onclick = () => { mt = !mt; mu.innerHTML = `<i class=\"fas fa-volume-${mt?'xmark':'high'}\"></i>`; if (fr && fr.contentWindow) fr.contentWindow.postMessage(JSON.stringify({event:'command', func:mt?'mute':'unMute', args:''}), '*'); if (vd) vd.muted = mt; }; }
+  if (X){ ST.style.display = 'none'; const sh0 = $$('#xlSh'), svb = $$('#xlSv'), ct = $$('#xlCt'), mu = $$('#xlMu'), SV = xlServers(X.url); let cur = 0, mt = false;
+    const mountSv = () => { ov.querySelectorAll('.xlbox [data-xl]').forEach(e => e.remove()); try { ov._hls && ov._hls.destroy(); } catch(_){} ov._hls = null; sh0.insertAdjacentHTML('beforebegin', xlMedia(X.url, false, cur)); xlAttach(ov, X.url);
+      sh0.classList.toggle('off', !!SV[cur].open); if (ct) ct.classList.toggle('on', !!SV[cur].open);
+      svb.innerHTML = (SV.length > 1 ? SV.map((s2, i) => `<button data-sv="${i}" class="${i===cur?'on':''}">${s2.l}</button>`).join('') : '') + '<button data-sv="r" title="تحديث"><i class="fas fa-rotate"></i> تحديث</button>'; };
+    svb.addEventListener('click', e => { const b = e.target.closest('[data-sv]'); if (!b) return; if (b.dataset.sv !== 'r') cur = +b.dataset.sv; mountSv(); });
+    if (ct) ct.onclick = () => ct.classList.toggle('on', sh0.classList.toggle('off'));
+    if (mu) mu.onclick = () => { mt = !mt; mu.innerHTML = `<i class=\"fas fa-volume-${mt?'xmark':'high'}\"></i>`; const fr = ov.querySelector('iframe[data-xl]'), vd = ov.querySelector('video[data-xl]'); if (fr && fr.contentWindow) fr.contentWindow.postMessage(JSON.stringify({event:'command', func:mt?'mute':'unMute', args:''}), '*'); if (vd) vd.muted = mt; };
+    mountSv();
+    const qi = setInterval(() => { if (!ov.isConnected) return clearInterval(qi); document.querySelectorAll('video,audio').forEach(md => { if (!ov.contains(md) && !md.paused) md.pause(); }); }, 1500);
     return; }
     const fixDur = () => { v.onloadedmetadata = () => { if (v.duration === Infinity){ v.currentTime = 1e101; v.ontimeupdate = () => { v.ontimeupdate = null; v.currentTime = 0; }; } }; };
   const load = async keep => { try { const {blob, n, total} = await loadLiveBlob(id, base); if (dead) return;
@@ -1945,15 +1954,19 @@ function liveVideoCard(L){ const hd = `<div class="lvv-h"><img src="${LOGO}" alt
 /* ===== بث الرابط: مدمج بالكامل داخل منصة ميزان ===== */
 const xlKind = url => { const yt = ytId(url); return yt ? {k:'yt', yt} : /\.m3u8(\?|$)/i.test(url) ? {k:'hls'} : /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) ? {k:'file'} : {k:'web'}; };
 const XL_SB = 'allow-scripts allow-same-origin allow-presentation';
-function xlMedia(url, pv){ const K = xlKind(url);
-  if (K.k==='yt') return `<iframe data-xl="yt" sandbox="${XL_SB}" referrerpolicy="no-referrer" allow="autoplay; encrypted-media" src="https://www.youtube-nocookie.com/embed/${K.yt}?autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1${pv?'&mute=1':''}"></iframe>`;
-  if (K.k==='web') return `<iframe data-xl="web" sandbox="${XL_SB}" referrerpolicy="no-referrer" allow="autoplay; encrypted-media" src="${esc(url)}"></iframe>`;
-  return `<video data-xl="${K.k}" playsinline autoplay ${pv?'muted':''} disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>`; }
+function xlServers(url){ const K = xlKind(url), og = encodeURIComponent(location.origin), SR = 'strict-origin-when-cross-origin';
+  if (K.k==='yt'){ const q = `autoplay=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${og}`;
+    return [{l:'سيرفر 1', u:`https://www.youtube.com/embed/${K.yt}?${q}&controls=0&disablekb=1&fs=0`, ref:SR}, {l:'سيرفر 2', u:`https://www.youtube-nocookie.com/embed/${K.yt}?${q}&controls=0&disablekb=1&fs=0`, ref:SR}, {l:'سيرفر 3', u:`https://www.youtube.com/embed/${K.yt}?${q}&controls=1&mute=1`, ref:'origin', open:true}]; }
+  if (K.k==='web') return [{l:'سيرفر 1', u:url, ref:SR}, {l:'سيرفر 2', u:url, ref:'no-referrer'}];
+  return [{l:'سيرفر 1', video:1}]; }
+function xlMedia(url, pv, i){ const A = xlServers(url), S = A[i||0] || A[0];
+  if (S.video) return `<video data-xl="v" playsinline autoplay ${pv?'muted':''} disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>`;
+  return `<iframe data-xl="f" sandbox="${XL_SB}" referrerpolicy="${S.ref}" allow="autoplay; encrypted-media" src="${esc(S.u)}${pv && /youtube/.test(S.u) ? '&mute=1' : ''}"></iframe>`; }
 function xlAttach(root, url){ const v = root.querySelector('video[data-xl]'); if (!v) return; if (v.hasAttribute('muted')) v.muted = true;
   if (xlKind(url).k==='file' || v.canPlayType('application/vnd.apple.mpegurl')){ v.src = url; v.play().catch(() => {}); return; }
   const go = () => { if (window.Hls && Hls.isSupported()){ const h = new Hls(); h.loadSource(url); h.attachMedia(v); h.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(() => {})); root._hls = h; } else v.src = url; };
   if (window.Hls) return go(); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js'; sc.onload = go; sc.onerror = () => { v.src = url; }; document.head.appendChild(sc); }
-const xlStage = (url, name) => `<div class="xlstage"><div class="xlbox">${xlMedia(url)}<div class="xlshield" id="xlSh"></div><i class="xlm t"></i><i class="xlm b"></i><div class="xlwm w1"><img src="${LOGO}" alt=""><span>ميزان</span></div><div class="xlwm w2">${esc(name||'')} · منصة ميزان</div></div></div><div class="xlbrand"><img src="${LOGO}" alt=""><b>منصة ميزان</b></div>`;
+const xlStage = (url, name) => `<div class="xlstage"><div class="xlbox">${xlMedia(url)}<div class="xlshield" id="xlSh"></div><i class="xlm t"></i><i class="xlm b"></i><div class="xlwm w1"><img src="${LOGO}" alt=""><span>ميزان</span></div><div class="xlwm w2">${esc(name||'')} · منصة ميزان</div></div></div><div class="xlsv" id="xlSv"></div>`;
 const xlSide = url => `<button class="rb" id="xlCt" title="تفعيل التحكم بالمشغّل"><i class="fas fa-hand-pointer"></i></button>${xlKind(url).k==='web'?'':'<button class="rb" id="xlMu" title="كتم / تشغيل الصوت"><i class="fas fa-volume-high"></i></button>'}`;
 function extLiveView(url, title, sid){ if (document.querySelector('.lvx')) return; try { window.__stopAll && window.__stopAll(); } catch(_){}
   if (!url) return; let h = 0; for (const c of url) h = (h*31 + c.charCodeAt(0)) | 0;
