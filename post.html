@@ -14,6 +14,7 @@
 :root{--primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#FFFFFF;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B;--success:#1E7A5A;--warn:#D68910;--gold:#C9A961;--gold2:#F3E2B0}
 [data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#0B3D2E;--accent-light:#145A43;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C;--success:#2ECC71;--warn:#F5B041}
 html,body{font-family:'Cairo',sans-serif;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
 body{background:var(--bg-page);color:var(--text-main);min-height:100dvh;transition:background .4s}
 button,input,select,textarea{font-family:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
@@ -447,7 +448,7 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 </script>
 <link rel="preconnect" href="https://www.youtube.com"><link rel="preconnect" href="https://i.ytimg.com"><link rel="preconnect" href="https://s.ytimg.com">
 <style>
-body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))!important;overscroll-behavior-y:contain}
+body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important}
 #bnav{position:fixed;left:0;right:0;bottom:0;z-index:850;height:calc(58px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;display:flex;max-width:740px;width:100%;margin:auto;background:color-mix(in srgb,var(--bg-card) 92%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--border);box-shadow:0 -8px 24px -12px var(--shadow);border-radius:18px 18px 0 0}
 #bnav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-sub);font-weight:800;font-size:11px;position:relative;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #bnav button i{font-size:20px;transition:transform .2s var(--ease)}
@@ -470,16 +471,16 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))!important;overs
 @keyframes mzUp{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes mzIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 @keyframes mzFl{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.card,.lvc,.pollc{animation:mzUp .45s var(--ease,cubic-bezier(.2,.8,.2,1)) both}
+.card,.lvc,.pollc{animation:mzUp .45s var(--ease,cubic-bezier(.2,.8,.2,1)) backwards}
 .col>*:nth-child(2){animation-delay:.05s}.col>*:nth-child(3){animation-delay:.1s}.col>*:nth-child(4){animation-delay:.15s}.col>*:nth-child(n+5){animation-delay:.2s}
-.popt{animation:mzIn .4s var(--ease,ease) both;transition:transform .2s,border-color .2s,box-shadow .2s}
+.popt{animation:mzIn .4s var(--ease,ease) backwards;transition:transform .2s,border-color .2s,box-shadow .2s}
 .popt:nth-child(2){animation-delay:.06s}.popt:nth-child(3){animation-delay:.12s}.popt:nth-child(4){animation-delay:.18s}.popt:nth-child(n+5){animation-delay:.24s}
 .popt:not(:disabled):active{transform:scale(.98)}
-.stcd{animation:mzUp .4s both;transition:transform .2s}.stcd:active{transform:scale(.96)}
+.stcd{animation:mzUp .4s backwards;transition:transform .2s}.stcd:active{transform:scale(.96)}
 .rl-btn{transition:transform .2s,color .2s}.rl-btn:active{transform:scale(.88)}
-.rl-it{animation:mzUp .35s both}
-.lvx{animation:mzUp .3s both}
-.lvx .lvm{animation:lvin .3s both}
+
+.lvx{animation:lvin .25s backwards}
+
 .lvx .lvside .rb{animation:mzFl 2.6s ease-in-out infinite}
 .act,.ic,.ib{transition:transform .18s,background .2s,color .2s}.act:active,.ic:active,.ib:active{transform:scale(.9)}
 /* ===== أزرار البث السفلية: أصغر وأجمل ===== */
@@ -494,6 +495,21 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))!important;overs
 .lvx .rb{width:38px;height:38px;font-size:15px;border:1px solid rgba(255,255,255,.14)}
 .lvx .lvcm{bottom:calc(env(safe-area-inset-bottom,0px) + 62px)}
 .lvx .lvrp{bottom:calc(env(safe-area-inset-bottom,0px) + 54px)}
+
+.react-wrap,.react-wrap .act,.rl-lk,.rl-btn{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.react-wrap .act{touch-action:manipulation}
+.picker{z-index:200;animation:mzUp .2s backwards}
+.react-wrap.pk .picker{display:flex!important}
+/* ===== شريط التنقل السفلي: أصغر وأجمل ===== */
+#bnav{height:calc(46px + env(safe-area-inset-bottom,0px));margin:0 auto 6px;left:0;right:0;width:calc(100% - 20px);max-width:420px;border:1px solid var(--border);border-radius:24px;padding:0 6px env(safe-area-inset-bottom,0px);box-shadow:0 8px 26px -6px var(--shadow)}
+#bnav button{font-size:10px;gap:1px;border-radius:18px;transition:background .25s,color .25s}
+#bnav button i{font-size:16px}
+#bnav button.on{background:color-mix(in srgb,var(--gold) 16%,transparent)}
+#bnav button.on::before{top:2px;left:36%;right:36%;height:2px}
+#bnav button:active{transform:scale(.94)}
+#bnav .dot{top:4px;width:7px;height:7px}
+.rlx{bottom:calc(52px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}#jobs{bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
@@ -2033,5 +2049,13 @@ new MutationObserver(ms=>ms.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType!==
 })();
 </script>
 
+<script>
+(function(){
+ var SEL='.rlx,.modal-ov,.lvx,.stvx,.gsx';
+ function unlock(){ try{ if(!document.querySelector(SEL) && document.body.style.overflow==='hidden') document.body.style.overflow=''; }catch(e){} }
+ setInterval(unlock,700); addEventListener('touchend',function(){setTimeout(unlock,300)},{passive:true});
+ document.addEventListener('contextmenu',function(e){ if(e.target.closest&&e.target.closest('.react-wrap,.rl-lk')) e.preventDefault(); });
+})();
+</script>
 </body>
 </html>
