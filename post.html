@@ -542,6 +542,29 @@ body:has(.rlx) #bnav{max-width:none;background:var(--bg-card)}
 .xlv iframe,.xlv video{width:100%;height:100%;border:0;background:#000;max-height:100%}
 .xlv .xlf{padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 10px);text-align:center;font-size:12.5px;color:#cfd8d3}.xlv .xlf a{color:#E0C888;font-weight:800}
 </style>
+<style>
+/* ===== بث المستخدم: استوديو + بطاقة البدء ===== */
+.vwr{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);font-weight:800}
+.vwr small{margin-right:auto;font-weight:700;color:var(--text-sub)}.vwr small.on{color:var(--success)}
+.lvx ~ .modal-ov{z-index:1000}
+.lvx .lvcv{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505)}
+.lvx .lvcv img{max-width:100%;max-height:100%;object-fit:contain}
+.lvx .lvcv .ph{display:flex;flex-direction:column;align-items:center;gap:12px;font-weight:800;opacity:.85;text-align:center;padding:20px}
+.lvx .lvcv .ph i{font-size:84px;color:var(--gold)}
+.lsc{display:flex;align-items:center;gap:12px;padding:14px 16px;flex-wrap:wrap}
+.lsc-i{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#e11d48,#f97316);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.lsc-t{flex:1;min-width:150px;display:flex;flex-direction:column;gap:2px}.lsc-t b{font-size:15.5px}.lsc-t small{color:var(--text-sub);font-size:12.5px;line-height:1.5}
+.mzp{position:absolute;left:0;right:0;bottom:0;z-index:60;max-height:68%;overflow:auto;background:rgba(12,12,12,.96);color:#fff;border-radius:18px 18px 0 0;padding:12px 14px;font:13px system-ui;direction:rtl}
+.mzp[hidden]{display:none}
+.mzp h4{margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.mzp button{background:#262626;color:#fff;border:0;border-radius:10px;padding:7px 11px;cursor:pointer;font:inherit}
+.mzp button.on{background:#C9A961;color:#000}
+.mzp .r{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.mzp input[type=range]{flex:1;accent-color:#C9A961}
+.mzp .t{display:flex;gap:6px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer}
+.mzp .t.cur{background:#2a2410;color:#C9A961}
+.mzp .t span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
 </head>
 <body>
 
@@ -1610,13 +1633,266 @@ function pollForm(){
       toast('تم نشر الاستطلاع'); S.tab = 'polls'; ov._close(); draw(); } catch(e){ console.error(e); toast('فشل النشر','error'); this.disabled = false; } };
   draw1(); }
 
+/* ============ 🎙️ بث المستخدم: طلب موافقة ← استوديو البث ============ */
+const sleepMs = ms => new Promise(r => setTimeout(r, ms));
+S.lreqs = [];
+if (uid) onSnapshot(query(collection(db,'live_requests'), where('uid','==',uid)), s => { S.lreqs = s.docs.map(dd); draw(); }, () => {});
+const needLive = () => S.cfg.requireLiveApproval === true;
+const myLR = () => (S.lreqs||[]).slice().sort((a,b) => tms(b.createdAt) - tms(a.createdAt));
+const lrPending = () => myLR().find(r => r.status === 'pending');
+const lrApproved = () => myLR().find(r => r.status === 'approved');
+/* تحقق نهائي لحظة بدء البث (يقرأ الإعداد والموافقة من السيرفر مباشرة) */
+async function liveGateCheck(reqId){
+  if (!uid) return {ok:false, msg:'سجّل الدخول أولاً'};
+  if (banned()) return {ok:false, msg:'أنت ممنوع من النشر حالياً ولا يمكنك بدء بث'};
+  let need = needLive();
+  try { const c = await getDoc(doc(db,'settings','postsConfig')); if (c.exists()) need = c.data().requireLiveApproval === true; } catch(_){}
+  if (!need) return {ok:true};
+  if (!reqId) return {ok:false, msg:'يلزم الحصول على موافقة الإدارة أولاً'};
+  try { const r = await getDoc(doc(db,'live_requests',reqId)); if (!r.exists() || r.data().uid !== uid || r.data().status !== 'approved') return {ok:false, msg:'لم تعد هذه الموافقة صالحة — أرسل طلباً جديداً'}; }
+  catch(_){ return {ok:false, msg:'تعذّر التحقق من الموافقة — حاول مرة أخرى'}; }
+  return {ok:true};
+}
+function liveGate(){
+  if (!uid) return toast('سجّل الدخول أولاً','error');
+  if (banned()) return toast('أنت ممنوع من النشر حالياً ولا يمكنك بدء بث','error');
+  if (!needLive()) return userLiveStudio(null);
+  const ap = lrApproved(); if (ap) return userLiveStudio(ap.id);
+  const pe = lrPending(); if (pe) return liveReqPending(pe);
+  liveReqForm();
+}
+function liveReqForm(){
+  const last = myLR()[0], rej = last && last.status === 'rejected' ? last : null;
+  const ov = openModal(`${mh('طلب بث مباشر','fa-tower-broadcast')}<div class="mb">
+    ${rej?`<div class="dli" style="background:rgba(192,57,43,.1);color:var(--error)"><i class="fas fa-circle-info"></i><span>رُفض طلبك السابق${rej.rejectReason?` — ${esc(rej.rejectReason)}`:''}</span></div>`:''}
+    <div class="dli"><i class="fas fa-circle-info"></i><span>لا يمكنك فتح البث إلا بعد موافقة الإدارة، وكل موافقة تصلح لبث واحد. سيصلك إشعار بالرد.</span></div>
+    <label class="lbl">عنوان البث (اختياري)</label><input class="inp" id="lrT" maxlength="80" placeholder="عن ماذا سيكون البث؟"></div>
+    <div class="mf"><button class="btn ghost" data-a="closeModal">إلغاء</button><button class="btn gold" id="lrGo"><i class="fas fa-paper-plane"></i> إرسال الطلب</button></div>`);
+  ov.querySelector('#lrGo').onclick = async function(){
+    if (lrPending()){ toast('لديك طلب قيد المراجعة بالفعل','error'); return ov._close(); }
+    this.disabled = true;
+    try { await addDoc(collection(db,'live_requests'),{uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), title:ov.querySelector('#lrT').value.trim().slice(0,80), status:'pending', createdAt:serverTimestamp()}); toast('تم إرسال طلب البث للإدارة'); ov._close(); }
+    catch(e){ console.error(e); toast('تعذّر إرسال الطلب','error'); this.disabled = false; } };
+}
+function liveReqPending(pe){
+  const ov = openModal(`${mh('طلب البث','fa-tower-broadcast')}<div class="mb" style="text-align:center;padding:26px 18px"><div style="font-size:46px;color:var(--warn)"><i class="fas fa-hourglass-half"></i></div><h3 style="margin:10px 0 6px">طلبك بانتظار موافقة الإدارة</h3><p style="color:var(--text-sub);font-size:13.5px;line-height:1.7">سيصلك إشعار فور الرد، وبعدها تضغط «بدء بث مباشر».</p></div>
+    <div class="mf"><button class="btn ghost" data-a="closeModal">إغلاق</button><button class="btn danger" id="lrCx"><i class="fas fa-ban"></i> سحب الطلب</button></div>`);
+  ov.querySelector('#lrCx').onclick = async () => { try { await deleteDoc(doc(db,'live_requests',pe.id)); toast('تم سحب الطلب'); ov._close(); } catch(_){ toast('تعذّر سحب الطلب','error'); } };
+}
+function liveStartCard(){
+  if (!uid) return '';
+  const need = needLive(), ap = need && lrApproved(), pe = need && !ap && lrPending(), last = myLR()[0], rej = need && !ap && !pe && last && last.status === 'rejected' ? last : null;
+  let tt = 'ابدأ بثك المباشر', sub = 'افتح الكاميرا أو الميكروفون وتحدّث مع المشاهدين مباشرة', bt = '<i class="fas fa-circle"></i> بدء بث مباشر', cls = 'danger';
+  if (need){
+    if (ap){ tt = 'تمت الموافقة على بثك ✅'; sub = 'يمكنك بدء البث الآن'; }
+    else if (pe){ tt = 'طلبك قيد المراجعة'; sub = 'سيصلك إشعار فور رد الإدارة'; bt = '<i class="fas fa-hourglass-half"></i> عرض الطلب'; cls = ''; }
+    else { tt = 'اطلب إذن البث'; sub = rej ? `رُفض طلبك السابق${rej.rejectReason?' — '+esc(rej.rejectReason):''}` : 'يحتاج البث إلى موافقة الإدارة أولاً'; bt = '<i class="fas fa-paper-plane"></i> إرسال طلب بث'; cls = 'gold'; } }
+  return `<div class="card lsc"><div class="lsc-i"><i class="fas fa-tower-broadcast"></i></div><div class="lsc-t"><b>${tt}</b><small>${sub}</small></div><button class="btn ${cls}" data-a="liveStart">${bt}</button></div>`;
+}
+function userLiveStudio(reqId){
+if (document.querySelector('.lvx')) return; try { window.__stopAll && window.__stopAll(); } catch(_){}
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast(window.isSecureContext ? 'المتصفح لا يدعم تشغيل الكاميرا — استخدم Chrome' : 'البث يحتاج فتح الصفحة عبر رابط آمن (https) وليس كملف مباشر', 'error'); return; }
+const ov = document.createElement('div'); ov.className = 'lvx';
+let ms = null, rec = null, sid = null, k = 0, t0 = 0, pausedMs = 0, pAt = 0, tm = null, hb = null, cd = null, q = Promise.resolve(), face = 'user', backlog = 0, starting = false, muted = false, camOff = false, paused = false, unsubC = null, closed = false, audioOnly = false, cover = '', mode = 'video', vsrc = null, scrS = null, coverImg = null, cv = null, cctx = null, out = null, tick = null, wk = null, unsubS = null, onHide = null;
+  ov.dataset.host = '1'; ov.innerHTML = `<video id="lvV" autoplay muted playsinline></video><div class="lvcv" id="lvCv"><div class="ph" id="lvPh"><i class="fas fa-headphones"></i><div>بث صوتي فقط<br><small>اضغط زر الصورة لإضافة صورة تظهر للمشاهدين</small></div></div><img id="lvCvI" alt="" style="display:none"></div><div class="lvshade"></div>
+    <div class="lvctr" id="lvCd"><div class="big" id="lvCn">10</div><div>يبدأ البث بعد لحظات… استعد</div></div>
+    <div class="lvctr" id="lvPz"><i class="fas fa-circle-pause"></i><div>البث متوقف مؤقتاً</div></div>
+    <div class="lvctr" id="lvCo"><i class="fas fa-video-slash"></i><div>الكاميرا مغلقة</div></div>
+    <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt" id="lvT">جاهز</span><button class="lvvw" id="lvVw" title="المشاهدون"><i class="fas fa-eye"></i> <b id="lvVn">٠</b></button><input class="lvn" id="lvN" placeholder="عنوان البث…" maxlength="80"><button class="lvend" id="lvEnd">إنهاء</button></div>
+    <div class="lvside"><button class="rb" id="lvAu" title="بث صوتي فقط"><i class="fas fa-headphones"></i></button><button class="rb" id="lvSc" title="مشاركة الشاشة"><i class="fas fa-desktop"></i></button><button class="rb" id="lvIm" title="تغيير الصورة" style="display:none"><i class="fas fa-image"></i></button><input type="file" id="lvFile" accept="image/*" hidden><button class="rb" id="lvF" title="تبديل الكاميرا"><i class="fas fa-camera-rotate"></i></button><button class="rb" id="lvM" title="كتم/تشغيل الصوت"><i class="fas fa-microphone"></i></button><button class="rb" id="lvC" title="إغلاق/تشغيل الكاميرا"><i class="fas fa-video"></i></button><button class="rb" id="lvP" title="إيقاف مؤقت" style="display:none"><i class="fas fa-pause"></i></button></div>
+    <div class="lvcm" id="lvCm"></div>
+    <div class="lvbar"><button class="lvgo" id="lvGo"></button><div class="lvin" id="lvIn"><input id="lvCi" placeholder="اكتب تعليقاً…" maxlength="300"><button id="lvCs" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div>
+    <div class="lvsh" id="lvSh"></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const $$ = s => ov.querySelector(s), v = $$('#lvV'), go = $$('#lvGo'), T = $$('#lvT'), feed = $$('#lvCm'), sh = $$('#lvSh');
+  const GO = '<i class="fas fa-circle"></i> بدء البث';  go.innerHTML = GO;
+  const elapsed = () => (Date.now() - t0 - pausedMs - (paused ? Date.now() - pAt : 0)) / 1000;
+  const upd = d => sid ? updateDoc(doc(db,'live_streams',sid), d).catch(() => {}) : null;
+  async function cam(){
+    try { if (!ms){ const raw = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}); ms = MIX.wrap(raw); MIX.micOn(!muted); } }
+    catch(_){ toast('تعذر تشغيل الميكروفون — اسمح بالصلاحيات','error'); return; }
+    await showSrc(); }
+  function stopVis(){ try { MIX.sysOn(null); } catch(_){} [vsrc, scrS].forEach(x => x && x.getTracks().forEach(t => { t.onended = null; t.stop(); })); vsrc = null; scrS = null; }
+  async function showSrc(){
+    stopVis(); if (mode === 'audio'){ v.srcObject = null; return; }
+    try {
+      if (mode === 'screen'){
+        if (!navigator.mediaDevices.getDisplayMedia) throw new Error('nodisplay');
+        scrS = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15, max:24}}, audio:true}); vsrc = scrS; MIX.sysOn(scrS);
+        const vt = scrS.getVideoTracks()[0]; if (vt) vt.onended = () => { if (mode === 'screen') setMode('video'); };
+      } else vsrc = await navigator.mediaDevices.getUserMedia({video:{facingMode:face, width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24, max:30}}});
+      v.srcObject = vsrc; v.style.objectFit = mode === 'screen' ? 'contain' : ''; v.classList.toggle('mir', mode === 'video' && face === 'user');
+    } catch(_){ if (mode === 'screen'){ toast('تعذر مشاركة الشاشة — اسمح بها أو جرّب من الكمبيوتر','error'); setMode('video'); } else toast('تعذر تشغيل الكاميرا — اسمح بالصلاحيات','error'); } }
+  function loadCover(){ if (cover){ coverImg = new Image(); coverImg.src = cover; } else coverImg = null; }
+  function drawFrame(){ if (!cctx) return; const W = cv.width, H = cv.height, c = cctx; c.fillStyle = '#000'; c.fillRect(0,0,W,H);
+    const fit = (el, w, h, cov) => { const k = cov ? Math.max(W/w, H/h) : Math.min(W/w, H/h), dw = w*k, dh = h*k; c.drawImage(el, (W-dw)/2, (H-dh)/2, dw, dh); };
+    try {
+      if (mode === 'audio'){ const g = c.createRadialGradient(W/2, H*.4, 10, W/2, H*.4, Math.max(W,H)*.7); g.addColorStop(0,'#1d2a24'); g.addColorStop(1,'#050505'); c.fillStyle = g; c.fillRect(0,0,W,H);
+        if (coverImg && coverImg.complete && coverImg.naturalWidth) fit(coverImg, coverImg.naturalWidth, coverImg.naturalHeight, false);
+        else { c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = Math.round(Math.min(W,H)*.28) + 'px sans-serif'; c.fillText('🎧', W/2, H*.42); c.fillStyle = '#C9A961'; c.font = '700 ' + Math.round(Math.min(W,H)*.06) + 'px sans-serif'; c.fillText('بث صوتي', W/2, H*.66); } }
+      else if (mode === 'video' && camOff){ }
+      else if (v.videoWidth) fit(v, v.videoWidth, v.videoHeight, mode === 'video');
+    } catch(_){} }
+  function startOut(){ stopOut(); const portrait = (v.videoHeight > v.videoWidth) || (!v.videoWidth && innerHeight > innerWidth);
+    cv = document.createElement('canvas'); cv.width = portrait ? 480 : 854; cv.height = portrait ? 854 : 480; cctx = cv.getContext('2d'); drawFrame();
+    out = new MediaStream([...cv.captureStream(24).getVideoTracks(), ...ms.getAudioTracks()]);
+    try { const bl = new Blob(['setInterval(function(){postMessage(0)},42)'], {type:'text/javascript'}); wk = new Worker(URL.createObjectURL(bl)); wk.onmessage = drawFrame; } catch(_){ tick = setInterval(drawFrame, 42); } }
+  function stopOut(){ try { wk && wk.terminate(); } catch(_){} wk = null; clearInterval(tick); tick = null; try { out && out.getVideoTracks().forEach(t => t.stop()); } catch(_){} out = null; cctx = null; cv = null; }
+  /* ---- 🎧 بث صوتي فقط + صورة العرض ---- */
+  const showCover = () => { const i = $$('#lvCvI'); if (cover){ i.src = cover; i.style.display = 'block'; $$('#lvPh').style.display = 'none'; } else { i.style.display = 'none'; $$('#lvPh').style.display = 'flex'; } };
+  const imgToCover = file => new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { const M = 720, r = Math.min(M/im.width, M/im.height, 1), c = document.createElement('canvas'); c.width = Math.max(1,Math.round(im.width*r)); c.height = Math.max(1,Math.round(im.height*r)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg',0.8)); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('img')); }; im.src = u; });
+  function setMode(m){ if (mode === m) return; mode = m; audioOnly = m === 'audio'; const a = m === 'audio';
+    $$('#lvCv').style.display = a ? 'flex' : 'none'; $$('#lvF').style.display = m === 'video' ? '' : 'none'; $$('#lvC').style.display = m === 'video' ? '' : 'none'; $$('#lvIm').style.display = a ? '' : 'none'; $$('#lvCo').style.display = 'none';
+    const b = $$('#lvAu'), sc = $$('#lvSc'); b.classList.toggle('on', a); b.title = a ? 'العودة للبث بالفيديو' : 'بث صوتي فقط'; sc.classList.toggle('on', m === 'screen'); sc.title = m === 'screen' ? 'إيقاف مشاركة الشاشة' : 'مشاركة الشاشة';
+    if (a){ showCover(); loadCover(); } camOff = false; const cb = $$('#lvC'); cb.classList.remove('off'); cb.innerHTML = '<i class="fas fa-video"></i>';
+    upd({mode:m, camOff:false, lastAt:serverTimestamp()}); showSrc(); }
+  $$('#lvAu').onclick = () => setMode(mode === 'audio' ? 'video' : 'audio');
+  $$('#lvSc').onclick = () => setMode(mode === 'screen' ? 'video' : 'screen'); if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) $$('#lvSc').style.display = 'none';
+  $$('#lvIm').onclick = () => $$('#lvFile').click();
+  $$('#lvFile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { cover = await imgToCover(f); showCover(); loadCover(); if (sid){ await updateDoc(doc(db,'live_streams',sid),{cover, coverAt:serverTimestamp(), lastAt:serverTimestamp()}); toast('تم تغيير الصورة'); } } catch(_){ toast('تعذّر قراءة الصورة','error'); } };
+  /* ---- التحكم: كاميرا / صوت / إيقاف مؤقت ---- */
+  $$('#lvF').onclick = () => { face = face==='user' ? 'environment' : 'user'; if (mode === 'video') showSrc(); };
+  $$('#lvM').onclick = () => { muted = !muted; MIX.micOn(!muted); const b = $$('#lvM'); b.classList.toggle('off', muted); b.innerHTML = `<i class="fas ${muted?'fa-microphone-slash':'fa-microphone'}"></i>`; upd({muted}); };
+  $$('#lvC').onclick = () => { camOff = !camOff; ms?.getVideoTracks().forEach(t => t.enabled = !camOff); const b = $$('#lvC'); b.classList.toggle('off', camOff); b.innerHTML = `<i class="fas ${camOff?'fa-video-slash':'fa-video'}"></i>`; $$('#lvCo').style.display = camOff ? 'flex' : 'none'; upd({camOff}); };
+  $$('#lvP').onclick = () => { if (!rec) return; paused = !paused;
+    try { paused ? rec.pause() : rec.resume(); } catch(_){}
+    if (paused) pAt = Date.now(); else pausedMs += Date.now() - pAt;
+    const b = $$('#lvP'); b.classList.toggle('on', paused); b.innerHTML = `<i class="fas ${paused?'fa-play':'fa-pause'}"></i>`; b.title = paused ? 'استئناف البث' : 'إيقاف مؤقت'; $$('#lvPz').style.display = paused ? 'flex' : 'none';
+    T.className = 'lvt ' + (paused ? 'pz' : 'live'); upd({paused, lastAt:serverTimestamp()}); toast(paused ? 'تم إيقاف البث مؤقتاً' : 'تم استئناف البث'); };
+  /* ---- العدّ التنازلي وبدء البث ---- */
+  function cancelCd(){ clearInterval(cd); cd = null; $$('#lvCd').style.display = 'none'; go.innerHTML = GO; T.textContent = 'جاهز'; }
+  async function startCd(){
+    if (starting || cd || rec) return; if (!ms) await cam(); if (!ms) return;
+    let n = 10; $$('#lvCn').textContent = n; $$('#lvCd').style.display = 'flex'; T.textContent = 'العدّ التنازلي'; go.innerHTML = '<i class="fas fa-xmark"></i> إلغاء العدّ';
+    cd = setInterval(() => { n--; if (n <= 0){ clearInterval(cd); cd = null; $$('#lvCd').style.display = 'none'; begin(); } else $$('#lvCn').textContent = n; }, 1000);
+  }
+  async function begin(){
+    if (starting || rec) return; if (!ms || !window.MediaRecorder){ go.innerHTML = GO; return toast('المتصفح لا يدعم البث — استخدم Chrome','error'); }
+    starting = true; let id = null;
+    const mime = ['video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '', dmime = 'video/webm', base = (mime || dmime).split(';')[0], title = $$('#lvN').value.trim();
+    try {
+      const gate = await liveGateCheck(reqId); if (!gate.ok){ starting = false; go.innerHTML = GO; T.textContent = 'جاهز'; return toast(gate.msg,'error'); }
+      const ref = await addDoc(collection(db,'live_streams'),{title:title||(mode==='audio'?'بث صوتي':mode==='screen'?'مشاركة شاشة':'بث مباشر'), hostId:uid, hostName:uName(uid), hostAvatar:uAvatar(S.users[uid]||me), hostRole:'user', status:'live', paused:false, camOff:mode==='video'?camOff:false, muted, audioOnly:false, mode, cover:'', mime:mime||dmime, chunks:0, duration:0, startedAt:serverTimestamp(), lastAt:serverTimestamp()});
+      id = sid = ref.id; if (reqId) updateDoc(doc(db,'live_requests',reqId),{status:'used', sid:id, usedAt:serverTimestamp()}).catch(() => {});
+      k = 0; t0 = Date.now(); pausedMs = 0; paused = false; backlog = 0;
+      startOut(); const r = new MediaRecorder(out, {...(mime?{mimeType:mime}:{}), videoBitsPerSecond:600000, videoKeyFrameIntervalDuration:1000, audioBitsPerSecond:64000}); rec = r;
+      /* رفع الأجزاء: 3 بالتوازي + مهلة 15ث + إعادة محاولة — جزء واحد معلّق ما يوقفش البث */
+      const LIMIT = 4; let run = 0; const wq = [], doneS = new Set(); let front = -1; const markDone = n => { doneS.add(n); while (doneS.has(front+1)) front++; };
+      const slot = () => new Promise(res => { const g2 = () => { run++; res(); }; run < LIMIT ? g2() : wq.push(g2); }), free = () => { run--; wq.shift()?.(); };
+      const sendChunk = async (n, blob) => { for (let a = 0; a < 5; a++){ try { const d = await blobToDataUrl(new Blob([blob], {type:base})), b = writeBatch(db);
+            b.set(doc(db,'live_chunks',`${id}_${n}`),{sid:id, i:n, data:d, createdAt:serverTimestamp()});
+            await Promise.race([b.commit(), new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 10000))]); markDone(n); return true;
+          } catch(err){ console.warn('chunk retry', n, a, err); await sleepMs(700*(a+1)); } } console.error('chunk lost', n); markDone(n); return false; };
+      r.ondataavailable = e => { if (!e.data.size) return; const n = k++; backlog++;
+        const pr = (async () => { await slot(); try { await sendChunk(n, e.data); } finally { free(); backlog--; } })(); q = Promise.all([q, pr.catch(() => {})]);
+        if (n === 0) upd({chunks:1, lastAt:serverTimestamp()}); };
+      r.start(1000);
+      unsubS = onSnapshot(doc(db,'live_streams',id), s => { if (rec && sid === id && s.exists() && s.data().status === 'ended'){ toast('أنهت الإدارة هذا البث','error'); closeAll(); } }, () => {});
+      onHide = () => { if (sid) updateDoc(doc(db,'live_streams',sid),{status:'ended', paused:false, endedAt:serverTimestamp(), duration:Math.round(elapsed())}).catch(() => {}); }; addEventListener('pagehide', onHide);
+      hb = setInterval(() => upd({lastAt:serverTimestamp(), chunks:k, head:front, duration:Math.round(elapsed())}), 3000);   // يُبقي البث "مباشراً" حتى أثناء الإيقاف المؤقت
+      listenComments(id); listenViewers(id);
+      go.style.display = 'none'; $$('#lvIn').style.display = 'flex'; $$('#lvEnd').style.display = 'inline-block'; $$('#lvP').style.display = 'flex'; $$('#lvN').readOnly = true;
+      T.className = 'lvt live';
+      tm = setInterval(() => { T.textContent = (paused ? '⏸ متوقف ' : '● مباشر ') + clk(elapsed()); if (!paused && backlog > 3) T.textContent += ' ⚠️'; }, 500);
+    } catch(e){ console.error(e); toast('فشل بدء البث — تحقق من الصلاحيات','error'); if (id) updateDoc(doc(db,'live_streams',id),{status:'ended', endedAt:serverTimestamp()}).catch(() => {}); rec = null; sid = null; go.innerHTML = GO; }
+    starting = false;
+  }
+  function endNow(){   // إنهاء فوري: الحالة تتغير الآن، وآخر جزء يُحفظ في الخلفية
+    clearInterval(tm); clearInterval(cd); clearInterval(hb); clearInterval(vtk); cd = null; unsubC?.(); unsubC = null; unsubV?.(); unsubV = null; unsubS?.(); unsubS = null; if (onHide){ removeEventListener('pagehide', onHide); onHide = null; }
+    const r = rec, id = sid, dur = Math.round(elapsed()); rec = null; sid = null;
+    const fin = new Promise(res => r ? r.addEventListener('stop', res, {once:true}) : res());
+    try { if (r && r.state !== 'inactive') r.stop(); } catch(_){}
+    stopOut(); stopVis(); ms?.getTracks().forEach(x => x.stop()); ms = null;
+    if (!id) return;
+    updateDoc(doc(db,'live_streams',id),{status:'ended', paused:false, endedAt:serverTimestamp(), duration:dur}).catch(() => {});
+    Promise.race([fin, new Promise(res => setTimeout(res,3000))]).then(() => Promise.race([q, new Promise(res => setTimeout(res,20000))])).then(() => updateDoc(doc(db,'live_streams',id),{chunks:k, duration:dur, finalized:true})).catch(() => {});
+  }
+  function closeAll(){ if (closed) return; closed = true; endNow(); document.removeEventListener('keydown', onKey); ov.remove(); if (!modals.length) document.body.style.overflow = ''; }
+  const askClose = () => { if (rec && !confirm('هل تريد إنهاء البث؟ سيتم حفظه تلقائياً لإعادة مشاهدته.')) return; if (rec) toast('انتهى البث وتم حفظه'); closeAll(); };
+  const onKey = e => { if (e.key === 'Escape'){ if (sh.style.display !== 'none') sh.style.display = 'none'; else askClose(); } };
+  document.addEventListener('keydown', onKey);
+  $$('#lvX').onclick = askClose; $$('#lvEnd').onclick = askClose;
+  go.onclick = async () => { if (cd){ cancelCd(); return; } await startCd(); };
+  /* ---- 👁️ المشاهدون: العدد + قائمة بحث + «فلان دخل» ---- */
+  let vw = new Map(), joined = new Map(), unsubV = null, vtk = null, vMode = false;
+  const nq = x => String(x||'').toLowerCase().replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+  const onl = x => x.at && Date.now() - x.at < 55000;
+  const vList = () => { const m = new Map(); joined.forEach((x,k) => m.set(k,{...x,online:false})); vw.forEach((x,k) => m.set(k,{...(m.get(k)||{}),...x,online:onl(x)})); return [...m.entries()].map(([id,x]) => ({id,...x})); };
+  const fillV = () => { const L = sh.querySelector('#vwL'); if (!L) return; const q = nq(sh.querySelector('#vwQ')?.value), all = vList(), list = all.filter(x => !q || nq(x.name).includes(q)).sort((a,b) => (b.online-a.online) || String(a.name).localeCompare(String(b.name),'ar'));
+    sh.querySelector('#vwC').textContent = `${ar(all.filter(x => x.online).length)} متصل الآن · ${ar(all.length)} دخلوا`;
+    L.innerHTML = list.map(x => `<div class="vwr">${avatar(x.avatar, x.name, 'av34')}<span>${esc(x.name||'مستخدم')}</span><small class="${x.online?'on':''}">${x.online?'● متصل الآن':'غادر'}</small></div>`).join('') || '<div class="cm-empty">لا يوجد مشاهدون مطابقون</div>'; };
+  const showV = () => { const n = [...vw.values()].filter(onl).length, c = $$('#lvVn'); if (c) c.textContent = ar(n); $$('#lvVw').style.display = 'inline-flex'; if (vMode) fillV(); };
+  function listenViewers(id){ unsubV?.(); clearInterval(vtk);
+    unsubV = onSnapshot(query(collection(db,'live_viewers'), where('sid','==',id)), s => { vw = new Map(s.docs.map(d => { const x = d.data({serverTimestamps:'estimate'}); return [x.uid||d.id, {name:x.name||'مستخدم', avatar:x.avatar||'', at:tsd(x.lastAt)?.getTime()||Date.now()}]; })); showV(); }, e => console.error('live_viewers', e));
+    vtk = setInterval(showV, 8000); }
+  $$('#lvVw').onclick = () => { vMode = true; sh.style.display = 'flex';
+    sh.innerHTML = `<div class="shh"><b style="font-size:16px"><i class="fas fa-eye" style="color:var(--gold)"></i> المشاهدون</b><span id="vwC" style="font-size:12.5px;font-weight:800;color:var(--text-sub)"></span><span style="flex:1"></span><button class="rb2" data-g="close"><i class="fas fa-xmark"></i></button></div><div class="shb"><input class="inp" id="vwQ" placeholder="ابحث في المشاهدين…" autocomplete="off" style="margin-bottom:8px"><div id="vwL"></div></div>`; fillV(); };
+  sh.addEventListener('input', e => { if (e.target.id === 'vwQ') fillV(); });
+  /* ---- التعليقات (المستخدمون يكتبون من تطبيقهم في live_comments) ---- */
+    function addMsg(m){ if (m.type === 'gift') return; const el = document.createElement('div'); el.className = 'lvm';
+    const fresh = Date.now() - (tsd(m.createdAt)?.getTime() || Date.now()) < 60000;
+    if (m.uid && m.uid !== uid && !m.host){ joined.set(m.uid, {name:m.name||'مستخدم', avatar:m.avatar||''}); if (vMode) fillV(); }
+    if (m.type === 'join'){ el.className = 'lvm join'; el.innerHTML = `<span>👋 <b>${esc(m.name||'مستخدم')}</b> دخل البث</span>`; feed.appendChild(el); feed.scrollTop = feed.scrollHeight; if (fresh) SFX.play('pop'); return; }
+    {
+      el.innerHTML = `${m.avatar?`<img class="mav" src="${esc(m.avatar)}" alt="">`:`<span class="mav">${esc(String(m.name||'؟').slice(0,1))}</span>`}<span><b>${esc(m.name||'مستخدم')}${m.host?' <i class="fas fa-circle-check" style="color:var(--gold)"></i>':''}</b> ${esc(m.text||'')}</span>`;
+    }
+    feed.appendChild(el); while (feed.children.length > 80) feed.firstChild.remove(); feed.scrollTop = feed.scrollHeight; }
+  function listenComments(id){ unsubC?.();
+    unsubC = onSnapshot(query(collection(db,'live_comments'), where('sid','==',id)), s => { const a = []; s.docChanges().forEach(c => { if (c.type === 'added') a.push(c.doc.data({serverTimestamps:'estimate'})); });
+      a.sort((x,y) => (tsd(x.createdAt)?.getTime()||Date.now()) - (tsd(y.createdAt)?.getTime()||Date.now())).forEach(addMsg); }, e => console.error('live_comments', e)); }
+  const sendC = async () => { const inp = $$('#lvCi'), t = inp.value.trim(); if (!t || !sid) return; inp.value = '';
+    try { await addDoc(collection(db,'live_comments'),{sid, uid, name:uName(uid), avatar:uAvatar(S.users[uid]||me), text:t.slice(0,300), type:'comment', host:true, createdAt:serverTimestamp()}); } catch(e){ console.error(e); toast('تعذّر إرسال التعليق','error'); } };
+  $$('#lvCs').onclick = sendC; $$('#lvCi').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); sendC(); } });
+  cam();
+}
+
+/* ===== 🎵 خلط الصوت (ميكروفون + صوت الشاشة + الأغاني) — لاستوديو البث فقط ===== */
+(() => {
+const MIX=window.MIX={ctx:null,
+  ensure(){if(this.ctx)return;const c=this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.dest=c.createMediaStreamDestination();this.mic=c.createGain();this.mus=c.createGain();this.mic.connect(this.dest);this.mus.connect(this.dest);this.mus.connect(c.destination);this.el=new Audio();this.src=c.createMediaElementSource(this.el);this.src.connect(this.mus)},
+  wrap(raw){this.ensure();this.ctx.resume();try{this.ms&&this.ms.disconnect()}catch(_){}this.ms=this.ctx.createMediaStreamSource(raw);this.ms.connect(this.mic);
+    const at=this.dest.stream.getAudioTracks()[0].clone(),st=at.stop.bind(at);at.stop=()=>{st();raw.getTracks().forEach(t=>t.stop())};return new MediaStream([...raw.getVideoTracks(),at])},
+  micOn(b){this.mic&&(this.mic.gain.value=b?1:0)},
+  sysOn(raw){this.ensure();try{this.sysS&&this.sysS.disconnect()}catch(_){}this.sysS=null;if(raw&&raw.getAudioTracks().length){this.sysS=this.ctx.createMediaStreamSource(new MediaStream(raw.getAudioTracks()));this.sysS.connect(this.dest)}},
+  close(){try{this.el&&this.el.pause();this.ctx&&this.ctx.close()}catch(_){}this.ctx=null}};
+const DB=()=>new Promise((r,j)=>{const q=indexedDB.open('mzMusic',1);q.onupgradeneeded=()=>q.result.createObjectStore('pl',{keyPath:'name'});q.onsuccess=()=>r(q.result);q.onerror=j});
+const dbDo=async(mode,f)=>{const d=await DB();return new Promise((r,j)=>{const t=d.transaction('pl',mode),q=f(t.objectStore('pl'));t.oncomplete=()=>r(q&&q.result);t.onerror=j})};
+function music(ov){
+  const side=ov.querySelector('.lvside');if(!side||ov.querySelector('#mzB'))return;
+  const b=document.createElement('button');b.className='rb';b.id='mzB';b.title='الأغاني';b.innerHTML='<i class="fas fa-music"></i>';side.appendChild(b);
+  const P=document.createElement('div');P.className='mzp';P.hidden=true;ov.appendChild(P);
+  let tr=[],i=-1,shuf=false,rep=0,view='q';const fi=document.createElement('input');fi.type='file';fi.accept='audio/*';fi.multiple=true;fi.hidden=true;ov.appendChild(fi);
+  const au=()=>{MIX.ensure();MIX.ctx.resume();return MIX.el};
+  function play(n){if(n<0||n>=tr.length)return;i=n;const a=au();a.src=tr[n].url||(tr[n].url=URL.createObjectURL(tr[n].blob));a.play().catch(()=>{});a.onended=next;draw()}
+  function next(){if(!tr.length)return;if(rep===2)return play(i);let n=shuf?Math.floor(Math.random()*tr.length):i+1;if(n>=tr.length){if(rep===1)n=0;else return draw()}play(n)}
+  const prev=()=>{const a=au();a.currentTime>3?a.currentTime=0:play(Math.max(0,i-1))};
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  async function draw(){const a=MIX.el,pl=a&&!a.paused&&i>=0;let lists='';
+    if(view==='l'){const all=await dbDo('readonly',s=>s.getAll());lists=(all||[]).map(l=>'<div class="t" data-l="'+esc(l.name)+'"><i class="fas fa-folder"></i><span>'+esc(l.name)+' ('+l.tracks.length+')</span><button data-d="'+esc(l.name)+'"><i class="fas fa-trash"></i></button></div>').join('')||'<div style="opacity:.6;padding:8px">لا توجد قوائم محفوظة</div>'}
+    P.innerHTML='<h4><span><i class="fas fa-music" style="color:#C9A961"></i> الأغاني</span><button id="mzX"><i class="fas fa-xmark"></i></button></h4>'+
+    '<div class="r"><button id="mzP"><i class="fas fa-backward-step"></i></button><button id="mzPl" class="on"><i class="fas fa-'+(pl?'pause':'play')+'"></i></button><button id="mzN"><i class="fas fa-forward-step"></i></button><button id="mzS" class="'+(shuf?'on':'')+'"><i class="fas fa-shuffle"></i></button><button id="mzR" class="'+(rep?'on':'')+'"><i class="fas fa-'+(rep===2?'1':'repeat')+'"></i></button><span style="flex:1"></span><button id="mzA"><i class="fas fa-plus"></i> إضافة أغاني</button></div>'+
+    '<div class="r"><i class="fas fa-volume-high"></i><input type="range" id="mzV" min="0" max="100" value="'+Math.round((MIX.mus?MIX.mus.gain.value:.8)*100)+'"><button id="mzSv">حفظ كقائمة</button><button id="mzL" class="'+(view==='l'?'on':'')+'">القوائم</button></div>'+
+    (view==='l'?lists:tr.map((t,n)=>'<div class="t '+(n===i?'cur':'')+'" data-n="'+n+'"><i class="fas fa-'+(n===i&&pl?'volume-high':'music')+'"></i><span>'+esc(t.name)+'</span><button data-r="'+n+'"><i class="fas fa-xmark"></i></button></div>').join('')||'<div style="opacity:.6;padding:8px">أضف أغاني من جهازك ثم اضغط تشغيل — الصوت يُبثّ مع صوتك</div>');
+    const q=s=>P.querySelector(s);q('#mzX').onclick=()=>P.hidden=true;q('#mzA').onclick=()=>fi.click();q('#mzPl').onclick=()=>{const a=au();if(i<0)return play(0);a.paused?a.play():a.pause();setTimeout(draw,50)};q('#mzN').onclick=next;q('#mzP').onclick=prev;
+    q('#mzS').onclick=()=>{shuf=!shuf;draw()};q('#mzR').onclick=()=>{rep=(rep+1)%3;draw()};q('#mzL').onclick=()=>{view=view==='l'?'q':'l';draw()};q('#mzV').oninput=e=>{au();MIX.mus.gain.value=e.target.value/100};
+    q('#mzSv').onclick=async()=>{if(!tr.length)return;const n=prompt('اسم القائمة؟');if(!n)return;await dbDo('readwrite',s=>s.put({name:n,tracks:tr.map(t=>({name:t.name,blob:t.blob}))}));view='l';draw()};
+    P.querySelectorAll('[data-n]').forEach(e=>e.onclick=()=>play(+e.dataset.n));P.querySelectorAll('[data-r]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const n=+e.dataset.r;tr.splice(n,1);if(n<i)i--;else if(n===i){au().pause();i=-1}draw()});
+    P.querySelectorAll('[data-l]').forEach(e=>e.onclick=async()=>{const l=await dbDo('readonly',s=>s.get(e.dataset.l));if(l){tr=l.tracks.map(t=>({name:t.name,blob:t.blob}));i=-1;view='q';draw()}});
+    P.querySelectorAll('[data-d]').forEach(e=>e.onclick=async ev=>{ev.stopPropagation();await dbDo('readwrite',s=>s.delete(e.dataset.d));draw()})}
+  fi.onchange=()=>{[...fi.files].forEach(f=>tr.push({name:f.name.replace(/\.[^.]+$/,''),blob:f}));fi.value='';view='q';draw()};
+  b.onclick=()=>{P.hidden=!P.hidden;if(!P.hidden)draw()};
+  new MutationObserver(()=>{if(!ov.isConnected){MIX.close();tr.forEach(t=>t.url&&URL.revokeObjectURL(t.url))}}).observe(document.body,{childList:true});
+}
+new MutationObserver(ms => ms.forEach(x => x.addedNodes.forEach(n => { if (n.nodeType === 1 && n.classList && n.classList.contains('lvx') && n.dataset.host === '1') music(n); }))).observe(document.documentElement, {childList:true, subtree:true});
+})();
+
 /* ---------- 🔴 البث المباشر (مشاهدة) ---------- */
 const liveCard = L => { const on = liveOn(L), cut = L.status==='live' && !on;
   return `<div class="card lvc"><div style="display:flex;align-items:center;gap:8px"><span class="lvb ${on?'on':''}"><i class="fas fa-circle" style="font-size:8px"></i> ${on?'مباشر الآن':cut?'انقطع':'انتهى'}</span><small style="flex:1;text-align:left;color:var(--text-sub)">${ago(L.startedAt)}</small></div>
   <b style="font-size:16px">${esc(L.title||'بث مباشر')}</b><small style="color:var(--text-sub)">${esc(L.hostName||ADMIN_NAME)}${L.duration?` · المدة ${clk(L.duration)}`:''}</small>
   <button class="btn xs primary" data-a="${L.external?'extLive':'liveOpen'}" data-id="${L.id}" data-url="${esc(L.url||'')}" data-title="${esc(L.title||'بث مباشر')}" style="align-self:flex-start"><i class="fas ${on?'fa-tower-broadcast':'fa-play'}"></i> ${on?'شاهد البث':'مشاهدة الإعادة'}</button></div>`; };
 const liveItems = () => { const l = S.lives.filter(L => L.status==='live' || L.chunks > 0 || L.status==='ended'), out = [...extLives().map(x => ({key:'xl'+x.p.id, html:extLiveCard(x)})), ...l.map(L => ({key:'lv'+L.id, html:liveCard(L)}))];
-  if (!out.length) out.push({key:'le', html:emptyBox('fa-tower-broadcast','لا توجد بثوث حالياً','سيصلك إشعار عند بدء بث مباشر جديد')}); return out; };
+  if (!out.length) out.push({key:'le', html:emptyBox('fa-tower-broadcast','لا توجد بثوث حالياً','سيصلك إشعار عند بدء بث مباشر جديد')}); const sc = liveStartCard(); if (sc) out.unshift({key:'lvstart', html:sc}); return out; };
 
 async function liveView(id, X){
   const L0 = X ? {id, external:true, status:'live', title:X.title||'بث مباشر', hostName:X.host||'ميزان', url:X.url} : S.lives.find(x => x.id === id); if (!L0) return;
@@ -1625,7 +1901,7 @@ async function liveView(id, X){
   ov.innerHTML = `${X ? xlStage(X.url, uName(uid)) : '<video id="lrV" playsinline autoplay></video>'}${L0.audioOnly?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1d2a24,#050505)"><i class="fas fa-headphones" id="lvPh" style="font-size:72px;color:#C9A961"></i><img id="lvCvI" alt="" style="display:none;max-width:100%;max-height:100%;object-fit:contain"></div>':''}<div class="lvshade"></div>
     <div class="lvtop"><button class="rb" id="lvX" title="إغلاق"><i class="fas fa-xmark"></i></button><span class="lvt ${live?'live':''}" id="lrB">${live?'● مباشر':'إعادة'}</span><button class="lvvw" id="lvVw" title="المشاهدون" style="border:0;color:#fff;font:inherit;cursor:pointer"><i class="fas fa-eye"></i> <b id="lvVn">٠</b></button><span style="flex:1;min-width:0;font-weight:800;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(L0.title||'بث مباشر')}</span><span class="lvchip" id="lvTot"></span></div>
     <div class="lvst" id="lrS">جارٍ التحميل…</div>
-    <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"><i class="fas fa-gift"></i></button>${X ? xlSide(X.url) : ''}</div>
+    <div class="lvside"><button class="rb" id="lvG" title="إرسال هدية"${L0.hostId&&L0.hostId!==ADMIN?' style="display:none"':''}><i class="fas fa-gift"></i></button>${X ? xlSide(X.url) : ''}</div>
     <div class="lvcm" id="lvCm"></div><div class="lvrp" id="lvRp"></div>
     <div class="lvbar"><div class="lvin"><input id="lvCi" placeholder="اكتب تعليقاً…" maxlength="300"><button id="lvCs" title="إرسال"><i class="fas fa-paper-plane"></i></button></div></div><div class="lvsh" id="lvSh"></div>`;
   document.body.appendChild(ov); document.body.style.overflow = 'hidden'; if (live) SFX.play('ping');
@@ -1805,7 +2081,7 @@ Object.assign(H, {
   extLive:t => extLiveView(t.dataset.url, t.dataset.title, t.dataset.id), sqToggle:() => { S.tab = 'posts'; const on = !document.body.classList.contains('sq-on'); document.body.classList.toggle('sq-on', on); if (!on) S.q = ''; S.limit = 20; draw(); scrollTo({top:0}); if (on) setTimeout(() => { const i = $('sq'); if (i) i.focus(); }, 160); navPaint(); },
   sqClear:() => { const i = $('sq'); if (i){ i.value = ''; i.focus(); } S.q = ''; const x = $('sqx'); if (x) x.hidden = true; draw(); },
   stNew:storyForm, stOpen:t => openStories(t.dataset.k), newPoll:pollForm,
-  liveOpen:t => liveView(t.dataset.id),
+  liveOpen:t => { if (document.querySelector('.lvx[data-host="1"]')) return toast('أنت تبث الآن','error'); liveView(t.dataset.id); }, liveStart:() => liveGate(),
   pvote:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || !pOpen(p)) return; if (!uid) return toast('سجّل الدخول أولاً','error');
     const o = t.dataset.o, cur = p.votes?.[uid] || []; let nv = p.multi ? (cur.includes(o) ? cur.filter(x => x !== o) : [...cur, o]) : (cur.includes(o) ? [] : [o]);
     p.votes = {...(p.votes||{})}; if (nv.length) p.votes[uid] = nv; else delete p.votes[uid]; draw();
@@ -1948,7 +2224,7 @@ function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!s
 function extLives(){ const out = []; S.posts.forEach(p => { if ((p.status||'published') !== 'published' || p.deleted) return; const m = (p.media||[]).find(x => x.type === 'link' && x.live); if (m) out.push({p, url:m.url}); }); return out.sort((a,b) => (tsd(b.p.createdAt)||Date.now()) - (tsd(a.p.createdAt)||Date.now())); }
 function extLiveCard(x){ const p = x.p, a = authorOf(p), t = (p.text||'بث مباشر').split('\n')[0].slice(0,80);
   return `<div class="card lvv"><div class="lvv-h">${avatarLink(a,'av40')}<div style="flex:1;min-width:0"><b>${nameLink(a)}${badge(a)}</b><small>${ago(p.createdAt)}</small></div></div><button class="xl-th" data-a="extLive" data-id="x_${x.p.id}" data-url="${esc(x.url)}" data-title="${esc(t)}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(t)}</span></button></div>`; }
-function liveVideoCard(L){ const hd = `<div class="lvv-h"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b>${esc(L.hostName||ADMIN_NAME)}</b><small>${ago(L.startedAt)}</small></div></div>`;
+function liveVideoCard(L){ const hd = `<div class="lvv-h"><img src="${esc(L.hostAvatar||LOGO)}" alt="" onerror="this.onerror=null;this.src='${LOGO}'"><div style="flex:1;min-width:0"><b>${esc(L.hostName||ADMIN_NAME)}</b><small>${ago(L.startedAt)}</small></div></div>`;
   if (L.external && L.url) return `<article class="card lvv">${hd}<button class="xl-th" data-pv="1" data-a="extLive" data-id="${L.id}" data-url="${esc(L.url)}" data-title="${esc(L.title||'بث مباشر')}"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-play"></i></span><span class="tt">${esc(L.title||'بث مباشر')}</span></button></article>`;
   return `<article class="card lvv">${hd}<div class="xl-th" data-a="liveOpen" data-id="${L.id}" role="button"><span class="bd"><i class="fas fa-circle"></i>مباشر الآن</span><span class="pl"><i class="fas fa-tower-broadcast"></i></span><span class="tt">انقر لمشاهدة البث</span></div></article>`; }
 /* ===== بث الرابط: مدمج بالكامل داخل منصة ميزان ===== */
