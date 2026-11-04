@@ -110,6 +110,11 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 .apo button.on{background:var(--primary);color:var(--bg-card);border-color:var(--accent)}
 #rd.apon #rc{padding-bottom:210px}
 body.apon .wrap{padding-bottom:230px}
+#rd.pm #rc .q{line-height:2.15}
+.nav button.lk{opacity:.6;background:var(--accent);color:var(--primary)}
+.sheet input{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font:700 14px 'Cairo';margin:6px 0}
+.sheet .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.sheet .chips button{padding:7px 11px;border:2px solid var(--border);border-radius:10px;background:var(--bg-input);color:var(--text-main);font:800 12px 'Cairo';cursor:pointer}
 .act button.dgb{background:var(--error);color:#fff;border-color:var(--error)}
 .kc .chips button.on,.kc .chips button.on:active{background:var(--primary);color:var(--bg-card);border-color:var(--accent)}
 .kr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:700}
@@ -128,7 +133,7 @@ body.apon .wrap{padding-bottom:230px}
 <main class="wrap" id="home">
 <div class="hero"><h1>📖 القرآن الكريم</h1><p>اقرأ بين يديك، حتى بدون إنترنت</p>
 <div class="cont" id="cont"><i class="fas fa-bookmark"></i><span id="contT">ابدأ القراءة</span></div>
-<div class="cont" id="dl" style="margin-top:8px"><i class="fas fa-file-pdf"></i><span>تحميل المصحف كاملاً (PDF)</span></div>
+<div class="cont" id="dl" style="margin-top:8px"><i class="fas fa-file-pdf"></i><span>تحميل المصحف (PDF) أو صفحة منفردة</span></div>
 <div class="pbar"><i id="pg" style="width:0"></i></div><div class="stt" id="stt">جاري التحميل...</div><div class="stt" id="khs"></div></div>
 <div class="tabs" id="tabs"><button class="on" data-t="s">السور</button><button data-t="l">🎧 الاستماع</button><button data-t="j">الأجزاء</button><button data-t="h">الأحزاب</button><button data-t="k">الختمة</button><button data-t="b">العلامات</button></div>
 <input id="sq" placeholder="ابحث عن سورة...">
@@ -138,7 +143,7 @@ body.apon .wrap{padding-bottom:230px}
 <div id="rd">
 <div class="rb"><button class="ib" id="rx"><i class="fas fa-arrow-right"></i></button><div class="t" id="rt"></div>
 <span id="mb" style="display:flex;gap:4px"><button class="ib" data-m="ayah" title="آية بآية"><i class="fas fa-square"></i></button><button class="ib" data-m="page" title="صفحات المصحف"><i class="fas fa-book-open"></i></button><button class="ib" data-m="scroll" title="عرض مستمر"><i class="fas fa-bars"></i></button></span>
-<button class="ib" id="fm">A-</button><button class="ib" id="fp">A+</button></div>
+<button class="ib" id="pdl" title="تحميل هذه الصفحة كصورة"><i class="fas fa-download"></i></button><button class="ib" id="fm">A-</button><button class="ib" id="fp">A+</button></div>
 <div id="rc"></div>
 <div class="nav" id="nv"><button id="nn"><i class="fas fa-chevron-right"></i> السابق</button><button id="np">التالي <i class="fas fa-chevron-left"></i></button></div>
 <div class="as" id="as"><button id="as-"><i class="fas fa-minus"></i></button><button id="asp"><i class="fas fa-play"></i></button><span id="asl">متوسط</span><button id="as+"><i class="fas fa-plus"></i></button></div>
@@ -225,7 +230,7 @@ async function flush(){if(!fb||!navigator.onLine||!S.tracking)return;const D=pen
   try{await fb.F.setDoc(fb.F.doc(fb.db,'quranProgress',uid),{name:uname,surah:SI[cur],ayah:AI[cur],maxIdx,readTotal,khatmas:KH.done.length,khPages:khRead(),lastAt:fb.F.serverTimestamp(),days:{[today()]:{opens:fb.F.increment(D.o||0),ayahs:fb.F.increment(D.a||0),surah:SI[cur],ayah:AI[cur]}}},{merge:true});localStorage.setItem('q_pend','{}')}catch(e){}}
 setInterval(flush,15000);addEventListener('online',flush);addEventListener('pagehide',flush);
 let sv=0,lock=false,uscr=false;
-function mark(i){cur=i;
+function mark(i){cur=i;localStorage.setItem('q_cur',i);
   const D=pend();D.d=1;if(!opened){opened=true;D.o=(D.o||0)+1}
   if(!seen(i)){SEEN[i>>3]|=1<<(i&7);readTotal++;D.a=(D.a||0)+1}
   if(i>maxIdx){maxIdx=i;localStorage.setItem('q_max',i)}
@@ -242,22 +247,22 @@ const words=i=>Q[i].split(' ').map((w,k)=>`<span class="w" data-k="${k}">${esc(w
 const ay=i=>`<span class="a" data-i="${i}">${words(i)} <span class="n">﴿${ar(AI[i])}﴾</span></span> ${pe(i)}`;
 const head=s=>`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية</small>`:''}</div>${s!==1&&s!==9?`<div class="bs bm" data-i="1">${esc(Q[1])}</div>`:''}`;
 const surahHtml=s=>head(s)+'<div class="q">'+Array.from({length:AC[s]},(_,k)=>ay(g(s,k+1))).join('')+'</div>';
-function setQ(){$('rc').style.fontSize=(fs||S.fontSize)+'px'}
+function setQ(){$('rd').classList.toggle('pm',mode==='page');$('np').classList.remove('lk');$('np').innerHTML='التالي <i class="fas fa-chevron-left"></i>';$('rc').style.fontSize=(mode==='page'?24:(fs||S.fontSize))+'px'}
 function obs(){io.disconnect();$('rc').querySelectorAll('.a').forEach(e=>io.observe(e))}
 function render(i){
-  const rc=$('rc');rc.scrollTop=0;uscr=false;setQ();$('nv').classList.toggle('on',mode!=='scroll');asSet(false);$('as').classList.toggle('on',mode==='scroll');
-  document.querySelectorAll('#mb button').forEach(b=>{b.classList.toggle('on',b.dataset.m===mode);b.style.display=S.allowSwitch&&S.modes[b.dataset.m]&&(b.dataset.m!=='page'||PGs)?'':'none'});
+  const rc=$('rc');rc.scrollTop=0;uscr=false;if(KR)mode='page';setQ();$('nv').classList.toggle('on',mode!=='scroll');asSet(false);$('as').classList.toggle('on',mode==='scroll');
+  document.querySelectorAll('#mb button').forEach(b=>{b.classList.toggle('on',b.dataset.m===mode);b.style.display=!KR&&S.allowSwitch&&S.modes[b.dataset.m]&&(b.dataset.m!=='page'||PGs)?'':'none'});
   if(mode==='ayah'){const s=SI[i],n=AC[s],a=AI[i];rc.innerHTML=(a===1?head(s):`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(n)} آية</small>`:''}</div>`)+`<div class="card-a"><div class="q">${ay(i)}</div><div class="cn">آية <b>${ar(a)}</b> من ${ar(n)}</div></div><input type="range" id="rg" min="1" max="${n}" value="${a}">`;$('rg').onchange=e=>go(g(s,+e.target.value));$('np').disabled=i>=TOTAL;$('nn').disabled=i<=1;$('np').onclick=()=>go(i+1);$('nn').onclick=()=>go(i-1)}
-  else if(mode==='page'){const p=loc(PGs,i),a=PGs[p-1],b=p<604?PGs[p]-1:TOTAL;let h='<div class="q">';for(let k=a;k<=b;k++){if(AI[k]===1)h+='</div>'+head(SI[k])+'<div class="q">';h+=ay(k)}rc.innerHTML=h+`</div><div class="sh" style="margin-top:20px">صفحة ${ar(p)}</div>`;$('np').disabled=p>=604;$('nn').disabled=p<=1;$('np').onclick=()=>go(PGs[p]);$('nn').onclick=()=>go(PGs[p-2])}
+  else if(mode==='page'){const p=loc(PGs,i),a=PGs[p-1],b=p<604?PGs[p]-1:TOTAL;let h='<div class="q">';for(let k=a;k<=b;k++){if(AI[k]===1)h+='</div>'+head(SI[k])+'<div class="q">';h+=ay(k)}rc.innerHTML=h+`</div><div class="sh" style="margin-top:20px">صفحة ${ar(p)}</div>`;pgNav(p);$('np').onclick=()=>{if(pgLocked(p)&&p<(KR?KR.to:604)){toast('اضغط «تمت قراءة الصفحة» أولاً');return}go(PGs[p])};$('nn').onclick=()=>go(PGs[p-2])}
   else{let s=SI[i];rc.innerHTML=surahHtml(s)+'<div id="sen" style="height:40px"></div>';const sen=$('sen'),so=new IntersectionObserver(e=>{if(e[0].isIntersecting&&s<114){s++;sen.insertAdjacentHTML('beforebegin',surahHtml(s));rc.querySelectorAll('.a').forEach(x=>io.observe(x))}else if(s>=114)so.disconnect()});so.observe(sen);const el=rc.querySelector(`[data-i="${i}"]`);if(el&&AI[i]>1)el.scrollIntoView()}
-  obs();mark(i);hl()}
+  obs();mark(i);hl();fitPage()}
 const go=i=>{if(i>=1&&i<=TOTAL)render(i)};
-function open(i){if(!S.enabled)return toast('القرآن غير متاح حالياً');lock=false;const okm=m=>S.modes[m]&&(m!=='page'||PGs);let m=S.allowSwitch&&localStorage.getItem('q_mode');if(!m||!okm(m))m=okm(S.defaultMode)?S.defaultMode:(['ayah','scroll','page'].find(okm)||'ayah');mode=m;$('rd').classList.add('on');history.pushState({r:1},'');render(i)}
-function close(){$('rd').classList.remove('on');io.disconnect();localStorage.setItem('q_seen',btoa(String.fromCharCode(...SEEN)));flush();home()}
+function open(i,kr){if(!S.enabled)return toast('القرآن غير متاح حالياً');lock=false;KR=kr||null;const okm=m=>S.modes[m]&&(m!=='page'||PGs);let m=S.allowSwitch&&localStorage.getItem('q_mode');if(!m||!okm(m))m=okm(S.defaultMode)?S.defaultMode:(['ayah','scroll','page'].find(okm)||'ayah');mode=KR?'page':m;localStorage.setItem('q_open','1');if(KR)localStorage.setItem('q_kr',JSON.stringify(KR));else localStorage.removeItem('q_kr');$('rd').classList.add('on');history.pushState({r:1},'');render(i)}
+function close(){localStorage.removeItem('q_open');localStorage.removeItem('q_kr');KR=null;$('rd').classList.remove('on');io.disconnect();localStorage.setItem('q_seen',btoa(String.fromCharCode(...SEEN)));flush();home()}
 $('rx').onclick=()=>history.back();addEventListener('popstate',()=>{if($('rd').classList.contains('on'))close()});
 document.querySelectorAll('#mb button').forEach(b=>b.onclick=()=>{if(!S.allowSwitch||!S.modes[b.dataset.m])return;mode=b.dataset.m;localStorage.setItem('q_mode',mode);render(cur)});
-$('fm').onclick=()=>{fs=Math.max(18,(fs||S.fontSize)-2);localStorage.setItem('q_fs',fs);setQ()};
-$('fp').onclick=()=>{fs=Math.min(60,(fs||S.fontSize)+2);localStorage.setItem('q_fs',fs);setQ()};
+$('fm').onclick=()=>{if(mode==='page'){pfs=Math.max(.6,+(pfs-.06).toFixed(2));localStorage.setItem('q_pfs',pfs);fitPage();return}fs=Math.max(18,(fs||S.fontSize)-2);localStorage.setItem('q_fs',fs);setQ()};
+$('fp').onclick=()=>{if(mode==='page'){pfs=Math.min(1.8,+(pfs+.06).toFixed(2));localStorage.setItem('q_pfs',pfs);fitPage();return}fs=Math.min(60,(fs||S.fontSize)+2);localStorage.setItem('q_fs',fs);setQ()};
 
 // ===== تفسير / معنى / سبب نزول =====
 const FILES={t:['tafsir','التفسير الميسر'],t2:['tafsir2','تفسير الجلالين'],a:['asbab','أسباب النزول'],w:['words','معاني الكلمات']};
@@ -278,9 +283,12 @@ function menu(i){const bm=BM().some(x=>x.i===i);
 $('rc').addEventListener('click',e=>{const pb=e.target.closest('.pgb');if(pb){khToggle(+pb.dataset.p);return}const a=e.target.closest('.a,.bm');if(!a)return;const i=+a.dataset.i;
   if(e.target.closest('.n'))return menu(i);
   const w=e.target.closest('.w');explain(i,w?+w.dataset.k:null)});
-$('shb').addEventListener('click',async e=>{const rcb=e.target.closest('[data-rec]');if(rcb){pickRec(rcb.dataset.rec);return}const b=e.target.closest('[data-act]');if(!b)return;const i=+$('shb').dataset.i,act=b.dataset.act;
+$('shb').addEventListener('click',async e=>{const rcb=e.target.closest('[data-rec]');if(rcb){pickRec(rcb.dataset.rec);return}const spb=e.target.closest('[data-sp]');if(spb){$('dpn').value=spb.dataset.sp;return}const b=e.target.closest('[data-act]');if(!b)return;const i=+$('shb').dataset.i,act=b.dataset.act;
   if(act==='cok'){const f=CB;CB=null;$('sh').classList.remove('on');if(f)f();return}
   if(act==='ccancel'){CB=null;$('sh').classList.remove('on');return}
+  if(act==='dlall'){$('sh').classList.remove('on');dl();return}
+  if(act==='dlpg'){dlPage(pnum());return}
+  if(act==='dlgo'){const p=pnum();if(!(p>=1&&p<=604&&PGs))return toast('اكتب رقم صفحة من ١ إلى ٦٠٤');$('sh').classList.remove('on');open(PGs[p-1]);return}
   if(act==='khclose'){$('sh').classList.remove('on');return}
   if(act==='khnew'){tab='k';document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='k'));$('sh').classList.remove('on');if($('rd').classList.contains('on'))history.back();else home();return}
   if(act==='tafsir')return explain(i);
@@ -358,7 +366,7 @@ function apStartSurah(s){if(!AU().enabled)return toast('الاستماع غير 
   if(apOn&&SI[apI]===s&&P.all&&!P.echo){apToggle();return}
   if(!navigator.onLine)toast('الصوت يحتاج اتصالاً بالإنترنت');
   P.echo=false;P.rep=1;P.cont=true;P.all=true;asSet(false);apPlay(g(s,1))}
-function apUI(){const a=$('ap');a.classList.toggle('on',apOn);$('rd').classList.toggle('apon',apOn);document.body.classList.toggle('apon',apOn);if(!apOn)return;
+function apUI(){const a=$('ap'),was=$('rd').classList.contains('apon');a.classList.toggle('on',apOn);$('rd').classList.toggle('apon',apOn);if(was!==apOn&&mode==='page')fitPage();document.body.classList.toggle('apon',apOn);if(!apOn)return;
   a.classList.toggle('gap',apSt==='gap');
   const t=apSt==='gap'?'🎙 رددها الآن ورا الشيخ':apSt==='error'?'تعذّر تحميل الصوت':apSt==='done'?'انتهى — اضغط للإعادة':RECS[apRec()].n+(P.rep>1?` • مرة ${ar(apN)} من ${ar(P.rep)}`:'');
   $('apt').innerHTML=`<b>${SN[SI[apI]]} • آية ${ar(AI[apI])}</b><small>${esc(t)}</small>`;
@@ -417,7 +425,7 @@ function dl(){
 <div class="dd"><h2>منصة ميزان</h2><small>${esc(location.origin)}</small><div class="bx"><b>صدقة جارية</b><br>${ded}</div><small>نص القرآن: Tanzil.net — tanzil.net</small></div>${b}<script>${fit}<\/script></body></html>`;
     const f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0';f.srcdoc=html;
     f.onload=()=>setTimeout(()=>{const w=f.contentWindow;w.onafterprint=()=>f.remove();w.focus();w.print()},3000);document.body.appendChild(f)},60)}
-$('dl').onclick=dl;
+$('dl').onclick=dlMenu;
 
 // ===== الختمة =====
 const ORD=['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة'];
@@ -441,7 +449,9 @@ function pe(k){if(!PGs||!KH.cur)return'';if(!PEs)PEs=new Set([...PGs.slice(1).ma
   return`<div class="pgend"><button class="pgb${on?' done':''}" data-p="${p}">${on?'✓ تمت قراءة الصفحة ':'تم قراءة الصفحة '}${ar(p)}</button></div>`}
 function khToggle(p){const c=KH.cur;if(!c)return;const a=c.read.split('');a[p-1]=a[p-1]==='1'?'0':'1';c.read=a.join('');khSave();
   document.querySelectorAll(`.pgb[data-p="${p}"]`).forEach(b=>{const on=a[p-1]==='1';b.classList.toggle('done',on);b.textContent=(on?'✓ تمت قراءة الصفحة ':'تم قراءة الصفحة ')+ar(p)});
-  if(a[p-1]==='1'&&khRead()===604)khFinish()}
+  if(KR&&mode==='page'&&PGs&&loc(PGs,cur)===p)pgNav(p);
+  if(a[p-1]==='1'&&khRead()===604)khFinish();
+  else if(a[p-1]==='1'&&KR&&readRange(c,KR.from,KR.to))rangeDone()}
 function khFinish(){const c=KH.cur,days=Math.max(1,dnum(today())-dnum(c.start)+1);KH.done.push({n:KH.done.length+1,start:c.start,end:today(),days,plan:c.days});KH.cur=null;khSave();
   show(`<h4>🎉 اكتملت الختمة ${ordn(KH.done.length)}</h4><p>الحمد لله، أتممت ختمة القرآن في ${ar(days)} يوم. تقبّل الله منك وبارك فيك.</p><div class="act"><button class="pri" data-act="khnew">ختمة جديدة</button><button data-act="khclose">إغلاق</button></div>`)}
 function khStat(){const e=$('khs');if(KH.cur){const r=khRead(),pl=khPlan(KH.cur);e.textContent=`الختمة ${ordn(KH.done.length+1)}: ${ar(r)} من ${ar(604)} صفحة${pl.cnt&&!pl.over?` • وردك اليوم ${ar(pl.cnt)} صفحة`:''}`}
@@ -459,14 +469,80 @@ function khHtml(){const c=KH.cur;let h='';
   h+=`<div class="kc"><h3>الختمة ${ordn(KH.done.length+1)} — خطة ${ar(c.days)} يوم</h3><div class="pbar" style="background:var(--border)"><i style="width:${r*100/604}%"></i></div><p>قرأت ${ar(r)} من ${ar(604)} صفحة • اليوم ${ar(pl.d)} من ${ar(c.days)}</p>`;
   if(pl.over)h+=`<p>انتهت المدة المقررة وبقي ${ar(604-r)} صفحة.</p>`;
   else if(!pl.cnt)h+='<p>لا ورد مقرر اليوم (يوم راحة في خطتك).</p>';
-  else h+=`<p>وردك اليوم: ${ar(pl.cnt)} ${pl.cnt>2&&pl.cnt<11?'صفحات':'صفحة'} (من ص ${ar(pl.from)} إلى ص ${ar(pl.to)})</p>`+pl.sl.map(x=>{const n=x.to-x.from+1,dn=readRange(c,x.from,x.to);return`<div class="slot${dn?' ok':''}" data-kp="${x.from}"><div>${x.n}<small>اقرأ ${ar(n)} ${n>2&&n<11?'صفحات':'صفحة'} • من ص ${ar(x.from)} إلى ص ${ar(x.to)}</small></div><span class="ck">${dn?'✓':'<i class="fas fa-chevron-left"></i>'}</span></div>`}).join('');
+  else h+=`<p>وردك اليوم: ${ar(pl.cnt)} ${pl.cnt>2&&pl.cnt<11?'صفحات':'صفحة'} (من ص ${ar(pl.from)} إلى ص ${ar(pl.to)})</p><button class="kb pri" data-kp="${pl.from}" data-kto="${pl.to}">📖 ابدأ ورد اليوم (ص ${ar(pl.from)} – ${ar(pl.to)})</button>`+pl.sl.map(x=>{const n=x.to-x.from+1,dn=readRange(c,x.from,x.to);return`<div class="slot${dn?' ok':''}" data-kp="${x.from}" data-kto="${x.to}"><div>${x.n}<small>اقرأ ${ar(n)} ${n>2&&n<11?'صفحات':'صفحة'} • من ص ${ar(x.from)} إلى ص ${ar(x.to)}</small></div><span class="ck">${dn?'✓':'<i class="fas fa-chevron-left"></i>'}</span></div>`}).join('');
   if(pl.missed)h+=`<p>⚠️ متأخر عن ${ar(pl.missed)} صفحة من الأيام السابقة.</p>`;
-  const fu=c.read.indexOf('0')+1;if(fu)h+=`<button class="kb pri" data-kp="${fu}">تابع من أول صفحة غير مقروءة (ص ${ar(fu)})</button>`;
+  const fu=c.read.indexOf('0')+1;if(fu)h+=`<button class="kb pri" data-kp="${fu}" data-kto="${Math.max(fu,pl.to||fu)}">تابع من أول صفحة غير مقروءة (ص ${ar(fu)})</button>`;
   return h+'<button class="kb dg" data-kh="cancel" style="margin-top:8px">إلغاء هذه الختمة</button></div>'}
 function khAct(a,n){
   if(a==='start'){const d=Math.round(+$('khd').value);if(!(d>=1&&d<=3650))return toast('اختر عدداً من ١ إلى ٣٦٥٠');KH.cur={start:today(),days:d,mode:$('khm').dataset.v,duha:$('khdu').classList.contains('on'),read:'0'.repeat(604)};khSave();toast('بدأت الختمة، بارك الله لك ✓');home()}
   else if(a==='cancel')askC('إلغاء الختمة الحالية؟','سيتم إلغاء الختمة وفقدان كل تقدمك فيها. لا يمكن التراجع عن ذلك.','نعم، ألغِ الختمة',()=>{KH.cur=null;khSave();home()});
   else if(a==='del'&&KH.done[n])askC('حذف الختمة '+ordn(KH.done[n].n)+'؟','سيتم حذف هذه الختمة من سجل ختماتك. لا يمكن التراجع عن ذلك.','نعم، احذفها',()=>{KH.done.splice(n,1);KH.done.forEach((x,k)=>x.n=k+1);khSave();home()})}
+
+// ===== ثبات المكان عند التحديث + ورد الختمة + تحميل الصفحات + ملء الشاشة =====
+var KR=null,pfs=+localStorage.getItem('q_pfs')||1;
+function restore(){if(localStorage.getItem('q_open')!=='1'||!S.enabled||!Q)return;const ci=+localStorage.getItem('q_cur');if(!(ci>=1&&ci<=TOTAL))return;
+  let kr=null;try{kr=JSON.parse(localStorage.getItem('q_kr')||'null')}catch(e){}
+  if(kr&&!(PGs&&KH.cur&&kr.from>=1&&kr.to<=604&&kr.from<=kr.to))kr=null;
+  open(ci,kr)}
+const pgLocked=p=>!!(KR&&KH.cur&&KH.cur.read[p-1]!=='1');
+function pgNav(p){const hi=KR?KR.to:604,lo=KR?KR.from:1,lk=pgLocked(p)&&p<hi;$('np').disabled=p>=hi;$('nn').disabled=p<=lo;$('np').classList.toggle('lk',lk);$('np').innerHTML=lk?'<i class="fas fa-lock"></i> أتمّ الصفحة أولاً':'التالي <i class="fas fa-chevron-left"></i>'}
+function openK(from,to){if(!PGs)return;to=Math.min(604,Math.max(from,to||from));let st=from;if(KH.cur){for(let p=from;p<=to;p++)if(KH.cur.read[p-1]!=='1'){st=p;break}}open(PGs[st-1],{from,to})}
+function rangeDone(){show(`<h4>🎉 أتممت وردك</h4><p>بارك الله لك، أتممت قراءة الصفحات المقررة (${ar(KR.from)}${KR.to>KR.from?' – '+ar(KR.to):''}). تقبّل الله منك.</p><div class="act"><button class="pri" data-act="khnew">العودة للختمة</button><button data-act="khclose">إغلاق</button></div>`)}
+// الصفحة تملأ الشاشة بالظبط، وأكبر/أصغر بتضبط فوق ده
+function fitPage(){if(mode!=='page')return;const rc=$('rc');let lo=10,hi=44,best=10;
+  while(hi-lo>.5){const m=(lo+hi)/2;rc.style.fontSize=m+'px';if(rc.scrollHeight<=rc.clientHeight+1){best=m;lo=m}else hi=m}
+  rc.style.fontSize=(best*pfs)+'px'}
+addEventListener('resize',()=>{if($('rd').classList.contains('on')&&mode==='page')fitPage()});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('rd').classList.contains('on'))fitPage()});
+// تحميل صفحة كصورة
+async function pageCanvas(p){
+  try{await Promise.all([document.fonts.load("48px 'Amiri Quran'"),document.fonts.load("900 30px Cairo")])}catch(e){}
+  const W=1200,H=1800,M=110,TOP=200,BOT=150,AW=W-2*M,AH=H-TOP-BOT;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.direction='rtl';x.textBaseline='alphabetic';
+  const a=PGs[p-1],b=p<604?PGs[p]-1:TOTAL,B=[];let c=null;
+  for(let k=a;k<=b;k++){if(AI[k]===1){c=null;B.push({t:'h',s:SI[k]});if(SI[k]!==1&&SI[k]!==9)B.push({t:'b'})}
+    if(!c){c={t:'x',w:[]};B.push(c)}
+    Q[k].split(' ').forEach(w=>c.w.push({w,g:0}));c.w.push({w:'﴿'+ar(AI[k])+'﴾',g:1})}
+  const lay=f=>{x.font=`${f}px 'Amiri Quran',serif`;const sp=f*.3,I=[];let tot=0;
+    for(const bl of B){
+      if(bl.t==='h'){I.push({t:'h',s:bl.s,h:f*2});tot+=f*2}
+      else if(bl.t==='b'){I.push({t:'b',h:f*1.6});tot+=f*1.6}
+      else{let cur=[],cw=0;const flush=j=>{I.push({t:'l',w:cur,cw,j,h:f*2.15});tot+=f*2.15};
+        for(const tk of bl.w){const tw=x.measureText(tk.w).width;if(cur.length&&cw+sp+tw>AW){flush(true);cur=[];cw=0}cw+=(cur.length?sp:0)+tw;cur.push({w:tk.w,g:tk.g,tw})}
+        if(cur.length)flush(false)}}
+    return{I,tot,sp}};
+  let f=54,L=lay(f);while(f>22&&L.tot>AH){f-=1;L=lay(f)}
+  x.fillStyle='#F5F1E8';x.fillRect(0,0,W,H);
+  x.strokeStyle='#C9A961';x.lineWidth=6;x.strokeRect(36,36,W-72,H-72);x.lineWidth=2;x.strokeRect(54,54,W-108,H-108);
+  x.textAlign='left';x.fillStyle='#5A6B66';x.font="700 30px Cairo,sans-serif";
+  const t1=`جزء ${ar(loc(JG,a))}`,t2=SN[SI[a]];x.fillText(t1,M,125);x.fillText(t2,W-M-x.measureText(t2).width,125);
+  x.strokeStyle='#C9A961';x.lineWidth=2;x.beginPath();x.moveTo(M,150);x.lineTo(W-M,150);x.stroke();
+  let y=TOP;
+  for(const it of L.I){
+    if(it.t==='h'){const bw=AW*.8,bx=(W-bw)/2,bh=f*1.5;x.strokeStyle='#C9A961';x.lineWidth=4;x.strokeRect(bx,y+(it.h-bh)/2,bw,bh);x.lineWidth=1.5;x.strokeRect(bx+7,y+(it.h-bh)/2+7,bw-14,bh-14);
+      x.fillStyle='#0B3D2E';x.font=`900 ${Math.round(f*.7)}px Cairo,sans-serif`;const tt='سورة '+SN[it.s];x.fillText(tt,(W-x.measureText(tt).width)/2,y+it.h*.64)}
+    else if(it.t==='b'){x.fillStyle='#0B3D2E';x.font=`${Math.round(f*.95)}px 'Amiri Quran',serif`;const tt=Q[1];x.fillText(tt,(W-x.measureText(tt).width)/2,y+it.h*.68)}
+    else{x.font=`${f}px 'Amiri Quran',serif`;const n=it.w.length,sum=it.w.reduce((q,t)=>q+t.tw,0);
+      const gap=it.j&&n>1?(AW-sum)/(n-1):L.sp;const tw=sum+gap*(n-1);let xr=it.j?W-M:(W+tw)/2;
+      for(const t of it.w){x.fillStyle=t.g?'#C9A961':'#0B3D2E';x.fillText(t.w,xr-t.tw,y+it.h*.68);xr-=t.tw+gap}}
+    y+=it.h}
+  x.fillStyle='#C9A961';x.font="800 36px Cairo,sans-serif";const pn=ar(p);x.fillText(pn,(W-x.measureText(pn).width)/2,H-85);
+  x.fillStyle='#5A6B66';x.font="600 22px Cairo,sans-serif";const mz='منصة ميزان';x.fillText(mz,(W-x.measureText(mz).width)/2,H-52);
+  return cv}
+async function dlPage(p){if(!PGs||!Q)return toast('بيانات الصفحات غير متاحة');if(!(p>=1&&p<=604))return toast('اكتب رقم صفحة من ١ إلى ٦٠٤');
+  toast('جاري تجهيز صفحة '+ar(p)+'…');
+  try{const cv=await pageCanvas(p);cv.toBlob(bl=>{if(!bl)return toast('تعذّر تجهيز الصورة');const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='quran-page-'+p+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('تم تجهيز صفحة '+ar(p)+' ✓')},'image/png')}
+  catch(e){console.error(e);toast('تعذّر تجهيز الصورة')}}
+const pnum=()=>{const v=String($('dpn')?$('dpn').value:'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));return Math.round(+v)};
+const nd2=t=>t.replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g,'').replace(/[ٱأإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+var NQ=null;
+function dpSearch(v){const q=nd2(v.trim()),o=$('dpr');if(!q||!PGs){o.innerHTML='';return}let h='',n=0;
+  for(let s=1;s<=114&&n<8;s++)if(nd2(SN[s]).includes(q)){h+=`<button data-sp="${loc(PGs,g(s,1))}">سورة ${SN[s]} • ص ${ar(loc(PGs,g(s,1)))}</button>`;n++}
+  if(q.length>=3){if(!NQ){NQ=new Array(TOTAL+1);for(let i=1;i<=TOTAL;i++)NQ[i]=nd2(Q[i])}let m=0;for(let i=1;i<=TOTAL&&m<8;i++)if(NQ[i].includes(q)){h+=`<button data-sp="${loc(PGs,i)}">${SN[SI[i]]}:${ar(AI[i])} • ص ${ar(loc(PGs,i))}</button>`;m++}}
+  o.innerHTML=h||'<small style="color:var(--text-sub)">لا نتائج</small>'}
+function dlMenu(){if(!Q)return;show(`<h4>⬇️ تحميل المصحف</h4><div class="act" style="grid-template-columns:1fr"><button class="pri" data-act="dlall">📄 تحميل المصحف كاملاً (PDF)</button></div>${PGs?`<h5>أو حمّل صفحة واحدة كصورة</h5><input id="dpn" type="text" inputmode="numeric" placeholder="رقم الصفحة (من ١ إلى ٦٠٤)"><input id="dps" placeholder="أو ابحث باسم سورة أو بكلمات من آية…"><div class="chips" id="dpr"></div><div class="act"><button class="pri" data-act="dlpg">🖼 حمّل الصفحة صورة</button><button data-act="dlgo">📖 افتحها في المصحف</button></div>`:'<p class="nf">بيانات الصفحات غير متاحة حالياً.</p>'}`)}
+$('shb').addEventListener('input',e=>{if(e.target.id==='dps')dpSearch(e.target.value)});
+$('pdl').onclick=()=>{if(!PGs)return toast('بيانات الصفحات غير متاحة');dlPage(loc(PGs,cur))};
 
 // ===== الرئيسية =====
 let tab='s';
@@ -484,7 +560,7 @@ function home(){
   else if(HZs)for(let k=0;k<60;k++){const x=HZs[k*4];h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الحزب ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`}
   else h='<div class="empty">بيانات الأحزاب غير متاحة</div>';
   L.innerHTML=h||'<div class="empty">لا نتائج</div>'}
-$('list').onclick=e=>{const lk=e.target.closest('[data-lk]');if(lk){pickSheikh();return}const ls=e.target.closest('[data-ls]');if(ls){apStartSurah(+ls.dataset.ls);return}const km=e.target.closest('[data-km]');if(km){document.querySelectorAll('[data-km]').forEach(b=>b.classList.toggle('on',b===km));$('khm').dataset.v=km.dataset.km;return}const kt=e.target.closest('[data-kt]');if(kt){kt.classList.toggle('on');return}const kd=e.target.closest('[data-kd]');if(kd){$('khd').value=kd.dataset.kd;return}const kp=e.target.closest('[data-kp]');if(kp){if(PGs)open(PGs[+kp.dataset.kp-1]);return}const kh=e.target.closest('[data-kh]');if(kh){khAct(kh.dataset.kh,+kh.dataset.n);return}const d=e.target.closest('[data-del]');if(d){const L=BM();L.splice(+d.dataset.del,1);localStorage.setItem('q_bm',JSON.stringify(L));return home()}const l=e.target.closest('.li');if(l)open(+l.dataset.i)};
+$('list').onclick=e=>{const lk=e.target.closest('[data-lk]');if(lk){pickSheikh();return}const ls=e.target.closest('[data-ls]');if(ls){apStartSurah(+ls.dataset.ls);return}const km=e.target.closest('[data-km]');if(km){document.querySelectorAll('[data-km]').forEach(b=>b.classList.toggle('on',b===km));$('khm').dataset.v=km.dataset.km;return}const kt=e.target.closest('[data-kt]');if(kt){kt.classList.toggle('on');return}const kd=e.target.closest('[data-kd]');if(kd){$('khd').value=kd.dataset.kd;return}const kp=e.target.closest('[data-kp]');if(kp){openK(+kp.dataset.kp,+kp.dataset.kto||0);return}const kh=e.target.closest('[data-kh]');if(kh){khAct(kh.dataset.kh,+kh.dataset.n);return}const d=e.target.closest('[data-del]');if(d){const L=BM();L.splice(+d.dataset.del,1);localStorage.setItem('q_bm',JSON.stringify(L));return home()}const l=e.target.closest('.li');if(l)open(+l.dataset.i)};
 $('cont').onclick=()=>open(pos?g(pos.s,pos.a):1);
 $('sq').oninput=home;
 const setTab=t=>{tab=t;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));home()};
@@ -493,7 +569,7 @@ $('khs').onclick=()=>setTab('k');
 function boot2(){if(Q){if(!S.enabled){$('stt').textContent='القرآن غير متاح حالياً'}home()}}
 (async()=>{
   if(!await loadQ()){const M={404:'ملف quran.json غير موجود على الموقع. ارفعه في نفس مكان quran.html',bad:'ملف quran.json غير سليم أو ناقص. نزّله من جديد من صفحة الأدمن',net:'اتصل بالإنترنت مرة واحدة على الأقل لتحميل القرآن'};$('stt').textContent='تعذّر تحميل القرآن';$('list').innerHTML='<div class="empty">'+(M[why]||M.net)+'</div>';return}
-  boot2();setTimeout(loadX,3000)})();
+  boot2();try{restore()}catch(e){}setTimeout(loadX,3000)})();
 </script>
 </body>
 </html>
