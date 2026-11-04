@@ -1637,16 +1637,16 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 /* ⚡ عرض فوري من الكاش قبل تحميل Firebase، وبعدها الصفحة تحدّث نفسها لو في أي تغيير */
 (function(){
 var K='meezan_sora_dom',U=sessionStorage.getItem('meezan_user_id'),
-IDS=['avatarBig','avatarName','avatarUsername','gradeText','roleText','roleBadge','lockBirthValue','lockEmailValue','lockNidValue','lockPhoneValue','statCode','statExams','statHomework','excellenceValue','excellenceText','excellenceFill','editFullName','editUsername','editGradeLabel','editGrade'];
+IDS=['avatarBig','avatarName','avatarUsername','gradeText','roleText','roleBadge','lockBirthValue','lockEmailValue','lockNidValue','lockPhoneValue','statCode','statExams','statHomework','excellenceValue','excellenceText','excellenceFill','editFullName','editUsername','editGradeLabel','editGrade','hsPosts','hsFollowers','hsFollowing','vbName','avVb','mpCount','mpList'];
 var isF=function(e){return /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName)};
 try{var d=JSON.parse(localStorage.getItem(K)||'null');
 if(d&&U&&d.u===U){IDS.forEach(function(i){var e=document.getElementById(i),x=d.m[i];if(!e||!x)return;
 if(x.h!=null&&!isF(e))e.innerHTML=x.h;else if(x.h!=null&&e.tagName==='SELECT')e.innerHTML=x.h;
-if(x.v!=null&&isF(e))e.value=x.v;if(x.s)e.style.cssText=x.s;if(x.c!=null)e.className=x.c});document.body.classList.add('ready')}}catch(e){}
+if(x.v!=null&&isF(e))e.value=x.v;if(x.d!=null)e.hidden=x.d;if(x.s)e.style.cssText=x.s;if(x.c!=null)e.className=x.c});document.body.classList.add('ready')}}catch(e){}
 setTimeout(function(){document.body.classList.add('ready')},1500);
 var t;function save(){try{var u=sessionStorage.getItem('meezan_user_id');if(!u)return;var m={};
 IDS.forEach(function(i){var e=document.getElementById(i);if(!e)return;var h=isF(e)&&e.tagName!=='SELECT'?null:e.innerHTML;if(h&&h.length>4e5)h=null;
-m[i]={h:h,v:isF(e)?e.value:null,s:e.style.cssText,c:e.className}});
+m[i]={h:h,v:isF(e)?e.value:null,s:e.style.cssText,c:e.className,d:e.hidden}});
 localStorage.setItem(K,JSON.stringify({u:u,m:m,t:Date.now()}))}catch(e){}}
 var q=function(){clearTimeout(t);t=setTimeout(save,1200)};
 var mo=new MutationObserver(q);
@@ -3242,7 +3242,8 @@ function renderMyPosts() {
         <div class="mp-meta"><span><i class="far fa-clock"></i>${when}</span><span><i class="far fa-thumbs-up"></i>${__num(Object.keys(p.reactions || {}).length)}</span><span><i class="far fa-comment"></i>${__num(p.commentsCount || 0)}</span>${st}</div></div>
       <i class="fas fa-chevron-left mp-go"></i></a>`;
   }).join('');
-  box.innerHTML = rows + (list.length > myPostsLimit ? `<button class="mp-more" id="mpMore">عرض المزيد (${__num(list.length - myPostsLimit)})</button>` : '');
+  const __mpHtml = rows + (list.length > myPostsLimit ? `<button class="mp-more" id="mpMore">عرض المزيد (${__num(list.length - myPostsLimit)})</button>` : '');
+  { const __t = document.createElement('template'); __t.innerHTML = __mpHtml; if (__t.innerHTML === box.innerHTML) { const __m = $('mpMore'); if (__m) __m.onclick = () => { myPostsLimit += 10; renderMyPosts(); }; return; } box.innerHTML = __mpHtml; }
   const more = $('mpMore');
   if (more) more.addEventListener('click', () => { myPostsLimit += 10; renderMyPosts(); });
 }
