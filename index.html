@@ -1756,6 +1756,43 @@
   .gate-how li i { color: var(--primary); margin: 0 2px; }
   .gate-foot { margin-top: 14px; font-size: 11.5px; color: var(--text-sub); font-weight: 600; }
 </style>
+<style id="mz-modern">
+@view-transition{navigation:auto}
+.welcome-card{background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 92%,#000),var(--primary-light))!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;box-shadow:0 18px 40px -18px var(--shadow)!important;position:relative;overflow:hidden}
+.welcome-card::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(201,169,97,.45),transparent 70%);pointer-events:none}
+.welcome-card .welcome-title,.welcome-card .user-name{color:#fff!important}
+.mz-hello{font-size:13px;font-weight:700;opacity:.8;margin-bottom:4px}
+.mz-chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.mz-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.mz-tools{display:flex;gap:10px;align-items:center;margin:0 0 14px}
+.mz-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:0 14px;height:44px;transition:border-color .2s,box-shadow .2s}
+.mz-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+.mz-search input{flex:1;border:0;background:transparent;outline:0;font:600 14px Cairo,sans-serif;color:var(--text-main)}
+.mz-search i{color:var(--text-sub)}
+.mz-resume{display:none;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:16px;background:var(--bg-card);border:1px solid var(--border);border-inline-start:4px solid var(--accent);text-decoration:none;color:var(--text-main);font-weight:800;font-size:14px}
+.mz-resume small{display:block;color:var(--text-sub);font-weight:600;font-size:12px}
+.mz-resume i.go{margin-inline-start:auto;color:var(--accent)}
+.action-btn{transition:transform .18s ease,box-shadow .18s ease}
+.action-btn:active{transform:scale(.96)}
+.action-btn.mz-hide{display:none!important}
+.mz-nav{position:fixed;inset:auto 12px 12px;z-index:60;display:none;justify-content:space-around;padding:8px;border-radius:22px;background:color-mix(in srgb,var(--bg-card) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);box-shadow:0 12px 30px -10px var(--shadow);padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.mz-nav a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:14px;font-size:11px;font-weight:800;color:var(--text-sub);text-decoration:none}
+.mz-nav a.on{color:var(--primary);background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mz-nav i{font-size:17px}
+@media(max-width:820px){.mz-nav.show{display:flex}body.mz-has-nav{padding-bottom:92px}}
+.mz-off{position:fixed;top:0;inset-inline:0;z-index:99999;transform:translateY(-100%);transition:transform .3s;background:#C0392B;color:#fff;text-align:center;padding:8px;font:800 13px Cairo,sans-serif}
+.mz-off.on{transform:none}
+.mz-ptr{position:fixed;top:-48px;left:50%;translate:-50% 0;z-index:99998;width:40px;height:40px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--primary);box-shadow:0 6px 18px var(--shadow);transition:top .2s}
+.mz-tour{position:fixed;inset:0;z-index:99997;background:rgba(5,12,9,.6);display:none;align-items:flex-end;justify-content:center;padding:16px}
+.mz-tour.on{display:flex}
+.mz-tour-card{width:min(420px,100%);background:var(--bg-card);color:var(--text-main);border-radius:24px;padding:24px;text-align:center;animation:mzUp .35s ease}
+.mz-tour-card i{font-size:34px;color:var(--accent);margin-bottom:10px}
+.mz-tour-card h3{font-size:18px;font-weight:900;margin-bottom:6px}
+.mz-tour-card p{font-size:14px;color:var(--text-sub);font-weight:600;line-height:1.8;margin-bottom:16px}
+.mz-tour-card button{border:0;border-radius:14px;padding:12px 28px;font:800 14px Cairo,sans-serif;background:var(--primary);color:var(--bg-card);cursor:pointer}
+@keyframes mzUp{from{transform:translateY(24px);opacity:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 
@@ -3871,5 +3908,57 @@ if ('serviceWorker' in navigator) {
 </script>
 
 <script type="module" src="presence.js"></script>
+<script id="mz-modern-js">
+(function(){
+var $=function(i){return document.getElementById(i)},ls=localStorage;
+var h=new Date().getHours(),g=h<5?'ليلة سعيدة':h<12?'صباح الخير':h<18?'طاب يومك':'مساء الخير';
+var t=document.querySelector('.welcome-title');
+if(t){var d=document.createElement('div');d.className='mz-hello';d.textContent=g;t.parentNode.insertBefore(d,t)}
+/* streak + level */
+var today=new Date().toDateString(),st=JSON.parse(ls.getItem('mz_streak')||'{"n":0,"days":0,"last":""}');
+if(st.last!==today){var y=new Date(Date.now()-864e5).toDateString();st.n=st.last===y?st.n+1:1;st.days++;st.last=today;ls.setItem('mz_streak',JSON.stringify(st))}
+var lv=st.days>=20?['ذهبي','#C9A961']:st.days>=5?['فضي','#cfd6d3']:['برونزي','#d9a171'];
+var meta=document.querySelector('.welcome-text-side');
+if(meta){var c=document.createElement('div');c.className='mz-chips';
+c.innerHTML='<span class="mz-chip"><i class="fas fa-fire" style="color:#ffb15c"></i>'+st.n+' يوم متواصل</span><span class="mz-chip"><i class="fas fa-medal" style="color:'+lv[1]+'"></i>المستوى '+lv[0]+'</span>';meta.appendChild(c)}
+/* search + resume */
+var sec=document.querySelector('.buttons-section'),grid=$('buttonsGrid');
+if(sec&&grid){
+var tools=document.createElement('div');tools.className='mz-tools';
+tools.innerHTML='<label class="mz-search"><i class="fas fa-search"></i><input id="mzQ" type="search" placeholder="ابحث في الأقسام" autocomplete="off"></label>';
+var res=document.createElement('a');res.className='mz-resume';res.id='mzResume';
+sec.insertBefore(res,$('loadingGrid'));sec.insertBefore(tools,res);
+var last=null;try{last=JSON.parse(ls.getItem('mz_last')||'null')}catch(e){}
+if(last&&last.href){res.href=last.href;res.innerHTML='<i class="fas fa-rotate-left"></i><span><small>أكمل من حيث توقفت</small>'+last.label.replace(/</g,'')+'</span><i class="fas fa-chevron-left go"></i>';res.style.display='flex'}
+grid.addEventListener('click',function(e){var a=e.target.closest('a.action-btn');if(a&&a.getAttribute('href')&&a.getAttribute('href').indexOf('javascript')!==0)ls.setItem('mz_last',JSON.stringify({href:a.getAttribute('href'),label:a.textContent.trim()}))});
+var q=$('mzQ');q.addEventListener('input',function(){
+var v=q.value.trim().toLowerCase(),more=grid.querySelector('.btn-show-more:not(.expanded)');
+if(v&&more)more.click();
+setTimeout(function(){grid.querySelectorAll('.action-btn').forEach(function(a){a.classList.toggle('mz-hide',!!v&&a.textContent.toLowerCase().indexOf(v)<0)})},0)});
+var em=$('emptyState');if(em){var e3=em.querySelector('h3'),e4=em.querySelector('p');if(e3)e3.textContent='لسه مفيش أقسام هنا';if(e4)e4.textContent='أول ما الإدارة تضيف أقسام هتظهر هنا تلقائياً'}
+}
+/* bottom nav (students only) */
+var nav=document.createElement('nav');nav.className='mz-nav';
+nav.innerHTML='<a class="on" href="index.html"><i class="fas fa-house"></i>الرئيسية</a><a href="contest.html"><i class="fas fa-trophy"></i>المسابقات</a><a href="stor.html"><i class="fas fa-store"></i>المتجر</a><a href="daam.html"><i class="fas fa-headset"></i>الدعم</a><a href="sora.html"><i class="fas fa-user"></i>حسابي</a>';
+document.body.appendChild(nav);
+function navCheck(){var r=$('roleText');var ok=r&&r.textContent.indexOf('طالب')>-1;nav.classList.toggle('show',!!ok);document.body.classList.toggle('mz-has-nav',!!ok)}
+if($('roleText'))new MutationObserver(navCheck).observe($('roleText'),{childList:true,characterData:true,subtree:true});navCheck();
+/* offline */
+var off=document.createElement('div');off.className='mz-off';off.textContent='أنت غير متصل بالإنترنت، بعض البيانات قد لا تتحدث';document.body.appendChild(off);
+function net(){off.classList.toggle('on',!navigator.onLine)}addEventListener('online',net);addEventListener('offline',net);net();
+/* pull to refresh */
+var p=document.createElement('div');p.className='mz-ptr';p.innerHTML='<i class="fas fa-arrow-down"></i>';document.body.appendChild(p);
+var y0=null,dy=0;
+addEventListener('touchstart',function(e){y0=scrollY===0?e.touches[0].clientY:null},{passive:true});
+addEventListener('touchmove',function(e){if(y0===null)return;dy=e.touches[0].clientY-y0;p.style.top=dy>0?Math.min(dy/2,70)-48+'px':'-48px'},{passive:true});
+addEventListener('touchend',function(){if(y0!==null&&dy>130){p.innerHTML='<i class="fas fa-rotate fa-spin"></i>';location.reload()}else p.style.top='-48px';y0=null;dy=0});
+/* onboarding */
+if(!ls.getItem('mz_tour')){
+var steps=[['fa-th-large','أقسامك في مكان واحد','كل الخدمات في الشاشة الرئيسية، وتقدر تبحث عن أي قسم بسرعة.'],['fa-fire','حافظ على سلسلتك','ادخل كل يوم عشان تكمل أيامك المتواصلة وتترقى في المستويات.'],['fa-bell','متفوتش حاجة','فعّل الإشعارات وهتوصلك التكليفات والمسابقات الجديدة فوراً.']],i=0;
+var o=document.createElement('div');o.className='mz-tour';document.body.appendChild(o);
+function draw(){var s=steps[i];o.innerHTML='<div class="mz-tour-card"><i class="fas '+s[0]+'"></i><h3>'+s[1]+'</h3><p>'+s[2]+'</p><button>'+(i<2?'التالي':'يلا نبدأ')+'</button></div>';o.querySelector('button').onclick=function(){if(++i<steps.length)draw();else{o.classList.remove('on');ls.setItem('mz_tour','1')}}}
+setTimeout(function(){if(!document.getElementById('meezanGate')||getComputedStyle(document.getElementById('meezanGate')).display==='none'){draw();o.classList.add('on')}},2500)}
+})();
+</script>
 </body>
 </html>
