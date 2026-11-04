@@ -2395,7 +2395,7 @@ function startUserListener() {
         if (!blockTriggered) {
           blockTriggered = true;
           try { document.documentElement.style.visibility = 'hidden'; } catch (e) {}
-          try { sessionStorage.setItem('meezan_logout_reason', 'disabled'); } catch (e) {}
+          if (user.isDisabled === true) { try { sessionStorage.setItem('meezan_logout_reason', 'disabled'); } catch (e) {} }
           forceLogout();
         }
         return;
@@ -2538,6 +2538,9 @@ function startHwSubsListener() {
 // ============================================================
 function renderUser(user) {
   if (!user) return;
+  const __sg = JSON.stringify(user);
+  if (window.__mzUserSig === __sg) return;   // نفس البيانات: لا تعيد الرسم
+  window.__mzUserSig = __sg;
 
   try {
     const fullName = user.fullName || user.username || 'مستخدم';
@@ -2634,6 +2637,9 @@ function updateAvatarBig(user) {
 // ============================================================
 function renderStats() {
   if (!currentUser) return;
+  const __ss = JSON.stringify([currentUser.code, currentUser.grade, allExams, allExamSubs, allHomeworks, allHwSubs]);
+  if (window.__mzStatSig === __ss) return;   // لا تغيير: لا تعيد الرسم
+  window.__mzStatSig = __ss;
 
   try {
     // 1. الكود الشخصي

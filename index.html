@@ -3418,7 +3418,7 @@ async function registerPushToken() {
     const sig = token + '|' + currentUserId;
     if (localStorage.getItem('meezan_push_sig') === sig) { return dbg('الجهاز مسجّل مسبقاً ✅'); }
     // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
-    await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp() });
+    await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp(), muteUntil: (localStorage.getItem('meezan_mute_until') === 'forever' ? 9999999999999 : Number(localStorage.getItem('meezan_mute_until') || 0)) });
     localStorage.setItem('meezan_push_sig', sig);
     dbg('تم تسجيل الجهاز بنجاح ✅');
   } catch (e) { dbg('خطأ: ' + (e.code || '') + ' ' + e.message); }
@@ -3432,6 +3432,7 @@ async function unregisterPushToken() {
   try { localStorage.removeItem('meezan_push_sig'); } catch (e) {}
 }
 
+const __isMuted = () => { try { const v = localStorage.getItem('meezan_mute_until'); return v === 'forever' || (!!v && Number(v) > Date.now()); } catch (e) { return false; } };
 async function showSystemNotification(title, body, tag) {
   if (!pushSupported() || Notification.permission !== 'granted') return;
   const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', tag: tag || 'meezan-notif', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: 'index.html' } };
@@ -3497,8 +3498,8 @@ function startNotificationsListener() {
         if (!nSnap.exists()) continue;
 
         const nData = nSnap.data();
-        showToastNotification(nData.title || 'إشعار جديد', 'info');
-        if (!isFirstSnap) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات', nid);
+        if (!__isMuted()) showToastNotification(nData.title || 'إشعار جديد', 'info');
+        if (!isFirstSnap && !__isMuted()) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات', nid);
       } catch (e) {
         console.log('notif detail error:', e.message);
       }
