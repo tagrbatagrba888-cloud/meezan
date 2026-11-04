@@ -1278,6 +1278,9 @@
 if(S.getItem('meezan_logged_in')==='true'){var o={};KS.forEach(function(k){var v=S.getItem(k);if(v!==null)o[k]=v;});localStorage.setItem(K,JSON.stringify(o));}
 else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in==='true'&&r.meezan_user_id){KS.forEach(function(k){if(r[k]!=null)S.setItem(k,r[k]);});}}}catch(e){}})();
 </script>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 </head>
 <body>
 
@@ -1630,6 +1633,26 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
   <span id="toastText"></span>
 </div>
 
+<script>
+/* ⚡ عرض فوري من الكاش قبل تحميل Firebase، وبعدها الصفحة تحدّث نفسها لو في أي تغيير */
+(function(){
+var K='meezan_sora_dom',U=sessionStorage.getItem('meezan_user_id'),
+IDS=['avatarBig','avatarName','avatarUsername','gradeText','roleText','roleBadge','lockBirthValue','lockEmailValue','lockNidValue','lockPhoneValue','statCode','statExams','statHomework','excellenceValue','excellenceText','excellenceFill','editFullName','editUsername','editGradeLabel','editGrade'];
+var isF=function(e){return /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName)};
+try{var d=JSON.parse(localStorage.getItem(K)||'null');
+if(d&&U&&d.u===U){IDS.forEach(function(i){var e=document.getElementById(i),x=d.m[i];if(!e||!x)return;
+if(x.h!=null&&!isF(e))e.innerHTML=x.h;else if(x.h!=null&&e.tagName==='SELECT')e.innerHTML=x.h;
+if(x.v!=null&&isF(e))e.value=x.v;if(x.s)e.style.cssText=x.s;if(x.c!=null)e.className=x.c})}}catch(e){}
+var t;function save(){try{var u=sessionStorage.getItem('meezan_user_id');if(!u)return;var m={};
+IDS.forEach(function(i){var e=document.getElementById(i);if(!e)return;var h=isF(e)&&e.tagName!=='SELECT'?null:e.innerHTML;if(h&&h.length>4e5)h=null;
+m[i]={h:h,v:isF(e)?e.value:null,s:e.style.cssText,c:e.className}});
+localStorage.setItem(K,JSON.stringify({u:u,m:m,t:Date.now()}))}catch(e){}}
+var q=function(){clearTimeout(t);t=setTimeout(save,1200)};
+var mo=new MutationObserver(q);
+IDS.forEach(function(i){var e=document.getElementById(i);if(e)mo.observe(e,{childList:true,characterData:true,subtree:true,attributes:true})});
+addEventListener('pagehide',save);document.addEventListener('visibilitychange',function(){if(document.hidden)save()});
+})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
@@ -2106,7 +2129,8 @@ const CACHE_KEYS = {
   examSubs:   'meezan_sora_examSubs',
   homeworks:  'meezan_sora_homeworks',
   hwSubs:     'meezan_sora_hwSubs',
-  categories: 'meezan_sora_categories'
+  categories: 'meezan_sora_categories',
+  dom:        'meezan_sora_dom'
 };
 
 function loadCache(key) {
