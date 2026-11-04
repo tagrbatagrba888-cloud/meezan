@@ -51,7 +51,7 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 .nav{position:absolute;bottom:0;left:0;right:0;display:none;gap:10px;padding:12px;background:var(--bg-card);border-top:1px solid var(--border)}
 .nav.on{display:flex}.nav button{flex:1;padding:12px;border:0;border-radius:12px;background:var(--primary);color:var(--bg-card);font:800 15px 'Cairo';cursor:pointer}.nav button:disabled{opacity:.4}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:200;background:var(--bg-card);border-top:3px solid var(--accent);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px var(--shadow);max-height:70vh;overflow:auto;padding:18px;transform:translateY(110%);transition:.3s}
-.sheet.on{transform:none}
+.sheet.on{transform:none}.sheet .shx{position:sticky;top:0;height:0;z-index:5}.sheet .shx button{position:absolute;left:0;top:-4px;width:36px;height:36px;border:0;border-radius:50%;background:var(--bg-input);color:var(--text-main);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 6px var(--shadow)}.sheet .shx button:active{transform:scale(.92)}.sheet h4{padding-left:44px}
 .sheet h4{font-size:15px;font-weight:900}.sheet h5{margin:14px 0 4px;color:var(--accent);font-size:14px;font-weight:800}.sheet p{font-size:14px;line-height:1.9;font-weight:600}
 .sheet .at{font-family:'Amiri Quran',serif;font-size:22px;line-height:2.2;margin-top:6px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--bg-card);border:1px solid var(--accent);padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;z-index:9999;opacity:0;transition:.35s}
@@ -152,7 +152,7 @@ body.apon .wrap{padding-bottom:230px}
 <div class="apb"><i id="apb"></i></div>
 <div class="apc"><button id="apn" title="الآية السابقة"><i class="fas fa-chevron-right"></i></button><button id="app" title="تشغيل / إيقاف"><i class="fas fa-play" id="api"></i></button><button id="apf" title="الآية التالية"><i class="fas fa-chevron-left"></i></button></div>
 <div class="apo"><button id="apr"></button><button id="ape">🔁 ردد ورا الشيخ</button><button id="apk">⏭ متتالي</button><button id="apa">📚 يكمل السور</button><button id="aps"></button><button id="apv"></button></div></div>
-<div class="sheet" id="sh"><div id="shb"></div></div>
+<div class="sheet" id="sh"><div class="shx"><button id="shx" type="button" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div><div id="shb"></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -283,6 +283,7 @@ function menu(i){const bm=BM().some(x=>x.i===i);
 $('rc').addEventListener('click',e=>{const pb=e.target.closest('.pgb');if(pb){khToggle(+pb.dataset.p);return}const a=e.target.closest('.a,.bm');if(!a)return;const i=+a.dataset.i;
   if(e.target.closest('.n'))return menu(i);
   const w=e.target.closest('.w');explain(i,w?+w.dataset.k:null)});
+$('shx').onclick=()=>{CB=null;$('sh').classList.remove('on')};
 $('shb').addEventListener('click',async e=>{const rcb=e.target.closest('[data-rec]');if(rcb){pickRec(rcb.dataset.rec);return}const spb=e.target.closest('[data-sp]');if(spb){$('dpn').value=spb.dataset.sp;return}const b=e.target.closest('[data-act]');if(!b)return;const i=+$('shb').dataset.i,act=b.dataset.act;
   if(act==='cok'){const f=CB;CB=null;$('sh').classList.remove('on');if(f)f();return}
   if(act==='ccancel'){CB=null;$('sh').classList.remove('on');return}
@@ -471,7 +472,7 @@ function khHtml(){const c=KH.cur;let h='';
   else if(!pl.cnt)h+='<p>لا ورد مقرر اليوم (يوم راحة في خطتك).</p>';
   else h+=`<p>وردك اليوم: ${ar(pl.cnt)} ${pl.cnt>2&&pl.cnt<11?'صفحات':'صفحة'} (من ص ${ar(pl.from)} إلى ص ${ar(pl.to)})</p><button class="kb pri" data-kp="${pl.from}" data-kto="${pl.to}">📖 ابدأ ورد اليوم (ص ${ar(pl.from)} – ${ar(pl.to)})</button>`+pl.sl.map(x=>{const n=x.to-x.from+1,dn=readRange(c,x.from,x.to);return`<div class="slot${dn?' ok':''}" data-kp="${x.from}" data-kto="${x.to}"><div>${x.n}<small>اقرأ ${ar(n)} ${n>2&&n<11?'صفحات':'صفحة'} • من ص ${ar(x.from)} إلى ص ${ar(x.to)}</small></div><span class="ck">${dn?'✓':'<i class="fas fa-chevron-left"></i>'}</span></div>`}).join('');
   if(pl.missed)h+=`<p>⚠️ متأخر عن ${ar(pl.missed)} صفحة من الأيام السابقة.</p>`;
-  const fu=c.read.indexOf('0')+1;if(fu)h+=`<button class="kb pri" data-kp="${fu}" data-kto="${Math.max(fu,pl.to||fu)}">تابع من أول صفحة غير مقروءة (ص ${ar(fu)})</button>`;
+  const fu=c.read.indexOf('0')+1;if(fu&&fu<=pl.to)h+=`<button class="kb pri" data-kp="${fu}" data-kto="${Math.max(fu,pl.to||fu)}">تابع من أول صفحة غير مقروءة (ص ${ar(fu)})</button>`;
   return h+'<button class="kb dg" data-kh="cancel" style="margin-top:8px">إلغاء هذه الختمة</button></div>'}
 function khAct(a,n){
   if(a==='start'){const d=Math.round(+$('khd').value);if(!(d>=1&&d<=3650))return toast('اختر عدداً من ١ إلى ٣٦٥٠');KH.cur={start:today(),days:d,mode:$('khm').dataset.v,duha:$('khdu').classList.contains('on'),read:'0'.repeat(604)};khSave();toast('بدأت الختمة، بارك الله لك ✓');home()}
