@@ -2,17 +2,19 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0B3D2E">
+<meta name="description" content="الأذكار والأدعية: أذكار الصباح والمساء وبعد الصلاة والأدعية">
 <title>ميزان | الأذكار والأدعية</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri+Quran&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--ok:#1E7A5A}
 [data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--ok:#4CC38A}
-html,body{min-height:100%;font-family:'Cairo',sans-serif}html{overflow-x:hidden}body{overflow-x:clip;background:var(--bg-page);color:var(--text-main);min-height:100dvh}
+html,body{min-height:100%;font-family:'Cairo',sans-serif}html{overflow-x:hidden}body{background:var(--bg-page);color:var(--text-main);min-height:100vh}
+@supports (height:100dvh){body{min-height:100dvh}}
 button{font-family:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow)}
@@ -26,6 +28,9 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 .hero .dt{font-size:12px;font-weight:700;opacity:.85}
 .hero h1{font-family:'Amiri Quran',serif;font-size:26px;font-weight:700;margin:6px 0 4px;line-height:1.6}
 .hero p{font-size:13px;opacity:.9}
+.go[hidden],.au[hidden],.chips[hidden],.grid[hidden]{display:none}
+.tools{display:flex;gap:6px}
+.vi{color:var(--text-sub)}
 .go{display:flex;align-items:center;gap:10px;margin-top:14px;background:rgba(255,255,255,.14);border:1px solid var(--accent);border-radius:14px;padding:11px 14px;cursor:pointer;font-weight:800;font-size:14px;color:inherit;width:100%;text-align:right}
 .go i:last-child{margin-inline-start:auto}
 #sq{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:14px;background:var(--bg-card);color:var(--text-main);font:600 14px 'Cairo';margin:16px 0 12px}
@@ -38,16 +43,16 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 .tile .bar{height:5px;background:var(--border);border-radius:5px;margin-top:10px;overflow:hidden}.tile .bar i{display:block;height:100%;font-size:0;margin:0;background:var(--sc);width:0}
 .res{margin-top:10px}
 .rs{display:flex;gap:10px;background:var(--bg-card);border:2px solid var(--border);border-right:4px solid var(--sc);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
-.rs .t{font-family:'Amiri Quran',serif;font-size:17px;line-height:1.9;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rs .t{font-family:'Amiri Quran',serif;font-size:17px;line-height:1.9;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .rs small{display:block;color:var(--text-sub);font-weight:700;font-size:11px}
 .empty{text-align:center;color:var(--text-sub);padding:40px 10px;font-weight:600}
 /* القارئ */
-#rd{position:fixed;inset:0;z-index:100;background:var(--bg-page);display:none;flex-direction:column}
+#rd{position:fixed;top:0;right:0;bottom:0;left:0;z-index:100;background:var(--bg-page);display:none;flex-direction:column}
 #rd.on{display:flex}
 .rb{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-card);border-bottom:1px solid var(--border)}
 .rb .t{flex:1;font-size:15px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pg{height:5px;background:var(--border)}.pg i{display:block;height:100%;width:0;background:var(--sc,var(--accent));transition:width .25s}
-.au{display:none;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.au{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-card);border-bottom:1px solid var(--border)}
 .au .pl{width:44px;height:44px;border-radius:50%;border:2px solid var(--accent);background:var(--primary);color:var(--bg-card);font-size:16px;cursor:pointer;flex-shrink:0}
 .au .pl:disabled{opacity:.5}
 .au .inf{flex:1;min-width:0}.au .inf b{display:block;font-size:12px;font-weight:800}.au .inf small{display:block;font-size:11px;color:var(--text-sub);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -55,10 +60,10 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 .chips{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:var(--bg-page)}
 .chips button{white-space:nowrap;padding:7px 13px;border-radius:20px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);font:700 12px 'Cairo';cursor:pointer}
 .chips button.on{background:var(--primary);color:var(--bg-card);border-color:var(--accent)}
-#rl{flex:1;overflow-y:auto;padding:12px 12px 50px;-webkit-overflow-scrolling:touch}
+#rl{flex:1;overflow-y:auto;padding:12px 12px 50px}
 .az{display:flex;gap:12px;max-width:760px;margin:0 auto 12px;background:var(--bg-card);border:2px solid var(--border);border-right:5px solid var(--sc);border-radius:18px;padding:14px;cursor:pointer;box-shadow:0 3px 12px var(--shadow);transition:opacity .2s,border-color .2s}
 .az.dn{opacity:.55;border-right-color:var(--ok)}
-.ring{--pg:0;width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--sc) calc(var(--pg)*1%),var(--border) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ring{--pg:0;border:0;padding:0;cursor:pointer;width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--sc) calc(var(--pg)*1%),var(--border) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ring b{width:38px;height:38px;border-radius:50%;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
 .az.dn .ring b{color:var(--ok)}
 .bd{flex:1;min-width:0}
@@ -74,20 +79,20 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 </style>
 </head>
 <body>
-<header class="topbar"><div class="ti"><div class="brand"><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><span>الأذكار والأدعية</span></div><div style="display:flex;gap:6px"><button class="ib" id="thb" aria-label="تبديل الوضع"><i class="fas fa-moon" id="thi"></i></button><button class="ib" id="bk" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button></div></div></header>
+<header class="topbar"><div class="ti"><div class="brand"><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><span>الأذكار والأدعية</span></div><div class="tools"><button type="button" class="ib" id="thb" aria-label="تبديل الوضع"><i class="fas fa-moon" id="thi"></i></button><button type="button" class="ib" id="bk" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button></div></div></header>
 
 <main class="wrap" id="home">
-<div class="hero"><div class="dt" id="dt"></div><h1 id="hg">السلام عليكم</h1><p id="hp"></p><button class="go" id="go" style="display:none"><i class="fas fa-sun" id="goi"></i><span id="got"></span><i class="fas fa-chevron-left"></i></button></div>
-<input id="sq" placeholder="ابحث في الأذكار والأدعية..." autocomplete="off">
+<div class="hero"><div class="dt" id="dt"></div><h1 id="hg">السلام عليكم</h1><p id="hp"></p><button type="button" class="go" id="go" hidden><i class="fas fa-sun" id="goi"></i><span id="got"></span><i class="fas fa-chevron-left"></i></button></div>
+<input id="sq" type="search" aria-label="بحث في الأذكار والأدعية" placeholder="ابحث في الأذكار والأدعية..." autocomplete="off">
 <div class="res" id="res"></div>
 <div class="grid" id="grid"></div>
 </main>
 
 <div id="rd">
-<div class="rb"><button class="ib" id="rx" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button><div class="t" id="rt"></div><button class="ib" id="rr" title="إعادة العدّ"><i class="fas fa-rotate-left"></i></button><button class="ib" id="fm">A-</button><button class="ib" id="fp">A+</button></div>
+<div class="rb"><button type="button" class="ib" id="rx" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button><div class="t" id="rt"></div><button type="button" class="ib" id="rr" title="إعادة العدّ" aria-label="إعادة العدّ"><i class="fas fa-rotate-left"></i></button><button type="button" class="ib" id="fm" aria-label="تصغير الخط">A-</button><button type="button" class="ib" id="fp" aria-label="تكبير الخط">A+</button></div>
 <div class="pg"><i id="pgb"></i></div>
-<div class="au" id="au"><button class="pl" id="apl" aria-label="تشغيل / إيقاف"><i class="fas fa-play" id="api"></i></button><div class="inf"><b id="aut">التلاوة</b><small id="aus"></small></div><i class="fas fa-volume-high" style="color:var(--text-sub)"></i><input type="range" id="avl" min="0" max="100" value="100" aria-label="مستوى الصوت"></div>
-<div class="chips" id="chips" style="display:none"></div>
+<div class="au" id="au" hidden><button type="button" class="pl" id="apl" aria-label="تشغيل / إيقاف"><i class="fas fa-play" id="api"></i></button><div class="inf"><b id="aut">التلاوة</b><small id="aus"></small></div><i class="fas fa-volume-high vi"></i><input type="range" id="avl" min="0" max="100" value="100" aria-label="مستوى الصوت"></div>
+<div class="chips" id="chips" hidden></div>
 <div id="rl"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -143,14 +148,14 @@ try{$('dt').textContent=new Intl.DateTimeFormat('ar-EG-u-ca-islamic-umalqura',{d
 async function renderHome(){
   const h=cairoH(),am=h>=3&&h<15;
   $('hg').textContent=am?'صباح الخير':'مساء الخير';
-  if(CFG.enabled===false){$('hp').textContent='هذا القسم غير متاح حاليًا';$('go').style.display='none';$('grid').innerHTML='';return}
+  if(CFG.enabled===false){$('hp').textContent='هذا القسم غير متاح حاليًا';$('go').hidden=true;$('grid').innerHTML='';return}
   $('hp').textContent='اذكروا الله كثيرًا، حتى بدون إنترنت بعد أول فتح';
   const k=am?'morning':'evening';
-  if(secOn(k)){$('go').style.display='flex';$('goi').className='fas '+SECS[k].i;$('got').textContent='ابدأ '+secT(k);$('go').onclick=()=>openSec(k)}else $('go').style.display='none';
+  if(secOn(k)){$('go').hidden=false;$('goi').className='fas '+SECS[k].i;$('got').textContent='ابدأ '+secT(k);$('go').onclick=()=>openSec(k)}else $('go').hidden=true;
   const tiles=[];
   for(const s of SK){if(!secOn(s))continue;let n=null;try{const c=MEM[s]||(await kv('items:'+s));n=c?(c.rows||c).length:null}catch(e){}
     const st=getSt(s),done=n?Object.values(st).filter(v=>v<=0).length:0;
-    tiles.push(`<button class="tile" data-s="${s}" style="--sc:${SECS[s].c}"><i class="fas ${SECS[s].i}"></i><b>${esc(secT(s))}</b><small>${n!==null?ar(n)+' ذكر':'اضغط للفتح'}</small><div class="bar"><i style="width:${n?Math.round(done/n*100):0}%"></i></div></button>`)}
+    tiles.push(`<button type="button" class="tile" data-s="${s}" style="--sc:${SECS[s].c}"><i class="fas ${SECS[s].i}"></i><b>${esc(secT(s))}</b><small>${n!==null?ar(n)+' ذكر':'اضغط للفتح'}</small><div class="bar"><i style="width:${n?Math.round(done/n*100):0}%"></i></div></button>`)}
   $('grid').innerHTML=tiles.join('')}
 $('grid').onclick=e=>{const t=e.target.closest('[data-s]');if(t)openSec(t.dataset.s)};
 renderHome();
@@ -178,13 +183,13 @@ async function openSec(k,focus,keep){
 const list=()=>ROWS.filter(r=>!CAT||r.cat===CAT);
 function cardHtml(r,st){
   const cn=r.count||1,rem=st[r.id]??cn,done=rem<=0,pct=Math.round((cn-Math.max(rem,0))/cn*100);
-  return `<article class="az ${done?'dn':''}" data-id="${esc(r.id)}" role="button" tabindex="0"><div class="ring" style="--pg:${pct}"><b>${done?'<i class="fas fa-check"></i>':(cn>1&&CFG.showCounter!==false?ar(rem):'')}</b></div><div class="bd"><p class="tx" style="font-size:${FS()}px">${esc(r.text).replace(/\n/g,'<br>')}</p>${CFG.showVirtue!==false&&r.virtue?`<details class="vr"><summary>الفضل</summary><p>${esc(r.virtue)}</p></details>`:''}${CFG.showSource!==false&&r.source?`<div class="sr"><i class="fas fa-book-open"></i><span>${esc(r.source)}</span></div>`:''}<div class="tl"><span class="rp">${cn>1?'يُقال '+ar(cn)+' مرات':''}</span><button data-cp>مشاركة</button></div></div></article>`}
+  return `<article class="az ${done?'dn':''}" data-id="${esc(r.id)}"><button type="button" class="ring" style="--pg:${pct}" aria-label="${done?'تم، اضغط للتراجع':'تسجيل مرة'}"><b>${done?'<i class="fas fa-check"></i>':(cn>1&&CFG.showCounter!==false?ar(rem):'')}</b></button><div class="bd"><p class="tx" style="font-size:${FS()}px">${esc(r.text).replace(/\n/g,'<br>')}</p>${CFG.showVirtue!==false&&r.virtue?`<details class="vr"><summary>الفضل</summary><p>${esc(r.virtue)}</p></details>`:''}${CFG.showSource!==false&&r.source?`<div class="sr"><i class="fas fa-book-open"></i><span>${esc(r.source)}</span></div>`:''}<div class="tl"><span class="rp">${cn>1?'يُقال '+ar(cn)+' مرات':''}</span><button type="button" data-cp>مشاركة</button></div></div></article>`}
 function render(){
   const st=getSt(CUR),L=list();
   const cats=[...new Set(ROWS.map(r=>r.cat).filter(Boolean))];
-  const ch=$('chips');if(cats.length>1){ch.style.display='flex';ch.innerHTML=`<button data-c="" class="${!CAT?'on':''}">الكل</button>`+cats.map(c=>`<button data-c="${esc(c)}" class="${CAT===c?'on':''}">${esc(c)}</button>`).join('')}else ch.style.display='none';
+  const ch=$('chips');if(cats.length>1){ch.hidden=false;ch.innerHTML=`<button type="button" data-c="" class="${!CAT?'on':''}">الكل</button>`+cats.map(c=>`<button type="button" data-c="${esc(c)}" class="${CAT===c?'on':''}">${esc(c)}</button>`).join('')}else ch.hidden=true;
   if(!L.length){$('rl').innerHTML='<p class="empty">لا يوجد محتوى في هذا القسم بعد</p>';progress();return}
-  $('rl').innerHTML=L.slice(0,SHOWN).map(r=>cardHtml(r,st)).join('')+(L.length>SHOWN?`<button class="more" id="more">عرض المزيد (${ar(L.length-SHOWN)})</button>`:'')+'<div id="fin"></div>';
+  $('rl').innerHTML=L.slice(0,SHOWN).map(r=>cardHtml(r,st)).join('')+(L.length>SHOWN?`<button type="button" class="more" id="more">عرض المزيد (${ar(L.length-SHOWN)})</button>`:'')+'<div id="fin"></div>';
   progress()}
 function progress(){
   const st=getSt(CUR),n=ROWS.length,d=ROWS.filter(r=>(st[r.id]??(r.count||1))<=0).length;
@@ -209,7 +214,6 @@ $('rl').addEventListener('click',e=>{
   const a=e.target.closest('.az');if(!a)return;
   if(e.target.closest('[data-cp]')){const r=ROWS.find(x=>x.id===a.dataset.id);if(r)share(r);return}
   tap(a.dataset.id)});
-$('rl').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('az')){e.preventDefault();tap(e.target.dataset.id)}});
 $('rr').onclick=()=>{if(!confirm('إعادة العدّ من البداية لهذا القسم؟'))return;setSt(CUR,{});render()};
 const setFs=d=>{fs=Math.min(48,Math.max(18,FS()+d));localStorage.setItem('az_fs',fs);document.querySelectorAll('.tx').forEach(x=>x.style.fontSize=fs+'px')};
 $('fm').onclick=()=>setFs(-2);$('fp').onclick=()=>setFs(2);
@@ -226,12 +230,12 @@ const AU={k:null,list:[],ctx:null,master:(+localStorage.getItem('az_master')||10
 $('avl').value=Math.round(AU.master*100);
 const gain=()=>AU.list.forEach(({a,t})=>{const v=(t.vol/100)*AU.master;if(a._g)a._g.gain.value=v;else a.volume=Math.min(1,v)});
 function auUi(){$('api').className='fas '+(AU.playing?'fa-pause':'fa-play')}
-function audioStop(){AU.list.forEach(({a})=>{try{a.pause()}catch(e){}URL.revokeObjectURL(a.src)});AU.list=[];AU.playing=false;AU.ready=false;AU.k=null;AU.err=false;$('au').style.display='none';$('api').className='fas fa-play';
+function audioStop(){AU.list.forEach(({a})=>{try{a.pause()}catch(e){}URL.revokeObjectURL(a.src)});AU.list=[];AU.playing=false;AU.ready=false;AU.k=null;AU.err=false;$('au').hidden=true;$('api').className='fas fa-play';
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null}catch(e){}}}
 async function prepAudio(k){
   const sec=CFG.sections[k]||{},tr=(sec.tracks||[]).filter(t=>t.on!==false);
-  if(!tr.length||CFG.enabled===false){$('au').style.display='none';return}
-  AU.k=k;AU.ready=false;AU.err=false;$('au').style.display='flex';$('apl').disabled=true;
+  if(!tr.length||CFG.enabled===false){$('au').hidden=true;return}
+  AU.k=k;AU.ready=false;AU.err=false;$('au').hidden=false;$('apl').disabled=true;
   const names=[...new Set(tr.map(t=>(t.reciter||'').trim()).filter(Boolean))];
   $('aut').textContent=names.length?'بصوت: '+names.join(' • '):'التلاوة';$('aus').textContent='جاري تجهيز الصوت...';
   try{for(const t of tr){const b=await audioBlob(t.id);if(AU.k!==k)return;const a=new Audio(URL.createObjectURL(b));a.loop=t.loop!==false;a.preload='auto';AU.list.push({a,t})}
@@ -250,8 +254,8 @@ $('avl').oninput=e=>{AU.master=+e.target.value/100;localStorage.setItem('az_mast
 
 // ===== بحث عام =====
 let sT;
-$('sq').oninput=e=>{clearTimeout(sT);const q=nrm(e.target.value);if(q.length<2){$('res').innerHTML='';$('grid').style.display='';return}
-  sT=setTimeout(async()=>{$('grid').style.display='none';$('res').innerHTML='<p class="empty">جاري البحث...</p>';
+$('sq').oninput=e=>{clearTimeout(sT);const q=nrm(e.target.value);if(q.length<2){$('res').innerHTML='';$('grid').hidden=false;return}
+  sT=setTimeout(async()=>{$('grid').hidden=true;$('res').innerHTML='<p class="empty">جاري البحث...</p>';
     const out=[];for(const k of SK){if(!secOn(k))continue;const rows=await loadSec(k);for(const r of rows){if(nrm(r.text+' '+(r.cat||'')).includes(q)){out.push({k,r});if(out.length>=40)break}}if(out.length>=40)break}
     $('res').innerHTML=out.length?out.map(({k,r})=>`<div class="rs" data-k="${k}" data-id="${esc(r.id)}" style="--sc:${SECS[k].c}"><i class="fas ${SECS[k].i}" style="color:${SECS[k].c};margin-top:6px"></i><div><small>${esc(secT(k))}${r.cat?' • '+esc(r.cat):''}</small><div class="t">${esc(r.text)}</div></div></div>`).join(''):'<p class="empty">لا توجد نتائج</p>'},300)};
 $('res').onclick=e=>{const x=e.target.closest('.rs');if(x)openSec(x.dataset.k,x.dataset.id)};
