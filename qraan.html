@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>ميزان | القرآن الكريم</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri+Quran&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B}
+[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#0B3D2E;--accent-light:#145A43;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C}
+html,body{min-height:100%;font-family:'Cairo',sans-serif;overflow-x:hidden}
+body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow)}
+.ti{max-width:900px;margin:auto;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px}
+.brand img{width:38px;height:38px;border-radius:50%;border:2px solid var(--accent);padding:3px;background:var(--bg-input)}
+.ib{min-width:38px;height:38px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);color:var(--primary);font:700 14px 'Cairo';cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:0 8px}
+.ib.on{background:var(--primary);color:var(--bg-card)}
+.wrap{max-width:900px;margin:auto;padding:16px 14px 40px}
+.hero{background:linear-gradient(160deg,var(--primary),var(--primary-light) 55%,var(--primary-lighter));border:3px double var(--accent);border-radius:22px;padding:20px;color:#fff;box-shadow:0 12px 30px var(--shadow)}
+[data-theme="dark"] .hero{color:var(--bg-page)}
+.hero h1{font-size:20px;font-weight:900}.hero p{font-size:13px;margin:4px 0 10px;opacity:.9}
+.cont{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border:1px solid var(--accent);border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:800;font-size:14px}
+.pbar{height:6px;background:rgba(255,255,255,.25);border-radius:6px;margin-top:10px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent)}
+.stt{font-size:12px;margin-top:8px;opacity:.9}
+.tabs{display:flex;gap:6px;margin:16px 0 10px}
+.tabs button{flex:1;padding:10px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);border-radius:12px;font:800 14px 'Cairo';cursor:pointer}
+.tabs button.on{background:var(--primary);color:var(--bg-card);border-color:var(--accent)}
+#sq{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font:600 14px 'Cairo';margin-bottom:10px}
+.li{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:2px solid var(--border);border-right:4px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 3px 10px var(--shadow)}
+.li:active{transform:scale(.98)}
+.num{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:var(--bg-card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.li b{display:block;font-size:15px;font-weight:800}.li small{color:var(--text-sub);font-size:12px;font-weight:600}
+.empty{text-align:center;color:var(--text-sub);padding:40px 10px}
+/* القارئ */
+#rd{position:fixed;inset:0;z-index:100;background:var(--bg-page);display:none;flex-direction:column}
+#rd.on{display:flex}
+.rb{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.rb .t{flex:1;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rc{flex:1;overflow-y:auto;padding:16px 16px 90px;-webkit-overflow-scrolling:touch}
+#rc .q{font-family:'Amiri Quran','Traditional Arabic',serif;line-height:2.5;text-align:justify;max-width:760px;margin:auto}
+.w{border-radius:6px;cursor:pointer}.w:active{background:var(--accent-light)}
+.a{cursor:pointer}.n{color:var(--accent);font-size:.75em;white-space:nowrap}
+.sh{text-align:center;margin:18px auto 8px;padding:10px;border:3px double var(--accent);border-radius:14px;background:var(--bg-card);font:900 17px 'Cairo';max-width:760px}
+.sh small{display:block;font-size:12px;color:var(--text-sub);font-weight:600}
+.bs{text-align:center;font-family:'Amiri Quran',serif;font-size:1.1em;margin:6px 0}
+.nav{position:absolute;bottom:0;left:0;right:0;display:none;gap:10px;padding:12px;background:var(--bg-card);border-top:1px solid var(--border)}
+.nav.on{display:flex}.nav button{flex:1;padding:12px;border:0;border-radius:12px;background:var(--primary);color:var(--bg-card);font:800 15px 'Cairo';cursor:pointer}.nav button:disabled{opacity:.4}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:200;background:var(--bg-card);border-top:3px solid var(--accent);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px var(--shadow);max-height:70vh;overflow:auto;padding:18px;transform:translateY(110%);transition:.3s}
+.sheet.on{transform:none}
+.sheet h4{font-size:15px;font-weight:900}.sheet h5{margin:14px 0 4px;color:var(--accent);font-size:14px;font-weight:800}.sheet p{font-size:14px;line-height:1.9;font-weight:600}
+.sheet .at{font-family:'Amiri Quran',serif;font-size:22px;line-height:2.2;margin-top:6px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--bg-card);border:1px solid var(--accent);padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;z-index:9999;opacity:0;transition:.35s}
+.toast.show{transform:translateX(-50%);opacity:1}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="ti">
+<div class="brand"><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><span>القرآن الكريم</span></div>
+<div style="display:flex;gap:8px"><button class="ib" id="thb"><i class="fas fa-moon" id="thi"></i></button><a href="din_1.html" class="ib"><i class="fas fa-arrow-right"></i></a></div>
+</div></header>
+
+<main class="wrap" id="home">
+<div class="hero"><h1>📖 القرآن الكريم</h1><p>اقرأ بين يديك، حتى بدون إنترنت</p>
+<div class="cont" id="cont"><i class="fas fa-bookmark"></i><span id="contT">ابدأ القراءة</span></div>
+<div class="pbar"><i id="pg" style="width:0"></i></div><div class="stt" id="stt">جاري التحميل...</div></div>
+<div class="tabs" id="tabs"><button class="on" data-t="s">السور</button><button data-t="j">الأجزاء</button><button data-t="h">الأحزاب</button></div>
+<input id="sq" placeholder="ابحث عن سورة...">
+<div id="list"></div>
+</main>
+
+<div id="rd">
+<div class="rb"><button class="ib" id="rx"><i class="fas fa-arrow-right"></i></button><div class="t" id="rt"></div>
+<span id="mb" style="display:flex;gap:4px"><button class="ib" data-m="ayah" title="آية بآية"><i class="fas fa-square"></i></button><button class="ib" data-m="page" title="صفحات المصحف"><i class="fas fa-book-open"></i></button><button class="ib" data-m="scroll" title="عرض مستمر"><i class="fas fa-bars"></i></button></span>
+<button class="ib" id="fm">A-</button><button class="ib" id="fp">A+</button></div>
+<div id="rc"></div>
+<div class="nav" id="nv"><button id="np">التالي ‹</button><button id="nn">› السابق</button></div>
+</div>
+<div class="sheet" id="sh"><div id="shb"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ===== بيانات ثابتة للتحقق =====
+const SN=(',الفاتحة,البقرة,آل عمران,النساء,المائدة,الأنعام,الأعراف,الأنفال,التوبة,يونس,هود,يوسف,الرعد,إبراهيم,الحجر,النحل,الإسراء,الكهف,مريم,طه,الأنبياء,الحج,المؤمنون,النور,الفرقان,الشعراء,النمل,القصص,العنكبوت,الروم,لقمان,السجدة,الأحزاب,سبأ,فاطر,يس,الصافات,ص,الزمر,غافر,فصلت,الشورى,الزخرف,الدخان,الجاثية,الأحقاف,محمد,الفتح,الحجرات,ق,الذاريات,الطور,النجم,القمر,الرحمن,الواقعة,الحديد,المجادلة,الحشر,الممتحنة,الصف,الجمعة,المنافقون,التغابن,الطلاق,التحريم,الملك,القلم,الحاقة,المعارج,نوح,الجن,المزمل,المدثر,القيامة,الإنسان,المرسلات,النبأ,النازعات,عبس,التكوير,الانفطار,المطففين,الانشقاق,البروج,الطارق,الأعلى,الغاشية,الفجر,البلد,الشمس,الليل,الضحى,الشرح,التين,العلق,القدر,البينة,الزلزلة,العاديات,القارعة,التكاثر,العصر,الهمزة,الفيل,قريش,الماعون,الكوثر,الكافرون,النصر,المسد,الإخلاص,الفلق,الناس').split(',');
+const AC=[0,...'7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6'.split(',').map(Number)];
+const MD=new Set([2,3,4,5,8,9,13,22,24,33,47,48,49,55,57,58,59,60,61,62,63,64,65,66,76,98,99,110]);
+const CUM=[0];for(let s=1;s<=114;s++)CUM[s]=CUM[s-1]+AC[s];const TOTAL=CUM[114];
+const g=(s,a)=>CUM[s-1]+a;
+const SI=new Uint8Array(TOTAL+1),AI=new Uint16Array(TOTAL+1);for(let s=1;s<=114;s++)for(let a=1;a<=AC[s];a++){SI[g(s,a)]=s;AI[g(s,a)]=a}
+const loc=(A,i)=>{let l=0,h=A.length;while(l<h){const m=(l+h)>>1;A[m]<=i?l=m+1:h=m}return l};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.className='toast show';clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)};
+
+// ===== دخول + ثيم =====
+if(sessionStorage.getItem('meezan_logged_in')!=='true'&&(navigator.onLine||!localStorage.getItem('q_ok')))location.replace('login.html');
+const setTheme=t=>{document.documentElement.setAttribute('data-theme',t);localStorage.setItem('meezan_theme',t);$('thi').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
+setTheme(localStorage.getItem('meezan_theme')||'light');
+$('thb').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+const ss=k=>k.map(x=>sessionStorage.getItem(x)).find(Boolean);
+const uid=ss(['meezan_uid','meezan_user_id','meezan_username','meezan_user'])||localStorage.getItem('q_uid')||(()=>{const v='u_'+Math.random().toString(36).slice(2,10);localStorage.setItem('q_uid',v);return v})();
+const uname=ss(['meezan_name','meezan_fullname','meezan_username'])||'مستخدم';
+
+// ===== تخزين محلي (يعمل بدون نت) =====
+const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('meezan_quran_user',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});
+async function kv(k,v){const d=await idb();return new Promise((r,j)=>{const s=d.transaction('kv',v===undefined?'readonly':'readwrite').objectStore('kv');const q=v===undefined?s.get(k):s.put(v,k);q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+const getJ=async n=>{try{const r=await fetch(n+'.json');if(r.ok){const j=await r.json();await kv(n,j);return j}}catch(e){}try{return await kv(n)||null}catch(e){return null}};
+
+// ===== تحميل القرآن + تحقق =====
+let Q=null,PGs=null,HZs=null;
+function valid(d){if(!d||d.total!==TOTAL||!d.text)return false;for(let s=1;s<=114;s++){const t=d.text[s];if(!Array.isArray(t)||t.length!==AC[s]||t.some(x=>typeof x!=='string'||!x))return false}return true}
+async function loadQ(){
+  let d=null,c=null;try{c=await kv('data')}catch(e){}
+  if(valid(c)){d=c;const age=Date.now()-(+localStorage.getItem('q_chk')||0);if(navigator.onLine&&age>43200000)fetch('quran.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(async n=>{if(valid(n)){await kv('data',n);localStorage.setItem('q_chk',Date.now())}}).catch(()=>{})}
+  else{try{const r=await fetch('quran.json',{cache:'no-cache'});if(r.ok){const n=await r.json();if(valid(n)){d=n;await kv('data',n);localStorage.setItem('q_chk',Date.now())}}}catch(e){}}
+  if(!d)return false;
+  Q=new Array(TOTAL+1);for(let s=1;s<=114;s++)d.text[s].forEach((t,k)=>Q[g(s,k+1)]=t);
+  const ok2=A=>Array.isArray(A)&&A.length&&A.every(p=>Array.isArray(p)&&p[0]>=1&&p[0]<=114&&p[1]>=1&&p[1]<=AC[p[0]]);
+  PGs=d.page&&d.page.length===604&&ok2(d.page)?d.page.map(([s,a])=>g(s,a)):null;
+  HZs=d.hizb&&d.hizb.length===240&&ok2(d.hizb)?d.hizb.map(([s,a])=>g(s,a)):null;
+  JG=d.juz&&d.juz.length===30?d.juz.map(([s,a])=>g(s,a)):[];
+  localStorage.setItem('q_ok','1');return true}
+let JG=[];
+
+// ===== إعدادات الأدمن =====
+let S={enabled:true,defaultMode:'ayah',modes:{ayah:true,page:true,scroll:true},allowSwitch:true,fontSize:28,showType:true,showJuzHizb:true,tracking:true};
+const applyS=v=>{S={...S,...v,modes:{...S.modes,...(v&&v.modes||{})}};try{localStorage.setItem('q_set',JSON.stringify(S))}catch(e){}};
+try{applyS(JSON.parse(localStorage.getItem('q_set')||'{}'))}catch(e){}
+let fb=null;
+try{const A=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),F=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  const app=A.initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
+  fb={F,db:F.getFirestore(app)};F.onSnapshot(F.doc(fb.db,'settings','quran'),s=>{if(s.exists()){applyS(s.data());boot2()}},()=>{})}catch(e){}
+
+// ===== قراءة + متابعة =====
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Cairo'});
+let SEEN=new Uint8Array(780);try{const b=localStorage.getItem('q_seen');if(b)SEEN=Uint8Array.from(atob(b),c=>c.charCodeAt(0))}catch(e){}
+const seen=i=>SEEN[i>>3]&(1<<(i&7));
+let readTotal=0;for(let i=1;i<=TOTAL;i++)if(seen(i))readTotal++;
+let maxIdx=+localStorage.getItem('q_max')||0,pos=JSON.parse(localStorage.getItem('q_pos')||'null'),cur=pos?g(pos.s,pos.a):1,opened=false;
+const pend=()=>JSON.parse(localStorage.getItem('q_pend')||'{}');
+async function flush(){if(!fb||!navigator.onLine||!S.tracking)return;const D=pend();if(!D.d)return;
+  try{await fb.F.setDoc(fb.F.doc(fb.db,'quranProgress',uid),{name:uname,surah:SI[cur],ayah:AI[cur],maxIdx,readTotal,lastAt:fb.F.serverTimestamp(),days:{[today()]:{opens:fb.F.increment(D.o||0),ayahs:fb.F.increment(D.a||0),surah:SI[cur],ayah:AI[cur]}}},{merge:true});localStorage.setItem('q_pend','{}')}catch(e){}}
+setInterval(flush,15000);addEventListener('online',flush);addEventListener('pagehide',flush);
+let sv=0;
+function mark(i){cur=i;
+  const D=pend();D.d=1;if(!opened){opened=true;D.o=(D.o||0)+1}
+  if(!seen(i)){SEEN[i>>3]|=1<<(i&7);readTotal++;D.a=(D.a||0)+1}
+  if(i>maxIdx){maxIdx=i;localStorage.setItem('q_max',i)}
+  localStorage.setItem('q_pend',JSON.stringify(D));
+  pos={s:SI[i],a:AI[i]};localStorage.setItem('q_pos',JSON.stringify(pos));
+  if(Date.now()-sv>3000){sv=Date.now();localStorage.setItem('q_seen',btoa(String.fromCharCode(...SEEN)))}
+  $('rt').textContent=where(i)}
+function where(i){const s=SI[i],a=AI[i];let t=`${SN[s]} • آية ${ar(a)}`;if(S.showJuzHizb){t+=` • جزء ${ar(loc(JG,i))}`;if(PGs)t+=` • ص ${ar(loc(PGs,i))}`}return t}
+
+// ===== العرض =====
+let mode='ayah',fs=+localStorage.getItem('q_fs')||0;
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)mark(+e.target.dataset.i)}),{threshold:.6});
+const words=i=>Q[i].split(' ').map((w,k)=>`<span class="w" data-k="${k}">${esc(w)}</span>`).join(' ');
+const ay=i=>`<span class="a" data-i="${i}">${words(i)} <span class="n">﴿${ar(AI[i])}﴾</span></span> `;
+const head=s=>`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية</small>`:''}</div>${s!==1&&s!==9?`<div class="bs">${esc(Q[1])}</div>`:''}`;
+const surahHtml=s=>head(s)+'<div class="q">'+Array.from({length:AC[s]},(_,k)=>ay(g(s,k+1))).join('')+'</div>';
+function setQ(){$('rc').style.fontSize=(fs||S.fontSize)+'px'}
+function obs(){io.disconnect();$('rc').querySelectorAll('.a').forEach(e=>io.observe(e))}
+function render(i){
+  const rc=$('rc');rc.scrollTop=0;setQ();$('nv').classList.toggle('on',mode!=='scroll');
+  document.querySelectorAll('#mb button').forEach(b=>{b.classList.toggle('on',b.dataset.m===mode);b.style.display=S.allowSwitch&&S.modes[b.dataset.m]&&(b.dataset.m!=='page'||PGs)?'':'none'});
+  if(mode==='ayah'){const s=SI[i];rc.innerHTML=(AI[i]===1?head(s):`<div class="sh">سورة ${SN[s]}</div>`)+`<div class="q" style="text-align:center">${ay(i)}</div>`;$('np').disabled=i>=TOTAL;$('nn').disabled=i<=1;$('np').onclick=()=>go(i+1);$('nn').onclick=()=>go(i-1)}
+  else if(mode==='page'){const p=loc(PGs,i),a=PGs[p-1],b=p<604?PGs[p]-1:TOTAL;let h='<div class="q">';for(let k=a;k<=b;k++){if(AI[k]===1)h+='</div>'+head(SI[k])+'<div class="q">';h+=ay(k)}rc.innerHTML=h+`</div><div class="sh" style="margin-top:20px">صفحة ${ar(p)}</div>`;$('np').disabled=p>=604;$('nn').disabled=p<=1;$('np').onclick=()=>go(PGs[p]);$('nn').onclick=()=>go(PGs[p-2])}
+  else{let s=SI[i];rc.innerHTML=surahHtml(s)+'<div id="sen" style="height:40px"></div>';const sen=$('sen'),so=new IntersectionObserver(e=>{if(e[0].isIntersecting&&s<114){s++;sen.insertAdjacentHTML('beforebegin',surahHtml(s));rc.querySelectorAll('.a').forEach(x=>io.observe(x))}else if(s>=114)so.disconnect()});so.observe(sen);const el=rc.querySelector(`[data-i="${i}"]`);if(el&&AI[i]>1)el.scrollIntoView()}
+  obs();mark(i)}
+const go=i=>{if(i>=1&&i<=TOTAL)render(i)};
+function open(i){if(!S.enabled)return toast('القرآن غير متاح حالياً');mode=localStorage.getItem('q_mode');if(!mode||!S.modes[mode])mode=S.defaultMode;if(mode==='page'&&!PGs)mode=S.modes.ayah?'ayah':'scroll';$('rd').classList.add('on');history.pushState({r:1},'');render(i)}
+function close(){$('rd').classList.remove('on');io.disconnect();localStorage.setItem('q_seen',btoa(String.fromCharCode(...SEEN)));flush();home()}
+$('rx').onclick=()=>history.back();addEventListener('popstate',()=>{if($('rd').classList.contains('on'))close()});
+document.querySelectorAll('#mb button').forEach(b=>b.onclick=()=>{if(!S.allowSwitch||!S.modes[b.dataset.m])return;mode=b.dataset.m;localStorage.setItem('q_mode',mode);render(cur)});
+$('fm').onclick=()=>{fs=Math.max(18,(fs||S.fontSize)-2);localStorage.setItem('q_fs',fs);setQ()};
+$('fp').onclick=()=>{fs=Math.min(60,(fs||S.fontSize)+2);localStorage.setItem('q_fs',fs);setQ()};
+
+// ===== تفسير / معنى / سبب نزول (تُحمَّل وتُخزَّن للاستخدام بدون نت) =====
+let X=null;
+async function loadX(){if(X)return X;X={t:await getJ('tafsir'),a:await getJ('asbab'),w:await getJ('words')};return X}
+$('rc').addEventListener('click',async e=>{const a=e.target.closest('.a');if(!a)return;const i=+a.dataset.i,w=e.target.closest('.w'),k=w?+w.dataset.k:null,key=SI[i]+':'+AI[i];await loadX();
+  let h=`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>`;
+  if(k!==null){const m=X.w&&X.w[key]&&X.w[key][k];h+=`<h5>معنى «${esc(Q[i].split(' ')[k])}»</h5><p>${m?esc(m):'لا يوجد شرح لهذه الكلمة حالياً'}</p>`}
+  h+=`<h5>التفسير</h5><p>${X.t&&X.t[key]?esc(X.t[key]):'التفسير غير متوفر بعد'}</p><h5>سبب النزول</h5><p>${X.a&&X.a[key]?esc(X.a[key]):'لا يوجد سبب نزول منقول لهذه الآية، أو لم يُضَف بعد'}</p>`;
+  $('shb').innerHTML=h;$('sh').classList.add('on')});
+document.addEventListener('click',e=>{if(!e.target.closest('#sh')&&!e.target.closest('.a'))$('sh').classList.remove('on')});
+
+// ===== الرئيسية =====
+let tab='s';
+function home(){
+  const pct=Math.round(readTotal*1000/TOTAL)/10;$('pg').style.width=pct+'%';
+  $('contT').textContent=pos?`تابع القراءة: ${SN[pos.s]} • آية ${ar(pos.a)}`:'ابدأ القراءة من الفاتحة';
+  $('stt').textContent=`قرأت ${ar(pct)}% • ${navigator.onLine?'':'بدون إنترنت • '}جاهز للقراءة بدون نت ✓`;
+  const q=$('sq').value.trim().replace(/[أإآ]/g,'ا'),L=$('list');$('sq').style.display=tab==='s'?'':'none';let h='';
+  if(tab==='s')for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;h+=`<div class="li" data-i="${g(s,1)}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية • جزء ${ar(loc(JG,g(s,1)))}</small></div></div>`}
+  else if(tab==='j')JG.forEach((x,k)=>h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الجزء ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`);
+  else if(HZs)for(let k=0;k<60;k++){const x=HZs[k*4];h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الحزب ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`}
+  else h='<div class="empty">بيانات الأحزاب غير متاحة</div>';
+  L.innerHTML=h||'<div class="empty">لا نتائج</div>'}
+$('list').onclick=e=>{const l=e.target.closest('.li');if(l)open(+l.dataset.i)};
+$('cont').onclick=()=>open(pos?g(pos.s,pos.a):1);
+$('sq').oninput=home;
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));home()};
+function boot2(){if(Q){if(!S.enabled){$('stt').textContent='القرآن غير متاح حالياً'}home()}}
+(async()=>{
+  if(!await loadQ()){$('stt').textContent='تعذّر تحميل القرآن. اتصل بالإنترنت مرة واحدة على الأقل.';$('list').innerHTML='<div class="empty">ملف القرآن غير متوفر أو غير سليم</div>';return}
+  boot2();setTimeout(loadX,3000)})();
+</script>
+</body>
+</html>
