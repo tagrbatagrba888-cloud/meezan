@@ -22,6 +22,7 @@ button{font-family:inherit}
 .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px}
 .brand img{width:38px;height:38px;border-radius:50%;border:2px solid var(--accent);padding:3px;background:var(--bg-input)}
 .ib{min-width:38px;height:38px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);color:var(--primary);font:700 14px 'Cairo';cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 8px}
+.ib.sm{min-width:30px;height:30px;border-radius:9px;font-size:12px;padding:0 6px}
 .wrap{max-width:900px;margin:auto;padding:16px 14px 40px}
 .hero{border:3px double var(--accent);border-radius:24px;padding:22px 20px;color:#F5F1E8;box-shadow:0 12px 30px var(--shadow);
 background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 5l7 17 17-7-7 17 17 7-17 7 7 17-17-7-7 17-7-17-17 7 7-17-17-7 17-7-7-17 17 7z' fill='none' stroke='%23C9A961' stroke-opacity='.25'/%3E%3C/svg%3E")}
@@ -66,22 +67,45 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 .chips{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:var(--bg-page)}
 .chips button{white-space:nowrap;padding:7px 13px;border-radius:20px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);font:700 12px 'Cairo';cursor:pointer}
 .chips button.on{background:var(--primary);color:var(--bg-card);border-color:var(--accent)}
-#rl{flex:1;overflow-y:auto;padding:12px 12px 50px}
-.az{display:flex;gap:12px;max-width:760px;margin:0 auto 12px;background:var(--bg-card);border:2px solid var(--border);border-right:5px solid var(--sc);border-radius:18px;padding:14px;cursor:pointer;box-shadow:0 3px 12px var(--shadow);transition:opacity .2s,border-color .2s}
-.az.dn{opacity:.55;border-right-color:var(--ok)}
-.ring{--pg:0;border:0;padding:0;cursor:pointer;width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--sc) calc(var(--pg)*1%),var(--border) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ring b{width:38px;height:38px;border-radius:50%;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
-.az.dn .ring b{color:var(--ok)}
-.bd{flex:1;min-width:0}
-.tx{font-family:'Amiri Quran','Traditional Arabic',serif;line-height:2.3;text-align:justify;overflow-wrap:anywhere}
-.sr{font-size:12px;color:var(--text-sub);font-weight:700;margin-top:8px;display:flex;gap:6px;align-items:flex-start}
-.vr{margin-top:8px;font-size:13px}.vr summary{cursor:pointer;color:var(--primary);font-weight:800}.vr p{margin-top:6px;line-height:1.9;color:var(--text-sub);font-weight:600}
-.tl{display:flex;align-items:center;gap:8px;margin-top:8px}.tl .rp{flex:1;font-size:12px;font-weight:800;color:var(--sc)}
-.tl button{background:var(--bg-input);border:2px solid var(--border);color:var(--text-main);border-radius:10px;padding:5px 11px;font:700 12px 'Cairo';cursor:pointer}
+#rl{flex:1;overflow-y:auto;padding:10px 12px 60px;--tf:20px}
+
+/* ===== البطاقات: مضغوطة، وذكر واحد نشط في كل مرة ===== */
+.az{max-width:640px;margin:0 auto 8px;background:var(--bg-card);border:2px solid var(--border);border-radius:16px;transition:opacity .25s,border-color .25s,box-shadow .25s}
+.az .t2{flex:1;min-width:0;font-family:'Amiri Quran','Traditional Arabic',serif;font-size:15px;line-height:1.8;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.az.lk,.az.pd,.az.dn{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer}
+.az.lk{opacity:.6}
+.az.lk>i,.az.pd>i{color:var(--text-sub);font-size:13px;width:16px;text-align:center}
+.az.dn{opacity:.6;padding:5px 10px;border-right:4px solid var(--ok);cursor:default}
+.az.dn>i{color:var(--ok);font-size:15px;width:16px;text-align:center}
+.az.dn .t2{-webkit-line-clamp:1;line-clamp:1;font-size:14px}
+.az .bg{flex-shrink:0;font-size:11px;font-weight:800;color:var(--sc);background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:1px 9px}
+.az.act{border-color:var(--sc);padding:10px 12px 12px;box-shadow:0 6px 18px var(--shadow)}
+.az .hd{display:flex;align-items:center;gap:8px;margin-bottom:2px;font-size:11px;font-weight:800;color:var(--text-sub)}
+.az .hd .no{background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:1px 9px}
+.az .hd .rp{flex:1;color:var(--sc)}
+.tx{font-family:'Amiri Quran','Traditional Arabic',serif;font-size:var(--tf);line-height:2;text-align:justify;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.az.open .tx{display:block;-webkit-line-clamp:unset;line-clamp:unset}
+.rm{display:inline-flex;align-items:center;gap:5px;margin-top:2px;background:none;border:0;color:var(--sc);font:800 12px 'Cairo';cursor:pointer;padding:3px 0}
+.rm[hidden]{display:none}
+.sr{font-size:11px;color:var(--text-sub);font-weight:700;margin-top:6px;display:flex;gap:6px;align-items:flex-start}
+.vr{margin-top:6px;font-size:12px}.vr summary{cursor:pointer;color:var(--primary);font-weight:800}.vr p{margin-top:5px;line-height:1.9;color:var(--text-sub);font-weight:600}
+.cnt{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;margin-top:10px;border:2px solid var(--sc);border-radius:14px;background:var(--bg-input);color:var(--text-main);font:900 14px 'Cairo';cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.cnt::before{content:'';position:absolute;top:0;bottom:0;right:0;width:calc(var(--f,0)*1%);background:var(--sc);opacity:.22;transition:width .2s}
+.cnt>*{position:relative}
+.cnt .n{min-width:34px;height:34px;padding:0 4px;border-radius:50%;background:var(--sc);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+.cnt:active{transform:scale(.97)}
+@keyframes pop{50%{transform:scale(1.05)}}
+.cnt.tap{animation:pop .18s}
+@keyframes nudge{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.az.act.nudge{animation:nudge .4s}
+.az.act.fl{border-color:var(--ok);box-shadow:0 0 0 3px rgba(30,122,90,.25)}
+.az.act.fl .cnt{border-color:var(--ok)}
+.az.act.fl .cnt::before{background:var(--ok)}
+.az.act.fl .cnt .n{background:var(--ok)}
 .more{display:block;margin:10px auto;padding:11px 24px;border-radius:12px;border:2px solid var(--accent);background:var(--primary);color:var(--bg-card);font:800 14px 'Cairo';cursor:pointer}
-.fin{max-width:760px;margin:6px auto 20px;text-align:center;border:3px double var(--accent);border-radius:16px;padding:14px;background:var(--bg-card);font-weight:800;color:var(--ok)}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--primary);color:var(--bg-card);padding:11px 20px;border-radius:12px;font-weight:800;font-size:13px;z-index:500;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%)}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.fin{max-width:640px;margin:6px auto 20px;text-align:center;border:3px double var(--accent);border-radius:16px;padding:14px;background:var(--bg-card);font-weight:800;color:var(--ok)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--primary);color:var(--bg-card);padding:11px 20px;border-radius:12px;font-weight:800;font-size:13px;z-index:500;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}.toast.show{opacity:1;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -102,7 +126,7 @@ background:linear-gradient(160deg,#0B3D2E,#145A43 60%,#1E7A5A),url("data:image/s
 <div id="rl"></div>
 </div>
 <div class="dlg" id="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dm"><div><p id="dm"></p><div class="bt"><button type="button" id="dno">إلغاء</button><button type="button" class="ok" id="dok">تأكيد</button></div></div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -142,8 +166,10 @@ let CFG={enabled:true,fontSize:26,showSource:true,showVirtue:true,showCounter:tr
 try{CFG={...CFG,...JSON.parse(localStorage.getItem('az_cfg')||'{}')}}catch(e){}
 const secOn=k=>!(CFG.sections[k]&&CFG.sections[k].on===false);
 const secT=k=>(CFG.sections[k]&&CFG.sections[k].title)||SECS[k].t;
-const MEM={};let CUR=null,ROWS=[],CAT='',SHOWN=60,fs=+localStorage.getItem('az_fs')||0;
+const MEM={};let CUR=null,ROWS=[],CAT='',SHOWN=60,START=0,fs=+localStorage.getItem('az_fs')||0;
 const FS=()=>fs||CFG.fontSize||26;
+const FSZ=()=>Math.max(15,Math.round(FS()*.76));
+const applyFs=()=>$('rl').style.setProperty('--tf',FSZ()+'px');
 onSnapshot(doc(db,'settings','azkar'),s=>{
   if(!s.exists())return;const v=s.data(),old=CFG.dataVersion;
   CFG={...CFG,...v};try{localStorage.setItem('az_cfg',JSON.stringify(CFG))}catch(e){}
@@ -185,50 +211,81 @@ async function loadSec(k,force){
 
 // ===== القارئ =====
 async function openSec(k,focus,keep){
-  if(!keep){unlock();audioStop();CAT='';SHOWN=60}
+  if(!keep){unlock();audioStop();CAT='';SHOWN=60;START=0}
   CUR=k;$('rd').style.setProperty('--sc',SECS[k].c);$('rd').classList.add('on');$('rt').textContent=secT(k);
   $('rl').innerHTML='<p class="empty">جاري التحميل...</p>';
   ROWS=await loadSec(k);
   if(CUR!==k)return;
-  if(focus){const i=ROWS.findIndex(r=>r.id===focus);if(i>=SHOWN)SHOWN=i+20}
-  render();if(focus){const el=document.querySelector(`[data-id="${focus}"]`);if(el)el.scrollIntoView({block:'center'})}
+  if(focus){const i=ROWS.findIndex(r=>r.id===focus);if(i>=0){START=i;if(i>=SHOWN)SHOWN=i+20}}
+  applyFs();render();
+  if(focus){const el=document.querySelector(`.az[data-id="${CSS.escape(focus)}"]`);if(el&&!el.classList.contains('act'))el.scrollIntoView({block:'center'});else toActive(true)}
+  else if(!keep)toActive(true);
   if(!keep)prepAudio(k)}
 const list=()=>ROWS.filter(r=>!CAT||r.cat===CAT);
-function cardHtml(r,st){
-  const cn=r.count||1,rem=st[r.id]??cn,done=rem<=0,pct=Math.round((cn-Math.max(rem,0))/cn*100);
-  return `<article class="az ${done?'dn':''}" data-id="${esc(r.id)}"><button type="button" class="ring" style="--pg:${pct}" aria-label="${done?'تم، اضغط للتراجع':'تسجيل مرة'}"><b>${done?'<i class="fas fa-check"></i>':(cn>1&&CFG.showCounter!==false?ar(rem):'')}</b></button><div class="bd"><p class="tx" style="font-size:${FS()}px">${esc(r.text).replace(/\n/g,'<br>')}</p>${CFG.showVirtue!==false&&r.virtue?`<details class="vr"><summary>الفضل</summary><p>${esc(r.virtue)}</p></details>`:''}${CFG.showSource!==false&&r.source?`<div class="sr"><i class="fas fa-book-open"></i><span>${esc(r.source)}</span></div>`:''}<div class="tl"><span class="rp">${cn>1?'يُقال '+ar(cn)+' مرات':''}</span><button type="button" data-cp>مشاركة</button></div></div></article>`}
+const cntHtml=(cn,rem,multi)=>multi?`<span class="n">${ar(rem)}</span><span>اضغط للعدّ</span>`:`<span class="n"><i class="fas fa-check"></i></span><span>اضغط عند الانتهاء</span>`;
+function cardHtml(r,st,i,mode,tot){
+  const cn=r.count||1,rem=st[r.id]??cn,id=esc(r.id),tx=esc(r.text).replace(/\n/g,' ');
+  if(mode==='dn')return `<article class="az dn" data-id="${id}"><i class="fas fa-circle-check"></i><p class="t2">${tx}</p><button type="button" class="ib sm" data-undo aria-label="تراجع عن هذا الذكر"><i class="fas fa-rotate-left"></i></button></article>`;
+  if(mode==='lk'||mode==='pd')return `<article class="az ${mode}" data-id="${id}" ${mode==='lk'?'aria-disabled="true"':''}><i class="fas ${mode==='lk'?'fa-lock':'fa-chevron-left'}"></i><p class="t2">${tx}</p>${cn>1?`<span class="bg">×${ar(cn)}</span>`:''}</article>`;
+  const multi=cn>1&&CFG.showCounter!==false,pct=multi?Math.round((cn-rem)/cn*100):0;
+  return `<article class="az act" data-id="${id}"><div class="hd"><span class="no">${ar(i+1)} / ${ar(tot)}</span><span class="rp">${cn>1?'يُقال '+ar(cn)+' مرات':''}</span><button type="button" class="ib sm" data-cp aria-label="مشاركة"><i class="fas fa-share-nodes"></i></button></div><p class="tx">${esc(r.text).replace(/\n/g,'<br>')}</p><button type="button" class="rm" data-rm hidden>قراءة كاملة <i class="fas fa-chevron-down"></i></button>${CFG.showVirtue!==false&&r.virtue?`<details class="vr"><summary>الفضل</summary><p>${esc(r.virtue)}</p></details>`:''}${CFG.showSource!==false&&r.source?`<div class="sr"><i class="fas fa-book-open"></i><span>${esc(r.source)}</span></div>`:''}<button type="button" class="cnt" data-c style="--f:${pct}" aria-label="${multi?'تسجيل مرة، المتبقي '+rem:'تم الانتهاء من الذكر'}">${cntHtml(cn,rem,multi)}</button></article>`}
 function render(){
   const st=getSt(CUR),L=list();
   const cats=[...new Set(ROWS.map(r=>r.cat).filter(Boolean))];
   const ch=$('chips');if(cats.length>1){ch.hidden=false;ch.innerHTML=`<button type="button" data-c="" class="${!CAT?'on':''}">الكل</button>`+cats.map(c=>`<button type="button" data-c="${esc(c)}" class="${CAT===c?'on':''}">${esc(c)}</button>`).join('')}else ch.hidden=true;
   if(!L.length){$('rl').innerHTML='<p class="empty">لا يوجد محتوى في هذا القسم بعد</p>';progress();return}
-  $('rl').innerHTML=L.slice(0,SHOWN).map(r=>cardHtml(r,st)).join('')+(L.length>SHOWN?`<button type="button" class="more" id="more">عرض المزيد (${ar(L.length-SHOWN)})</button>`:'')+'<div id="fin"></div>';
-  progress()}
+  const isDone=r=>(st[r.id]??(r.count||1))<=0;
+  let ai=L.findIndex((r,i)=>i>=START&&!isDone(r));
+  if(ai<0)ai=L.findIndex(r=>!isDone(r));
+  SHOWN=Math.max(SHOWN,ai+15);
+  $('rl').innerHTML=L.slice(0,SHOWN).map((r,i)=>cardHtml(r,st,i,isDone(r)?'dn':i===ai?'act':i>ai?'lk':'pd',L.length)).join('')+(L.length>SHOWN?`<button type="button" class="more" id="more">عرض المزيد (${ar(L.length-SHOWN)})</button>`:'')+'<div id="fin"></div>';
+  fit();progress()}
+// زر «قراءة كاملة» يظهر فقط لو النص طويل ومقصوص
+function fit(){const a=document.querySelector('.az.act');if(!a)return;const t=a.querySelector('.tx'),b=a.querySelector('.rm');if(!t||!b)return;b.hidden=!(a.classList.contains('open')||t.scrollHeight>t.clientHeight+2)}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+function toActive(auto){
+  const rl=$('rl'),a=document.querySelector('.az.act');
+  if(!a){if(ROWS.length&&!document.querySelector('.az.lk,.az.pd'))rl.scrollTo({top:rl.scrollHeight,behavior:auto?'auto':'smooth'});return}
+  const top=a.getBoundingClientRect().top-rl.getBoundingClientRect().top+rl.scrollTop-8;
+  rl.scrollTo({top:Math.max(0,top),behavior:auto?'auto':'smooth'})}
 function progress(){
   const st=getSt(CUR),n=ROWS.length,d=ROWS.filter(r=>(st[r.id]??(r.count||1))<=0).length;
   $('pgb').style.width=(n?d/n*100:0)+'%';
   const f=$('fin');if(f)f.innerHTML=n&&d===n?'<div class="fin"><i class="fas fa-circle-check"></i> أتممت هذا القسم، تقبّل الله منك</div>':''}
-$('chips').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;CAT=b.dataset.c;SHOWN=60;render();$('rl').scrollTop=0};
-function paint(id){
-  const r=ROWS.find(x=>x.id===id),el=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!r||!el)return;
-  const t=document.createElement('div');t.innerHTML=cardHtml(r,getSt(CUR));const n=t.firstElementChild;
-  const open=el.querySelector('details')?.open;if(open&&n.querySelector('details'))n.querySelector('details').open=true;el.replaceWith(n);return n}
+$('chips').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;CAT=b.dataset.c;SHOWN=60;START=0;render();$('rl').scrollTop=0;toActive(true)};
 async function share(r){const tx=r.text+(r.source?'\n— '+r.source:'');
   try{if(navigator.share){await navigator.share({text:tx});return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(tx);toast('تم النسخ')}catch(e){toast('تعذّر النسخ')}}
-function tap(id){
-  const r=ROWS.find(x=>x.id===id);if(!r)return;const st=getSt(CUR),cn=r.count||1,rem=st[id]??cn;
-  st[id]=rem<=0?cn:rem-1;setSt(CUR,st);const n=paint(id);progress();
-  if(st[id]<=0){if(navigator.vibrate)navigator.vibrate(35);
-    setTimeout(()=>{let x=n&&n.nextElementSibling;while(x&&x.classList&&x.classList.contains('dn'))x=x.nextElementSibling;if(x&&x.classList&&x.classList.contains('az'))x.scrollIntoView({behavior:'smooth',block:'center'})},320)}}
+// عدّ مرة واحدة؛ عند الانتهاء ينتقل فورًا للذكر التالي
+function count(id){
+  const r=ROWS.find(x=>x.id===id);if(!r)return;
+  const st=getSt(CUR),cn=r.count||1,rem=st[id]??cn;if(rem<=0)return;
+  const multi=cn>1&&CFG.showCounter!==false,nx=multi?rem-1:0;
+  st[id]=nx;setSt(CUR,st);
+  const a=document.querySelector(`.az[data-id="${CSS.escape(id)}"]`),b=a&&a.querySelector('.cnt');
+  if(nx>0){
+    if(b){b.innerHTML=cntHtml(cn,nx,multi);b.style.setProperty('--f',(cn-nx)/cn*100);b.classList.remove('tap');void b.offsetWidth;b.classList.add('tap')}
+    if(navigator.vibrate)navigator.vibrate(12);progress();return}
+  if(navigator.vibrate)navigator.vibrate(35);
+  if(a){a.classList.add('fl');if(b){b.style.setProperty('--f',100);b.innerHTML='<span class="n"><i class="fas fa-check"></i></span><span>تم، تقبّل الله</span>'}}
+  progress();
+  setTimeout(()=>{if(CUR){render();toActive()}},420)}
+function lockedMsg(){
+  toast('يرجى إنهاء الذكر الحالي أولًا');
+  const a=document.querySelector('.az.act');
+  if(a){a.classList.remove('nudge');void a.offsetWidth;a.classList.add('nudge');toActive()}}
 $('rl').addEventListener('click',e=>{
   if(e.target.id==='more'){SHOWN+=60;render();return}
   if(e.target.closest('details')||e.target.closest('summary'))return;
-  const a=e.target.closest('.az');if(!a)return;
-  if(e.target.closest('[data-cp]')){const r=ROWS.find(x=>x.id===a.dataset.id);if(r)share(r);return}
-  tap(a.dataset.id)});
-$('rr').onclick=async()=>{if(!await ask('إعادة العدّ من البداية لهذا القسم؟','إعادة العدّ'))return;setSt(CUR,{});render()};
-const setFs=d=>{fs=Math.min(48,Math.max(18,FS()+d));localStorage.setItem('az_fs',fs);document.querySelectorAll('.tx').forEach(x=>x.style.fontSize=fs+'px')};
+  const a=e.target.closest('.az');if(!a)return;const id=a.dataset.id;
+  if(e.target.closest('[data-cp]')){const r=ROWS.find(x=>x.id===id);if(r)share(r);return}
+  if(e.target.closest('[data-rm]')){const b=e.target.closest('[data-rm]'),o=a.classList.toggle('open');b.innerHTML=o?'إخفاء <i class="fas fa-chevron-up"></i>':'قراءة كاملة <i class="fas fa-chevron-down"></i>';return}
+  if(e.target.closest('[data-undo]')){const r=ROWS.find(x=>x.id===id);if(!r)return;const st=getSt(CUR);delete st[id];setSt(CUR,st);START=0;render();toActive();return}
+  if(e.target.closest('[data-c]')){count(id);return}
+  if(a.classList.contains('lk')){lockedMsg();return}
+  if(a.classList.contains('pd')){const i=list().findIndex(r=>r.id===id);if(i>=0){START=i;render();toActive()}}});
+$('rr').onclick=async()=>{if(!await ask('إعادة العدّ من البداية لهذا القسم؟','إعادة العدّ'))return;setSt(CUR,{});START=0;render();toActive(true)};
+const setFs=d=>{fs=Math.min(48,Math.max(18,FS()+d));localStorage.setItem('az_fs',fs);applyFs();fit()};
 $('fm').onclick=()=>setFs(-2);$('fp').onclick=()=>setFs(2);
 $('rx').onclick=()=>{audioStop();CUR=null;$('rd').classList.remove('on');renderHome()};
 
