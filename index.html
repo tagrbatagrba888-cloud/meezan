@@ -2938,6 +2938,7 @@ function renderGridButtons() {
 
   const total = allCurrentButtons.length;
   $('sectionCount').textContent = total;
+  window.__mzButtons = allCurrentButtons; window.dispatchEvent(new Event('mz:buttons'));
 
   if (total === 0) {
     grid.style.display = 'none';
@@ -3942,11 +3943,12 @@ var em=$('emptyState');if(em){var e3=em.querySelector('h3'),e4=em.querySelector(
 }
 /* bottom nav (students only) */
 var nav=document.createElement('nav');nav.className='mz-nav';
-var POOL=[['manshor.html','fa-newspaper','المنشورات'],['daam.html','fa-headset','الدعم'],['stor.html','fa-store','المتجر'],['contest.html','fa-trophy','المسابقات'],['results_1.html','fa-award','نتائجي']];
+var POOL=[[/منشور/,'post.html','fa-newspaper','المنشورات'],[/دعم/,'daam.html','fa-headset','الدعم'],[/متجر|محفظ/,'stor.html','fa-store','المتجر'],[/مسابق/,'contest.html','fa-trophy','المسابقات'],[/نتائج/,'results_1.html','fa-award','نتائجي']];
+function hrefOf(x){var bs=window.__mzButtons||[];for(var i=0;i<bs.length;i++){var b=bs[i];if(b.url&&(x[0].test(b.label||'')||(x[1]==='post.html'&&/post/i.test(b.url))))return b.url}return x[1]}
 function buildNav(){var used={};if(grid)grid.querySelectorAll('a.action-btn').forEach(function(a){used[(a.getAttribute('href')||'').split('?')[0]]=1});
-var pick=POOL.filter(function(x){return !used[x[0]]}).slice(0,3);
+var pick=POOL.map(function(x){return [hrefOf(x),x[2],x[3]]}).filter(function(x){return !used[x[0].split('?')[0]]}).slice(0,3);
 nav.innerHTML='<a class="on" href="index.html"><i class="fas fa-house"></i>الرئيسية</a>'+pick.map(function(x){return '<a href="'+x[0]+'"><i class="fas '+x[1]+'"></i>'+x[2]+'</a>'}).join('')+'<a href="sora.html"><i class="fas fa-user"></i>حسابي</a>'}
-buildNav();if(grid)new MutationObserver(buildNav).observe(grid,{childList:true});
+buildNav();window.addEventListener('mz:buttons',buildNav);if(grid)new MutationObserver(buildNav).observe(grid,{childList:true});
 document.body.appendChild(nav);
 function navCheck(){var r=$('roleText');var ok=r&&r.textContent.indexOf('طالب')>-1;nav.classList.toggle('show',!!ok);document.body.classList.toggle('mz-has-nav',!!ok)}
 if($('roleText'))new MutationObserver(navCheck).observe($('roleText'),{childList:true,characterData:true,subtree:true});navCheck();
@@ -3959,6 +3961,26 @@ var y0=null,dy=0;
 addEventListener('touchstart',function(e){y0=scrollY===0?e.touches[0].clientY:null},{passive:true});
 addEventListener('touchmove',function(e){if(y0===null)return;dy=e.touches[0].clientY-y0;p.style.top=dy>0?Math.min(dy/2,70)-48+'px':'-48px'},{passive:true});
 addEventListener('touchend',function(){if(y0!==null&&dy>130){p.innerHTML='<i class="fas fa-rotate fa-spin"></i>';location.reload()}else p.style.top='-48px';y0=null;dy=0});
+/* focus / accent / share / avatar */
+var cr=document.querySelector('.mz-chips');
+if(cr){[['fa-bullseye','وضع التركيز',openFocus],['fa-palette','لون التمييز',cycleAcc],['fa-share-nodes','شارك إنجازك',share]].forEach(function(a){var b=document.createElement('button');b.type='button';b.className='mz-chip mz-ib';b.title=a[1];b.setAttribute('aria-label',a[1]);b.innerHTML='<i class="fas '+a[0]+'"></i>';b.onclick=a[2];cr.appendChild(b)})}
+var sy=document.createElement('style');sy.textContent='.mz-ib{cursor:pointer;color:inherit;font-family:inherit}html[data-mzacc="1"]{--accent:#2E86DE!important}html[data-mzacc="2"]{--accent:#E1648A!important}html[data-mzacc="3"]{--accent:#8E6FD8!important}';document.head.appendChild(sy);
+var ai=+ls.getItem('mz_acc')||0;if(ai)document.documentElement.dataset.mzacc=ai;
+function cycleAcc(){ai=(ai+1)%4;ls.setItem('mz_acc',ai);if(ai)document.documentElement.dataset.mzacc=ai;else delete document.documentElement.dataset.mzacc}
+function openFocus(){var o=document.createElement('div');o.className='mz-tour on';var left=1500,iv=null;
+o.innerHTML='<div class="mz-tour-card"><i class="fas fa-bullseye"></i><h3>وضع التركيز</h3><div id="mzT" style="font:900 44px Cairo,sans-serif;margin:6px 0 14px">25:00</div><button id="mzGo">ابدأ</button> <button id="mzX" style="background:transparent;color:var(--text-sub)">إغلاق</button></div>';
+document.body.appendChild(o);var t=o.querySelector('#mzT'),go=o.querySelector('#mzGo');
+function f(){t.textContent=('0'+Math.floor(left/60)).slice(-2)+':'+('0'+left%60).slice(-2)}
+go.onclick=function(){if(iv){clearInterval(iv);iv=null;go.textContent='استكمل';return}go.textContent='إيقاف مؤقت';iv=setInterval(function(){left--;f();if(left<=0){clearInterval(iv);iv=null;go.textContent='ابدأ';left=1500;f();if(navigator.vibrate)navigator.vibrate([200,100,200])}},1000)};
+o.querySelector('#mzX').onclick=function(){clearInterval(iv);o.remove()}}
+function share(){var n=($('welcomeUserName')||{}).textContent||'';var cv=document.createElement('canvas');cv.width=cv.height=1080;var x=cv.getContext('2d');
+var gr=x.createLinearGradient(0,0,1080,1080);gr.addColorStop(0,'#0B3D2E');gr.addColorStop(1,'#1E7A5A');x.fillStyle=gr;x.fillRect(0,0,1080,1080);
+x.textAlign='center';x.direction='rtl';x.fillStyle='#C9A961';x.font='900 64px Cairo,sans-serif';x.fillText('ميزان | MEEZAN',540,200);
+x.fillStyle='#fff';x.font='900 84px Cairo,sans-serif';x.fillText(n,540,520);x.font='700 56px Cairo,sans-serif';x.fillText(st.n+' يوم متواصل',540,660);x.fillText('المستوى '+lv[0],540,750);
+cv.toBlob(function(b){var fl=new File([b],'meezan.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[fl]}))navigator.share({files:[fl],title:'ميزان'}).catch(function(){});else{var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='meezan.png';a.click()}})}
+var wi=$('welcomeIcon'),ab=$('userAvatarBtn');
+function av(){var im=ab&&ab.querySelector('img');if(wi&&im&&!wi.querySelector('img')){var m=document.createElement('img');m.src=im.src;m.style.cssText='width:100%;height:100%;border-radius:inherit;object-fit:cover';wi.innerHTML='';wi.appendChild(m)}}
+if(ab)new MutationObserver(av).observe(ab,{childList:true});if(wi)new MutationObserver(av).observe(wi,{childList:true});av();
 /* onboarding */
 if(!ls.getItem('mz_tour')){
 var steps=[['fa-th-large','أقسامك في مكان واحد','كل الخدمات في الشاشة الرئيسية، وتقدر تبحث عن أي قسم بسرعة.'],['fa-fire','حافظ على سلسلتك','ادخل كل يوم عشان تكمل أيامك المتواصلة وتترقى في المستويات.'],['fa-bell','متفوتش حاجة','فعّل الإشعارات وهتوصلك التكليفات والمسابقات الجديدة فوراً.']],i=0;
