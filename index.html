@@ -3214,11 +3214,11 @@ function getRemainingTime(untilIso) {
 
 let loggingOut = false;
 // 🚪 خروج فوري عند التعطيل (حتى لو انتهت مدة التعطيل لاحقاً)
-function forceLogoutDisabled() {
+function forceLogoutDisabled(kind) {
   if (loggingOut) return;
   loggingOut = true;
   try { document.documentElement.style.visibility = 'hidden'; } catch (e) {}
-  try { sessionStorage.setItem('meezan_logout_reason', 'disabled'); } catch (e) {}
+  if (kind !== 'forced') { try { sessionStorage.setItem('meezan_logout_reason', 'disabled'); } catch (e) {} }
   forceLogout();
 }
 
@@ -3352,10 +3352,13 @@ function startUserMonitoring() {
     const forceAt = user.forceLogoutAt ? new Date(user.forceLogoutAt).getTime() : 0;
     if (!isNaN(forceAt)) {
       const seenRaw = sessionStorage.getItem('meezan_force_seen');
-      if (seenRaw === null) {
-        sessionStorage.setItem('meezan_force_seen', String(forceAt));   // أوامر قديمة قبل دخولك: تُتجاهل
-      } else if (!fromCache && forceAt > Number(seenRaw)) {
-        forceLogoutDisabled(); return;
+      // خط الأساس يُؤخذ من السيرفر فقط (لقطة الكاش القديمة كانت تسبب خروجاً تلقائياً بعد الدخول)
+      if (!fromCache) {
+        if (seenRaw === null) {
+          sessionStorage.setItem('meezan_force_seen', String(forceAt));   // أوامر قديمة قبل دخولك: تُتجاهل
+        } else if (forceAt > Number(seenRaw)) {
+          forceLogoutDisabled('forced'); return;
+        }
       }
     }
 
@@ -3939,7 +3942,11 @@ var em=$('emptyState');if(em){var e3=em.querySelector('h3'),e4=em.querySelector(
 }
 /* bottom nav (students only) */
 var nav=document.createElement('nav');nav.className='mz-nav';
-nav.innerHTML='<a class="on" href="index.html"><i class="fas fa-house"></i>الرئيسية</a><a href="contest.html"><i class="fas fa-trophy"></i>المسابقات</a><a href="stor.html"><i class="fas fa-store"></i>المتجر</a><a href="daam.html"><i class="fas fa-headset"></i>الدعم</a><a href="sora.html"><i class="fas fa-user"></i>حسابي</a>';
+var POOL=[['manshor.html','fa-newspaper','المنشورات'],['daam.html','fa-headset','الدعم'],['stor.html','fa-store','المتجر'],['contest.html','fa-trophy','المسابقات'],['results_1.html','fa-award','نتائجي']];
+function buildNav(){var used={};if(grid)grid.querySelectorAll('a.action-btn').forEach(function(a){used[(a.getAttribute('href')||'').split('?')[0]]=1});
+var pick=POOL.filter(function(x){return !used[x[0]]}).slice(0,3);
+nav.innerHTML='<a class="on" href="index.html"><i class="fas fa-house"></i>الرئيسية</a>'+pick.map(function(x){return '<a href="'+x[0]+'"><i class="fas '+x[1]+'"></i>'+x[2]+'</a>'}).join('')+'<a href="sora.html"><i class="fas fa-user"></i>حسابي</a>'}
+buildNav();if(grid)new MutationObserver(buildNav).observe(grid,{childList:true});
 document.body.appendChild(nav);
 function navCheck(){var r=$('roleText');var ok=r&&r.textContent.indexOf('طالب')>-1;nav.classList.toggle('show',!!ok);document.body.classList.toggle('mz-has-nav',!!ok)}
 if($('roleText'))new MutationObserver(navCheck).observe($('roleText'),{childList:true,characterData:true,subtree:true});navCheck();
