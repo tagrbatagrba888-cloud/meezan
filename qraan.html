@@ -56,6 +56,14 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 .sheet .at{font-family:'Amiri Quran',serif;font-size:22px;line-height:2.2;margin-top:6px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--bg-card);border:1px solid var(--accent);padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;z-index:9999;opacity:0;transition:.35s}
 .toast.show{transform:translateX(-50%);opacity:1}
+.card-a{margin:14px auto;max-width:760px;min-height:42vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 18px;border:3px double var(--accent);border-radius:24px;background:linear-gradient(160deg,var(--bg-card),var(--bg-input));box-shadow:0 14px 36px var(--shadow);position:relative}
+.card-a::before,.card-a::after{content:"❖";position:absolute;color:var(--accent);font-size:16px}.card-a::before{top:8px;right:14px}.card-a::after{bottom:8px;left:14px}
+.card-a .q{text-align:center!important;width:100%}
+.cn{margin-top:14px;font:800 13px 'Cairo';color:var(--text-sub)}.cn b{color:var(--accent);font-size:17px}
+#rg{display:block;width:100%;max-width:760px;margin:14px auto;accent-color:var(--accent)}
+.bm{cursor:pointer}
+.as{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;background:var(--bg-card);border:2px solid var(--accent);border-radius:30px;padding:6px 12px;box-shadow:0 8px 24px var(--shadow);z-index:5}
+.as.on{display:flex}.as button{width:38px;height:38px;border-radius:50%;border:0;background:var(--primary);color:var(--bg-card);cursor:pointer;font-size:14px}.as span{min-width:52px;text-align:center;font:800 13px 'Cairo'}
 </style>
 </head>
 <body>
@@ -67,6 +75,7 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 <main class="wrap" id="home">
 <div class="hero"><h1>📖 القرآن الكريم</h1><p>اقرأ بين يديك، حتى بدون إنترنت</p>
 <div class="cont" id="cont"><i class="fas fa-bookmark"></i><span id="contT">ابدأ القراءة</span></div>
+<div class="cont" id="dl" style="margin-top:8px"><i class="fas fa-file-pdf"></i><span>تحميل المصحف كاملاً (PDF)</span></div>
 <div class="pbar"><i id="pg" style="width:0"></i></div><div class="stt" id="stt">جاري التحميل...</div></div>
 <div class="tabs" id="tabs"><button class="on" data-t="s">السور</button><button data-t="j">الأجزاء</button><button data-t="h">الأحزاب</button></div>
 <input id="sq" placeholder="ابحث عن سورة...">
@@ -78,7 +87,8 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 <span id="mb" style="display:flex;gap:4px"><button class="ib" data-m="ayah" title="آية بآية"><i class="fas fa-square"></i></button><button class="ib" data-m="page" title="صفحات المصحف"><i class="fas fa-book-open"></i></button><button class="ib" data-m="scroll" title="عرض مستمر"><i class="fas fa-bars"></i></button></span>
 <button class="ib" id="fm">A-</button><button class="ib" id="fp">A+</button></div>
 <div id="rc"></div>
-<div class="nav" id="nv"><button id="np">التالي ‹</button><button id="nn">› السابق</button></div>
+<div class="nav" id="nv"><button id="nn"><i class="fas fa-chevron-right"></i> السابق</button><button id="np">التالي <i class="fas fa-chevron-left"></i></button></div>
+<div class="as" id="as"><button id="as-"><i class="fas fa-minus"></i></button><button id="asp"><i class="fas fa-play"></i></button><span id="asl">متوسط</span><button id="as+"><i class="fas fa-plus"></i></button></div>
 </div>
 <div class="sheet" id="sh"><div id="shb"></div></div>
 <div class="toast" id="toast"></div>
@@ -163,34 +173,74 @@ let mode='ayah',fs=+localStorage.getItem('q_fs')||0;
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)mark(+e.target.dataset.i)}),{threshold:.6});
 const words=i=>Q[i].split(' ').map((w,k)=>`<span class="w" data-k="${k}">${esc(w)}</span>`).join(' ');
 const ay=i=>`<span class="a" data-i="${i}">${words(i)} <span class="n">﴿${ar(AI[i])}﴾</span></span> `;
-const head=s=>`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية</small>`:''}</div>${s!==1&&s!==9?`<div class="bs">${esc(Q[1])}</div>`:''}`;
+const head=s=>`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية</small>`:''}</div>${s!==1&&s!==9?`<div class="bs bm" data-i="1">${esc(Q[1])}</div>`:''}`;
 const surahHtml=s=>head(s)+'<div class="q">'+Array.from({length:AC[s]},(_,k)=>ay(g(s,k+1))).join('')+'</div>';
 function setQ(){$('rc').style.fontSize=(fs||S.fontSize)+'px'}
 function obs(){io.disconnect();$('rc').querySelectorAll('.a').forEach(e=>io.observe(e))}
 function render(i){
-  const rc=$('rc');rc.scrollTop=0;setQ();$('nv').classList.toggle('on',mode!=='scroll');
+  const rc=$('rc');rc.scrollTop=0;setQ();$('nv').classList.toggle('on',mode!=='scroll');asSet(false);$('as').classList.toggle('on',mode==='scroll');
   document.querySelectorAll('#mb button').forEach(b=>{b.classList.toggle('on',b.dataset.m===mode);b.style.display=S.allowSwitch&&S.modes[b.dataset.m]&&(b.dataset.m!=='page'||PGs)?'':'none'});
-  if(mode==='ayah'){const s=SI[i];rc.innerHTML=(AI[i]===1?head(s):`<div class="sh">سورة ${SN[s]}</div>`)+`<div class="q" style="text-align:center">${ay(i)}</div>`;$('np').disabled=i>=TOTAL;$('nn').disabled=i<=1;$('np').onclick=()=>go(i+1);$('nn').onclick=()=>go(i-1)}
+  if(mode==='ayah'){const s=SI[i],n=AC[s],a=AI[i];rc.innerHTML=(a===1?head(s):`<div class="sh">سورة ${SN[s]}${S.showType?`<small>${MD.has(s)?'مدنية':'مكية'} • ${ar(n)} آية</small>`:''}</div>`)+`<div class="card-a"><div class="q">${ay(i)}</div><div class="cn">آية <b>${ar(a)}</b> من ${ar(n)}</div></div><input type="range" id="rg" min="1" max="${n}" value="${a}">`;$('rg').onchange=e=>go(g(s,+e.target.value));$('np').disabled=i>=TOTAL;$('nn').disabled=i<=1;$('np').onclick=()=>go(i+1);$('nn').onclick=()=>go(i-1)}
   else if(mode==='page'){const p=loc(PGs,i),a=PGs[p-1],b=p<604?PGs[p]-1:TOTAL;let h='<div class="q">';for(let k=a;k<=b;k++){if(AI[k]===1)h+='</div>'+head(SI[k])+'<div class="q">';h+=ay(k)}rc.innerHTML=h+`</div><div class="sh" style="margin-top:20px">صفحة ${ar(p)}</div>`;$('np').disabled=p>=604;$('nn').disabled=p<=1;$('np').onclick=()=>go(PGs[p]);$('nn').onclick=()=>go(PGs[p-2])}
   else{let s=SI[i];rc.innerHTML=surahHtml(s)+'<div id="sen" style="height:40px"></div>';const sen=$('sen'),so=new IntersectionObserver(e=>{if(e[0].isIntersecting&&s<114){s++;sen.insertAdjacentHTML('beforebegin',surahHtml(s));rc.querySelectorAll('.a').forEach(x=>io.observe(x))}else if(s>=114)so.disconnect()});so.observe(sen);const el=rc.querySelector(`[data-i="${i}"]`);if(el&&AI[i]>1)el.scrollIntoView()}
   obs();mark(i)}
 const go=i=>{if(i>=1&&i<=TOTAL)render(i)};
-function open(i){if(!S.enabled)return toast('القرآن غير متاح حالياً');mode=localStorage.getItem('q_mode');if(!mode||!S.modes[mode])mode=S.defaultMode;if(mode==='page'&&!PGs)mode=S.modes.ayah?'ayah':'scroll';$('rd').classList.add('on');history.pushState({r:1},'');render(i)}
+function open(i){if(!S.enabled)return toast('القرآن غير متاح حالياً');mode=S.modes.scroll?'scroll':S.defaultMode;if(mode==='page'&&!PGs)mode=S.modes.ayah?'ayah':'scroll';$('rd').classList.add('on');history.pushState({r:1},'');render(i)}
 function close(){$('rd').classList.remove('on');io.disconnect();localStorage.setItem('q_seen',btoa(String.fromCharCode(...SEEN)));flush();home()}
 $('rx').onclick=()=>history.back();addEventListener('popstate',()=>{if($('rd').classList.contains('on'))close()});
-document.querySelectorAll('#mb button').forEach(b=>b.onclick=()=>{if(!S.allowSwitch||!S.modes[b.dataset.m])return;mode=b.dataset.m;localStorage.setItem('q_mode',mode);render(cur)});
+document.querySelectorAll('#mb button').forEach(b=>b.onclick=()=>{if(!S.allowSwitch||!S.modes[b.dataset.m])return;mode=b.dataset.m;render(cur)});
 $('fm').onclick=()=>{fs=Math.max(18,(fs||S.fontSize)-2);localStorage.setItem('q_fs',fs);setQ()};
 $('fp').onclick=()=>{fs=Math.min(60,(fs||S.fontSize)+2);localStorage.setItem('q_fs',fs);setQ()};
 
 // ===== تفسير / معنى / سبب نزول (تُحمَّل وتُخزَّن للاستخدام بدون نت) =====
 let X=null;
 async function loadX(){if(X)return X;X={t:await getJ('tafsir'),a:await getJ('asbab'),w:await getJ('words')};return X}
-$('rc').addEventListener('click',async e=>{const a=e.target.closest('.a');if(!a)return;const i=+a.dataset.i,w=e.target.closest('.w'),k=w?+w.dataset.k:null,key=SI[i]+':'+AI[i];await loadX();
+$('rc').addEventListener('click',async e=>{const a=e.target.closest('.a,.bm');if(!a)return;const i=+a.dataset.i,w=e.target.closest('.w'),k=w?+w.dataset.k:null,key=SI[i]+':'+AI[i];await loadX();
   let h=`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>`;
   if(k!==null){const m=X.w&&X.w[key]&&X.w[key][k];h+=`<h5>معنى «${esc(Q[i].split(' ')[k])}»</h5><p>${m?esc(m):'لا يوجد شرح لهذه الكلمة حالياً'}</p>`}
-  h+=`<h5>التفسير</h5><p>${X.t&&X.t[key]?esc(X.t[key]):'التفسير غير متوفر بعد'}</p><h5>سبب النزول</h5><p>${X.a&&X.a[key]?esc(X.a[key]):'لا يوجد سبب نزول منقول لهذه الآية، أو لم يُضَف بعد'}</p>`;
+  h+=`<h5>التفسير</h5><p>${X.t?(X.t[key]?esc(X.t[key]):'لا يوجد تفسير لهذه الآية'):'ملف التفسير (tafsir.json) لم يُرفع على الموقع بعد'}</p><h5>سبب النزول</h5><p>${X.a&&X.a[key]?esc(X.a[key]):'لا يوجد سبب نزول منقول لهذه الآية، أو لم يُضَف بعد'}</p>`;
   $('shb').innerHTML=h;$('sh').classList.add('on')});
-document.addEventListener('click',e=>{if(!e.target.closest('#sh')&&!e.target.closest('.a'))$('sh').classList.remove('on')});
+document.addEventListener('click',e=>{if(!e.target.closest('#sh')&&!e.target.closest('.a,.bm'))$('sh').classList.remove('on')});
+
+// ===== تمرير تلقائي =====
+const SPD=[['بطيء',14],['هادئ',26],['متوسط',42],['سريع',65],['أسرع',100]];let spi=+localStorage.getItem('q_sp');if(!(spi>=0&&spi<5))spi=2;
+let ASon=false,acc=0,lt=0,stl=0,WL=null;$('asl').textContent=SPD[spi][0];
+function asTick(t){if(!ASon)return;const dt=Math.min(.1,(t-lt)/1000);lt=t;const rc=$('rc');acc+=SPD[spi][1]*dt;
+  if(acc>=1){const n=Math.floor(acc),b=rc.scrollTop;rc.scrollTop=b+n;acc-=n;stl=rc.scrollTop===b?stl+1:0;if(stl>40){asSet(false);toast('انتهى القرآن');return}}
+  requestAnimationFrame(asTick)}
+async function asSet(on){if(on===ASon)return;ASon=on;$('asp').innerHTML=on?'<i class="fas fa-pause"></i>':'<i class="fas fa-play"></i>';
+  if(on){acc=0;stl=0;lt=performance.now();requestAnimationFrame(asTick)}
+  try{if(on&&navigator.wakeLock)WL=await navigator.wakeLock.request('screen');else if(WL){WL.release();WL=null}}catch(e){}}
+$('asp').onclick=()=>asSet(!ASon);
+const spd=d=>{spi=Math.min(4,Math.max(0,spi+d));localStorage.setItem('q_sp',spi);$('asl').textContent=SPD[spi][0]};
+$('as-').onclick=()=>spd(-1);$('as+').onclick=()=>spd(1);
+['touchstart','wheel'].forEach(ev=>$('rc').addEventListener(ev,()=>{if(ASon)asSet(false)},{passive:true}));
+let tx=0;$('rc').addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+$('rc').addEventListener('touchend',e=>{if(mode==='scroll')return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>70){const b=dx>0?$('np'):$('nn');if(!b.disabled)b.click()}},{passive:true});
+
+// ===== تحميل المصحف كاملاً (طباعة → حفظ PDF) =====
+function dl(){
+  if(!Q)return;toast('جاري تجهيز المصحف… اختر "حفظ كـ PDF" من نافذة الطباعة');
+  setTimeout(()=>{
+    const ded=esc(S.dedication||'صدقة جارية — اللهم اجعل هذا العمل خالصاً لوجهك الكريم، وانفع به من قرأه ونشره.');
+    const ayp=k=>`${esc(Q[k])} <span class="n">﴿${ar(AI[k])}﴾</span> `;
+    const hd=s=>`<div class="sh">سورة ${SN[s]}</div>${s!==1&&s!==9?`<div class="bs">${esc(Q[1])}</div>`:''}`;
+    let b='';
+    if(PGs){for(let p=1;p<=604;p++){const a=PGs[p-1],e=p<604?PGs[p]-1:TOTAL;let h=`<div class="pg"><div class="hd"><span>${SN[SI[a]]}</span><span>جزء ${ar(loc(JG,a))}</span></div><div class="q">`;for(let k=a;k<=e;k++){if(AI[k]===1)h+=hd(SI[k]);h+=ayp(k)}b+=h+`</div><div class="ft">${ar(p)}</div></div>`}}
+    else for(let s=1;s<=114;s++){let h=`<div class="pg">${hd(s)}<div class="q">`;for(let a=1;a<=AC[s];a++)h+=ayp(g(s,a));b+=h+'</div></div>'}
+    const css=`@page{size:A5;margin:10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;font-family:'Amiri Quran',serif;color:#0B3D2E}
+.cv,.dd{height:188mm;page-break-after:always;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:6px double #C9A961;border-radius:14px;padding:14mm}
+.cv{background:linear-gradient(160deg,#0B3D2E,#145A43 55%,#1E7A5A);color:#fff}.cv h1{font-size:58px;color:#E0C888;margin:8px 0}.cv .o{font-size:30px;color:#C9A961}.cv p{font:700 15px Cairo,sans-serif;margin:6px}
+.dd h2{font:900 26px Cairo,sans-serif;margin:6px}.dd .bx{border:2px double #C9A961;border-radius:14px;padding:14px;margin:14px 0;font:700 16px/2 Cairo,sans-serif;background:#F5F1E8}.dd small{font:600 11px Cairo,sans-serif;color:#5A6B66;direction:ltr}
+.pg{page-break-after:always;position:relative;min-height:182mm;padding-bottom:8mm}.hd{display:flex;justify-content:space-between;font:700 11px Cairo,sans-serif;color:#5A6B66;border-bottom:1px solid #C9A961;padding-bottom:4px;margin-bottom:6px}
+.q{font-size:17px;line-height:2.15;text-align:justify}.n{color:#C9A961;font-size:.75em}.sh{text-align:center;font:900 16px Cairo,sans-serif;border:2px double #C9A961;border-radius:10px;padding:5px;margin:8px 0}.bs{text-align:center;margin:4px 0}
+.ft{position:absolute;bottom:0;left:0;right:0;text-align:center;font:700 11px Cairo,sans-serif;color:#5A6B66}`;
+    const html=`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>القرآن الكريم — منصة ميزان</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri+Quran&display=swap" rel="stylesheet"><style>${css}</style></head><body>
+<div class="cv"><div class="o">❖ ❖ ❖</div><h1>القرآن الكريم</h1><p>برواية حفص عن عاصم</p><div class="o">❖ ❖ ❖</div><p style="margin-top:30px">منصة ميزان</p></div>
+<div class="dd"><h2>منصة ميزان</h2><small>${esc(location.origin)}</small><div class="bx"><b>صدقة جارية</b><br>${ded}</div><small>نص القرآن: Tanzil.net — tanzil.net</small></div>${b}</body></html>`;
+    const f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0';f.srcdoc=html;
+    f.onload=()=>setTimeout(()=>{const w=f.contentWindow;w.onafterprint=()=>f.remove();w.focus();w.print()},1200);document.body.appendChild(f)},60)}
+$('dl').onclick=dl;
 
 // ===== الرئيسية =====
 let tab='s';
