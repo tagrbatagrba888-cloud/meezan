@@ -1642,7 +1642,8 @@ var isF=function(e){return /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName)};
 try{var d=JSON.parse(localStorage.getItem(K)||'null');
 if(d&&U&&d.u===U){IDS.forEach(function(i){var e=document.getElementById(i),x=d.m[i];if(!e||!x)return;
 if(x.h!=null&&!isF(e))e.innerHTML=x.h;else if(x.h!=null&&e.tagName==='SELECT')e.innerHTML=x.h;
-if(x.v!=null&&isF(e))e.value=x.v;if(x.s)e.style.cssText=x.s;if(x.c!=null)e.className=x.c})}}catch(e){}
+if(x.v!=null&&isF(e))e.value=x.v;if(x.s)e.style.cssText=x.s;if(x.c!=null)e.className=x.c});document.body.classList.add('ready')}}catch(e){}
+setTimeout(function(){document.body.classList.add('ready')},1500);
 var t;function save(){try{var u=sessionStorage.getItem('meezan_user_id');if(!u)return;var m={};
 IDS.forEach(function(i){var e=document.getElementById(i);if(!e)return;var h=isF(e)&&e.tagName!=='SELECT'?null:e.innerHTML;if(h&&h.length>4e5)h=null;
 m[i]={h:h,v:isF(e)?e.value:null,s:e.style.cssText,c:e.className}});
