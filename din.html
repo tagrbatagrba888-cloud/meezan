@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>ميزان | القسم الديني</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B}
+[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#0B3D2E;--accent-light:#145A43;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C}
+html,body{min-height:100%;font-family:'Cairo',sans-serif;overflow-x:hidden}
+body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(circle at 20px 20px,var(--primary) 2px,transparent 2.5px);background-size:40px 40px;z-index:0}
+.topbar,.hero,.sec{position:relative;z-index:1}
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow)}
+.topbar-inner{max-width:1200px;margin:auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:19px}
+.brand img{width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);padding:3px;background:var(--bg-input);object-fit:contain}
+.icon-btn{width:40px;height:40px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);color:var(--primary);font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:.2s}
+.icon-btn:hover{background:var(--primary);color:#fff}
+.hero{max-width:1200px;margin:22px auto 0;padding:0 18px}
+.hero-card{background:linear-gradient(160deg,var(--primary),var(--primary-light) 55%,var(--primary-lighter));border:3px double var(--accent);border-radius:26px;padding:26px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 15px 40px var(--shadow);position:relative;overflow:hidden}
+.hero-card::after{content:"\f186";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;left:-14px;bottom:-30px;font-size:130px;color:rgba(255,255,255,.07);transform:rotate(-15deg)}
+.hero-card h1{color:#fff;font-size:23px;font-weight:900}
+.hero-card p{color:rgba(255,255,255,.85);font-size:13.5px;font-weight:600;margin-top:4px}
+.hijri{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+[data-theme="dark"] .hero-card h1{color:var(--bg-page)}[data-theme="dark"] .hero-card p{color:rgba(10,22,18,.8)}
+[data-theme="dark"] .hijri{background:rgba(10,22,18,.12);border-color:rgba(10,22,18,.25);color:var(--bg-page)}
+.hero-ico{width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid var(--accent);color:var(--accent);font-size:28px;display:flex;align-items:center;justify-content:center;animation:fl 3s ease-in-out infinite;flex-shrink:0;position:relative;z-index:1}
+@keyframes fl{50%{transform:translateY(-6px)}}
+.sec{max-width:1200px;margin:28px auto 40px;padding:0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.btn{background:var(--bg-card);border:2px solid var(--border);border-top:4px solid var(--accent);border-radius:20px;padding:24px 16px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;color:var(--text-main);font-family:inherit;text-decoration:none;text-align:center;box-shadow:0 4px 14px var(--shadow);transition:.3s;position:relative}
+.btn:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 12px 30px var(--shadow)}
+.btn:active{transform:scale(.97)}
+.bi{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;display:flex;align-items:center;justify-content:center;font-size:27px;overflow:hidden;box-shadow:0 8px 20px rgba(11,61,46,.25);border:2px solid var(--accent);transition:.3s}
+[data-theme="dark"] .bi{color:var(--bg-page)}
+.btn:hover .bi{transform:scale(1.08)}
+.bi img{width:100%;height:100%;object-fit:cover}
+.bl{font-size:15.5px;font-weight:800;line-height:1.4;word-break:break-word}
+.btn .ext{position:absolute;top:12px;left:12px;font-size:11px;color:var(--accent);opacity:.7}
+.skel{border-radius:20px;min-height:150px;background:var(--bg-card);border:2px solid var(--border);animation:pu 1.5s infinite}
+@keyframes pu{50%{opacity:.5}}
+.empty{background:var(--bg-card);border:2px dashed var(--border);border-radius:20px;padding:60px 20px;text-align:center;color:var(--text-sub)}
+.empty i{font-size:46px;color:var(--accent);opacity:.7;display:block;margin-bottom:12px}
+.empty h3{color:var(--text-main);font-weight:800;margin-bottom:6px}
+/* عارض HTML */
+.viewer{position:fixed;inset:0;z-index:2000;background:var(--bg-page);display:none;flex-direction:column}
+.viewer.show{display:flex}
+.vbar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.vbar b{flex:1;font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewer iframe{flex:1;width:100%;border:0;background:#fff}
+.vload{position:absolute;inset:50px 0 0;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--primary);pointer-events:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--bg-card);border:1px solid var(--error);padding:13px 22px;border-radius:14px;font-weight:800;font-size:14px;z-index:9999;opacity:0;transition:.35s}
+.toast.show{transform:translateX(-50%);opacity:1}
+@media(max-width:600px){
+  .topbar-inner{padding:10px 12px}.brand{font-size:16px}.brand img{width:36px;height:36px}
+  .hero{padding:0 12px;margin-top:16px}.hero-card{padding:18px 16px;border-radius:18px;border-width:3px}.hero-card h1{font-size:18px}.hero-card p{font-size:12.5px}.hero-ico{width:48px;height:48px;font-size:21px}
+  .sec{padding:0 12px}.grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .btn{min-height:122px;padding:18px 10px;border-radius:16px;gap:10px}.bi{width:50px;height:50px;font-size:21px}.bl{font-size:13px}
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <div class="brand"><img id="logo" src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><span>ميزان | القسم الديني</span></div>
+  <div style="display:flex;gap:8px">
+    <button class="icon-btn" id="themeBtn"><i class="fas fa-moon" id="themeIcon"></i></button>
+    <a href="index.html" class="icon-btn" title="الرئيسية"><i class="fas fa-house"></i></a>
+  </div>
+</div></header>
+
+<section class="hero"><div class="hero-card">
+  <div style="position:relative;z-index:1">
+    <h1>🕌 الركن الديني</h1>
+    <p>أذكار وعبادات وزاد إيماني يرافقك في يومك</p>
+    <span class="hijri"><i class="fas fa-calendar-days"></i><span id="hijri"></span></span>
+  </div>
+  <div class="hero-ico"><i class="fas fa-mosque"></i></div>
+</div></section>
+
+<section class="sec">
+  <div class="grid" id="skel"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  <div class="grid" id="grid" style="display:none"></div>
+  <div class="empty" id="empty" style="display:none"><i class="fas fa-book-quran"></i><h3>لا يوجد محتوى ديني حالياً</h3><p>سيتم إضافة المحتوى قريباً بإذن الله</p></div>
+</section>
+
+<div class="viewer" id="viewer">
+  <div class="vbar"><button class="icon-btn" id="vClose"><i class="fas fa-xmark"></i></button><b id="vTitle"></b></div>
+  <div class="vload" id="vLoad"><i class="fas fa-spinner fa-spin"></i></div>
+  <iframe id="frame" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-pointer-lock allow-downloads"></iframe>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",
+  storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"
+});
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') location.replace('login.html');
+const role = sessionStorage.getItem('meezan_role') || 'student';
+
+const setTheme = t => { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('meezan_theme', t); $('themeIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; };
+setTheme(localStorage.getItem('meezan_theme') || 'light');
+$('themeBtn').onclick = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+// 📅 التاريخ الهجري
+try {
+  $('hijri').textContent = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+} catch (e) { $('hijri').parentNode.style.display = 'none'; }
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tt;
+function toast(m) { const e = $('toast'); e.textContent = m; e.className = 'toast show'; clearTimeout(tt); tt = setTimeout(() => e.classList.remove('show'), 2600); }
+
+let list = [];
+const CK = 'meezan_rel_cache';
+
+function iconHtml(b) {
+  const ic = b.icon || {};
+  if ((ic.type === 'url' || ic.type === 'upload') && ic.value) return `<img src="${esc(ic.value)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=\\'fas fa-circle\\'></i>'">`;
+  const v = ic.value || 'fa-mosque';
+  return `<i class="fas ${esc(v.startsWith('fa-') ? v : 'fa-' + v)}"></i>`;
+}
+
+function render(items) {
+  list = (items || []).filter(b => b && b.label && b.visible !== false && (!b.audience || b.audience === 'all' || b.audience === role))
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  $('skel').style.display = 'none';
+  if (!list.length) { $('grid').style.display = 'none'; $('empty').style.display = 'block'; return; }
+  $('empty').style.display = 'none';
+  const g = $('grid'); g.style.display = 'grid';
+  g.innerHTML = list.map(b => `
+    <button class="btn" data-id="${esc(b.id)}">
+      ${b.actionType !== 'html' && /^https?:\/\//i.test(b.url || '') ? '<i class="fas fa-arrow-up-right-from-square ext"></i>' : ''}
+      <div class="bi">${iconHtml(b)}</div>
+      <div class="bl">${esc(b.label)}</div>
+    </button>`).join('');
+}
+
+try { const c = JSON.parse(localStorage.getItem(CK) || 'null'); if (c) render(c); } catch (e) {}
+
+onSnapshot(doc(db, 'settings', 'religious'), s => {
+  const items = s.exists() ? (s.data().items || []) : [];
+  render(items);
+  try { localStorage.setItem(CK, JSON.stringify(items)); } catch (e) {}
+}, () => { if (!list.length) render([]); });
+
+$('grid').addEventListener('click', async e => {
+  const el = e.target.closest('.btn'); if (!el) return;
+  const b = list.find(x => x.id === el.dataset.id); if (!b) return;
+  if (b.actionType !== 'html') {
+    if (!b.url) return;
+    if (/^https?:\/\//i.test(b.url)) window.open(b.url, '_blank', 'noopener'); else location.href = b.url;
+    return;
+  }
+  // HTML
+  $('vTitle').textContent = b.label;
+  $('frame').srcdoc = '';
+  $('vLoad').style.display = 'flex';
+  $('viewer').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  try {
+    const s = await getDoc(doc(db, 'settings', 'rel_' + b.id));
+    if (!s.exists() || !s.data().html) throw new Error('empty');
+    $('frame').srcdoc = s.data().html;
+  } catch (err) { closeViewer(); toast('تعذّر فتح هذا الزر'); }
+});
+$('frame').addEventListener('load', () => { $('vLoad').style.display = 'none'; });
+
+function closeViewer() {
+  $('viewer').classList.remove('show');
+  $('frame').srcdoc = '';
+  document.body.style.overflow = '';
+}
+$('vClose').onclick = closeViewer;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeViewer(); });
+</script>
+</body>
+</html>
