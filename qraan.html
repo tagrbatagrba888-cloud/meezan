@@ -265,21 +265,23 @@ $('fm').onclick=()=>{if(mode==='page'){pfs=Math.max(.6,+(pfs-.06).toFixed(2));lo
 $('fp').onclick=()=>{if(mode==='page'){pfs=Math.min(1.8,+(pfs+.06).toFixed(2));localStorage.setItem('q_pfs',pfs);fitPage();return}fs=Math.min(60,(fs||S.fontSize)+2);localStorage.setItem('q_fs',fs);setQ()};
 
 // ===== تفسير / معنى / سبب نزول =====
-const FILES={t:['tafsir','التفسير الميسر'],t2:['tafsir2','تفسير الجلالين'],a:['asbab','أسباب النزول'],w:['words','معاني الكلمات']};
+const FILES={t:['tafsir','التفسير الميسر'],t2:['tafsir2','تفسير الجلالين'],a:['asbab','أسباب النزول'],w:['words','معاني الكلمات'],f:['fatawa','فتاوى الآية'],e:['erab','إعراب الآية']};
 const X={};
-async function loadX(){await Promise.all(Object.entries(FILES).map(async([k,[n]])=>{if(X[k])return;const j=await getJ(n,k==='w'?'w':'o');if(j)X[k]=j}))}
-const nf=k=>{const n=FILES[k][0],st=stat[n];return st==='bad'?`<p class="nf">ملف ${n}.json موجود على الموقع لكن شكله غير مفهوم. نزّله من صفحة الأدمن (زر التنزيل) وارفعه بدل الملف الحالي، أو ارفع ملف Tanzil الأصلي بصيغة sura|aya|text.</p>`:st==='net'?`<p class="nf">تعذّر الاتصال لتحميل ${n}.json. تأكد من الإنترنت ثم حاول مرة أخرى.</p>`:`<p class="nf">لم أجد ملف ${n}.json على الموقع. لازم يكون اسمه بالضبط <b>${n}.json</b> وفي نفس مجلد quran.html. افحصه من أدمن القرآن ← البيانات ← فحص الملفات.</p>`}
+async function loadX(ks){await Promise.all(Object.entries(FILES).filter(([k])=>!ks||ks.includes(k)).map(async([k,[n]])=>{if(X[k])return;const j=await getJ(n,k==='w'?'w':'o');if(j)X[k]=j}))}
+const nf=k=>`<p class="nf">${({t:'لا يوجد تفسير',t2:'لا يوجد تفسير',a:'لا يوجد سبب نزول',w:'لا يوجد معنى',f:'لا توجد فتوى',e:'لا يوجد إعراب'})[k]||'لا يوجد'}</p>`;
 const BM=()=>{try{return JSON.parse(localStorage.getItem('q_bm')||'[]')}catch(e){return[]}};
 var CB=null,shT=0;
 function show(h,i){CB=null;shT=Date.now();$('shb').innerHTML=h;$('shb').dataset.i=i||'';$('sh').classList.add('on')}
-async function explain(i,k){const key=SI[i]+':'+AI[i];await loadX();
+async function explain(i,k){const key=SI[i]+':'+AI[i];await loadX(['t','t2','a','w']);
   let h=`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>${audBtns()}`;
   if(k!=null){const W=X.w,m=W&&W[key]&&W[key][k];h+=`<h5>معنى «${esc(Q[i].split(' ')[k])}»</h5>`+(W?`<p>${m?esc(m):'لا يوجد شرح لهذه الكلمة حالياً'}</p>`:nf('w'))}
   for(const t of ['t','t2']){if(t==='t2'&&!X.t2)continue;h+=`<h5>${FILES[t][1]}</h5>`+(X[t]?`<p class="tx">${X[t][key]?esc(X[t][key]):'لا يوجد تفسير لهذه الآية'}</p>`:nf(t))}
   h+=`<h5>سبب النزول</h5>`+(X.a?`<p class="tx">${X.a[key]?esc(X.a[key]):'لا يوجد سبب نزول منقول لهذه الآية'}</p>`:nf('a'));
   show(h,i)}
+async function showX(i,k){const key=SI[i]+':'+AI[i];await loadX([k]);const none=k==='f'?'لا توجد فتوى مسجّلة لهذه الآية':'لا يوجد إعراب مسجّل لهذه الآية';
+  show(`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p><h5>${k==='f'?'⚖️ ':'📝 '}${FILES[k][1]}</h5>`+(X[k]?`<p class="tx">${X[k][key]?esc(X[k][key]):none}</p>`:nf(k))+'<div class="act" style="grid-template-columns:1fr"><button data-act="mback">↩ رجوع</button></div>',i)}
 function menu(i){const bm=BM().some(x=>x.i===i);
-  show(`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>${audBtns()}<div class="act"><button class="pri" data-act="stop">📍 هنا توقفت</button><button data-act="tafsir">📖 التفسير والمعنى</button><button data-act="bm">${bm?'🗑 إزالة العلامة':'🔖 علامة مرجعية'}</button><button data-act="copy">📋 نسخ الآية</button><button data-act="mut" style="grid-column:1/-1">🔗 الآيات المتشابهة</button></div>`,i)}
+  show(`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>${audBtns()}<div class="act"><button class="pri" data-act="stop">📍 هنا توقفت</button><button data-act="tafsir">📖 التفسير والمعنى</button><button data-act="bm">${bm?'🗑 إزالة العلامة':'🔖 علامة مرجعية'}</button><button data-act="copy">📋 نسخ الآية</button><button data-act="ftw">⚖️ فتاوى الآية</button><button data-act="erb">📝 إعراب الآية</button><button data-act="mut" style="grid-column:1/-1">🔗 الآيات المتشابهة</button></div>`,i)}
 $('rc').addEventListener('click',e=>{const pb=e.target.closest('.pgb');if(pb){khToggle(+pb.dataset.p);return}const a=e.target.closest('.a,.bm');if(!a)return;const i=+a.dataset.i;
   if(e.target.closest('.n'))return menu(i);
   const w=e.target.closest('.w');explain(i,w?+w.dataset.k:null)});
@@ -292,6 +294,8 @@ $('shb').addEventListener('click',async e=>{const mj=e.target.closest('[data-mj]
   if(act==='dlgo'){const p=pnum();if(!(p>=1&&p<=604&&PGs))return toast('اكتب رقم صفحة من ١ إلى ٦٠٤');$('sh').classList.remove('on');open(PGs[p-1]);return}
   if(act==='khclose'){$('sh').classList.remove('on');return}
   if(act==='khnew'){tab='k';document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='k'));$('sh').classList.remove('on');if($('rd').classList.contains('on'))history.back();else home();return}
+  if(act==='ftw'){showX(i,'f');return}
+  if(act==='erb'){showX(i,'e');return}
   if(act==='mut'){mutashabihat(i);return}
   if(act==='mback'){menu(i);return}
   if(act==='mmore'){mutMore();return}
