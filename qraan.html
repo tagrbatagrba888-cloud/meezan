@@ -265,8 +265,8 @@ const X={};
 async function loadX(){await Promise.all(Object.entries(FILES).map(async([k,[n]])=>{if(X[k])return;const j=await getJ(n,k==='w'?'w':'o');if(j)X[k]=j}))}
 const nf=k=>{const n=FILES[k][0],st=stat[n];return st==='bad'?`<p class="nf">ملف ${n}.json موجود على الموقع لكن شكله غير مفهوم. نزّله من صفحة الأدمن (زر التنزيل) وارفعه بدل الملف الحالي، أو ارفع ملف Tanzil الأصلي بصيغة sura|aya|text.</p>`:st==='net'?`<p class="nf">تعذّر الاتصال لتحميل ${n}.json. تأكد من الإنترنت ثم حاول مرة أخرى.</p>`:`<p class="nf">لم أجد ملف ${n}.json على الموقع. لازم يكون اسمه بالضبط <b>${n}.json</b> وفي نفس مجلد quran.html. افحصه من أدمن القرآن ← البيانات ← فحص الملفات.</p>`}
 const BM=()=>{try{return JSON.parse(localStorage.getItem('q_bm')||'[]')}catch(e){return[]}};
-var CB=null;
-function show(h,i){CB=null;$('shb').innerHTML=h;$('shb').dataset.i=i||'';$('sh').classList.add('on')}
+var CB=null,shT=0;
+function show(h,i){CB=null;shT=Date.now();$('shb').innerHTML=h;$('shb').dataset.i=i||'';$('sh').classList.add('on')}
 async function explain(i,k){const key=SI[i]+':'+AI[i];await loadX();
   let h=`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>${audBtns()}`;
   if(k!=null){const W=X.w,m=W&&W[key]&&W[key][k];h+=`<h5>معنى «${esc(Q[i].split(' ')[k])}»</h5>`+(W?`<p>${m?esc(m):'لا يوجد شرح لهذه الكلمة حالياً'}</p>`:nf('w'))}
@@ -290,7 +290,7 @@ $('shb').addEventListener('click',async e=>{const rcb=e.target.closest('[data-re
   else if(act==='bm'){const L=BM(),k=L.findIndex(x=>x.i===i);if(k>=0){L.splice(k,1);toast('أُزيلت العلامة')}else{L.push({i});toast('تمت إضافة العلامة ✓')}localStorage.setItem('q_bm',JSON.stringify(L))}
   else if(act==='copy'){const t=`${Q[i]} ﴿${ar(AI[i])}﴾ [${SN[SI[i]]}]`;try{await navigator.clipboard.writeText(t)}catch(_){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove()}toast('تم نسخ الآية ✓')}
   $('sh').classList.remove('on')});
-document.addEventListener('click',e=>{if(!e.composedPath().includes($('sh'))&&!e.target.closest('.a,.bm'))$('sh').classList.remove('on')});
+document.addEventListener('click',e=>{if(Date.now()-shT<400)return;if(!e.composedPath().includes($('sh'))&&!e.target.closest('.a,.bm'))$('sh').classList.remove('on')});
 
 // ===== الاستماع للتلاوة (آية بآية — الصوت يُشغَّل من مصادر خارجية، ولا يُخزَّن عندك أي ملف) =====
 function p3(n){return String(n).padStart(3,'0')}
@@ -313,6 +313,7 @@ var RECS={
   rf:{n:'هاني الرفاعي',t:'مرتّل',b:[EA+'Hani_Rifai_192kbps/']},
   sa:{n:'أبو بكر الشاطري',t:'مرتّل',b:[EA+'Abu_Bakr_Ash-Shaatree_128kbps/']},
   ds:{n:'ياسر الدوسري',t:'مرتّل',b:[EA+'Yasser_Ad-Dussary_128kbps/']},
+  nq:{n:'ناصر القطامي',t:'مرتّل',b:[EA+'Nasser_Alqatami_128kbps/']},
   bf:{n:'عبد الله بصفر',t:'مرتّل',b:[EA+'Abdullah_Basfar_192kbps/']},
   aj:{n:'أحمد العجمي',t:'مرتّل',b:[EA+'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net/']},
   hd:{n:'علي الحذيفي',t:'إمام المسجد النبوي',b:[EA+'Hudhaify_128kbps/']},
