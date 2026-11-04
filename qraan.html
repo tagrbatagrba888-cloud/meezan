@@ -61,7 +61,7 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 <body>
 <header class="topbar"><div class="ti">
 <div class="brand"><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><span>القرآن الكريم</span></div>
-<div style="display:flex;gap:8px"><button class="ib" id="thb"><i class="fas fa-moon" id="thi"></i></button><a href="din_1.html" class="ib"><i class="fas fa-arrow-right"></i></a></div>
+<div style="display:flex;gap:8px"><button class="ib" id="thb"><i class="fas fa-moon" id="thi"></i></button><button class="ib" id="bk"><i class="fas fa-arrow-right"></i></button></div>
 </div></header>
 
 <main class="wrap" id="home">
@@ -101,6 +101,7 @@ let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.className='toast sho
 if(sessionStorage.getItem('meezan_logged_in')!=='true'&&(navigator.onLine||!localStorage.getItem('q_ok')))location.replace('login.html');
 const setTheme=t=>{document.documentElement.setAttribute('data-theme',t);localStorage.setItem('meezan_theme',t);$('thi').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
 setTheme(localStorage.getItem('meezan_theme')||'light');
+$('bk').onclick=()=>{try{if(history.length>1&&new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}location.href='din_1.html'};
 $('thb').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
 const ss=k=>k.map(x=>sessionStorage.getItem(x)).find(Boolean);
 const uid=ss(['meezan_uid','meezan_user_id','meezan_username','meezan_user'])||localStorage.getItem('q_uid')||(()=>{const v='u_'+Math.random().toString(36).slice(2,10);localStorage.setItem('q_uid',v);return v})();
@@ -112,12 +113,12 @@ async function kv(k,v){const d=await idb();return new Promise((r,j)=>{const s=d.
 const getJ=async n=>{try{const r=await fetch(n+'.json');if(r.ok){const j=await r.json();await kv(n,j);return j}}catch(e){}try{return await kv(n)||null}catch(e){return null}};
 
 // ===== تحميل القرآن + تحقق =====
-let Q=null,PGs=null,HZs=null;
+let Q=null,PGs=null,HZs=null,why='';
 function valid(d){if(!d||d.total!==TOTAL||!d.text)return false;for(let s=1;s<=114;s++){const t=d.text[s];if(!Array.isArray(t)||t.length!==AC[s]||t.some(x=>typeof x!=='string'||!x))return false}return true}
 async function loadQ(){
   let d=null,c=null;try{c=await kv('data')}catch(e){}
   if(valid(c)){d=c;const age=Date.now()-(+localStorage.getItem('q_chk')||0);if(navigator.onLine&&age>43200000)fetch('quran.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(async n=>{if(valid(n)){await kv('data',n);localStorage.setItem('q_chk',Date.now())}}).catch(()=>{})}
-  else{try{const r=await fetch('quran.json',{cache:'no-cache'});if(r.ok){const n=await r.json();if(valid(n)){d=n;await kv('data',n);localStorage.setItem('q_chk',Date.now())}}}catch(e){}}
+  else{try{const r=await fetch('quran.json',{cache:'no-cache'});if(r.ok){const n=await r.json();if(valid(n)){d=n;await kv('data',n);localStorage.setItem('q_chk',Date.now())}else why='bad'}else why='404'}catch(e){why=navigator.onLine?'bad':'net'}}
   if(!d)return false;
   Q=new Array(TOTAL+1);for(let s=1;s<=114;s++)d.text[s].forEach((t,k)=>Q[g(s,k+1)]=t);
   const ok2=A=>Array.isArray(A)&&A.length&&A.every(p=>Array.isArray(p)&&p[0]>=1&&p[0]<=114&&p[1]>=1&&p[1]<=AC[p[0]]);
@@ -209,7 +210,7 @@ $('sq').oninput=home;
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));home()};
 function boot2(){if(Q){if(!S.enabled){$('stt').textContent='القرآن غير متاح حالياً'}home()}}
 (async()=>{
-  if(!await loadQ()){$('stt').textContent='تعذّر تحميل القرآن. اتصل بالإنترنت مرة واحدة على الأقل.';$('list').innerHTML='<div class="empty">ملف القرآن غير متوفر أو غير سليم</div>';return}
+  if(!await loadQ()){const M={404:'ملف quran.json غير موجود على الموقع. ارفعه في نفس مكان quran.html',bad:'ملف quran.json غير سليم أو ناقص. نزّله من جديد من صفحة الأدمن',net:'اتصل بالإنترنت مرة واحدة على الأقل لتحميل القرآن'};$('stt').textContent='تعذّر تحميل القرآن';$('list').innerHTML='<div class="empty">'+(M[why]||M.net)+'</div>';return}
   boot2();setTimeout(loadX,3000)})();
 </script>
 </body>
