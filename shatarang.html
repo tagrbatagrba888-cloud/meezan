@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>ميزان | إدارة الشطرنج</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#0B3D2E;--primary-lighter:#1E7A5A;--accent:#C9A961;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B}
+[data-theme="dark"]{--primary:#C9A961;--primary-lighter:#F0DBA8;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C}
+body{font-family:'Cairo',sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100dvh;overflow-x:hidden}
+.top{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:900;font-size:18px;display:flex;align-items:center;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:12px;background:var(--bg-input);border:2px solid var(--border);color:var(--primary);font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.wrap{max-width:760px;margin:0 auto;padding:14px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px}
+.tab{flex:0 0 auto;background:var(--bg-card);border:2px solid var(--border);border-radius:14px;padding:9px 14px;font-family:inherit;font-weight:800;font-size:13px;color:var(--text-main);cursor:pointer;display:flex;align-items:center;gap:6px;position:relative}
+.tab.on{background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;border-color:var(--accent)}[data-theme="dark"] .tab.on{color:#0A1612}
+.tab b{background:var(--error);color:#fff;border-radius:9px;font-size:11px;padding:0 6px}
+.card{background:var(--bg-card);border:2px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px var(--shadow)}
+.card h3{font-size:16px;font-weight:900;margin-bottom:10px}
+.sm{font-family:inherit;font-weight:900;border:0;cursor:pointer;border-radius:11px;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;padding:8px 13px;font-size:12.5px}
+[data-theme="dark"] .sm{color:#0A1612}.sm.red{background:var(--error);color:#fff}.sm.gray{background:var(--bg-input);color:var(--text-main);border:2px solid var(--border)}.sm.grn{background:#27ae60;color:#fff}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap}.row:last-child{border:0}
+.row b{font-size:14px}.row small{color:var(--text-sub);display:block;font-size:12px}.bt{display:flex;gap:6px;flex-wrap:wrap}
+.in,select{width:100%;background:var(--bg-input);border:2px solid var(--border);border-radius:11px;padding:10px;font-family:inherit;font-size:13.5px;color:var(--text-main);margin-bottom:8px}
+.chip{background:var(--bg-input);border:2px solid var(--border);border-radius:11px;padding:7px 12px;font-family:inherit;font-weight:800;font-size:12.5px;color:var(--text-main);cursor:pointer}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--accent)}[data-theme="dark"] .chip.on{color:#0A1612}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.stt{text-align:center;font-weight:800;font-size:14px;margin-bottom:10px}
+.ctl{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:12px 0}
+.mv{font-size:12px;color:var(--text-sub);text-align:center;direction:ltr;line-height:1.8}
+.empty{text-align:center;color:var(--text-sub);padding:18px;font-weight:700}
+.pr{height:8px;background:var(--bg-input);border-radius:9px;overflow:hidden;width:120px}.pr i{display:block;height:100%;background:var(--accent)}
+.lab{font-size:12px;font-weight:800;color:var(--text-sub);margin:4px 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><i class="fas fa-chess-king" style="color:var(--accent)"></i> إدارة الشطرنج</div>
+<div style="display:flex;gap:8px"><button class="icon-btn" id="themeBtn"><i class="fas fa-moon" id="themeIcon"></i></button><a class="icon-btn" href="tarfeeh_admin.html"><i class="fas fa-arrow-right"></i></a></div></header>
+<div class="wrap"><div class="tabs" id="tabs"></div><main id="v"></main></div>
+
+<script src="chess_engine.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, collection, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
+const db=getFirestore(app),$=id=>document.getElementById(id);
+if(sessionStorage.getItem('meezan_logged_in')!=='true')location.replace('login.html');
+if((sessionStorage.getItem('meezan_role')||'student')!=='admin')location.replace('tarfeeh.html');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem('meezan_theme',t);$('themeIcon').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
+setTheme(localStorage.getItem('meezan_theme')||'light');$('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const toast=m=>{const e=document.createElement('div');e.textContent=m;e.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:2px solid var(--accent);padding:11px 20px;border-radius:13px;font-weight:800;z-index:99';document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
+
+const LESN=11,LV=['','سهل','متوسط','صعب','صعب جداً'];
+let cfg={},games=[],reqs=[],players=[],learn=[],tab='live',ctx=null,unsub=null,draft=null,S,sel=-1,tgs=[],last=[];
+const bump=()=>{if(!ctx&&unsubOK())show(tab)};const unsubOK=()=>!document.activeElement||!/INPUT|SELECT/.test(document.activeElement.tagName);
+const watch=(c,f)=>onSnapshot(collection(db,c),s=>{f(s.docs.map(d=>({id:d.id,...d.data()})));bump()});
+onSnapshot(doc(db,'settings','chess'),s=>{cfg=s.exists()?s.data():{};if(!draft)CH.applyTheme(cfg);bump()});
+watch('chess_games',a=>games=a.sort((x,y)=>(y.ts||0)-(x.ts||0)));watch('chess_reqs',a=>reqs=a.sort((x,y)=>y.ts-x.ts));
+watch('chess_players',a=>players=a);watch('chess_learn',a=>learn=a);
+const saveCfg=o=>setDoc(doc(db,'settings','chess'),o,{merge:true});
+
+function show(t){tab=t;ctx=null;const pend=reqs.filter(r=>r.status==='pending').length;
+ $('tabs').style.display='flex';
+ $('tabs').innerHTML=[['live','fa-tower-broadcast','المباريات'],['req','fa-bell','الطلبات'],['res','fa-ranking-star','النتائج'],['lrn','fa-graduation-cap','المتدرّبون'],['look','fa-palette','المظهر'],['ai','fa-robot','الذكاء الاصطناعي'],['set','fa-sliders','الأقسام']]
+  .map(x=>`<button class="tab ${x[0]===t?'on':''}" data-t="${x[0]}"><i class="fas ${x[1]}"></i>${x[2]}${x[0]==='req'&&pend?`<b>${pend}</b>`:''}</button>`).join('');
+ ({live:tLive,req:tReq,res:tRes,lrn:tLrn,look:tLook,ai:tAI,set:tSet}[t])()}
+const gn=g=>`${esc(g.w.name)} ⚔ ${esc(g.b?g.b.name:'—')}`;
+const stTxt=g=>g.status==='waiting'?'⏳ منتظر':g.status==='active'?'🔴 مباشر':g.res==='d'?'🤝 تعادل':g.res==='w'?'🏆 فاز الأبيض':'🏆 فاز الأسود';
+
+function tLive(){const act=games.filter(g=>g.status!=='ended');
+ $('v').innerHTML=`<div class="card"><h3>🎯 ابدأ مباراة بين لاعبين</h3>
+ <select id="p1"><option value="">اللاعب الأبيض</option>${players.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select>
+ <select id="p2"><option value="">اللاعب الأسود</option>${players.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select>
+ <button class="sm" data-a="startM">ابدأ المباراة</button></div>
+ <div class="card"><h3>🔴 المباريات الشغالة (${act.length})</h3>${act.map(g=>`<div class="row"><b>${gn(g)}<small>${stTxt(g)} · ${(g.moves||[]).length} نقلة</small></b><div class="bt"><button class="sm" data-a="watch" data-id="${g.id}">راقب وتحكّم</button><button class="sm red" data-a="del" data-id="${g.id}">حذف</button></div></div>`).join('')||'<div class="empty">مفيش مباريات دلوقتي</div>'}</div>`}
+function startM(){const a=$('p1').value,b=$('p2').value;if(!a||!b||a===b)return toast('اختار لاعبين مختلفين');
+ const pa=players.find(p=>p.id===a),pb=players.find(p=>p.id===b);
+ addDoc(collection(db,'chess_games'),{type:'pvp',w:{id:a,name:pa.name},b:{id:b,name:pb.name},ps:[a,b],fen:CH.START,moves:[],status:'active',ts:Date.now(),by:'admin'}).then(()=>toast('تم بدء المباراة'))}
+
+function tReq(){$('v').innerHTML=`<div class="card"><h3>🔔 طلبات اللعب مع الأدمن</h3>${reqs.map(r=>`<div class="row"><b>${esc(r.name)}<small>${r.status==='pending'?'⏳ جديد':r.status==='accepted'?'✅ مقبول':'❌ مرفوض'}</small></b><div class="bt">${r.status==='pending'?`<button class="sm grn" data-a="acc" data-id="${r.id}">قبول وابدأ</button><button class="sm red" data-a="rej" data-id="${r.id}">رفض</button>`:r.gameId?`<button class="sm" data-a="watch" data-id="${r.gameId}">افتح</button>`:''}<button class="sm gray" data-a="delReq" data-id="${r.id}">حذف</button></div></div>`).join('')||'<div class="empty">لا توجد طلبات</div>'}</div>`}
+
+function tRes(){const st={};games.filter(g=>g.status==='ended').forEach(g=>{[['w',g.w],['b',g.b]].forEach(([c,p])=>{if(!p||p.id==='ai')return;const x=st[p.id]=st[p.id]||{n:p.name,w:0,l:0,d:0,t:0};x.t++;if(g.res==='d')x.d++;else if(g.res===c)x.w++;else x.l++})});
+ const L=Object.values(st).sort((a,b)=>b.w-a.w||a.l-b.l);
+ $('v').innerHTML=`<div class="card"><h3>🏆 ترتيب اللاعبين</h3>${L.map((x,i)=>`<div class="row"><b>${i+1}. ${esc(x.n)}<small>لعب ${x.t}</small></b><span style="font-weight:800">✅${x.w} ❌${x.l} 🤝${x.d}</span></div>`).join('')||'<div class="empty">لا يوجد</div>'}</div>
+ <div class="card"><h3>📜 سجل المباريات</h3>${games.filter(g=>g.status==='ended').slice(0,60).map(g=>`<div class="row"><b>${gn(g)}<small>${stTxt(g)} — ${esc(g.why||'')}${g.type==='ai'?' · ضد الكمبيوتر '+(LV[g.lv]||''):''}</small></b><div class="bt"><button class="sm gray" data-a="watch" data-id="${g.id}">عرض</button><button class="sm red" data-a="del" data-id="${g.id}">حذف</button></div></div>`).join('')||'<div class="empty">لا يوجد</div>'}</div>`}
+
+function tLrn(){$('v').innerHTML=`<div class="card"><h3>📚 مين بيتعلم؟</h3>${learn.sort((a,b)=>(b.ts||0)-(a.ts||0)).map(l=>{const n=Object.keys(l.done||{}).length;return`<div class="row"><b>${esc(l.name||l.id)}<small>${new Date(l.ts||0).toLocaleDateString('ar-EG')} · ${Object.keys(l.done||{}).join('، ')}</small></b><div class="bt"><div class="pr"><i style="width:${n/LESN*100}%"></i></div><b>${n}/${LESN}</b><button class="sm red" data-a="delLrn" data-id="${l.id}">تصفير</button></div></div>`}).join('')||'<div class="empty">لا أحد بدأ التدريب بعد</div>'}</div>`}
+
+function tLook(){draft=draft||{board:cfg.board||'classic',light:cfg.light||'#EEEED2',dark:cfg.dark||'#769656',pieces:cfg.pieces||'solid',pw:cfg.pw||'#ffffff',pb:cfg.pb||'#1a1a1a'};
+ CH.applyTheme(draft);
+ $('v').innerHTML=`<div class="card"><h3>🎨 شكل الرقعة</h3><div class="lv">${Object.keys(CH.THEMES).concat('custom').map(k=>`<button class="chip ${draft.board===k?'on':''}" data-b="${k}">${{classic:'كلاسيك',wood:'خشب',blue:'أزرق',night:'ليلي',gold:'ذهبي',rose:'وردي',ice:'جليد',custom:'مخصص'}[k]}</button>`).join('')}</div>
+ ${draft.board==='custom'?`<div class="lv"><span class="lab">فاتح</span><input type="color" id="cl" value="${draft.light}"><span class="lab">غامق</span><input type="color" id="cd" value="${draft.dark}"></div>`:''}
+ <h3>♞ شكل القطع</h3><div class="lv"><button class="chip ${draft.pieces==='solid'?'on':''}" data-p="solid">مصمتة</button><button class="chip ${draft.pieces==='line'?'on':''}" data-p="line">مفرغة</button><span class="lab">أبيض</span><input type="color" id="cw" value="${draft.pw}"><span class="lab">أسود</span><input type="color" id="cb" value="${draft.pb}"></div>
+ <div id="board" style="margin:14px auto"></div><div class="ctl"><button class="sm grn" data-a="saveLook">حفظ للجميع</button><button class="sm gray" data-a="resetLook">رجوع للافتراضي</button></div></div>`;
+ S=CH.fromFEN(CH.START);CH.render($('board'),S,{});
+ ['cl','cd','cw','cb'].forEach(i=>{const e=$(i);if(e)e.oninput=()=>{draft.light=$('cl')?$('cl').value:draft.light;draft.dark=$('cd')?$('cd').value:draft.dark;draft.pw=$('cw').value;draft.pb=$('cb').value;CH.applyTheme(draft)}})}
+
+function tAI(){const A=cfg.ai||[];
+ $('v').innerHTML=`<div class="card"><h3>🤖 مزودو الذكاء الاصطناعي</h3>${A.map(p=>`<div class="row"><b>${esc(p.name)}<small>${p.type} · ${esc(p.model||'')} · ${esc(p.url).slice(0,40)}</small></b><div class="bt"><button class="sm ${p.on!==false?'grn':'gray'}" data-a="tgAI" data-id="${p.id}">${p.on!==false?'مفعّل':'معطّل'}</button><button class="sm red" data-a="delAI" data-id="${p.id}">حذف</button></div></div>`).join('')||'<div class="empty">لم تضف أي ذكاء اصطناعي</div>'}</div>
+ <div class="card"><h3>ربط المزودين</h3><div class="lab">اللعب ضد الذكاء الاصطناعي</div><select id="sPlay"><option value="">— بدون (محرك الموقع فقط) —</option>${A.map(p=>`<option value="${p.id}" ${cfg.aiPlay===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
+ <div class="lab">مدرب قسم التدريب والتلميحات</div><select id="sTrain"><option value="">— بدون —</option>${A.map(p=>`<option value="${p.id}" ${cfg.aiTrain===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><button class="sm" data-a="saveLink">حفظ الربط</button></div>
+ <div class="card"><h3>➕ إضافة ذكاء اصطناعي</h3><input class="in" id="an" placeholder="الاسم (مثال: Gemini)">
+ <select id="at"><option value="gemini">Gemini (Google)</option><option value="openai">متوافق مع OpenAI (ChatGPT / DeepSeek / Groq / ...)</option><option value="custom">نموذج مخصص (POST بـ prompt)</option></select>
+ <input class="in" id="au" placeholder="رابط الموقع / الـ API (مثال: https://generativelanguage.googleapis.com/v1beta)" dir="ltr"><input class="in" id="am" placeholder="اسم النموذج (مثال: gemini-2.0-flash)" dir="ltr"><input class="in" id="ak" placeholder="API Key" dir="ltr">
+ <button class="sm" data-a="addAI">إضافة واختبار</button><div class="lab" style="margin-top:8px">⚠ المفتاح بيتخزن في Firestore وأي مستخدم تقني يقدر يشوفه. الأفضل لاحقاً نمرر الطلبات عبر Cloud Function.</div></div>`}
+
+function tSet(){const s=cfg.sec||{};
+ $('v').innerHTML=`<div class="card"><h3>🧩 الأقسام اللي تظهر للمستخدمين</h3>${[['ai','اللعب ضد الكمبيوتر'],['on','اللعب أونلاين'],['tr','التدريب'],['me','نتائجي']].map(x=>`<div class="row"><b>${x[1]}</b><button class="sm ${s[x[0]]!==false?'grn':'gray'}" data-a="sec" data-id="${x[0]}">${s[x[0]]!==false?'ظاهر':'مخفي'}</button></div>`).join('')}</div>`}
+
+/* ===== مراقبة مباراة والتحكم الكامل ===== */
+function watchGame(id){if(unsub)unsub();let first=1;
+ unsub=onSnapshot(doc(db,'chess_games',id),s=>{if(!s.exists()){if(unsub){unsub();unsub=null}return show(tab)}
+  const g={id,...s.data()};
+  if(first){first=0;ctx={id,god:false,flip:false};sel=-1;tgs=[];$('tabs').style.display='none';
+   $('v').innerHTML=`<div class="card"><div class="row" style="padding-top:0"><button class="icon-btn" data-a="back"><i class="fas fa-arrow-right"></i></button><b id="gt" style="flex:1"></b></div><div class="stt" id="stt"></div><div id="board"></div>
+   <div class="ctl"><button class="sm" id="godB" data-a="god">🕹 تحكم كامل: مغلق</button><button class="sm gray" data-a="flip">قلب</button></div>
+   <div class="lab" style="text-align:center">إنهاء بقرار الإدارة</div><div class="ctl"><button class="sm grn" data-a="win" data-r="w">فوز الأبيض</button><button class="sm grn" data-a="win" data-r="b">فوز الأسود</button><button class="sm gray" data-a="win" data-r="d">تعادل</button></div>
+   <div class="lab" style="text-align:center">أدوات</div><div class="ctl"><button class="sm gray" data-a="undo">تراجع نقلة</button><button class="sm gray" data-a="reset">إعادة الرقعة</button><button class="sm gray" data-a="reopen">إعادة فتح</button><button class="sm gray" data-a="fen">تعديل الوضع (FEN)</button><button class="sm red" data-a="del2">حذف</button></div><div class="mv" id="mv"></div></div>`}
+  if(!ctx)return;ctx.g=g;S=CH.fromFEN(g.fen);last=g.last||[];sel=-1;tgs=[];
+  $('gt').textContent=`${g.w.name} ⚔ ${g.b?g.b.name:'—'}`;
+  const st=CH.status(S);$('stt').textContent=stTxt(g)+(g.status==='active'?' · الدور على '+(S.turn==='w'?'الأبيض':'الأسود')+(st.check?' ⚠ كش':''):g.why?' — '+g.why:'');
+  $('mv').textContent=(g.moves||[]).map((x,i)=>(i%2?'':(i/2+1|0)+'. ')+x).join('  ');drawW()})}
+function drawW(){CH.render($('board'),S,{sel,tg:tgs.map(m=>m.t),last,flip:ctx.flip,on:onSq})}
+function onSq(i){if(!ctx||!ctx.g)return;const g=ctx.g;if(g.status==='ended'&&!ctx.god)return;
+ const p=S.b[i],mine=!!p&&CH.isW(p)===(S.turn==='w');
+ const may=ctx.god||(g.status==='active'&&((S.turn==='w'?g.w:g.b)||{}).id==='admin');
+ if(sel>=0){const ms=tgs.filter(m=>m.t===i);if(ms.length){const m=ms.find(x=>x.p==='q')||ms[0];sel=-1;tgs=[];return mv(m)}}
+ if(p&&mine&&may){sel=i;tgs=CH.movesFrom(S,i)}else{sel=-1;tgs=[]}drawW()}
+function mv(m){const g=ctx.g,ns=CH.apply(S,m),st=CH.status(ns);S=ns;last=[m.f,m.t];drawW();
+ updateDoc(doc(db,'chess_games',ctx.id),{fen:CH.toFEN(ns),moves:[...(g.moves||[]),CH.uci(m)],last:[m.f,m.t],status:st.over?'ended':'active',...(st.over?{res:st.res,why:st.why}:{})})}
+
+/* ===== الأحداث ===== */
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('[data-t]');if(t){if(unsub){unsub();unsub=null}draft=null;CH.applyTheme(cfg);return show(t.dataset.t)}
+ const b=e.target.closest('[data-b]');if(b){draft.board=b.dataset.b;return tLook()}
+ const pp=e.target.closest('[data-p]');if(pp){draft.pieces=pp.dataset.p;return tLook()}
+ const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.id,G=ctx&&ctx.g,gd=doc(db,'chess_games',ctx?ctx.id:'x');
+ switch(a.dataset.a){
+ case'startM':startM();break;
+ case'watch':watchGame(id);break;
+ case'back':if(unsub){unsub();unsub=null}show(tab);break;
+ case'del':if(confirm('حذف المباراة؟'))await deleteDoc(doc(db,'chess_games',id));break;
+ case'del2':if(confirm('حذف المباراة؟')){await deleteDoc(gd)}break;
+ case'flip':ctx.flip=!ctx.flip;drawW();break;
+ case'god':ctx.god=!ctx.god;$('godB').textContent='🕹 تحكم كامل: '+(ctx.god?'مفتوح (حرّك أي جانب)':'مغلق');break;
+ case'win':{const r=a.dataset.r;await updateDoc(gd,{status:'ended',res:r,why:'قرار الإدارة'});toast('تم إنهاء المباراة')}break;
+ case'reopen':await updateDoc(gd,{status:'active',res:null,why:null});break;
+ case'undo':{const mv=(G.moves||[]).slice(0,-1);let s=CH.fromFEN(CH.START);for(const u of mv)s=CH.play(s,u)||s;
+  const l=mv.length?mv[mv.length-1]:null;await updateDoc(gd,{fen:CH.toFEN(s),moves:mv,last:l?[CH.idx(l.slice(0,2)),CH.idx(l.slice(2,4))]:[],status:'active',res:null,why:null})}break;
+ case'reset':if(confirm('إعادة الرقعة للبداية؟'))await updateDoc(gd,{fen:CH.START,moves:[],last:[],status:'active',res:null,why:null});break;
+ case'fen':{const f=prompt('الصق FEN الجديد:',G.fen);if(f){try{CH.fromFEN(f);if(CH.kingAt(CH.fromFEN(f).b,true)<0||CH.kingAt(CH.fromFEN(f).b,false)<0)throw 0;await updateDoc(gd,{fen:f,last:[]})}catch(x){toast('FEN غير صالح')}}}break;
+ case'acc':{const r=reqs.find(x=>x.id===id);const gr=await addDoc(collection(db,'chess_games'),{type:'pvp',w:{id:'admin',name:'الأدمن'},b:{id:r.uid,name:r.name},ps:['admin',r.uid],fen:CH.START,moves:[],status:'active',ts:Date.now()});
+  await updateDoc(doc(db,'chess_reqs',id),{status:'accepted',gameId:gr.id});watchGame(gr.id)}break;
+ case'rej':await updateDoc(doc(db,'chess_reqs',id),{status:'rejected'});break;
+ case'delReq':await deleteDoc(doc(db,'chess_reqs',id));break;
+ case'delLrn':if(confirm('تصفير تقدّم المتدرب؟'))await deleteDoc(doc(db,'chess_learn',id));break;
+ case'saveLook':{if($('cl'))draft.light=$('cl').value;if($('cd'))draft.dark=$('cd').value;draft.pw=$('cw').value;draft.pb=$('cb').value;await saveCfg(draft);draft=null;toast('تم الحفظ — ظهر للجميع')}break;
+ case'resetLook':await saveCfg({board:'classic',pieces:'solid',pw:'#ffffff',pb:'#1a1a1a',light:'#EEEED2',dark:'#769656'});draft=null;CH.applyTheme({});show('look');break;
+ case'saveLink':await saveCfg({aiPlay:$('sPlay').value,aiTrain:$('sTrain').value});toast('تم الحفظ');break;
+ case'tgAI':await saveCfg({ai:cfg.ai.map(p=>p.id===id?{...p,on:p.on===false}:p)});break;
+ case'delAI':if(confirm('حذف هذا الذكاء؟'))await saveCfg({ai:cfg.ai.filter(p=>p.id!==id),aiPlay:cfg.aiPlay===id?'':cfg.aiPlay||'',aiTrain:cfg.aiTrain===id?'':cfg.aiTrain||''});break;
+ case'addAI':{const p={id:'a'+Date.now(),name:$('an').value.trim(),type:$('at').value,url:$('au').value.trim(),model:$('am').value.trim(),key:$('ak').value.trim(),on:true};
+  if(!p.name||!p.url)return toast('اكتب الاسم والرابط');a.textContent='جاري الاختبار…';
+  try{const r=await CH.askAI(p,'قل: تمام');toast('✅ الاتصال شغال: '+String(r).slice(0,30))}catch(x){if(!confirm('فشل الاختبار (ممكن CORS أو مفتاح غلط). تضيفه رغم كده؟')){a.textContent='إضافة واختبار';return}}
+  await saveCfg({ai:[...(cfg.ai||[]),p]})}break;
+ case'sec':{const s=cfg.sec||{};await saveCfg({sec:{...s,[id]:s[id]===false}})}break}});
+show('live');
+</script>
+</body>
+</html>
