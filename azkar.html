@@ -138,8 +138,15 @@ const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.className='toast show';clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)};
 const nrm=s=>String(s).replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();
 
-const SECS={morning:{t:'أذكار الصباح',i:'fa-sun',c:'#C9A961'},evening:{t:'أذكار المساء',i:'fa-moon',c:'#6C7FB8'},afterPrayer:{t:'أذكار بعد الصلاة',i:'fa-person-praying',c:'#1E7A5A'},dua:{t:'الأدعية',i:'fa-hands-praying',c:'#B0703F'}};
-const SK=Object.keys(SECS);
+const BASE={morning:{t:'أذكار الصباح',i:'fa-sun',c:'#C9A961'},evening:{t:'أذكار المساء',i:'fa-moon',c:'#6C7FB8'},afterPrayer:{t:'أذكار بعد الصلاة',i:'fa-person-praying',c:'#1E7A5A'},dua:{t:'الأدعية',i:'fa-hands-praying',c:'#B0703F'}};
+let SECS={},SK=[];
+// يبني قائمة الأقسام: الأربعة الأساسية + أي قسم أضافه الأدمن (مرتبة بوقت الإنشاء)
+function syncSecs(){
+  let cs={};try{cs=CFG.sections||{}}catch(e){}
+  const keys=[...Object.keys(BASE),...Object.keys(cs).filter(k=>!BASE[k]&&cs[k]&&cs[k].custom).sort((a,b)=>(cs[a].ord||0)-(cs[b].ord||0))];
+  SECS={};keys.forEach(k=>{const s=cs[k]||{},b=BASE[k]||{};SECS[k]={t:s.title||b.t||'قسم',i:s.icon||b.i||'fa-book-open',c:s.color||b.c||'#C9A961'}});
+  SK=keys}
+syncSecs();
 
 // ===== نافذة تأكيد بنفس ستايل الموقع =====
 function ask(msg,ok){return new Promise(res=>{const d=$('dlg'),o=$('dok'),c=$('dno');$('dm').textContent=msg;o.textContent=ok||'تأكيد';d.hidden=false;
@@ -164,6 +171,7 @@ const app=initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDo
 const db=getFirestore(app);
 let CFG={enabled:true,fontSize:26,showSource:true,showVirtue:true,showCounter:true,dataVersion:0,sections:{}};
 try{CFG={...CFG,...JSON.parse(localStorage.getItem('az_cfg')||'{}')}}catch(e){}
+syncSecs();
 const secOn=k=>!(CFG.sections[k]&&CFG.sections[k].on===false);
 const secT=k=>(CFG.sections[k]&&CFG.sections[k].title)||SECS[k].t;
 const MEM={};let CUR=null,ROWS=[],CAT='',SHOWN=60,START=0,fs=+localStorage.getItem('az_fs')||0;
@@ -173,8 +181,9 @@ const applyFs=()=>$('rl').style.setProperty('--tf',FSZ()+'px');
 onSnapshot(doc(db,'settings','azkar'),s=>{
   if(!s.exists())return;const v=s.data(),old=CFG.dataVersion;
   CFG={...CFG,...v};try{localStorage.setItem('az_cfg',JSON.stringify(CFG))}catch(e){}
+  syncSecs();
   if(v.dataVersion!==old){Object.keys(MEM).forEach(k=>delete MEM[k])}
-  renderHome();if(CUR&&v.dataVersion!==old)openSec(CUR,null,true)},()=>{});
+  renderHome();if(CUR&&!SECS[CUR]){$('rx').onclick();return}if(CUR&&v.dataVersion!==old)openSec(CUR,null,true)},()=>{});
 
 // ===== الصفحة الرئيسية =====
 const cairoH=()=>+new Intl.DateTimeFormat('en-GB',{hour:'numeric',hour12:false,timeZone:'Africa/Cairo'}).format(new Date())%24;
