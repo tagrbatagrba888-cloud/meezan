@@ -43,6 +43,55 @@ body{font-family:'Cairo',sans-serif;background:var(--bg-page);color:var(--text-m
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stats div{background:var(--bg-input);border-radius:14px;padding:12px;text-align:center;font-weight:900;font-size:22px}.stats small{display:block;font-size:12px;color:var(--text-sub);font-weight:700}
 .chk{display:flex;gap:8px;align-items:center;font-weight:700;font-size:13px;margin-bottom:12px}
 .empty{text-align:center;color:var(--text-sub);padding:20px;font-weight:700}
+/* ===== شكل الرقعة (ستايل الموقع) ===== */
+#board{display:grid!important;grid-template-columns:repeat(8,1fr)!important;grid-template-rows:repeat(8,1fr)!important;direction:ltr!important;position:relative!important;width:100%!important;max-width:560px!important;height:auto!important;aspect-ratio:1/1!important;margin:0 auto!important;padding:0!important;gap:0!important;border-radius:16px!important;overflow:hidden!important;border:4px solid var(--accent)!important;background:var(--primary)!important;box-shadow:0 12px 30px var(--shadow),0 0 0 2px var(--primary)!important;container-type:inline-size;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#board .xq{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;cursor:pointer;line-height:1!important;font-size:min(9.2vw,60px)!important;font-size:calc(100cqw/8*.8)!important;background-color:var(--xc)!important;background-image:none;box-shadow:none}
+#board .xl{--xc:var(--xl)}#board .xd{--xc:var(--xd)}
+#board .xq:hover{filter:brightness(1.06)}
+#board .xq.last{background-image:linear-gradient(rgba(214,181,92,.55),rgba(214,181,92,.55))!important}
+#board .xq.sel{background-image:linear-gradient(rgba(255,214,102,.8),rgba(255,214,102,.8))!important;box-shadow:inset 0 0 0 3px var(--accent)!important}
+#board .xq.chk{background-image:radial-gradient(circle,#ff4d3a 0,rgba(231,76,60,.85) 36%,rgba(231,76,60,0) 78%)!important}
+#board .xq.hnt{box-shadow:inset 0 0 0 4px var(--accent)!important;animation:xpl 1s infinite}
+#board .xq.bmf{background-image:linear-gradient(rgba(39,174,96,.35),rgba(39,174,96,.35))!important;box-shadow:inset 0 0 0 3px #27ae60!important}
+#board .xq.bmt{background-image:linear-gradient(rgba(39,174,96,.6),rgba(39,174,96,.6))!important;box-shadow:inset 0 0 0 3px #27ae60!important}
+#board .xq.hint{background-image:linear-gradient(rgba(39,174,96,.7),rgba(39,174,96,.7))!important;box-shadow:inset 0 0 0 3px #1e8449!important;animation:xpl 1.2s infinite}
+@keyframes xpl{50%{filter:brightness(1.3)}}
+#board .xp{position:relative;z-index:2;pointer-events:none;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif!important;transition:transform .12s}
+#board .xq:active .xp{transform:scale(1.08)}
+#board .xw{color:#fff;-webkit-text-stroke:1.3px #2a2a2a;text-shadow:0 .04em .06em rgba(0,0,0,.45)}
+#board .xb{color:#1a1a1a;-webkit-text-stroke:.8px #000;text-shadow:0 .03em 0 rgba(255,255,255,.22)}
+#board .xm{position:absolute;pointer-events:none;z-index:3}
+#board .xdot{width:30%;height:30%;border-radius:50%;background:rgba(0,0,0,.3);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+#board .xring{inset:5%;border-radius:50%;border:5px solid rgba(0,0,0,.32);box-shadow:inset 0 0 0 2px rgba(255,255,255,.3)}
+#board .xco{position:absolute;z-index:1;font-family:'Cairo',sans-serif;font-size:10px!important;font-weight:800;line-height:1;opacity:.8;pointer-events:none}
+#board .xco.f{right:3px;bottom:2px}#board .xco.r{left:3px;top:2px}
+#board .xl .xco{color:var(--xd)}#board .xd .xco{color:var(--xl)}
+#board .xar{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+/* ===== رسائل بستايل الموقع ===== */
+.xmo{position:fixed;inset:0;z-index:9999;background:rgba(5,15,11,.6);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:xfd .15s}
+.xmc{background:var(--bg-card);border:2px solid var(--accent);border-radius:20px;padding:22px 18px 16px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.45);font-family:'Cairo',sans-serif}
+.xmc .ic{width:54px;height:54px;border-radius:16px;margin:0 auto 12px;background:linear-gradient(135deg,var(--primary),var(--primary-lighter));color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+[data-theme="dark"] .xmc .ic{color:#0A1612}
+.xmc p{font-weight:800;font-size:15px;line-height:1.9;margin-bottom:16px;color:var(--text-main)}
+.xmc .bt{display:flex;gap:8px}.xmc .bt button{flex:1}
+@keyframes xfd{from{opacity:0}}
+/* ===== الخصم خرج ===== */
+.xlb{display:none;align-items:center;gap:10px;background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-weight:800;font-size:13.5px;line-height:1.7;box-shadow:0 4px 14px var(--shadow)}
+.xlb span{flex:1}.xlb b{font-size:18px;direction:ltr;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:10px}
+/* ===== مراجعة المباراة ===== */
+.rn{margin:12px 0}
+.rt{text-align:center;font-weight:800;font-size:13px;margin-bottom:8px;direction:ltr;color:var(--text-main)}
+.rr{display:flex;gap:6px;direction:ltr}
+.rb{flex:1;font-family:inherit;font-weight:800;font-size:12px;padding:10px 4px;border-radius:12px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.rb i{color:var(--accent);font-size:17px}
+.rb:active{background:var(--primary);color:#fff}
+#rvp{margin-top:10px;border-color:var(--accent)}
+.rvh{font-weight:900;font-size:14px;margin-bottom:8px}
+.rvl{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:12px;background:var(--bg-input);margin-bottom:6px;font-weight:700;font-size:13.5px}
+.rvl.ok{border:2px solid #27ae60}.rvl.ok b{color:#27ae60}
+.rvn{font-weight:800;font-size:13.5px;margin:6px 0}
+.rvs{font-size:13px;line-height:1.9;font-weight:700;margin-top:10px;color:var(--text-sub)}
+.rvlin{font-weight:800;color:var(--text-main);margin-top:4px}
 </style>
 </head>
 <body>
@@ -66,6 +115,130 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem('meezan_theme',t);$('themeIcon').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
 setTheme(localStorage.getItem('meezan_theme')||'light');$('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 setDoc(doc(db,'chess_players',uid),{name,ts:Date.now()},{merge:true}).catch(()=>{});
+/* ===== تحسينات: الرقعة / الصوت / الرسائل / مراجعة المباراة ===== */
+let BM=null;
+const GL={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const hexL=h=>{h=String(h||'').trim();let m=/^#([0-9a-f]{3})$/i.exec(h);if(m)h='#'+m[1].split('').map(x=>x+x).join('');m=/^#([0-9a-f]{6})$/i.exec(h);if(!m)return -1;const n=parseInt(m[1],16);return (n>>16)*.3+((n>>8)&255)*.59+(n&255)*.11};
+function bdCols(){let lt='#F1E9D2',dk='#2E7D5B';try{const t=(CH.themes||[]).find(x=>x[0]===CH.board());if(t){const a=hexL(t[1]),b=hexL(t[2]);if(a>=0&&b>=0&&Math.abs(a-b)>25){if(a>=b){lt=t[1];dk=t[2]}else{lt=t[2];dk=t[1]}}}}catch(e){}return[lt,dk]}
+const sqXY=(i,fl)=>{const s=CH.sq(i),f=s.charCodeAt(0)-97,r=+s[1];return[(fl?7-f:f)+.5,(fl?r-1:8-r)+.5]};
+CH.render=function(el,St,o){o=o||{};const[lt,dk]=bdCols();el.style.setProperty('--xl',lt);el.style.setProperty('--xd',dk);
+ const tg=new Set(o.tg||[]),lm=o.last||[],fl=!!o.flip;let kg=-1;
+ try{if(CH.inCheck(St)){const k=St.turn==='w'?'K':'k';for(let j=0;j<64;j++)if(St.b[j]===k){kg=j;break}}}catch(e){}
+ let h='';
+ for(let r=0;r<8;r++)for(let f=0;f<8;f++){
+  const fi=fl?7-f:f,rk=fl?r+1:8-r,i=CH.idx('abcdefgh'[fi]+rk),p=St.b[i],has=typeof p==='string'&&/^[pnbrqk]$/i.test(p);
+  let c='xq '+((fi+rk)%2?'xd':'xl');
+  if(lm.includes(i))c+=' last';if(o.sel===i)c+=' sel';if(kg===i)c+=' chk';if(o.hint===i)c+=' hnt';
+  if(BM){if(BM[0]===i)c+=' bmf';if(BM[1]===i)c+=' bmt'}
+  h+=`<div class="${c}" data-i="${i}">`+(has?`<span class="xp ${p===p.toUpperCase()?'xw':'xb'}">${GL[p.toLowerCase()]}\uFE0E</span>`:'')+(tg.has(i)?`<i class="xm ${has?'xring':'xdot'}"></i>`:'')+(r===7?`<span class="xco f">${'abcdefgh'[fi]}</span>`:'')+(f===0?`<span class="xco r">${rk}</span>`:'')+'</div>'}
+ if(BM){const[x1,y1]=sqXY(BM[0],fl),[x2,y2]=sqXY(BM[1],fl),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1;
+  h+=`<svg class="xar" viewBox="0 0 8 8"><defs><marker id="xah" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto"><path d="M0,0L3,1.5L0,3z" fill="#1e9e57"/></marker></defs><line x1="${x1+dx/L*.25}" y1="${y1+dy/L*.25}" x2="${x2-dx/L*.55}" y2="${y2-dy/L*.55}" stroke="#1e9e57" stroke-width=".2" stroke-linecap="round" opacity=".9" marker-end="url(#xah)"/></svg>`}
+ el.innerHTML=h;el.onclick=e=>{const q=e.target.closest('.xq');if(q&&o.on)o.on(+q.dataset.i)}};
+
+/* ===== صوت النقلة الخشبي (تك) ===== */
+let AC=null;
+const acGet=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC};
+document.addEventListener('pointerdown',acGet);
+function knock(kind){const A=acGet();if(!A)return;const t0=A.currentTime+.01;
+ const hit=(t,g,f)=>{
+  const o=A.createOscillator(),og=A.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.5,t+.07);
+  og.gain.setValueAtTime(g,t);og.gain.exponentialRampToValueAtTime(.001,t+.1);o.connect(og);og.connect(A.destination);o.start(t);o.stop(t+.12);
+  const len=Math.floor(A.sampleRate*.035),buf=A.createBuffer(1,len,A.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+  const n=A.createBufferSource();n.buffer=buf;const bp=A.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1700;bp.Q.value=1.1;
+  const ng=A.createGain();ng.gain.value=g*.9;n.connect(bp);bp.connect(ng);ng.connect(A.destination);n.start(t)};
+ if(kind==='cap'){hit(t0,.95,165);hit(t0+.075,.6,230)}
+ else if(kind==='castle'){hit(t0,.7,200);hit(t0+.17,.7,245)}
+ else if(kind==='check'){hit(t0,.85,205);const o=A.createOscillator(),g=A.createGain();o.type='triangle';o.frequency.value=880;g.gain.setValueAtTime(.0001,t0+.12);g.gain.exponentialRampToValueAtTime(.18,t0+.14);g.gain.exponentialRampToValueAtTime(.0001,t0+.4);o.connect(g);g.connect(A.destination);o.start(t0+.12);o.stop(t0+.42)}
+ else hit(t0,.75,200)}
+const _snd=CH.snd&&CH.snd.bind(CH);
+CH.snd=k=>{if(k==='move'||k==='cap'||k==='castle'||k==='check'){if(!(CH.muted&&CH.muted()))knock(k);return}if(_snd)return _snd(k)};
+const sndKind=x=>/[#+]/.test(x)?'check':x.includes('O-O')?'castle':x.includes('x')?'cap':'move';
+
+/* ===== رسائل وتأكيدات بستايل الموقع ===== */
+function dlg(msg,yes,no,icon){return new Promise(res=>{const d=document.createElement('div');d.className='xmo';
+ d.innerHTML=`<div class="xmc"><div class="ic"><i class="fas ${icon||'fa-circle-question'}"></i></div><p>${esc(msg)}</p><div class="bt"><button class="go" data-y>${yes}</button>${no?`<button class="sm gray" data-n style="padding:12px">${no}</button>`:''}</div></div>`;
+ const done=v=>{d.remove();res(v)};
+ d.onclick=e=>{if(e.target.closest('[data-y]'))done(true);else if(e.target.closest('[data-n]')||e.target===d)done(false)};
+ document.body.appendChild(d)})}
+const ask=m=>dlg(m,'موافق','لا','fa-circle-question'),tell=m=>dlg(m,'تمام',null,'fa-circle-info');
+
+/* ===== مراجعة المباراة: تقديم/تأخير + أفضل النقلات ===== */
+function rvInit(c){if(c.rv&&c.rv.n===c.mv.length)return c.rv;
+ const P=[CH.fromFEN(CH.START)],M=[];let s=P[0];
+ for(const u of c.mv){const m=CH.legal(s).find(x=>CH.uci(x)===u);if(!m)break;M.push(m);s=CH.apply(s,m);P.push(s)}
+ c.rv={n:c.mv.length,P,M,k:P.length-1,keys:[],pos:-1,cur:-1,scan:-1,endScan:0,busy:0,sk:0,at:0,bc:{}};return c.rv}
+function rvUI(c){const rn=$('rn'),rb=$('rvb'),rp=$('rvp');if(!rn)return;
+ const on=!!(c.over&&(c.k==='ai'||c.k==='pvp')&&c.me&&c.mv&&c.mv.length);
+ if(!on){rn.style.display='none';if(rp)rp.style.display='none';if(rb)rb.style.display='none';if(c.rv){c.rv.sk++;c.rv.at++;c.rv=null}BM=null;return}
+ rvInit(c);rn.style.display='block';rb.style.display='inline-flex';rvTxt(c)}
+function rvTxt(c){const rv=c.rv,e=$('rnt');if(!e||!rv)return;const sn=CH.sans(c.mv);
+ e.textContent=rv.k===0?'بداية المباراة':`${rv.k} / ${rv.P.length-1}   ${(rv.k-1)%2?'⚫':'⚪'} ${sn[rv.k-1]||''}`}
+function rvGo(k){const c=ctx;if(!c||!c.rv)return;const rv=c.rv;rv.at++;
+ k=Math.max(0,Math.min(rv.P.length-1,k));rv.k=k;S=rv.P[k];last=k>0?[rv.M[k-1].f,rv.M[k-1].t]:[];BM=null;sel=-1;tgs=[];hint=-1;draw();
+ if(k>0){const x=CH.sans(c.mv)[k-1];CH.snd(sndKind(x||''))}}
+const rvMsg=h=>{const e=$('rvs');if(e)e.innerHTML=h};
+const sanAt=(c,i,u)=>{try{const a=CH.sans(c.mv.slice(0,i).concat([u]));return a[a.length-1]}catch(e){return u}};
+function bestAt(rv,i){if(rv.bc[i]===undefined){let m=null;try{m=CH.best(rv.P[i],4)}catch(e){}rv.bc[i]=m}return rv.bc[i]}
+function scanNext(c,done){const rv=c.rv,sk=++rv.sk;rv.busy=1;rvMsg('⏳ جاري تحليل نقلاتك…');
+ const step=()=>{if(ctx!==c||c.rv!==rv||rv.sk!==sk){rv.busy=0;return}
+  let i=rv.scan+1;
+  while(i<rv.M.length&&(rv.P[i].turn!==c.me||CH.legal(rv.P[i]).length<2))i++;
+  if(i>=rv.M.length){rv.scan=i;rv.endScan=1;rv.busy=0;return done(-1)}
+  rv.scan=i;const b=bestAt(rv,i);
+  if(b&&CH.uci(b)!==c.mv[i]){rv.busy=0;return done(i)}
+  setTimeout(step,0)};
+ setTimeout(step,10)}
+function rvShow(c,i){const rv=c.rv,b=bestAt(rv,i);if(!b)return;
+ const ns=CH.apply(rv.P[i],b),st=CH.status(ns),pl=sanAt(c,i,c.mv[i]),bs=sanAt(c,i,CH.uci(b));
+ rv.cur=i;rv.k=i;rv.at++;S=rv.P[i];last=i>0?[rv.M[i-1].f,rv.M[i-1].t]:[];BM=[b.f,b.t];sel=-1;tgs=[];hint=-1;
+ $('rvx').innerHTML=`<div class="rvh">⚠ كان في نقلة أحسن — نقلتك رقم ${Math.floor(i/2)+1}</div>
+ <div class="rvl"><span>اللي لعبته</span><b dir="ltr">${esc(pl)}</b></div>
+ <div class="rvl ok"><span>الأفضل (السهم الأخضر)</span><b dir="ltr">${esc(bs)}</b></div>
+ ${st.over&&st.res===c.me?'<div class="rvn">🏁 كانت كش مات على طول!</div>':st.check?'<div class="rvn">✅ النقلة دي بتعمل كش</div>':''}
+ <button class="sm" data-a="rvplay" style="margin-top:8px">⚡ شوف إزاي كنت تكسب بسرعة</button>`;
+ rvMsg('');draw()}
+function rvNext(){const c=ctx;if(!c||!c.rv||c.rv.busy)return;const rv=c.rv;
+ if(rv.pos+1<rv.keys.length){rv.pos++;return rvShow(c,rv.keys[rv.pos])}
+ if(rv.endScan)return rvMsg('✅ خلصت كل النقلات المقترحة');
+ scanNext(c,i=>{if(i<0)return rvMsg(rv.keys.length?'✅ خلصت كل النقلات المقترحة':'🎉 كل نقلاتك كانت قريبة من أفضل نقلة!');
+  rv.keys.push(i);rv.pos=rv.keys.length-1;rvShow(c,i)})}
+function rvPrev(){const c=ctx;if(!c||!c.rv||c.rv.busy)return;const rv=c.rv;
+ if(rv.pos>0){rv.pos--;rvShow(c,rv.keys[rv.pos])}else rvMsg('دي أول نقلة مقترحة')}
+function rvLine(){const c=ctx;if(!c||!c.rv||c.rv.cur<0||c.rv.busy)return;const rv=c.rv,i=rv.cur,at=++rv.at;rv.busy=1;rvMsg('⏳ جاري تجهيز الخطة…');
+ const ms=[],sts=[];let s=rv.P[i],m=bestAt(rv,i);
+ const fin=()=>{rv.busy=0;const fs=CH.status(s),win=fs.over&&fs.res===c.me,sn=CH.sans(c.mv.slice(0,i).concat(ms.map(CH.uci))).slice(i);
+  rvMsg(`<div>${win?'🏁 كنت تكسب بكش مات بعد '+Math.ceil(ms.length/2)+' نقلات:':'الخطة الأقوى من هنا:'}</div><div dir="ltr" class="rvlin">${esc(sn.join('  '))}</div>`);
+  S=rv.P[i];last=i>0?[rv.M[i-1].f,rv.M[i-1].t]:[];BM=null;draw();
+  ms.forEach((mm,j)=>setTimeout(()=>{if(ctx!==c||c.rv!==rv||rv.at!==at)return;S=sts[j];last=[mm.f,mm.t];BM=null;draw();CH.snd(sndKind(sn[j]||''))},800*(j+1)))};
+ const step=()=>{if(ctx!==c||c.rv!==rv||rv.at!==at){rv.busy=0;return}
+  if(!m||ms.length>=10)return fin();
+  ms.push(m);s=CH.apply(s,m);sts.push(s);if(CH.status(s).over)return fin();
+  m=CH.best(s,4);setTimeout(step,0)};
+ setTimeout(step,10)}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const c=ctx;if(!c||!c.rv)return;
+ switch(a.dataset.a){
+  case'rev':{const p=$('rvp');if(p.style.display==='none'){p.style.display='block';if(c.rv.pos<0)rvNext();else rvShow(c,c.rv.keys[c.rv.pos])}else{p.style.display='none';c.rv.at++;BM=null;draw()}}break;
+  case'rv0':rvGo(0);break;
+  case'rvb':rvGo(c.rv.k-1);break;
+  case'rvf':rvGo(c.rv.k+1);break;
+  case'rv9':rvGo(c.rv.P.length-1);break;
+  case'rvn':rvNext();break;
+  case'rvp':rvPrev();break;
+  case'rvplay':rvLine();break}});
+document.addEventListener('keydown',e=>{const c=ctx;if(!c||!c.rv||!c.over||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+ if(e.key==='ArrowLeft')rvGo(c.rv.k-1);else if(e.key==='ArrowRight')rvGo(c.rv.k+1);else if(e.key==='Home')rvGo(0);else if(e.key==='End')rvGo(9e9)});
+
+/* ===== خروج اللاعب من المباراة أونلاين ===== */
+window.addEventListener('pagehide',()=>{const c=ctx;if(c&&c.k==='pvp'&&c.me&&c.g&&c.g.status==='active'&&!c.over)updateDoc(doc(db,'chess_games',c.id),{['left'+c.me]:Date.now()}).catch(()=>{})});
+const LEFT_GRACE=12e4,STALE=2e4;
+function pres(c){const o=c.me==='w'?'b':'w',g=c.g,b=$('lb');let end=null;
+ if(g['left'+o])end=g['left'+o]+LEFT_GRACE;
+ else{const h=g['hb'+o]||g.lt||0;if(h&&Date.now()-h>STALE)end=h+STALE+LEFT_GRACE}
+ if(!end){if(b)b.style.display='none';return}
+ const left=end-Date.now();
+ if(left<=0){if(!c.pr){c.pr=1;updateDoc(doc(db,'chess_games',c.id),{status:'ended',res:c.me,why:'انسحاب الخصم (خرج من المباراة)'}).catch(()=>{})}return}
+ if(b){b.style.display='flex';b.querySelector('b').textContent=fmt(left)}}
 
 const LVN=l=>['','سهل','متوسط','صعب','صعب جداً','انفجاري','أسطوري','خرافي','مستحيل'][l]||'مستوى '+l;
 const PZ=[{"lv":1,"n":1,"ck":0,"fen":"6Q1/k7/p7/P1p5/8/4K3/6P1/5R2 w - - 0 1","id":"p1_1"},{"lv":1,"n":1,"ck":0,"fen":"8/2k2p1p/K1p5/8/8/7P/8/7r b - - 0 1","id":"p1_2"},{"lv":1,"n":1,"ck":0,"fen":"8/K1k2p1p/2p5/8/8/7r/8/8 b - - 0 1","id":"p1_3"},{"lv":1,"n":1,"ck":0,"fen":"8/2k2p1p/K1p5/8/8/4r3/8/8 b - - 0 1","id":"p1_4"},{"lv":1,"n":1,"ck":0,"fen":"8/K1k2p1p/2p5/4r3/8/8/8/8 b - - 0 1","id":"p1_5"},{"lv":1,"n":1,"ck":0,"fen":"8/K1k4p/2p2p2/3r4/8/8/8/8 b - - 0 1","id":"p1_6"},{"lv":1,"n":1,"ck":0,"fen":"2Q5/5k2/8/6Q1/P7/B7/3P4/4K1N1 w - - 0 1","id":"p1_7"},{"lv":2,"n":1,"ck":0,"fen":"3k4/4p1br/1P1p3p/1P3B2/8/4P3/5r1P/R3K3 w Q - 0 1","id":"p2_1"},{"lv":2,"n":1,"ck":0,"fen":"2b3n1/prpp1kP1/8/1p5p/8/8/PPq1PP1P/RN2KBNR b KQ - 0 1","id":"p2_2"},{"lv":2,"n":1,"ck":0,"fen":"r1b2bkr/p1q5/Q6p/3p4/P7/7N/3PPPPP/1NB1KB1R b K - 0 1","id":"p2_3"},{"lv":2,"n":1,"ck":0,"fen":"1rb2bkr/pQq5/7p/3p4/P7/7N/3PPPPP/1NB1KB1R b K - 0 1","id":"p2_4"},{"lv":2,"n":1,"ck":0,"fen":"1r3bkr/pbq5/7p/3p4/P7/3P3N/4PPPP/1NB1KB1R b K - 0 1","id":"p2_5"},{"lv":2,"n":1,"ck":0,"fen":"r4bkr/pbq5/7p/P2p4/8/3P3N/4PPPP/1NB1KB1R b K - 0 1","id":"p2_6"},{"lv":2,"n":1,"ck":0,"fen":"1r3bk1/pbq5/P6r/3p4/8/3P3N/4PPPP/1N2KB1R b K - 0 1","id":"p2_7"},{"lv":3,"n":2,"ck":0,"fen":"6Q1/1k6/p4R2/8/7r/N1p5/P4K2/R7 w - - 0 1","id":"p3_1"},{"lv":3,"n":2,"ck":0,"fen":"4Q3/2k5/R7/8/8/N1p5/P4K2/R6r w - - 0 1","id":"p3_2"},{"lv":3,"n":2,"ck":0,"fen":"8/pp3N2/8/3k4/PP6/2B1K3/r5P1/RN3q2 b - - 0 1","id":"p3_3"},{"lv":3,"n":2,"ck":0,"fen":"8/1k6/6Q1/4R3/pP6/P4b2/2P2P2/2K3N1 w - - 0 1","id":"p3_4"},{"lv":3,"n":2,"ck":0,"fen":"8/1R3Q2/k7/8/pP6/P7/2P2P2/2K3N1 w - - 0 1","id":"p3_5"},{"lv":3,"n":2,"ck":0,"fen":"5R2/8/2ppk1p1/7p/8/4K1P1/2P4P/1Q2R3 w - - 0 1","id":"p3_6"},{"lv":3,"n":2,"ck":0,"fen":"8/3Q4/1p6/8/1k6/8/P2KP1B1/R5N1 w - - 0 1","id":"p3_7"},{"lv":4,"n":2,"ck":0,"fen":"8/8/8/1k2ppR1/4P3/P7/2PQ1P2/2B1K3 w - - 0 1","id":"p4_1"},{"lv":4,"n":2,"ck":0,"fen":"8/8/k4P2/3R4/4Q3/P7/2PK1P2/2B5 w - - 0 1","id":"p4_2"},{"lv":4,"n":2,"ck":0,"fen":"1k6/5Q2/R7/8/8/N1p5/P4K2/R6r w - - 0 1","id":"p4_3"},{"lv":4,"n":2,"ck":0,"fen":"k7/3B3p/7P/3R4/P4K2/1p3P2/4P3/1R4N1 w - - 0 1","id":"p4_4"},{"lv":4,"n":2,"ck":0,"fen":"8/3B3p/k6P/8/P4K2/1R3P2/3RP3/6N1 w - - 0 1","id":"p4_5"},{"lv":4,"n":2,"ck":0,"fen":"1R6/k2B3p/7P/8/P4K2/5P2/3RP3/6N1 w - - 0 1","id":"p4_6"},{"lv":4,"n":2,"ck":0,"fen":"8/3B3p/k6P/PR6/5K2/5P2/1R2P3/6N1 w - - 0 1","id":"p4_7"},{"lv":5,"n":3,"ck":1,"fen":"8/8/2k2P2/6R1/4p3/P7/2P1QP2/2B1K3 w - - 0 1","id":"p5_1"},{"lv":5,"n":3,"ck":1,"fen":"8/8/1k3P2/6R1/4Q3/P7/2PK1P2/2B5 w - - 0 1","id":"p5_2"},{"lv":5,"n":3,"ck":1,"fen":"8/2k5/5P2/4R3/4Q3/P3K3/2P2P2/2B5 w - - 0 1","id":"p5_3"},{"lv":5,"n":3,"ck":1,"fen":"4R3/3k4/5P2/8/4Q3/P3K3/2P2P2/2B5 w - - 0 1","id":"p5_4"},{"lv":5,"n":3,"ck":1,"fen":"B3k3/4p3/n7/3K4/8/6Q1/1P1B4/1b4NR w - - 0 1","id":"p5_5"},{"lv":5,"n":3,"ck":1,"fen":"8/5Q2/k7/4R3/pP6/P4b2/2P2P2/2K3N1 w - - 0 1","id":"p5_6"},{"lv":5,"n":3,"ck":1,"fen":"8/1b2RQ2/1k6/8/pP6/P7/2P2P2/2K3N1 w - - 0 1","id":"p5_7"},{"lv":6,"n":4,"ck":1,"fen":"8/8/8/2k2PR1/4p3/P7/2P1QP2/2B1K3 w - - 0 1","id":"p6_1"},{"lv":6,"n":4,"ck":1,"fen":"8/8/1k3P2/4R3/4Q3/P7/2PK1P2/2B5 w - - 0 1","id":"p6_2"},{"lv":6,"n":4,"ck":1,"fen":"8/8/1p1Q4/k7/8/8/P2KP1B1/5RN1 w - - 0 1","id":"p6_3"},{"lv":6,"n":4,"ck":1,"fen":"8/8/2Q5/5k2/p7/N7/4PP2/4K2R w K - 0 1","id":"p6_4"},{"lv":6,"n":4,"ck":1,"fen":"2Q5/8/6k1/8/8/8/4PP2/1N1K3R w - - 0 1","id":"p6_5"},{"lv":6,"n":4,"ck":1,"fen":"8/1Q6/8/6k1/8/8/4PP2/1N1K3R w - - 0 1","id":"p6_6"},{"lv":6,"n":4,"ck":1,"fen":"8/8/2Q5/5k2/8/8/4PP2/1N1K3R w - - 0 1","id":"p6_7"}];
@@ -120,7 +293,7 @@ function clk(){const c=ctx;if(!c||!c.names||!S)return;const col={pt:c.flip?'w':'
  for(const id in col){const e=$(id);if(!e)continue;const k=col[id],r=c.tc?rem(k):null;
   e.firstChild.textContent=(k==='w'?'⚪ ':'⚫ ')+c.names[k];e.lastChild.textContent=r==null?'':fmt(r);
   e.classList.toggle('on',!c.over&&!!c.run&&S.turn===k);e.classList.toggle('low',r!=null&&r<20000)}
- if(c.tc&&!c.over&&c.run&&rem(S.turn)<=0)flag(c);if(c.k==='pvp'&&c.me&&c.run&&!c.over&&c.g)pres(c)}
+ if(c.tc&&!c.over&&c.run&&rem(S.turn)<=0)flag(c);if(c.k==='pvp'&&c.me&&c.run&&!c.over&&c.g)pres(c);else{const lb=$('lb');if(lb)lb.style.display='none'}}
 function flag(c){c.over=1;const res=S.turn==='w'?'b':'w';
  if(c.k==='ai')return endAI(res,'انتهى الوقت');
  if(c.k==='pvp'&&c.me&&c.g.status==='active')updateDoc(doc(db,'chess_games',c.id),{status:'ended',res,why:'انتهى الوقت'}).catch(()=>{});
@@ -155,11 +328,11 @@ function aiTurn(){const c=ctx;c.lock=1;say('الخصم بيفكر…');
 /* ===== العرض المشترك ===== */
 function shell(title,btns,c){ctx=c;sel=-1;tgs=[];last=[];hint=-1;pend=null;$('tabs').style.display='none';document.body.classList.add('gm');
  const bar=id=>`<div class="pl" id="${id}" style="display:${c.names?'flex':'none'}"><span></span><b></b></div>`;
- $('v').innerHTML=`<div class="gh"><button class="icon-btn" data-a="back"><i class="fas fa-arrow-right"></i></button><b>${esc(title)}</b>${c.k==='pvp'&&c.me?'<button class="icon-btn" id="chb" data-a="chat"><i class="fas fa-comment"></i></button>':''}<button class="icon-btn" data-a="gear"><i class="fas fa-gear"></i></button></div><div class="stt" id="stt"></div>${bar('pt')}<div class="bw"><div id="board"></div><div class="pm" id="pm"></div></div>${bar('pb')}<div class="mv" id="mv"></div><div class="coach" id="coach" style="display:none"></div>
+ $('v').innerHTML=`<div class="gh"><button class="icon-btn" data-a="back"><i class="fas fa-arrow-right"></i></button><b>${esc(title)}</b>${c.k==='pvp'&&c.me?'<button class="icon-btn" id="chb" data-a="chat"><i class="fas fa-comment"></i></button>':''}<button class="icon-btn" id="rvb" data-a="rev" title="أفضل النقلات" style="display:none;color:var(--accent)"><i class="fas fa-star"></i></button><button class="icon-btn" data-a="gear"><i class="fas fa-gear"></i></button></div><div class="stt" id="stt"></div><div class="xlb" id="lb"><i class="fas fa-door-open"></i><span>الخصم خرج من المباراة — لو ما رجعش هتفوز بعد</span><b>2:00</b></div>${bar('pt')}<div class="bw"><div id="board"></div><div class="pm" id="pm"></div></div>${bar('pb')}<div class="mv" id="mv"></div><div class="rn" id="rn" style="display:none"><div class="rt" id="rnt"></div><div class="rr"><button class="rb" data-a="rv0"><i class="fas fa-backward-step"></i>البداية</button><button class="rb" data-a="rvb"><i class="fas fa-caret-left"></i>تأخير</button><button class="rb" data-a="rvf"><i class="fas fa-caret-right"></i>تقديم</button><button class="rb" data-a="rv9"><i class="fas fa-forward-step"></i>النهاية</button></div></div><div class="card" id="rvp" style="display:none"><h3>⭐ أفضل النقلات</h3><div id="rvx"></div><div class="ctl"><button class="sm gray" data-a="rvp">⏮ السابقة</button><button class="sm" data-a="rvn">التالية ⏭</button></div><div class="rvs" id="rvs"></div></div><div class="coach" id="coach" style="display:none"></div>
  <div class="mdl" id="sp"><div class="mc"><h3>⚙ الإعدادات</h3><small style="color:var(--text-sub);font-weight:700">لون الرقعة</small><div class="bd">${CH.themes.map(t=>`<button class="sw" data-bd="${t[0]}" style="background:linear-gradient(135deg,${t[1]} 50%,${t[2]} 50%)"></button>`).join('')}</div><div class="ctl">${btns}<button class="sm gray" data-a="snd">${CH.muted()?'🔇 الصوت مقفول':'🔊 الصوت شغال'}</button></div><button class="go" data-a="cls">إغلاق</button></div></div>
  <div class="mdl" id="ch"><div class="mc"><h3>💬 الشات</h3><div class="cl" id="cl"></div><div style="display:flex;gap:6px"><input class="inp" id="ci" maxlength="200" placeholder="اكتب رسالة…"><button class="sm" data-a="csend">إرسال</button></div><button class="sm gray" style="margin-top:8px" data-a="cls">إغلاق</button></div></div>`}
 const say=t=>{const e=$('stt');if(e)e.textContent=t};
-function draw(){if(!ctx)return;const c=ctx;CH.render($('board'),S,{sel,tg:tgs.map(m=>m.t),last,flip:c.flip,hint,on:onSq});
+function draw(){if(!ctx)return;const c=ctx;rvUI(c);CH.render($('board'),S,{sel,tg:tgs.map(m=>m.t),last,flip:c.flip,hint,on:onSq});
  if(c.L&&c.L.goal&&!c.over)c.L.goal.forEach(g=>{const e=$('board').querySelector(`[data-i="${CH.idx(g)}"]`);if(e)e.classList.add('hint')});
  document.querySelectorAll('[data-bd]').forEach(b=>b.classList.toggle('on',b.dataset.bd===CH.board()));
  const m=$('mv');
@@ -177,13 +350,10 @@ function restore(){let o={};try{o=JSON.parse(SAVED||'{}')}catch(e){}
  if(o.k!=='pvp'&&!ctx)show(tab)}
 function renderChat(){const c=ctx,e=$('cl');if(!e||!c.g)return;e.innerHTML=(c.g.chat||[]).map(x=>`<div class="cm ${x.u===uid?'me':''}">${x.u===uid?'':'<b>'+esc(x.n)+': </b>'}${esc(x.t)}</div>`).join('')||'<div class="empty">ابدأ الحديث مع خصمك</div>';e.scrollTop=e.scrollHeight}
 function sendChat(){const i=$('ci'),t=i.value.trim().slice(0,200);if(!t||!ctx||ctx.k!=='pvp'||!ctx.me)return;i.value='';updateDoc(doc(db,'chess_games',ctx.id),{chat:arrayUnion({u:uid,n:name,t,ts:Date.now()})}).catch(()=>{})}
-function pres(c){const o=c.me==='w'?'b':'w',h=c.g['hb'+o]||c.g.lt||Date.now(),gap=Date.now()-h;if(gap<3e4)return;const left=15e4-gap;
- if(left<=0){if(!c.pr){c.pr=1;updateDoc(doc(db,'chess_games',c.id),{status:'ended',res:c.me,why:'انسحاب الخصم (خرج من المباراة)'}).catch(()=>{})}return}
- say('⚠ الخصم خرج من المباراة — لو ما رجعش خلال '+fmt(left)+' هتفوز')}
 setInterval(()=>{const c=ctx;if(c&&c.k==='pvp'&&c.me&&c.g&&c.g.status==='active'&&!c.over)updateDoc(doc(db,'chess_games',c.id),{['hb'+c.me]:Date.now()}).catch(()=>{})},1e4);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ci')sendChat()});
 function busy(){const old=g=>Date.now()-(g.ts||0)>(g.status==='waiting'?6e4:3e5),a=mine.find(g=>g.status==='active');
- if(a){alert('عندك مباراة شغالة، لازم تنهيها الأول (فوز أو خسارة أو انسحاب)');openGame(a.id);return 1}
+ if(a){tell('عندك مباراة شغالة، لازم تنهيها الأول (فوز أو خسارة أو انسحاب)');openGame(a.id);return 1}
  mine.filter(g=>(g.status==='waiting'||g.status==='invited')&&old(g)).forEach(g=>deleteDoc(doc(db,'chess_games',g.id)).catch(()=>{}));
  const w=mine.find(g=>(g.status==='waiting'||g.status==='invited')&&!old(g));if(w){openGame(w.id);return 1}return 0}
 function onSq(i){if(!ctx||ctx.lock||ctx.over||pend)return;const p=S.b[i];
@@ -193,7 +363,7 @@ function onSq(i){if(!ctx||ctx.lock||ctx.over||pend)return;const p=S.b[i];
  if(p&&ctx.can(p)){sel=i;tgs=CH.movesFrom(S,i)}else{sel=-1;tgs=[]}draw()}
 async function coach(q){const p=prov(cfg.aiTrain),e=$('coach');if(!p)return;e.style.display='block';e.textContent='المدرب بيفكر…';
  try{e.textContent=await CH.coach(p,CH.toFEN(S),q)}catch(x){e.textContent='تعذّر الاتصال بالمدرب حالياً'}}
-function back(){clearInterval(hb);if(ctx&&ctx.k==='pvp'&&ctx.wait&&ctx.g.w.id===uid)deleteDoc(doc(db,'chess_games',ctx.id)).catch(()=>{});if(unsub){unsub();unsub=null}show(tab)}
+function back(){clearInterval(hb);{const c=ctx;if(c&&c.k==='pvp'&&c.me&&c.g&&c.g.status==='active'&&!c.over)updateDoc(doc(db,'chess_games',c.id),{['left'+c.me]:Date.now()}).catch(()=>{})}if(ctx&&ctx.k==='pvp'&&ctx.wait&&ctx.g.w.id===uid)deleteDoc(doc(db,'chess_games',ctx.id)).catch(()=>{});if(unsub){unsub();unsub=null}show(tab)}
 
 /* ===== أونلاين ===== */
 onSnapshot(query(collection(db,'chess_games'),where('inv','==',uid)),s=>{invs=s.docs.map(d=>({id:d.id,...d.data()}));if(!ctx)show(tab)});
@@ -210,8 +380,8 @@ async function search(){if(busy())return;const tc=TCS[tcI],k=JSON.stringify(tc);
  const g=lobby.find(x=>x.status==='waiting'&&!x.inv&&x.w.id!==uid&&JSON.stringify(x.tc||null)===k&&Date.now()-(x.ts||0)<6e4);
  if(g)return start(g,g.id);
  const r=await addDoc(collection(db,'chess_games'),{type:'pvp',w:{id:uid,name},b:null,ps:[uid],fen:CH.START,moves:[],status:'waiting',tc,ts:Date.now()});openGame(r.id)}
-async function invite(){const code=$('fcode').value.trim();if(!code)return;if(code===uid)return alert('ده كودك انت 😄');if(busy())return;
- const p=await getDoc(doc(db,'chess_players',code));if(!p.exists())return alert('الكود ده مش موجود، أو صاحبه لسه ما دخلش صفحة الشطرنج');
+async function invite(){const code=$('fcode').value.trim();if(!code)return;if(code===uid)return tell('ده كودك انت 😄');if(busy())return;
+ const p=await getDoc(doc(db,'chess_players',code));if(!p.exists())return tell('الكود ده مش موجود، أو صاحبه لسه ما دخلش صفحة الشطرنج');
  const r=await addDoc(collection(db,'chess_games'),{type:'pvp',w:{id:uid,name},b:{id:code,name:p.data().name||'صديق'},ps:[uid],inv:code,fen:CH.START,moves:[],status:'invited',tc:TCS[tcI],ts:Date.now()});openGame(r.id)}
 function openGame(id){if(unsub)unsub();clearInterval(hb);
  unsub=onSnapshot(doc(db,'chess_games',id),s=>{clearInterval(hb);
@@ -223,9 +393,10 @@ function openGame(id){if(unsub)unsub();clearInterval(hb);
    hb=setInterval(()=>{if(!ctx||ctx.id!==id)return clearInterval(hb);updateDoc(doc(db,'chess_games',id),{ts:Date.now()}).catch(()=>{})},2e4);return}
   if(!ctx||ctx.k!=='pvp'||ctx.id!==id||ctx.wait){
    shell(`${g.w.name} ⚔ ${g.b.name}`,`${me?'<button class="sm gray" data-a="tko">طلب تراجع</button><button class="sm gray" data-a="drawo">عرض تعادل</button><button class="sm red" data-a="resign">استسلام</button>':''}<button class="sm gray" data-a="flip">قلب</button>`,{k:'pvp',id,me,flip:me==='b',names:{w:g.w.name,b:g.b.name}});
-   if(me&&g.status==='active')updateDoc(doc(db,'chess_games',id),{['hb'+me]:Date.now()}).catch(()=>{})}
+   if(me&&g.status==='active')updateDoc(doc(db,'chess_games',id),{['hb'+me]:Date.now(),['left'+me]:null}).catch(()=>{})}
   const c=ctx;c.me=me;c.g=g;c.tc=g.tc||null;c.inc=g.tc?g.tc[1]:0;c.t={w:g.wt||0,b:g.bt||0};c.lt=g.lt||Date.now();c.run=g.status==='active';
   S=CH.replay(g.moves||[])||CH.fromFEN(g.fen);last=g.last||[];c.mv=g.moves||[];c.over=g.status==='ended';
+  if(c.over&&c.rv&&c.rv.n===c.mv.length){S=c.rv.P[c.rv.k]||S;last=c.rv.k>0?[c.rv.M[c.rv.k-1].f,c.rv.M[c.rv.k-1].t]:[]}
   c.can=p=>!!c.me&&!c.over&&g.status==='active'&&CH.isW(p)===(c.me==='w')&&S.turn===c.me;
   c.move=m=>{const ns=CH.apply(S,m),st=CH.status(ns),u={fen:CH.toFEN(ns),moves:[...c.mv,CH.uci(m)],last:[m.f,m.t],dr:null,tk:null};
    if(c.tc){const k=S.turn;u[k==='w'?'wt':'bt']=Math.max(0,rem(k))+c.inc*1000;u.lt=Date.now()}
@@ -235,9 +406,9 @@ function openGame(id){if(unsub)unsub();clearInterval(hb);
   const n=(g.chat||[]).length;if(c.cs===undefined)c.cs=n;
   if($('ch')&&$('ch').style.display==='flex'){c.cs=n;renderChat()}else if(n>c.cs){c.cs=n;if(g.chat[n-1].u!==uid){CH.snd('chat');const b=$('chb');if(b)b.classList.add('dot')}}
   draw();const act=g.status==='active'&&me;
-  if(act&&g.dr&&g.dr!==me&&c.drAsk!==g.dr+c.mv.length){c.drAsk=g.dr+c.mv.length;setTimeout(()=>{updateDoc(doc(db,'chess_games',id),confirm('الخصم عرض عليك تعادل. موافق؟')?{status:'ended',res:'d',why:'تعادل بالاتفاق'}:{dr:null})},50)}
-  if(act&&g.tk&&g.tk.by!==me&&c.tkAsk!==g.tk.n+g.tk.by){c.tkAsk=g.tk.n+g.tk.by;setTimeout(()=>{
-   if(!confirm('الخصم بيطلب يرجّع نقلته. موافق؟'))return updateDoc(doc(db,'chess_games',id),{tk:null});
+  if(act&&g.dr&&g.dr!==me&&c.drAsk!==g.dr+c.mv.length){c.drAsk=g.dr+c.mv.length;setTimeout(async()=>{const ok=await ask('الخصم عرض عليك تعادل. موافق؟');updateDoc(doc(db,'chess_games',id),ok?{status:'ended',res:'d',why:'تعادل بالاتفاق'}:{dr:null})},50)}
+  if(act&&g.tk&&g.tk.by!==me&&c.tkAsk!==g.tk.n+g.tk.by){c.tkAsk=g.tk.n+g.tk.by;setTimeout(async()=>{
+   if(!await ask('الخصم بيطلب يرجّع نقلته. موافق؟'))return updateDoc(doc(db,'chess_games',id),{tk:null});
    const k=Math.min(c.mv.length,S.turn===g.tk.by?2:1),nm=c.mv.slice(0,c.mv.length-k),ns=CH.replay(nm),u={moves:nm,fen:CH.toFEN(ns),last:[],tk:null,dr:null};
    if(c.tc){u.wt=Math.max(0,rem('w'));u.bt=Math.max(0,rem('b'));u.lt=Date.now()}updateDoc(doc(db,'chess_games',id),u)},50)}
   say(g.status==='ended'?(g.res==='d'?g.why:(g.res===me?'🎉 فزت! ':(me?'خسرت — ':'انتهت — '))+g.why+(me?'':(g.res==='w'?' (فاز الأبيض)':' (فاز الأسود)'))):(g.tk&&g.tk.by===me?'⏳ في انتظار رد الخصم على طلب التراجع':S.turn===me?(CH.inCheck(S)?'⚠ كش! دورك':'دورك'):(me?'دور الخصم':'دور '+(S.turn==='w'?'الأبيض':'الأسود'))))})}
@@ -259,7 +430,7 @@ document.addEventListener('click',async e=>{const g=s=>e.target.closest(s);
  case'csend':sendChat();break;
  case'snd':CH.setMute(!CH.muted());t.textContent=CH.muted()?'🔇 الصوت مقفول':'🔊 الصوت شغال';CH.snd('move');break;
  case'tko':if(ctx.g&&ctx.g.status==='active'&&ctx.me&&ctx.mv.length)updateDoc(doc(db,'chess_games',ctx.id),{tk:{by:ctx.me,n:ctx.mv.length}});break;
- case'wd':if(confirm('تنسحب من المباراة وتخسرها؟')){const x=mine.find(v=>v.id===id);if(x&&x.status==='active')updateDoc(doc(db,'chess_games',id),{status:'ended',res:x.w.id===uid?'b':'w',why:'انسحاب'})}break;
+ case'wd':if(await ask('تنسحب من المباراة وتخسرها؟')){const x=mine.find(v=>v.id===id);if(x&&x.status==='active')updateDoc(doc(db,'chess_games',id),{status:'ended',res:x.w.id===uid?'b':'w',why:'انسحاب'})}break;
  case'nextL':{const i=LES.findIndex(l=>l.id===ctx.L.id),n=LES[i+1];n?openLes(n.id):show('tr')}break;
  case'copy':if(navigator.clipboard)navigator.clipboard.writeText(uid);t.textContent='تم ✓';break}});
 
@@ -336,7 +507,7 @@ document.addEventListener('click',async e=>{
  case'cancel':await deleteDoc(doc(db,'chess_games',id));break;
  case'reqAdmin':if(!reqs.some(r=>r.status==='pending'))await addDoc(collection(db,'chess_reqs'),{uid,name,status:'pending',ts:Date.now()});break;
  case'delReq':await deleteDoc(doc(db,'chess_reqs',id));break;
- case'resign':if(confirm('متأكد إنك عايز تستسلم؟')&&ctx.g&&ctx.g.status==='active')updateDoc(doc(db,'chess_games',ctx.id),{status:'ended',res:ctx.me==='w'?'b':'w',why:'استسلام'});break}});
+ case'resign':if(await ask('متأكد إنك عايز تستسلم؟')&&ctx&&ctx.g&&ctx.g.status==='active')updateDoc(doc(db,'chess_games',ctx.id),{status:'ended',res:ctx.me==='w'?'b':'w',why:'استسلام'});break}});
 </script>
 </body>
 </html>
