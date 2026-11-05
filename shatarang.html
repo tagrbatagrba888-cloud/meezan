@@ -41,7 +41,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg-page);color:var(--text-m
 </head>
 <body>
 <header class="top"><div class="brand"><i class="fas fa-chess-king" style="color:var(--accent)"></i> إدارة الشطرنج</div>
-<div style="display:flex;gap:8px"><button class="icon-btn" id="themeBtn"><i class="fas fa-moon" id="themeIcon"></i></button><a class="icon-btn" href="tarfeeh_admin.html"><i class="fas fa-arrow-right"></i></a></div></header>
+<div style="display:flex;gap:8px"><button class="icon-btn" id="themeBtn"><i class="fas fa-moon" id="themeIcon"></i></button><a class="icon-btn" href="index.html" title="الرئيسية"><i class="fas fa-arrow-right"></i></a></div></header>
 <div class="wrap"><div class="tabs" id="tabs"></div><main id="v"></main></div>
 
 <script src="chess_engine.js"></script>
@@ -51,26 +51,27 @@ import { getFirestore, doc, collection, onSnapshot, setDoc, addDoc, updateDoc, d
 const app=initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
 const db=getFirestore(app),$=id=>document.getElementById(id);
 if(sessionStorage.getItem('meezan_logged_in')!=='true')location.replace('login.html');
-if((sessionStorage.getItem('meezan_role')||'student')!=='admin')location.replace('tarfeeh.html');
+if((sessionStorage.getItem('meezan_role')||'student')!=='admin')location.replace('index.html');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem('meezan_theme',t);$('themeIcon').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
 setTheme(localStorage.getItem('meezan_theme')||'light');$('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const toast=m=>{const e=document.createElement('div');e.textContent=m;e.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:2px solid var(--accent);padding:11px 20px;border-radius:13px;font-weight:800;z-index:99';document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 
+const LVN=l=>['','سهل','متوسط','صعب','صعب جداً','انفجاري','أسطوري','خرافي','مستحيل'][l]||'مستوى '+l;
 const LESN=11,LV=['','سهل','متوسط','صعب','صعب جداً'];
-let cfg={},games=[],reqs=[],players=[],learn=[],tab='live',ctx=null,unsub=null,draft=null,S,sel=-1,tgs=[],last=[];
+let cfg={},games=[],reqs=[],players=[],learn=[],puz=[],cpz=[],tab='live',ctx=null,unsub=null,draft=null,S,sel=-1,tgs=[],last=[];
 const bump=()=>{if(!ctx&&unsubOK())show(tab)};const unsubOK=()=>!document.activeElement||!/INPUT|SELECT/.test(document.activeElement.tagName);
 const watch=(c,f)=>onSnapshot(collection(db,c),s=>{f(s.docs.map(d=>({id:d.id,...d.data()})));bump()});
 onSnapshot(doc(db,'settings','chess'),s=>{cfg=s.exists()?s.data():{};if(!draft)CH.applyTheme(cfg);bump()});
 watch('chess_games',a=>games=a.sort((x,y)=>(y.ts||0)-(x.ts||0)));watch('chess_reqs',a=>reqs=a.sort((x,y)=>y.ts-x.ts));
-watch('chess_players',a=>players=a);watch('chess_learn',a=>learn=a);
+watch('chess_players',a=>players=a);watch('chess_puz',a=>puz=a);watch('chess_puzzles',a=>cpz=a.sort((x,y)=>x.lv-y.lv));watch('chess_learn',a=>learn=a);
 const saveCfg=o=>setDoc(doc(db,'settings','chess'),o,{merge:true});
 
 function show(t){tab=t;ctx=null;const pend=reqs.filter(r=>r.status==='pending').length;
  $('tabs').style.display='flex';
- $('tabs').innerHTML=[['live','fa-tower-broadcast','المباريات'],['req','fa-bell','الطلبات'],['res','fa-ranking-star','النتائج'],['lrn','fa-graduation-cap','المتدرّبون'],['look','fa-palette','المظهر'],['ai','fa-robot','الذكاء الاصطناعي'],['set','fa-sliders','الأقسام']]
+ $('tabs').innerHTML=[['live','fa-tower-broadcast','المباريات'],['req','fa-bell','الطلبات'],['res','fa-ranking-star','النتائج'],['lrn','fa-graduation-cap','المتدرّبون'],['pz','fa-puzzle-piece','الألغاز'],['look','fa-palette','المظهر'],['ai','fa-robot','الذكاء الاصطناعي'],['set','fa-sliders','الأقسام']]
   .map(x=>`<button class="tab ${x[0]===t?'on':''}" data-t="${x[0]}"><i class="fas ${x[1]}"></i>${x[2]}${x[0]==='req'&&pend?`<b>${pend}</b>`:''}</button>`).join('');
- ({live:tLive,req:tReq,res:tRes,lrn:tLrn,look:tLook,ai:tAI,set:tSet}[t])()}
+ ({live:tLive,req:tReq,res:tRes,lrn:tLrn,pz:tPz,look:tLook,ai:tAI,set:tSet}[t])()}
 const gn=g=>`${esc(g.w.name)} ⚔ ${esc(g.b?g.b.name:'—')}`;
 const stTxt=g=>g.status==='waiting'?'⏳ منتظر':g.status==='active'?'🔴 مباشر':g.res==='d'?'🤝 تعادل':g.res==='w'?'🏆 فاز الأبيض':'🏆 فاز الأسود';
 
@@ -92,6 +93,13 @@ function tRes(){const st={};games.filter(g=>g.status==='ended').forEach(g=>{[['w
  <div class="card"><h3>📜 سجل المباريات</h3>${games.filter(g=>g.status==='ended').slice(0,60).map(g=>`<div class="row"><b>${gn(g)}<small>${stTxt(g)} — ${esc(g.why||'')}${g.type==='ai'?' · ضد الكمبيوتر '+(LV[g.lv]||''):''}</small></b><div class="bt"><button class="sm gray" data-a="watch" data-id="${g.id}">عرض</button><button class="sm red" data-a="del" data-id="${g.id}">حذف</button></div></div>`).join('')||'<div class="empty">لا يوجد</div>'}</div>`}
 
 function tLrn(){$('v').innerHTML=`<div class="card"><h3>📚 مين بيتعلم؟</h3>${learn.sort((a,b)=>(b.ts||0)-(a.ts||0)).map(l=>{const n=Object.keys(l.done||{}).length;return`<div class="row"><b>${esc(l.name||l.id)}<small>${new Date(l.ts||0).toLocaleDateString('ar-EG')} · ${Object.keys(l.done||{}).join('، ')}</small></b><div class="bt"><div class="pr"><i style="width:${n/LESN*100}%"></i></div><b>${n}/${LESN}</b><button class="sm red" data-a="delLrn" data-id="${l.id}">تصفير</button></div></div>`}).join('')||'<div class="empty">لا أحد بدأ التدريب بعد</div>'}</div>`}
+
+function tPz(){const per=puz.map(u=>{const lv={};Object.values(u.solved||{}).forEach(l=>lv[l]=(lv[l]||0)+1);return{id:u.id,n:u.name||u.id,t:Object.keys(u.solved||{}).length,lv,mx:Math.max(0,...Object.keys(lv).map(Number))}}).sort((a,b)=>b.t-a.t||b.mx-a.mx);
+ $('v').innerHTML=`<div class="card"><h3>🧩 مين حلّ ألغاز أكتر؟</h3>${per.map((u,i)=>`<div class="row"><b>${i+1}. ${esc(u.n)}<small>أعلى مستوى: ${u.mx?LVN(u.mx):'—'} · ${Object.keys(u.lv).sort((a,b)=>a-b).map(l=>LVN(+l)+' '+u.lv[l]).join(' · ')}</small></b><div class="bt"><b>${u.t} لغز</b><button class="sm red" data-a="delPz" data-id="${u.id}">تصفير</button></div></div>`).join('')||'<div class="empty">لا أحد حلّ ألغاز بعد</div>'}</div>
+ <div class="card"><h3>🔓 شرط فتح المستوى التالي</h3><div class="lab">عدد الألغاز المطلوب حلها من المستوى عشان يفتح اللي بعده</div><input class="in" id="pzn" type="number" min="1" max="7" value="${cfg.pzNeed||3}"><button class="sm" data-a="savePzNeed">حفظ</button></div>
+ <div class="card"><h3>➕ إضافة لغز جديد (بيظهر تدريجياً في مستواه)</h3><select id="zl">${[1,2,3,4,5,6,7,8].map(l=>`<option value="${l}">${LVN(l)}</option>`).join('')}</select><input class="in" id="zf" dir="ltr" placeholder="FEN للوضع (الدور على اللي هيكسب)">
+ <select id="zn"><option value="1">كش مات في نقلة</option><option value="2">كش مات في نقلتين</option><option value="3">كش مات في 3 (كشّات فقط)</option><option value="4">كش مات في 4 (كشّات فقط)</option></select><button class="sm" data-a="addPz">تحقق وأضف</button><div class="lab" style="margin-top:8px">بيتحقق إن فيه كش مات إجباري بالعمق ده قبل ما يحفظ اللغز.</div></div>
+ <div class="card"><h3>ألغازك المضافة (${cpz.length})</h3>${cpz.map(p=>`<div class="row"><b>${LVN(p.lv)}<small dir="ltr">${esc(p.fen)}</small></b><button class="sm red" data-a="delCp" data-id="${p.id}">حذف</button></div>`).join('')||'<div class="empty">لم تضف ألغاز بعد، الموجود جاهز تلقائياً</div>'}</div>`}
 
 function tLook(){draft=draft||{board:cfg.board||'classic',light:cfg.light||'#EEEED2',dark:cfg.dark||'#769656',pieces:cfg.pieces||'solid',pw:cfg.pw||'#ffffff',pb:cfg.pb||'#1a1a1a'};
  CH.applyTheme(draft);
@@ -170,6 +178,12 @@ document.addEventListener('click',async e=>{
   if(!p.name||!p.url)return toast('اكتب الاسم والرابط');a.textContent='جاري الاختبار…';
   try{const r=await CH.askAI(p,'قل: تمام');toast('✅ الاتصال شغال: '+String(r).slice(0,30))}catch(x){if(!confirm('فشل الاختبار (ممكن CORS أو مفتاح غلط). تضيفه رغم كده؟')){a.textContent='إضافة واختبار';return}}
   await saveCfg({ai:[...(cfg.ai||[]),p]})}break;
+ case'delPz':if(confirm('تصفير ألغاز اللاعب؟'))await deleteDoc(doc(db,'chess_puz',id));break;
+ case'delCp':await deleteDoc(doc(db,'chess_puzzles',id));break;
+ case'savePzNeed':await saveCfg({pzNeed:Math.max(1,+$('pzn').value||3)});toast('تم الحفظ');break;
+ case'addPz':{const f=$('zf').value.trim(),n=+$('zn').value,ck=n>=3;let s;try{s=CH.fromFEN(f);if(CH.kingAt(s.b,true)<0||CH.kingAt(s.b,false)<0)throw 0}catch(x){return toast('FEN غير صالح')}
+  a.textContent='جاري التحقق…';await new Promise(r=>setTimeout(r,30));const ok=CH.goodMoves(s,n,ck).length>0;a.textContent='تحقق وأضف';
+  if(!ok)return toast('مفيش كش مات إجباري بالعمق ده');await addDoc(collection(db,'chess_puzzles'),{lv:+$('zl').value,fen:f,n,ck:ck?1:0,ts:Date.now()});$('zf').value='';toast('تمت الإضافة')}break;
  case'sec':{const s=cfg.sec||{};await saveCfg({sec:{...s,[id]:s[id]===false}})}break}});
 show('live');
 </script>
