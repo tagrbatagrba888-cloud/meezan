@@ -99,7 +99,7 @@ function render(el,S,o){
 const board=()=>localStorage.chess_board||'green',setBoard=n=>{localStorage.chess_board=n;document.documentElement.dataset.board=n};
 document.documentElement.dataset.board=board();
 const st=document.createElement('style');st.textContent=`
-:root{--bs:min(calc(100vw - 28px),560px);--l:#EEEED2;--d:#769656}
+:root{--bs:min(calc(100vw - 8px),calc(100dvh - 215px),740px);--l:#EEEED2;--d:#769656}
 ${THEMES.map(t=>`html[data-board=${t[0]}]{--l:${t[1]};--d:${t[2]}}`).join('')}
 .bw{position:relative;width:var(--bs);margin:0 auto}
 .cb{width:var(--bs);height:var(--bs);display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);direction:ltr;border-radius:6px;overflow:hidden;box-shadow:0 8px 24px var(--shadow);user-select:none;touch-action:manipulation;margin:0 auto}
@@ -121,10 +121,28 @@ ${THEMES.map(t=>`html[data-board=${t[0]}]{--l:${t[1]};--d:${t[2]}}`).join('')}
 .stt{min-height:48px}
 .inp{width:100%;padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font:inherit;font-weight:700}
 .spin{width:44px;height:44px;border:5px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin:10px auto;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}`;
+st.textContent+=`
+body.gm .top{display:none}body.gm .wrap{max-width:none;padding:6px 4px}body.gm .gh{margin-bottom:2px}body.gm .stt{min-height:30px;margin:2px 0;font-size:13px}body.gm .cb{border-radius:4px}
+body.gm .mv{max-height:64px;overflow:auto;margin-top:6px}
+.mdl{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:14px}
+.mc{background:var(--bg-card);border:2px solid var(--border);border-radius:18px;padding:16px;width:100%;max-width:420px;max-height:85dvh;overflow:auto}.mc h3{margin-bottom:10px}
+.cl{height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.cm{max-width:80%;padding:7px 11px;border-radius:12px;background:var(--bg-input);font-size:13.5px;font-weight:600;align-self:flex-start;word-break:break-word}
+.cm.me{align-self:flex-end;background:var(--primary);color:#fff}[data-theme=dark] .cm.me{color:#0A1612}
+.dot{position:relative}.dot::after{content:'';position:absolute;top:3px;right:3px;width:10px;height:10px;background:#e74c3c;border-radius:50%}`;
 document.head.appendChild(st);
+/* أصوات الرقعة (مولّدة بالكود، بدون ملفات) */
+let AC;const muted=()=>localStorage.chess_snd==='0';
+function snd(k){if(muted())return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const n=AC.currentTime;
+ const nz=(t,v,fr)=>{const b=AC.createBuffer(1,AC.sampleRate*.07,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=fr;g.gain.value=v;s.connect(f).connect(g).connect(AC.destination);s.start(n+t)};
+ const tn=(t,f,d,v,ty)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=ty||'sine';o.frequency.setValueAtTime(f,n+t);g.gain.setValueAtTime(v,n+t);g.gain.exponentialRampToValueAtTime(.001,n+t+d);o.connect(g).connect(AC.destination);o.start(n+t);o.stop(n+t+d+.02)};
+ const mv=t=>{nz(t,1,1400);tn(t,190,.09,.5,'triangle')},cp=t=>{nz(t,1.4,1000);tn(t,150,.12,.7,'triangle')};
+ if(k==='move')mv(0);else if(k==='cap'){cp(0);nz(.07,.8,1900)}else if(k==='castle'){mv(0);mv(.13)}
+ else if(k==='check'){mv(0);tn(.1,880,.25,.25)}else if(k==='end'){[523,392,330].forEach((f,i)=>tn(.15+i*.18,f,.4,.3,'triangle'))}
+ else if(k==='chat'){tn(0,1040,.12,.25);tn(.1,1320,.18,.25)}}catch(e){}}
 
 window.CH2={...O,START,fromFEN,toFEN,isW,idx,sq,uci,legal,movesFrom:(S,i)=>legal(S).filter(m=>m.f===i),apply:(S,m)=>ap(S,m,1),inCheck,status,best,mateIn,goodMoves,san,sans,replay,render,
- glyph:p=>G[p]+'\uFE0E',themes:THEMES,board,setBoard,
+ snd,muted,setMute:v=>localStorage.chess_snd=v?'0':'1',glyph:p=>G[p]+'\uFE0E',themes:THEMES,board,setBoard,
  applyTheme(cfg){try{O.applyTheme&&O.applyTheme(cfg)}catch(e){}if(cfg&&cfg.board&&!localStorage.chess_board)document.documentElement.dataset.board=cfg.board},
  aiMove:O.aiMove||(async()=>null),coach:O.coach||(async()=>{throw 0})};
 })();
