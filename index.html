@@ -2090,7 +2090,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { 
   getFirestore, doc, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+let __msgMod = null;
+const loadMessaging = () => __msgMod || (__msgMod = import("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"));
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -3236,6 +3237,7 @@ function forceLogoutDisabled(kind) {
 // 📍 بوابة العنوان — إجبار المستخدم غير المسجّل لعنوانه
 // ============================================================
 let addrGate = null;
+let gateSaving = false;
 function hideAddressGate() {
   if (!addrGate) return;
   try { addrGate.ov.remove(); } catch (e) {}
@@ -3245,7 +3247,7 @@ function hideAddressGate() {
 function showAddressGate(user, role, needAddr, needGender) {
   if (addrGate || loggingOut) return;
   if (needAddr === undefined) needAddr = !hasFullAddress(user);
-  if (needGender === undefined) needGender = !normGender(user.gender);
+  if (needGender === undefined) needGender = !effGender(user);
   if (!needAddr && !needGender) return;
   const ov = document.createElement('div');
   ov.className = 'adw-overlay show';
@@ -3282,30 +3284,41 @@ function showAddressGate(user, role, needAddr, needGender) {
       if (err) return showToast(err, 'error');
       v = w.getValue();
     }
-    const html0 = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+    // ⚡ حفظ فوري: نغلق النافذة مباشرة ونكمل الكتابة في الخلفية (ولو فشلت نعيدها مع رسالة)
+    const pr = { gender, t: new Date().toISOString() };
+    const prevProfile = profileMap[user.id];
+    gateSaving = true;
+    if (needGender) profileMap[user.id] = pr;
+    hideAddressGate();
+    showToast('تم حفظ البيانات ✓', 'success');
     try {
-      if (w) await w.commit();
-      const col = role === 'teacher' ? 'teachers' : 'users';
-      const ref = doc(db, col, 'all');
-      const snap = await getDoc(ref);
-      const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
-      const idx = items.findIndex(u => u.id === user.id);
-      if (idx === -1) throw new Error('الحساب غير موجود');
-      const patch = { ...v, updatedAt: new Date().toISOString() };
-      if (needGender) { patch.gender = gender; patch.selfFillGender = false; }
-      if (needAddr) patch.selfFillAddress = false;
-      items[idx] = { ...items[idx], ...patch };
-      await setDoc(ref, { items, updatedAt: serverTimestamp() });
-      showToast('تم حفظ البيانات ✓', 'success');
-      hideAddressGate();
+      const jobs = [];
+      if (needGender) jobs.push(setDoc(doc(db, 'users', 'profiles'), { map: { [user.id]: pr } }, { merge: true }));
+      if (w) jobs.push(w.commit());
+      const sync = (async () => {
+        const col = role === 'teacher' ? 'teachers' : 'users';
+        const ref = doc(db, col, 'all');
+        const snap = await getDoc(ref);
+        const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
+        const idx = items.findIndex(u => u.id === user.id);
+        if (idx === -1) throw new Error('الحساب غير موجود');
+        const patch = { ...v, updatedAt: new Date().toISOString() };
+        if (needGender) { patch.gender = gender; patch.selfFillGender = false; }
+        if (needAddr) patch.selfFillAddress = false;
+        items[idx] = { ...items[idx], ...patch };
+        await setDoc(ref, { items, updatedAt: serverTimestamp() });
+      })();
+      if (needAddr || !needGender) jobs.push(sync); else sync.catch((e2) => console.log('items sync skipped:', e2 && e2.message));
+      await Promise.all(jobs);
     } catch (e) {
+      // فشل فعلي: نرجّع الحالة السابقة ونعيد النافذة
+      if (needGender) { if (prevProfile) profileMap[user.id] = prevProfile; else delete profileMap[user.id]; }
       showToast(e && e.code === 'permission-denied' ? 'ليس لديك صلاحية الحفظ' : ('تعذّر الحفظ: ' + (e && e.message || '')), 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = html0;
+      gateSaving = false;
+      runProfileGate(user, role);
+      return;
     }
+    gateSaving = false;
   });
 }
 
@@ -3346,6 +3359,23 @@ async function confirmDeletedFromServer(collectionName, userId, sName) {
     // يبقى true بعد الحذف المؤكد لمنع التكرار
   }
 }
+
+// ============================================================
+// 🚻 النوع محفوظ في users/profiles (مستند مستقل) + بوابة النوع/العنوان
+// ============================================================
+let profileMap = {}, profilesReady = false, __lastGateUser = null, __lastGateRole = null;
+const effGender = (u) => normGender(u && u.gender) || normGender((profileMap[u && u.id] || {}).gender);
+function runProfileGate(user, role) {
+  if (!user || !profilesReady || gateSaving) return;
+  const needAddr = !hasFullAddress(user), needGender = !effGender(user);
+  if (needAddr || needGender) showAddressGate(user, role, needAddr, needGender); else hideAddressGate();
+}
+onSnapshot(doc(db, 'users', 'profiles'), (snap) => {
+  profileMap = (snap.exists() && snap.data().map) || {};
+  profilesReady = true;
+  if (__lastGateUser) runProfileGate(__lastGateUser, __lastGateRole);
+}, () => { profilesReady = true; if (__lastGateUser) runProfileGate(__lastGateUser, __lastGateRole); });
+setTimeout(() => { if (!profilesReady) { profilesReady = true; if (__lastGateUser) runProfileGate(__lastGateUser, __lastGateRole); } }, 5000);
 
 let userMonitoringStarted = false;
 function startUserMonitoring() {
@@ -3394,10 +3424,8 @@ function startUserMonitoring() {
     }
 
     // 📍 العنوان + 🚻 النوع إجباريان
-    {
-      const needAddr = !hasFullAddress(user), needGender = !normGender(user.gender);
-      if (needAddr || needGender) showAddressGate(user, role, needAddr, needGender); else hideAddressGate();
-    }
+    __lastGateUser = user; __lastGateRole = role;
+    runProfileGate(user, role);
 
     // ✅ تحديث الكاش المحلي بأحدث بيانات المستخدم
     saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
@@ -3436,6 +3464,8 @@ function getSwReg() {
 }
 
 let __pushBusy = false, __pushLastCheck = 0;
+const __pushMute = () => (localStorage.getItem('meezan_mute_until') === 'forever' ? 9999999999999 : Number(localStorage.getItem('meezan_mute_until') || 0));
+const __pushWrite = (token) => setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp(), muteUntil: __pushMute() });
 async function registerPushToken(force) {
   // تسجيل صامت في الكونسول فقط
   const dbg = (m) => { console.log('push debug:', m); }; // صامت: لا تظهر أي رسائل للمستخدم
@@ -3447,23 +3477,20 @@ async function registerPushToken(force) {
     if (Notification.permission !== 'granted') return dbg('إذن الإشعارات: ' + Notification.permission);
     if (!currentUserId) return dbg('المستخدم غير معروف (currentUserId فارغ)');
     if (VAPID_KEY.startsWith('PUT_')) return dbg('مفتاح VAPID لم يُضبط');
-    if (!(await messagingSupported())) return dbg('Firebase Messaging غير مدعوم في هذا المتصفح');
+    // ⚡ مسار سريع: عندنا توكن محفوظ من قبل → نسجّله فوراً بدون انتظار أي شيء
+    const cached = localStorage.getItem('meezan_fcm_token');
+    if (cached) __pushWrite(cached).catch(() => {});
+    // ثم المسار الكامل (يتحقق من التوكن الحالي ويحدّثه لو تغيّر)
+    const { getMessaging, getToken, isSupported } = await loadMessaging();
+    if (!(await isSupported())) return dbg('Firebase Messaging غير مدعوم في هذا المتصفح');
     const reg = await getSwReg(); if (!reg) return dbg('فشل تسجيل sw1.js');
     const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
     if (!token) return dbg('لم يتم الحصول على token');
     localStorage.setItem('meezan_fcm_token', token);
-    const ref = doc(db, 'push_tokens', token);
-    // نتحقق فعلياً من وجود التوكن في قاعدة البيانات (السيرفر قد يحذفه عند فشل الإرسال) ولا نعتمد على كاش محلي
-    let fresh = false;
-    try {
-      const cur = await getDoc(ref);
-      const d = cur.exists() ? cur.data() : null;
-      const ms = d && d.updatedAt && typeof d.updatedAt.toMillis === 'function' ? d.updatedAt.toMillis() : 0;
-      fresh = !!(d && d.userId === currentUserId && ms && (Date.now() - ms) < 6 * 3600 * 1000);
-    } catch (e) {}
-    if (fresh && !force) return dbg('الجهاز مسجّل ✅');
-    // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
-    await setDoc(ref, { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp(), muteUntil: (localStorage.getItem('meezan_mute_until') === 'forever' ? 9999999999999 : Number(localStorage.getItem('meezan_mute_until') || 0)) });
+    if (token !== cached || force) {
+      await __pushWrite(token);   // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
+      if (cached && cached !== token) deleteDoc(doc(db, 'push_tokens', cached)).catch(() => {});
+    }
     dbg('تم تسجيل الجهاز بنجاح ✅');
   } catch (e) { dbg('خطأ: ' + (e.code || '') + ' ' + e.message); }
   finally { __pushBusy = false; }
@@ -3536,22 +3563,18 @@ function startNotificationsListener() {
       $('drawerNotifBadge').classList.remove('show');
     }
 
-    // ✅ Toast للعنوان فقط — مرة واحدة لكل إشعار
-    for (const nid of unreadNotifIds) {
-      if (lastShownNotifIds.has(nid)) continue;
-      lastShownNotifIds.add(nid);
-
-      try {
-        const nSnap = await getDoc(doc(db, 'notifications', nid));
-        if (!nSnap.exists()) continue;
-
+    // ✅ Toast للعنوان فقط — مرة واحدة لكل إشعار (جلب متوازي، والأحدث يظهر فوراً)
+    const fresh = unreadNotifIds.filter(id => !lastShownNotifIds.has(id));
+    fresh.forEach(id => lastShownNotifIds.add(id));
+    const newest = fresh[fresh.length - 1];
+    fresh.forEach(nid => {
+      getDoc(doc(db, 'notifications', nid)).then((nSnap) => {
+        if (!nSnap.exists()) return;
         const nData = nSnap.data();
-        if (!__isMuted()) showToastNotification(nData.title || 'إشعار جديد', 'info');
+        if (nid === newest && !__isMuted()) showToastNotification(nData.title || 'إشعار جديد', 'info');
         if (!isFirstSnap && !__isMuted()) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات', nid);
-      } catch (e) {
-        console.log('notif detail error:', e.message);
-      }
-    }
+      }).catch((e) => console.log('notif detail error:', e.message));
+    });
     notifSnapDone = true;
 
   }, (err) => {
@@ -3792,7 +3815,8 @@ async function init() {
     startUserMonitoring();
     startNotificationsListener();
   }
-  getSwReg().then(() => registerPushToken());
+  registerPushToken();
+  getSwReg();
 
   // حمّل بيانات المستخدم (بالتوازي)
   await loadUserDataFromFirestore();
