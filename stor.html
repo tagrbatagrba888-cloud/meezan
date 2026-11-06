@@ -287,7 +287,7 @@ let wallet = {}, cfg = {}, products = [], reqs = [], txs = [];
 const bal = () => num(wallet.balance);
 if (uid) {
   onSnapshot(doc(db, 'wallets', uid), (s) => { wallet = s.exists() ? s.data() : {}; renderWallet(); }, () => toast('تعذّر تحميل المحفظة', 'error'));
-  onSnapshot(query(collection(db, 'wallet_transactions'), where('userId', '==', uid)), (s) => { txs = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderTx(); renderWallet(); }, () => toast('تعذّر تحميل المعاملات', 'error'));
+  onSnapshot(query(collection(db, 'wallet_transactions'), where('userId', '==', uid)), (s) => { txs = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.visibleToUser !== false).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderTx(); renderWallet(); }, () => toast('تعذّر تحميل المعاملات', 'error'));
   onSnapshot(query(collection(db, 'wallet_requests'), where('userId', '==', uid)), (s) => { reqs = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderReqs(); renderWallet(); }, () => {});
 }
 onSnapshot(collection(db, 'store_products'), (s) => { products = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.active !== false).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))); renderShop(); }, () => toast('تعذّر تحميل المنتجات', 'error'));
@@ -301,7 +301,7 @@ function txRow(t) {
 }
 const EMPTY = (i, m) => `<div class="empty"><i class="fas fa-${i}"></i>${m}</div>`;
 function renderWallet() {
-  $('balV').textContent = fmt(bal());
+  $('balV').textContent = fmt(bal()); $('balV').style.color = bal() < 0 ? '#E74C3C' : '';
   $('lastTx').innerHTML = txs.length ? txs.slice(0, 5).map(txRow).join('') : EMPTY('receipt', 'لا توجد معاملات بعد');
   $('stGift').textContent = fmt(txs.filter(isReward).reduce((a, t) => a + num(t.amount), 0));
   $('stSpent').textContent = fmt(txs.filter(isBuy).reduce((a, t) => a + num(t.amount), 0));
