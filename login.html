@@ -932,6 +932,14 @@
     .google-avatar { width: 48px; height: 48px; font-size: 20px; }
     .google-email { font-size: 12.5px; }
   }
+
+  .gender-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .gender-opt{flex:1;min-width:110px;cursor:pointer;}
+  .gender-opt input{position:absolute;opacity:0;pointer-events:none;}
+  .gender-opt span{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font-weight:800;font-size:14px;transition:.2s;}
+  .gender-opt input:checked + span{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 4px 14px var(--shadow);}
+  [data-theme="dark"] .gender-opt input:checked + span{color:#0A1612;}
+  .forgot-wrapper{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;}
 </style>
 </head>
 <body>
@@ -1072,9 +1080,13 @@
           </button>
 
           <div class="forgot-wrapper">
-            <a href="daam.html" class="forgot-link">
+            <a href="daam.html?topic=forgot_password" class="forgot-link">
               <i class="fas fa-key"></i>
-              نسيت كلمة المرور؟
+              نسيت كلمة المرور؟ تواصل مع الدعم
+            </a>
+            <a href="daam.html?topic=forgot_username" class="forgot-link">
+              <i class="fas fa-user"></i>
+              نسيت اسم المستخدم؟ تواصل مع الدعم
             </a>
           </div>
 
@@ -1186,6 +1198,14 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label class="form-label">النوع <span class="required">*</span></label>
+            <div class="gender-row">
+              <label class="gender-opt"><input type="radio" name="regGender" value="male"><span><i class="fas fa-mars"></i> ذكر</span></label>
+              <label class="gender-opt"><input type="radio" name="regGender" value="female"><span><i class="fas fa-venus"></i> أنثى</span></label>
+            </div>
+          </div>
+
           <div id="regAddressMount"></div>
 
           <div class="terms-row" id="termsRow">
@@ -1292,6 +1312,14 @@
           </select>
         </div>
       </div>
+      <div class="form-group">
+            <label class="form-label">النوع <span class="required">*</span></label>
+            <div class="gender-row">
+              <label class="gender-opt"><input type="radio" name="gGender" value="male"><span><i class="fas fa-mars"></i> ذكر</span></label>
+              <label class="gender-opt"><input type="radio" name="gGender" value="female"><span><i class="fas fa-venus"></i> أنثى</span></label>
+            </div>
+          </div>
+
       <div id="gAddressMount"></div>
     </form>
 
@@ -2598,7 +2626,7 @@ $('loginForm').addEventListener('submit', async (e) => {
     // ⚡ markUserOnline في الخلفية (لا يعطّل التوجيه)
     markUserOnline(collectionName, user.id);
 
-    setTimeout(() => window.location.replace('index.html'), 400);
+    goHomeAfterPush(user, currentLoginRole, 400);
 
   } catch (err) {
     spinner.classList.remove('show');
@@ -2658,6 +2686,9 @@ $('registerForm').addEventListener('submit', async (e) => {
     const gradeName = currentRegRole === 'teacher' ? 'المادة الدراسية' : 'الفرقة الدراسية';
     return showError(`الرجاء اختيار ${gradeName}`);
   }
+  const regGenderEl = document.querySelector('input[name="regGender"]:checked');
+  if (!regGenderEl) return showError('الرجاء تحديد النوع (ذكر أو أنثى)');
+  const regGender = regGenderEl.value;
   const regAddrErr = regAddr.validate();
   if (regAddrErr) return showError(regAddrErr);
   const regAddrVal = regAddr.getValue();
@@ -2707,6 +2738,7 @@ $('registerForm').addEventListener('submit', async (e) => {
       nationalId: nationalId || '',
       birthDate: birthDate || '',
       phone, email, grade,
+      gender: regGender,
       ...regAddrVal,
       googleAuth: false,
       avatarUrl: '',
@@ -2763,7 +2795,7 @@ $('registerForm').addEventListener('submit', async (e) => {
     console.log(`⚡ Register took ${elapsed}ms`);
 
     showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    setTimeout(() => window.location.replace('index.html'), 500);
+    goHomeAfterPush(newUser, currentRegRole, 500);
 
   } catch (err) {
     spinner.classList.remove('show');
@@ -2845,7 +2877,7 @@ async function handleGoogleAuth(mode) {
           saveSession(otherUser, otherRole, otherUser.username);
           markUserOnline(otherCollection, otherUser.id);
           showSuccess(`مرحباً ${otherUser.fullName || otherUser.username}! جاري التوجيه...`);
-          setTimeout(() => window.location.replace('index.html'), 400);
+          goHomeAfterPush(otherUser, otherRole, 400);
           return;
         }
 
@@ -2887,7 +2919,7 @@ async function handleGoogleAuth(mode) {
       markUserOnline(collectionName, existing.id);
 
       showSuccess(`مرحباً ${existing.fullName || existing.username}! جاري التوجيه...`);
-      setTimeout(() => window.location.replace('index.html'), 400);
+      goHomeAfterPush(existing, role, 400);
 
     } else {
       if (existing) {
@@ -3013,6 +3045,13 @@ $('googleDataSave').addEventListener('click', async () => {
     return;
   }
 
+  const gGenderEl = document.querySelector('input[name="gGender"]:checked');
+  if (!gGenderEl) {
+    errEl.textContent = 'الرجاء تحديد النوع (ذكر أو أنثى)';
+    errEl.classList.add('show');
+    return;
+  }
+  const gGender = gGenderEl.value;
   const gAddrErr = gAddr.validate();
   if (gAddrErr) {
     errEl.textContent = gAddrErr;
@@ -3063,6 +3102,7 @@ $('googleDataSave').addEventListener('click', async () => {
       phone,
       email: googlePendingData.email,
       grade,
+      gender: gGender,
       ...gAddrVal,
       googleAuth: true,
       googleUid: googlePendingData.uid,
@@ -3114,7 +3154,7 @@ $('googleDataSave').addEventListener('click', async () => {
     console.log(`⚡ Google Register took ${elapsed}ms`);
 
     showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    setTimeout(() => window.location.replace('index.html'), 500);
+    goHomeAfterPush(newUser, role, 500);
 
   } catch (err) {
     console.error(err);
@@ -3229,11 +3269,41 @@ $('loginPassword').addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// 🔔 تسجيل الجهاز في الإشعارات الفورية بمجرد الدخول
+// ============================================================
+const PUSH_VAPID_KEY = 'BFglI2X03X5yqfH-9PJ8oLVUK3zsfck64a9JOdvobajpaPJxeBvaUPfdDQ_oBNrcF5cB-PZ5ThorfwrS5k8mG34';
+async function setupPushForUser(userId, role) {
+  try {
+    if (!userId || !('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (e) {} }
+    if (Notification.permission !== 'granted') return;
+    const { getMessaging, getToken, isSupported } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js");
+    if (!(await isSupported())) return;
+    await navigator.serviceWorker.register('sw1.js');
+    const reg = await navigator.serviceWorker.ready;
+    const token = await getToken(getMessaging(app), { vapidKey: PUSH_VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) return;
+    localStorage.setItem('meezan_fcm_token', token);
+    const mu = localStorage.getItem('meezan_mute_until');
+    await setDoc(doc(db, 'push_tokens', token), {
+      userId, role: role || 'student', updatedAt: serverTimestamp(),
+      muteUntil: mu === 'forever' ? 9999999999999 : Number(mu || 0)
+    });
+  } catch (e) { console.log('push setup:', e && e.message); }
+}
+// يوجّه للرئيسية بعد (مهلة قصيرة) + محاولة تسجيل الجهاز بحد أقصى 5 ثوانٍ
+function goHomeAfterPush(user, role, delay) {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  Promise.all([sleep(delay), Promise.race([setupPushForUser(user && user.id, role), sleep(5000)])])
+    .then(() => window.location.replace('index.html'));
+}
+
+// ============================================================
 // 🚀 PWA
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw1.js').catch(() => {});
   });
 }
 

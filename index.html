@@ -2250,6 +2250,7 @@ function formatAddress(u) {
   return parts.join('، ');
 }
 const hasFullAddress = (u) => !!(u && u.governorate && u.center && u.village && u.addressDetails);
+const normGender = (v) => { const t = String(v || '').trim().toLowerCase(); return /^(male|m|ذكر)$/.test(t) ? 'male' : /^(female|f|أنثى|انثى)$/.test(t) ? 'female' : ''; };
 
 // ---------------- CSS ----------------
 (function __addrStyle() {
@@ -2295,6 +2296,14 @@ const hasFullAddress = (u) => !!(u && u.governorate && u.center && u.village && 
   .adw-btn.dng{background:var(--error,#C0392B);color:#fff}
   .adw-btn.sm{padding:6px 10px;font-size:12px;border-radius:9px}
   .adw-btn:disabled{opacity:.6;cursor:not-allowed}
+  .adw-gender{display:flex;gap:10px;margin:0 0 12px}
+  .adw-gopt{flex:1;cursor:pointer}
+  .adw-gopt input{position:absolute;opacity:0;pointer-events:none}
+  .adw-gopt span{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:1.5px solid var(--border,#E0E5E1);border-radius:12px;background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);font-weight:800;font-size:14px;transition:.2s}
+  .adw-gopt input:checked + span{border-color:var(--accent,#C9A961);background:var(--accent,#C9A961);color:#fff}
+  [data-theme="dark"] .adw-gopt input:checked + span{color:#0A1612}
+  .adw-sec-t{font-size:13px;font-weight:800;margin:6px 0 8px;display:flex;align-items:center;gap:6px}
+
   .adw-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
   .adw-actions .adw-btn.pri{flex:1}
   /* مدير العناوين */
@@ -3233,42 +3242,63 @@ function hideAddressGate() {
   addrGate = null;
   document.body.style.overflow = '';
 }
-function showAddressGate(user, role) {
+function showAddressGate(user, role, needAddr, needGender) {
   if (addrGate || loggingOut) return;
+  if (needAddr === undefined) needAddr = !hasFullAddress(user);
+  if (needGender === undefined) needGender = !normGender(user.gender);
+  if (!needAddr && !needGender) return;
   const ov = document.createElement('div');
   ov.className = 'adw-overlay show';
+  const what = needAddr && needGender ? 'النوع وعنوانك' : needGender ? 'النوع' : 'عنوانك';
   ov.innerHTML = `<div class="adw-box">
-    <h2><i class="fas fa-location-dot"></i> أكمل بيانات عنوانك</h2>
-    <p>لم يتم تسجيل عنوانك بعد. من فضلك أدخل المحافظة والمركز والقرية والعنوان تفصيلياً للمتابعة.</p>
-    <div id="addrGateMount"></div>
+    <h2><i class="fas ${needAddr ? 'fa-location-dot' : 'fa-venus-mars'}"></i> أكمل بياناتك</h2>
+    <p>لم يتم تسجيل ${what} بعد. من فضلك أكمل البيانات التالية للمتابعة.</p>
+    ${needGender ? `<div class="adw-sec-t"><i class="fas fa-venus-mars"></i> النوع <b style="color:var(--error,#C0392B)">*</b></div>
+    <div class="adw-gender">
+      <label class="adw-gopt"><input type="radio" name="gateGender" value="male"><span><i class="fas fa-mars"></i> ذكر</span></label>
+      <label class="adw-gopt"><input type="radio" name="gateGender" value="female"><span><i class="fas fa-venus"></i> أنثى</span></label>
+    </div>` : ''}
+    ${needAddr ? '<div class="adw-sec-t"><i class="fas fa-location-dot"></i> العنوان</div><div id="addrGateMount"></div>' : ''}
     <div class="adw-actions">
-      <button class="adw-btn pri" id="addrGateSave"><i class="fas fa-check"></i> حفظ العنوان</button>
+      <button class="adw-btn pri" id="addrGateSave"><i class="fas fa-check"></i> حفظ</button>
       <button class="adw-btn ghost" id="addrGateLogout"><i class="fas fa-right-from-bracket"></i> تسجيل الخروج</button>
     </div></div>`;
   document.body.appendChild(ov);
   document.body.style.overflow = 'hidden';
-  const w = createAddressWidget(ov.querySelector('#addrGateMount'));
+  const w = needAddr ? createAddressWidget(ov.querySelector('#addrGateMount')) : null;
   addrGate = { ov, w };
   ov.querySelector('#addrGateLogout').addEventListener('click', forceLogout);
   const btn = ov.querySelector('#addrGateSave');
   btn.addEventListener('click', async () => {
-    const err = w.validate();
-    if (err) return showToast(err, 'error');
-    const v = w.getValue();
+    let gender = '';
+    if (needGender) {
+      const g = ov.querySelector('input[name="gateGender"]:checked');
+      if (!g) return showToast('الرجاء تحديد النوع (ذكر أو أنثى)', 'error');
+      gender = g.value;
+    }
+    let v = {};
+    if (needAddr) {
+      const err = w.validate();
+      if (err) return showToast(err, 'error');
+      v = w.getValue();
+    }
     const html0 = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     try {
-      await w.commit();
+      if (w) await w.commit();
       const col = role === 'teacher' ? 'teachers' : 'users';
       const ref = doc(db, col, 'all');
       const snap = await getDoc(ref);
       const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
       const idx = items.findIndex(u => u.id === user.id);
       if (idx === -1) throw new Error('الحساب غير موجود');
-      items[idx] = { ...items[idx], ...v, updatedAt: new Date().toISOString() };
+      const patch = { ...v, updatedAt: new Date().toISOString() };
+      if (needGender) { patch.gender = gender; patch.selfFillGender = false; }
+      if (needAddr) patch.selfFillAddress = false;
+      items[idx] = { ...items[idx], ...patch };
       await setDoc(ref, { items, updatedAt: serverTimestamp() });
-      showToast('تم حفظ العنوان ✓', 'success');
+      showToast('تم حفظ البيانات ✓', 'success');
       hideAddressGate();
     } catch (e) {
       showToast(e && e.code === 'permission-denied' ? 'ليس لديك صلاحية الحفظ' : ('تعذّر الحفظ: ' + (e && e.message || '')), 'error');
@@ -3363,8 +3393,11 @@ function startUserMonitoring() {
       }
     }
 
-    // 📍 العنوان إجباري
-    if (!hasFullAddress(user)) showAddressGate(user, role); else hideAddressGate();
+    // 📍 العنوان + 🚻 النوع إجباريان
+    {
+      const needAddr = !hasFullAddress(user), needGender = !normGender(user.gender);
+      if (needAddr || needGender) showAddressGate(user, role, needAddr, needGender); else hideAddressGate();
+    }
 
     // ✅ تحديث الكاش المحلي بأحدث بيانات المستخدم
     saveCache(CACHE_KEYS.user, { user, role, userId: user.id });
@@ -3402,9 +3435,13 @@ function getSwReg() {
   return swRegPromise;
 }
 
-async function registerPushToken() {
+let __pushBusy = false, __pushLastCheck = 0;
+async function registerPushToken(force) {
   // تسجيل صامت في الكونسول فقط
   const dbg = (m) => { console.log('push debug:', m); }; // صامت: لا تظهر أي رسائل للمستخدم
+  if (__pushBusy) return;
+  __pushBusy = true;
+  __pushLastCheck = Date.now();
   try {
     if (!pushSupported()) return dbg('المتصفح لا يدعم الإشعارات');
     if (Notification.permission !== 'granted') return dbg('إذن الإشعارات: ' + Notification.permission);
@@ -3415,14 +3452,25 @@ async function registerPushToken() {
     const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
     if (!token) return dbg('لم يتم الحصول على token');
     localStorage.setItem('meezan_fcm_token', token);
-    const sig = token + '|' + currentUserId;
-    if (localStorage.getItem('meezan_push_sig') === sig) { return dbg('الجهاز مسجّل مسبقاً ✅'); }
+    const ref = doc(db, 'push_tokens', token);
+    // نتحقق فعلياً من وجود التوكن في قاعدة البيانات (السيرفر قد يحذفه عند فشل الإرسال) ولا نعتمد على كاش محلي
+    let fresh = false;
+    try {
+      const cur = await getDoc(ref);
+      const d = cur.exists() ? cur.data() : null;
+      const ms = d && d.updatedAt && typeof d.updatedAt.toMillis === 'function' ? d.updatedAt.toMillis() : 0;
+      fresh = !!(d && d.userId === currentUserId && ms && (Date.now() - ms) < 6 * 3600 * 1000);
+    } catch (e) {}
+    if (fresh && !force) return dbg('الجهاز مسجّل ✅');
     // الجهاز (token) يرتبط بحساب واحد فقط: آخر حساب سجّل دخول عليه
-    await setDoc(doc(db, 'push_tokens', token), { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp(), muteUntil: (localStorage.getItem('meezan_mute_until') === 'forever' ? 9999999999999 : Number(localStorage.getItem('meezan_mute_until') || 0)) });
-    localStorage.setItem('meezan_push_sig', sig);
+    await setDoc(ref, { userId: currentUserId, role: currentRole, updatedAt: serverTimestamp(), muteUntil: (localStorage.getItem('meezan_mute_until') === 'forever' ? 9999999999999 : Number(localStorage.getItem('meezan_mute_until') || 0)) });
     dbg('تم تسجيل الجهاز بنجاح ✅');
   } catch (e) { dbg('خطأ: ' + (e.code || '') + ' ' + e.message); }
+  finally { __pushBusy = false; }
 }
+// إعادة التحقق/التسجيل عند العودة للتطبيق وبشكل دوري
+document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - __pushLastCheck > 10 * 60 * 1000) registerPushToken(); });
+setInterval(() => registerPushToken(), 30 * 60 * 1000);
 
 async function unregisterPushToken() {
   try {
