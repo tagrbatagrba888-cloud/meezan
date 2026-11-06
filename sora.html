@@ -1270,6 +1270,36 @@
 .fl-ca .fl-b{flex:1;justify-content:center}
 .fl-cf{align-items:center!important;padding:20px}
 .fl-cf .fl-box{border-radius:20px}
+
+/* ===== مشاركة الملف + QR كود ===== */
+.btn-avatar.btn-qr{background:linear-gradient(135deg,#C9A961,#E0C888);color:#0B3D2E;border-color:#C9A961}
+.btn-avatar.btn-qr:hover{background:linear-gradient(135deg,#E0C888,#C9A961)}
+.qr-ov{position:fixed;inset:0;z-index:100001;background:rgba(5,15,11,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.qr-ov.show{display:flex;animation:qrFade .25s ease}
+@keyframes qrFade{from{opacity:0}to{opacity:1}}
+.qr-card{position:relative;width:100%;max-width:360px;background:var(--bg-card);border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.45);overflow:hidden;animation:qrPop .3s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes qrPop{from{transform:translateY(18px) scale(.94);opacity:0}to{transform:none;opacity:1}}
+.qr-head{display:flex;align-items:center;gap:12px;padding:18px 20px;background:linear-gradient(135deg,#0B3D2E,#145A43);color:#F3E2B0}
+.qr-head>i{font-size:26px;color:#C9A961}
+.qr-head h3{font-size:16px;font-weight:900;color:#fff;line-height:1.4}
+.qr-head p{font-size:12px;opacity:.85;margin-top:2px}
+.qr-x{position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:10px;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.qr-x:hover{background:rgba(255,255,255,.3)}
+.qr-body{padding:20px;text-align:center}
+.qr-frame{position:relative;width:min(100%,260px);aspect-ratio:1/1;margin:0 auto;padding:10px;background:#fff;border-radius:20px;border:3px solid #C9A961;box-shadow:0 8px 24px rgba(11,61,46,.2)}
+.qr-frame canvas{display:block;width:100%;height:100%;border-radius:10px}
+.qr-frame canvas.swap{animation:qrSwap .45s ease}
+@keyframes qrSwap{0%{opacity:.2;transform:scale(.95)}100%{opacity:1;transform:none}}
+.qr-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:17px;color:#0B3D2E;font-size:28px}
+.qr-load[hidden]{display:none}
+.qr-name{margin-top:16px;font-size:17px;font-weight:900;color:var(--text-main);word-break:break-word}
+.qr-user{margin-top:2px;font-size:13px;font-weight:700;color:var(--text-sub);direction:ltr}
+.qr-timer{margin-top:16px}
+.qr-bar{height:6px;border-radius:99px;background:var(--bg-input);overflow:hidden;border:1px solid var(--border)}
+.qr-bar i{display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#C9A961,#1E7A5A)}
+.qr-timer span{display:inline-flex;gap:6px;align-items:center;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--text-sub)}
+.qr-timer span b{color:var(--primary);min-width:18px;display:inline-block}
+.qr-note{margin-top:12px;font-size:11.5px;color:var(--text-sub);line-height:1.7}
 </style>
 <script>
 /* جلسة دائمة: sessionStorage خاص بكل تبويب، فلو فتحت الرابط في تبويب جديد (إشعار/مشاركة) كان بيتعامل معاك كزائر.
@@ -1346,6 +1376,14 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
         <button class="btn-avatar" id="avatarRemoveBtn" style="display:none;">
           <i class="fas fa-trash-can"></i>
           حذف الصورة
+        </button>
+        <button class="btn-avatar" id="shareProfileBtn" type="button">
+          <i class="fas fa-share-nodes"></i>
+          مشاركة الملف
+        </button>
+        <button class="btn-avatar btn-qr" id="qrShowBtn" type="button">
+          <i class="fas fa-qrcode"></i>
+          إظهار QR كود
         </button>
       </div>
     </div>
@@ -1440,6 +1478,17 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
         <div class="locked-value" id="lockBirthValue">—</div>
       </div>
       <button class="locked-btn" data-field="birthDate" title="تعديل — تواصل مع الدعم">
+        <i class="fas fa-lock"></i>
+      </button>
+    </div>
+
+    <div class="locked-row">
+      <div class="locked-icon"><i class="fas fa-venus-mars"></i></div>
+      <div class="locked-info">
+        <div class="locked-label">الجنس</div>
+        <div class="locked-value" id="lockGenderValue">—</div>
+      </div>
+      <button class="locked-btn" data-field="gender" title="تعديل — تواصل مع الدعم">
         <i class="fas fa-lock"></i>
       </button>
     </div>
@@ -1637,7 +1686,7 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 /* ⚡ عرض فوري من الكاش قبل تحميل Firebase، وبعدها الصفحة تحدّث نفسها لو في أي تغيير */
 (function(){
 var K='meezan_sora_dom',U=sessionStorage.getItem('meezan_user_id'),
-IDS=['avatarBig','avatarName','avatarUsername','gradeText','roleText','roleBadge','lockBirthValue','lockEmailValue','lockNidValue','lockPhoneValue','statCode','statExams','statHomework','excellenceValue','excellenceText','excellenceFill','editFullName','editUsername','editGradeLabel','editGrade','hsPosts','hsFollowers','hsFollowing','vbName','avVb','mpCount','mpList'];
+IDS=['avatarBig','avatarName','avatarUsername','gradeText','roleText','roleBadge','lockBirthValue','lockEmailValue','lockNidValue','lockPhoneValue','lockGenderValue','statCode','statExams','statHomework','excellenceValue','excellenceText','excellenceFill','editFullName','editUsername','editGradeLabel','editGrade','hsPosts','hsFollowers','hsFollowing','vbName','avVb','mpCount','mpList'];
 var isF=function(e){return /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName)};
 try{var d=JSON.parse(localStorage.getItem(K)||'null');
 if(d&&U&&d.u===U){IDS.forEach(function(i){var e=document.getElementById(i),x=d.m[i];if(!e||!x)return;
@@ -2628,6 +2677,7 @@ function renderUser(user) {
     $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
     $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
     $('lockPhoneValue').textContent = user.phone || 'غير مسجل';
+    $('lockGenderValue').textContent = genderLabel(user.gender || user.sex);
     $('lockEmailValue').textContent = user.email || 'غير مسجل';
 
     // الإحصائيات
@@ -2882,6 +2932,7 @@ document.querySelectorAll('.locked-btn').forEach(btn => {
       nationalId: 'الرقم القومي',
       birthDate: 'تاريخ الميلاد',
       phone: 'رقم الهاتف',
+      gender: 'الجنس',
       email: 'البريد الإلكتروني'
     };
 
@@ -3400,6 +3451,283 @@ startHomeworksListener();
 startHwSubsListener();
 startSocialListener();
 startMyPostsListener();
+
+
+// ============================================================
+// 👤 الجنس + مشاركة الملف + QR كود متغيّر كل 15 ثانية
+// ============================================================
+function genderLabel(g) {
+  const v = String(g == null ? '' : g).trim().toLowerCase();
+  if (!v) return 'غير مسجل';
+  if (['male', 'm', 'ذكر', '1'].includes(v)) return 'ذكر';
+  if (['female', 'f', 'أنثى', 'انثى', 'أنثي', 'انثي', '2'].includes(v)) return 'أنثى';
+  return String(g);
+}
+
+const QR_STEP = 15000;                 // يتغير كل 15 ثانية
+const QR_SALT = 'MZN-QR-v1';           // لازم يكون نفس القيمة في user.html
+function qrHash(str) {
+  let h1 = 0x811c9dc5, h2 = 0x1b873593;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 ^= c; h1 = Math.imul(h1, 16777619);
+    h2 = Math.imul(h2 ^ c, 2246822519); h2 ^= h2 >>> 13;
+  }
+  return ((h1 >>> 0).toString(36) + (h2 >>> 0).toString(36)).slice(0, 10);
+}
+const qrToken = (id, w) => qrHash(QR_SALT + '|' + id + '|' + w);
+
+function profileUrl(extra) {
+  return new URL('user.html?id=' + encodeURIComponent(userId) + (extra || ''), location.href).href;
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((res, rej) => {
+    try {
+      const t = document.createElement('textarea');
+      t.value = text; t.setAttribute('readonly', '');
+      t.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(t); t.select();
+      const ok = document.execCommand('copy');
+      t.remove();
+      ok ? res() : rej(new Error('copy failed'));
+    } catch (e) { rej(e); }
+  });
+}
+
+async function shareProfile() {
+  const url = profileUrl();
+  const name = (currentUser && (currentUser.fullName || currentUser.username)) || 'مستخدم';
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'MEEZAN | ' + name, text: 'الملف الشخصي لـ ' + name + ' على ميزان', url });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await copyText(url);
+    showToast('تم نسخ رابط الملف الشخصي', 'success');
+  } catch (e) {
+    showToast('تعذّر النسخ، الرابط: ' + url, 'error');
+  }
+}
+$('shareProfileBtn').addEventListener('click', shareProfile);
+
+// ---------- مكتبة QR (تتحمّل عند أول ضغطة فقط) ----------
+let qrLibPromise = null;
+function loadQRLib() {
+  if (window.qrcode) return Promise.resolve();
+  if (qrLibPromise) return qrLibPromise;
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'
+  ];
+  qrLibPromise = new Promise((resolve, reject) => {
+    let i = 0;
+    const next = () => {
+      if (i >= urls.length) return reject(new Error('qr lib'));
+      const sc = document.createElement('script');
+      sc.src = urls[i++];
+      sc.onload = () => (window.qrcode ? resolve() : next());
+      sc.onerror = () => { sc.remove(); next(); };
+      document.head.appendChild(sc);
+    };
+    next();
+  }).catch(e => { qrLibPromise = null; throw e; });
+  return qrLibPromise;
+}
+
+// ---------- لوجو المنصة في منتصف الـ QR ----------
+const QR_LOGO_SRC = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
+let qrLogo = null;
+(function () {
+  const im = new Image();
+  im.onload = () => { qrLogo = im; };
+  im.src = QR_LOGO_SRC;
+})();
+
+function qrRoundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawStyledQR(canvas, text) {
+  const qr = qrcode(0, 'H');
+  qr.addData(text);
+  qr.make();
+  const n = qr.getModuleCount();
+  const quiet = 1;
+  const total = n + quiet * 2;
+  const css = canvas.clientWidth || 240;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = canvas.height = Math.round(css * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, css, css);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, css, css);
+
+  const c = css / total;
+  const grad = ctx.createLinearGradient(0, 0, css, css);
+  grad.addColorStop(0, '#0B3D2E');
+  grad.addColorStop(1, '#1E7A5A');
+
+  // مساحة اللوجو في المنتصف (أقل من 5% من المساحة، والتصحيح H يتحمّل 30%)
+  let logoMods = Math.floor(n * 0.22);
+  if (logoMods % 2 === 0) logoMods++;
+  const logoStart = (n - logoMods) / 2;
+  const inLogo = (r, k) => r >= logoStart && r < logoStart + logoMods && k >= logoStart && k < logoStart + logoMods;
+  const inFinder = (r, k) => (r < 7 && k < 7) || (r < 7 && k >= n - 7) || (r >= n - 7 && k < 7);
+
+  // مربعات البيانات (مدوّرة)
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  for (let r = 0; r < n; r++) {
+    for (let k = 0; k < n; k++) {
+      if (!qr.isDark(r, k) || inFinder(r, k) || inLogo(r, k)) continue;
+      const x = (k + quiet) * c, y = (r + quiet) * c;
+      qrRoundRect(ctx, x + c * 0.04, y + c * 0.04, c * 0.92, c * 0.92, c * 0.34);
+    }
+  }
+  ctx.fill();
+
+  // علامات الزوايا الثلاثة
+  [[0, 0], [0, n - 7], [n - 7, 0]].forEach(([r, k]) => {
+    const x = (k + quiet) * c, y = (r + quiet) * c;
+    ctx.fillStyle = '#0B3D2E';
+    ctx.beginPath();
+    qrRoundRect(ctx, x, y, 7 * c, 7 * c, 2.2 * c);
+    qrRoundRect(ctx, x + c, y + c, 5 * c, 5 * c, 1.4 * c);
+    ctx.fill('evenodd');
+    ctx.fillStyle = '#145A43';
+    ctx.beginPath();
+    qrRoundRect(ctx, x + 2 * c, y + 2 * c, 3 * c, 3 * c, 1.0 * c);
+    ctx.fill();
+  });
+
+  // اللوجو
+  const lw = logoMods * c;
+  const lx = (logoStart + quiet) * c, ly = (logoStart + quiet) * c;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  qrRoundRect(ctx, lx, ly, lw, lw, lw * 0.28);
+  ctx.fill();
+  ctx.lineWidth = Math.max(1.5, c * 0.22);
+  ctx.strokeStyle = '#C9A961';
+  ctx.stroke();
+  const pad = lw * 0.16;
+  if (qrLogo) {
+    ctx.save();
+    ctx.beginPath();
+    qrRoundRect(ctx, lx + pad, ly + pad, lw - pad * 2, lw - pad * 2, lw * 0.18);
+    ctx.clip();
+    ctx.drawImage(qrLogo, lx + pad, ly + pad, lw - pad * 2, lw - pad * 2);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = '#0B3D2E';
+    ctx.beginPath();
+    qrRoundRect(ctx, lx + pad, ly + pad, lw - pad * 2, lw - pad * 2, lw * 0.18);
+    ctx.fill();
+    ctx.fillStyle = '#C9A961';
+    ctx.font = '900 ' + Math.round(lw * 0.42) + 'px Cairo, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('م', lx + lw / 2, ly + lw / 2 + lw * 0.03);
+  }
+}
+
+// ---------- نافذة الـ QR ----------
+let qrOv = null, qrTimer = null, qrWindow = -1;
+
+function buildQROverlay() {
+  if (qrOv) return qrOv;
+  qrOv = document.createElement('div');
+  qrOv.className = 'qr-ov';
+  qrOv.innerHTML =
+    '<div class="qr-card" role="dialog" aria-modal="true" aria-label="QR كود الملف الشخصي">' +
+      '<button type="button" class="qr-x" id="qrClose" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>' +
+      '<div class="qr-head"><i class="fas fa-qrcode"></i><div><h3>QR كود ملفي الشخصي</h3><p>امسحه لعرض بياناتي على ميزان</p></div></div>' +
+      '<div class="qr-body">' +
+        '<div class="qr-frame"><canvas id="qrCanvas"></canvas><div class="qr-load" id="qrLoad"><i class="fas fa-spinner fa-spin"></i></div></div>' +
+        '<div class="qr-name" id="qrName"></div>' +
+        '<div class="qr-user" id="qrUser"></div>' +
+        '<div class="qr-timer"><div class="qr-bar"><i id="qrBar"></i></div>' +
+          '<span><i class="fas fa-rotate"></i> يتغير تلقائيًا بعد <b id="qrSec">15</b> ثانية</span></div>' +
+        '<div class="qr-note">الرمز مؤقت وبيتجدد كل 15 ثانية، فلا يصلح لصورة قديمة منه.</div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(qrOv);
+  qrOv.addEventListener('click', e => { if (e.target === qrOv) closeQR(); });
+  qrOv.querySelector('#qrClose').addEventListener('click', closeQR);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && qrOv.classList.contains('show')) closeQR(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && qrOv.classList.contains('show')) qrTick(); });
+  return qrOv;
+}
+
+function qrRender(w) {
+  const canvas = $('qrCanvas');
+  const url = profileUrl('&q=' + w.toString(36) + '-' + qrToken(userId, w));
+  try {
+    drawStyledQR(canvas, url);
+    canvas.classList.remove('swap');
+    void canvas.offsetWidth;
+    canvas.classList.add('swap');
+    $('qrLoad').hidden = true;
+  } catch (e) {
+    console.error('QR error:', e);
+    showToast('تعذّر إنشاء الـ QR كود', 'error');
+  }
+}
+
+function qrTick() {
+  const now = Date.now();
+  const w = Math.floor(now / QR_STEP);
+  const left = QR_STEP - (now % QR_STEP);
+  if (w !== qrWindow) { qrWindow = w; qrRender(w); }
+  $('qrBar').style.width = (left / QR_STEP * 100).toFixed(1) + '%';
+  $('qrSec').textContent = Math.ceil(left / 1000);
+}
+
+function closeQR() {
+  clearInterval(qrTimer); qrTimer = null; qrWindow = -1;
+  if (qrOv) qrOv.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+async function openQR() {
+  if (!currentUser) { showToast('انتظر لحظة حتى تُحمَّل بياناتك', 'error'); return; }
+  const btn = $('qrShowBtn');
+  btn.disabled = true;
+  try {
+    await loadQRLib();
+  } catch (e) {
+    btn.disabled = false;
+    showToast('تعذّر تحميل مكتبة QR، تأكد من الاتصال بالإنترنت', 'error');
+    return;
+  }
+  btn.disabled = false;
+  buildQROverlay();
+  $('qrName').textContent = currentUser.fullName || currentUser.username || '';
+  $('qrUser').textContent = currentUser.username ? '@' + currentUser.username : '';
+  $('qrLoad').hidden = false;
+  qrOv.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  qrWindow = -1;
+  qrTick();
+  clearInterval(qrTimer);
+  qrTimer = setInterval(qrTick, 200);
+}
+$('qrShowBtn').addEventListener('click', openQR);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

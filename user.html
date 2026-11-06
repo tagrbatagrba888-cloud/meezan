@@ -140,10 +140,27 @@ a{color:inherit}
 .fl-ca .fl-b{flex:1;justify-content:center}
 .fl-cf{align-items:center!important;padding:20px}
 .fl-cf .fl-box{border-radius:20px}
+
+.qrx{background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:0 4px 16px var(--sh);margin-bottom:14px;overflow:hidden;animation:qrxIn .4s ease}
+@keyframes qrxIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.qrx-h{display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(135deg,#0B3D2E,#145A43);color:#F3E2B0;font-weight:900;font-size:14px}
+.qrx-h i{color:var(--g);font-size:18px}
+.qrx-h em{margin-right:auto;font-style:normal;font-size:12px;font-weight:800;background:rgba(255,255,255,.16);border-radius:20px;padding:3px 10px;display:inline-flex;gap:5px;align-items:center}
+.qrx-g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:14px}
+.qrx-g div{background:var(--in);border-radius:14px;padding:10px 12px;min-width:0}
+.qrx-g small{display:block;font-size:11.5px;font-weight:700;color:var(--sub)}
+.qrx-g b{display:block;margin-top:2px;font-size:14px;font-weight:900;color:var(--tx);word-break:break-word}
+.qrx-g .w2{grid-column:1/-1}
+.qrx-bad{padding:34px 20px;text-align:center}
+.qrx-bad>i{font-size:46px;color:var(--err)}
+.qrx-bad h3{margin-top:12px;font-size:18px;font-weight:900}
+.qrx-bad p{margin:8px 0 18px;font-size:13.5px;line-height:1.8;color:var(--sub)}
+.qrx-bad a{display:inline-flex;gap:7px;align-items:center;padding:10px 22px;border-radius:12px;background:var(--g);color:#0B3D2E;font-weight:800;font-size:13.5px;text-decoration:none}
 </style>
 </head>
 <body>
 <div class="top"><a class="ib" href="javascript:history.length>1?history.back():location.href='post.html'"><i class="fas fa-arrow-right"></i></a><h1>عرض المستخدم</h1><a class="ib" href="post.html" title="المنشورات"><i class="fas fa-newspaper"></i></a></div>
+<div class="col" id="qrInfo" style="padding-bottom:0" hidden></div>
 <div class="col" id="root"><div class="empty">جارٍ التحميل…</div></div>
 <div class="toast" id="toast"></div>
 <script type="module">
@@ -248,7 +265,7 @@ function draw(){
     <div id="excBox" ${(!U._teacher&&!officialAcc)?'class="exc"':'hidden'}></div></div>
     <div class="sec"><i class="fas fa-newspaper"></i>منشورات ${esc(name.split(' ')[0])}</div><div id="posts"></div>`;
   if(!U._teacher&&!officialAcc){ if(exc) drawExc(); else $('excBox').innerHTML='<div class="exc-s">جارٍ حساب نسبة التفوق…</div>'; }
-  drawStats(); drawFollow(); drawPosts();
+  drawStats(); drawFollow(); drawPosts(); drawQrInfo();
 }
 function drawStats(){
   const s=$('stats'); if(!s)return;
@@ -257,6 +274,7 @@ function drawStats(){
   s.style.gridTemplateColumns=off?'repeat(2,1fr)':'repeat(3,1fr)';
   s.innerHTML=`<div><b>${ar(n)}</b><span>منشور</span></div>${off?`<div><b>${ar(folCount())}</b><span>متابِع</span></div>`:`<button type="button" class="stb" data-fl="followers" title="عرض المتابِعين"><b>${ar(folCount())}</b><span>متابِع</span></button><button type="button" class="stb" data-fl="following" title="عرض من يتابعهم"><b>${ar(folingCount())}</b><span>يتابع</span></button>`}`;
   if(FL.kind) flRender();
+  drawQrInfo();
 }
 function drawFollow(){
   const a=$('heroAct'); if(!a)return;
@@ -474,7 +492,30 @@ function flConfirm(msg,ok){ return new Promise(res=>{
 /* مزامنة حالة متابعتي مع مجموعة follows (نفس صفحة المنشورات) */
 if(me) onSnapshot(query(collection(db,'follows'),where('followerId','==',me)),s=>{ fol={}; s.forEach(d=>{ const x=d.data(); if(x.followedId) fol[String(x.followedId)]=true; }); drawFollow(); if(FL.kind) flRender(); },()=>{});
 
-if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div>';}else if(id!==me){
+/* ===== التحقق من QR كود (يتغيّر كل 15 ثانية) ===== */
+const QR_STEP=15000, QR_SALT='MZN-QR-v1', QR_GRACE=6; /* السماح بحوالي 90 ثانية للمسح */
+function qrHash(str){ let h1=0x811c9dc5,h2=0x1b873593; for(let i=0;i<str.length;i++){ const c=str.charCodeAt(i); h1^=c; h1=Math.imul(h1,16777619); h2=Math.imul(h2^c,2246822519); h2^=h2>>>13; } return ((h1>>>0).toString(36)+(h2>>>0).toString(36)).slice(0,10); }
+const qrToken=(uid,w)=>qrHash(QR_SALT+'|'+uid+'|'+w);
+const QRP=new URLSearchParams(location.search).get('q');
+let qrOk=false;
+if(QRP){ const m=/^([0-9a-z]+)-([0-9a-z]+)$/.exec(QRP); if(m){ const w=parseInt(m[1],36); qrOk=!!id&&qrToken(id,w)===m[2]&&Math.abs(Math.floor(Date.now()/QR_STEP)-w)<=QR_GRACE; } }
+function drawQrInfo(){
+  const box=$('qrInfo'); if(!box)return;
+  if(!qrOk||!U){ box.hidden=true; return; }
+  const ver=U._official||soc.verified, off=!!U._official;
+  const cell=(l,v,c)=>v?`<div${c?` class="${c}"`:''}><small>${l}</small><b>${v}</b></div>`:'';
+  box.hidden=false;
+  box.innerHTML=`<div class="qrx"><div class="qrx-h"><i class="fas fa-qrcode"></i>بيانات المستخدم من QR كود<em><i class="fas fa-circle-check" style="font-size:12px"></i>رمز صالح</em></div><div class="qrx-g">`+
+    cell('الاسم',esc(U.fullName||U.username||'مستخدم')+(ver?' <i class="fas fa-circle-check vb"></i>':''),'w2')+
+    (U.username?cell('اسم المستخدم','<span dir="ltr">@'+esc(U.username)+'</span>'):'')+
+    cell('الصفة',esc(U._role||''))+
+    ((U.grade&&!U._teacher)?cell('الفرقة',esc(U.grade)):'')+
+    cell('المتابِعون',ar(folCount()))+
+    (off?'':cell('يتابع',ar(folingCount())))+
+    `</div></div>`;
+}
+
+if(!id){R.innerHTML='<div class="empty">لم يتم تحديد مستخدم</div>';}else if(QRP&&!qrOk){R.innerHTML=`<div class="card"><div class="qrx-bad"><i class="fas fa-clock-rotate-left"></i><h3>انتهت صلاحية رمز QR</h3><p>رموز QR في ميزان بتتغير كل 15 ثانية.<br>اطلب من صاحب الحساب يعرض لك رمز جديد وامسحه تاني.</p><a href="user.html?id=${encodeURIComponent(id)}"><i class="fas fa-user"></i>فتح الملف الشخصي</a></div></div>`;}else if(id!==me){
   try{ const c=JSON.parse(localStorage.getItem(PK)||'null'); if(c&&c.U){ U=c.U; soc=c.soc||{}; posts=c.posts||[]; exc=c.exc||null; draw(); if(!U._teacher&&!U._official)startExc(); } }catch(e){}
   load();
   onSnapshot(doc(db,'user_social',id),s=>{soc=s.exists()?s.data():{};drawStats();if(U)drawPosts();saveP();},()=>{});
