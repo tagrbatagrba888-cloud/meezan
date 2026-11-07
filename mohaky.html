@@ -180,10 +180,27 @@ function norm(o,H){const w=new THREE.Group();w.add(o);o.traverse(n=>{if(n.isMesh
  for(let i=0;i<3;i++){const b=meas(w),h=b.max.y-b.min.y;if(!isFinite(h)||h<1e-6)break;const s=H/h;if(i&&Math.abs(s-1)<.03)break;o.scale.multiplyScalar(s);const c=meas(w);o.position.x-=(c.min.x+c.max.x)/2;o.position.z-=(c.min.z+c.max.z)/2;o.position.y-=c.min.y}
  return w}
 const cloneM=s=>THREE.SkeletonUtils?THREE.SkeletonUtils.clone(s):s.clone(true);
-function anim(o,clips){if(!clips||!clips.length)return null;const f=re=>clips.find(c=>re.test(c.name)),cw=f(/walk/i)||f(/run/i)||clips.find(c=>!/t-?pose/i.test(c.name));if(!cw)return null;
+function anim(o,clips){if(!clips||!clips.length)return null;const f=re=>clips.find(c=>re.test(c.name)),cw=f(/walk/i)||f(/run/i);if(!cw)return null;
  const mx=new THREE.AnimationMixer(o),wk=mx.clipAction(cw);wk.play();const ci=f(/idle|stand|breath/i);let id=null;if(ci&&ci!==cw){id=mx.clipAction(ci);id.play()}
  const a={mx,walk:wk,idle:id,m:null};setMove(a,false);return a}
 function setMove(a,m){if(!a||a.m===m)return;a.m=m;if(a.idle){a.walk.setEffectiveWeight(m?1:0);a.idle.setEffectiveWeight(m?0:1)}else a.walk.timeScale=m?1:0}
+/* تحريك العظام برمجيا: يشتغل مع أي شخصية فيها هيكل عظمي حتى لو ماعندهاش أنيميشن */
+const _q=new THREE.Quaternion(),_q2=new THREE.Quaternion(),_v=new THREE.Vector3(),_v2=new THREE.Vector3(),_v3=new THREE.Vector3(),AXX=new THREE.Vector3(1,0,0),DWN=new THREE.Vector3(0,-1,0);
+function mkRig(root){root.updateMatrixWorld(true);const ri=new THREE.Matrix4().copy(root.matrixWorld).invert(),E={};let any=false;
+ root.traverse(b=>{if(!b.isBone||!b.parent)return;const n=b.name.toLowerCase();if(/foot|toe|hand|finger|thumb|index|middle|ring|pinky|twist|roll|helper|\bik\b|pole/.test(n))return;
+  const sd=/left/.test(n)||/(^|[_.\-:\s])l($|[_.\-:\s])/.test(n)?'L':/right/.test(n)||/(^|[_.\-:\s])r($|[_.\-:\s])/.test(n)?'R':'';if(!sd)return;
+  let r='';if(/upleg|thigh|upperleg|upper_leg/.test(n))r='up';else if(/calf|shin|lowerleg|lower_leg|leg$|leg[_.\-][lr]$/.test(n))r='kn';else if(/forearm|lowerarm|lower_arm/.test(n))r='fo';else if(/upperarm|upper_arm|arm$|arm[_.\-][lr]$/.test(n))r='ar';
+  if(!r||E[r+sd])return;const pm=new THREE.Matrix4().multiplyMatrices(ri,b.parent.matrixWorld),pq=new THREE.Quaternion();pm.decompose(_v,pq,_v2);
+  const e={b,rest:b.quaternion.clone(),pq,pqi:pq.clone().invert(),down:null};
+  if(r==='ar'){const c=b.children.find(x=>x.isBone);if(c){_v.setFromMatrixPosition(new THREE.Matrix4().multiplyMatrices(ri,b.matrixWorld));_v2.setFromMatrixPosition(new THREE.Matrix4().multiplyMatrices(ri,c.matrixWorld));_v3.copy(_v2).sub(_v).normalize();
+   if(_v3.y>-.75){const full=new THREE.Quaternion().setFromUnitVectors(_v3,DWN);e.down=new THREE.Quaternion().slerp(full,.95)}}}
+  E[r+sd]=e;any=true});
+ return{E,any,v:root,k:0,t:Math.random()*6}}
+function rigStep(g,dt,mv){if(!g)return;g.k+=((mv?1:0)-g.k)*Math.min(1,dt*10);if(mv)g.t+=dt*9;const k=g.k,s=Math.sin(g.t),c=Math.cos(g.t);
+ if(!g.any){g.v.position.y=Math.abs(s)*.06*k;g.v.rotation.z=s*.05*k;return}
+ const E=g.E,ap=(e,ang)=>{if(!e)return;_q.setFromAxisAngle(AXX,ang);if(e.down)_q.multiply(e.down);_q2.copy(e.pqi).multiply(_q).multiply(e.pq).multiply(e.rest);e.b.quaternion.copy(_q2)};
+ ap(E.upL,-s*.75*k);ap(E.upR,s*.75*k);ap(E.knL,Math.max(0,c)*.9*k);ap(E.knR,Math.max(0,-c)*.9*k);
+ ap(E.arL,s*.6*k);ap(E.arR,-s*.6*k);ap(E.foL,-.25-.25*k);ap(E.foR,-.25-.25*k);g.v.position.y=Math.abs(c)*.03*k}
 const MODELS={};let MREADY=false;
 const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('uniA',1);q.onupgradeneeded=()=>q.result.createObjectStore('a');q.onsuccess=()=>r(q.result);q.onerror=j});
 const ig=async k=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('a').objectStore('a').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
@@ -200,17 +217,17 @@ async function loadModels(){
 const mkey=g=>g==='فتاة'?'female':'male';
 function applyModels(){if(G)setPlayerModel();npcs.forEach(setVis);Object.values(REM).forEach(setVis)}
 /* player */
-const pl=new THREE.Group();scene.add(pl);let pm=null,pa=null,wt=0;
-function setPlayerModel(){pl.clear();pa=null;const m=MODELS[mkey(G.gender)];if(m){pm=cloneM(m.o);pl.add(pm);pa=anim(pm,m.clips)}else{pm=procChar(G.gender);pl.add(pm)}}
-function pAnim(dt,mv){if(pa){setMove(pa,mv);pa.mx.update(dt)}else{const L=pm&&pm.userData.legs;if(L){if(mv)wt+=dt*9;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(wt+i*Math.PI)*.7:0)}}}
+const pl=new THREE.Group();scene.add(pl);let pm=null,pa=null,prig=null,wt=0;
+function setPlayerModel(){pl.clear();pa=null;prig=null;const m=MODELS[mkey(G.gender)];if(m){pm=cloneM(m.o);pl.add(pm);pa=anim(pm,m.clips);if(!pa)prig=mkRig(pm)}else{pm=procChar(G.gender);pl.add(pm)}}
+function pAnim(dt,mv){if(pa){setMove(pa,mv);pa.mx.update(dt)}else if(prig)rigStep(prig,dt,mv);else{const L=pm&&pm.userData.legs;if(L){if(mv)wt+=dt*9;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(wt+i*Math.PI)*.7:0)}}}
 /* people (bots + online players) */
 const NM=['أحمد','محمد','محمود','مصطفى','يوسف','عمر','كريم','طارق','هشام','إسلام','حسام','زياد'],NF=['مريم','سارة','نور','هدى','ياسمين','منة','دينا','ندى','آية','رنا','هبة','إسراء'];
 const LBC={};
 function mkLabel(name){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(10,16,26,.65)';g.fillRect(8,10,240,44);g.fillStyle='#fff';g.font='700 32px Tahoma,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(name,128,33);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k)}));s.scale.set(2.6,.65,1);s.position.y=2.3;return s}
 function mkPerson(gender,name){const g=new THREE.Group(),p={g,name,gender,x:0,z:0,ry:0,vis:null,an:null,lb:mkLabel(name)};g.add(p.lb);setVis(p);out.add(g);return p}
-function setVis(p){const m=MODELS[mkey(p.gender)];if(p.vis&&!m)return;if(p.vis)p.g.remove(p.vis);p.an=null;
- if(m){p.vis=cloneM(m.o);p.an=anim(p.vis,m.clips)}else p.vis=procChar(p.gender,true);p.g.add(p.vis)}
+function setVis(p){const m=MODELS[mkey(p.gender)];if(p.vis&&!m)return;if(p.vis)p.g.remove(p.vis);p.an=null;p.rig=null;
+ if(m){p.vis=cloneM(m.o);p.an=anim(p.vis,m.clips);if(!p.an)p.rig=mkRig(p.vis)}else p.vis=procChar(p.gender,true);p.g.add(p.vis)}
 function npcBuild(){npcs.forEach(p=>out.remove(p.g));npcs=[];const n=Q[ST.q].npc;
  for(let i=0;i<n;i++){const gd=Math.random()<.5?'رجل':'فتاة',p=mkPerson(gd,pick(gd==='رجل'?NM:NF));Object.assign(p,{bot:1,s:i%7===6?-1:i%4,t:Math.random(),d:Math.random()<.5?1:-1,v:R(1.2,1.8),w:0,o:R(-1.6,1.6),a:R(0,6.28),r:R(6,12)});npcs.push(p)}
  npcStep(0)}
@@ -222,7 +239,7 @@ function npcStep(dt){const px=pl.position.x,pz=pl.position.z;npcs.forEach(p=>{le
  if(dt&&(Math.abs(nx-p.x)+Math.abs(nz-p.z))>.001)p.ry=Math.atan2(nx-p.x,nz-p.z);if(p===TKw)p.ry=Math.atan2(px-p.x,pz-p.z);
  p.x=nx;p.z=nz;p.g.position.set(nx,0,nz);p.g.rotation.y=p.ry;
  const d=Math.hypot(nx-px,nz-pz);p.g.visible=d<90;p.lb.visible=d<16;if(p.g.visible&&dt)animP(p,dt,mv,d)})}
-function animP(p,dt,mv,d){if(p.an){setMove(p.an,mv);if(d<45)p.an.mx.update(dt)}else{const L=p.vis.userData.legs;if(L){const t=performance.now()/1000*8;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(t+i*Math.PI)*.7:0)}}}
+function animP(p,dt,mv,d){if(p.an){setMove(p.an,mv);if(d<45)p.an.mx.update(dt)}else if(p.rig){if(d<50)rigStep(p.rig,dt,mv)}else{const L=p.vis.userData.legs;if(L){const t=performance.now()/1000*8;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(t+i*Math.PI)*.7:0)}}}
 /* ---------- online presence ---------- */
 const REM={};let lastPW=0,lpx=1e9,lpz=1e9,lin='?';
 function remUpd(id,d){let r=REM[id];if(!r){r=REM[id]=mkPerson(d.gender||'رجل',d.name||'لاعب');r.pid=id;r.x=d.x||0;r.z=d.z||0;r.g.position.set(r.x,0,r.z)}
