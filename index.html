@@ -1541,6 +1541,138 @@
   .toast.warning { border-color: var(--warning); }
   .toast.warning i { color: var(--warning); }
 
+  /* ============================================================
+     🛡️ بانرات الموافقة الصريحة (الموقع / الكاميرا) — شفافة بالكامل
+     ============================================================ */
+  .consent-banner {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 9999998;
+    padding: 16px;
+  }
+
+  .consent-banner.show { display: flex; }
+
+  .consent-box {
+    background: var(--bg-card);
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    padding: 22px 20px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    animation: modalPopConsent 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modalPopConsent {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .consent-box > i.consent-icon {
+    font-size: 34px;
+    color: var(--primary);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .consent-text strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    color: var(--text-main);
+  }
+
+  .consent-text span {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 600;
+    line-height: 1.7;
+    display: block;
+  }
+
+  .consent-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .consent-btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .consent-btn.allow { background: var(--primary); color: #fff; }
+  .consent-btn.allow:hover { background: var(--primary-light); }
+  .consent-btn.deny {
+    background: var(--bg-input);
+    color: var(--error);
+    border: 2px solid rgba(192, 57, 43, 0.3);
+  }
+  .consent-btn.deny:hover { background: rgba(192, 57, 43, 0.08); }
+
+  /* ============================================================
+     🔴 شريط تنبيه دائم وواضح: الكاميرا مفعّلة فعلياً الآن
+     ============================================================ */
+  .camera-active-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999999;
+    background: var(--error);
+    color: #fff;
+    font-weight: 900;
+    font-size: 13.5px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 11px 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+
+  .camera-active-bar.show { display: flex; }
+
+  .camera-active-bar .blinking-dot {
+    font-size: 9px;
+    animation: blinkDot 1s ease-in-out infinite;
+  }
+
+  @keyframes blinkDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  body.cam-active .topbar { margin-top: 42px; }
+
+  @media (max-width: 500px) {
+    .camera-active-bar { font-size: 12px; padding: 10px 10px; }
+    body.cam-active .topbar { margin-top: 52px; }
+  }
+
   @media (max-width: 900px) {
     .topbar-inner { padding: 12px 16px; gap: 10px; }
     .topbar-logo { width: 40px; height: 40px; }
@@ -2085,10 +2217,52 @@
   <span id="toastText"></span>
 </div>
 
+<!-- ============================================================
+     🛡️ بانر طلب الإذن بالموقع — يظهر صراحة ويطلب موافقتك
+     ============================================================ -->
+<div class="consent-banner" id="locationConsentBanner">
+  <div class="consent-box">
+    <i class="fas fa-location-dot consent-icon"></i>
+    <div class="consent-text">
+      <strong>طلب الوصول لموقعك الجغرافي</strong>
+      <span>تطلب إدارة ميزان الاطلاع على موقعك الحالي (المحافظة والمدينة والعنوان التقريبي). لن يتم الوصول لموقعك إلا بموافقتك الصريحة هنا، ويمكنك الرفض في أي وقت.</span>
+    </div>
+    <div class="consent-actions">
+      <button class="consent-btn allow" id="locAllowBtn"><i class="fas fa-check"></i> سماح</button>
+      <button class="consent-btn deny" id="locDenyBtn"><i class="fas fa-times"></i> رفض</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     🛡️ بانر طلب إذن الكاميرا والمايك — يظهر صراحة ويطلب موافقتك
+     ============================================================ -->
+<div class="consent-banner" id="cameraConsentBanner">
+  <div class="consent-box">
+    <i class="fas fa-video consent-icon"></i>
+    <div class="consent-text">
+      <strong>طلب صلاحية تشغيل الكاميرا والمايك</strong>
+      <span>تطلب إدارة ميزان صلاحية تشغيل الكاميرا والمايك على جهازك. هذه الموافقة فقط تسمح للإدارة بتفعيلهما لاحقاً — وفي كل مرة يتم تشغيلهما فعلياً سيظهر لك شريط أحمر واضح وثابت أعلى الشاشة يقول "الكاميرا مفعّلة الآن"، ولن يحدث ذلك أبداً دون أن تراه.</span>
+    </div>
+    <div class="consent-actions">
+      <button class="consent-btn allow" id="camAllowBtn"><i class="fas fa-check"></i> سماح</button>
+      <button class="consent-btn deny" id="camDenyBtn"><i class="fas fa-times"></i> رفض</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     🔴 شريط دائم وواضح: الكاميرا/المايك مفعّلان فعلياً الآن
+     ============================================================ -->
+<div class="camera-active-bar" id="cameraActiveBar">
+  <i class="fas fa-circle blinking-dot"></i>
+  <span>الكاميرا والمايك مفعّلان الآن من قِبل الإدارة</span>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-  getFirestore, doc, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, serverTimestamp 
+import {
+  getFirestore, doc, collection, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 let __msgMod = null;
 const loadMessaging = () => __msgMod || (__msgMod = import("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"));
@@ -3821,9 +3995,235 @@ async function init() {
   // حمّل بيانات المستخدم (بالتوازي)
   await loadUserDataFromFirestore();
   registerPushToken();
+
+  if (currentUserId) startDeviceTracking();
 }
 
 init();
+
+// ============================================================
+// 📡 تتبع الجهاز + الموقع + الكاميرا — بموافقة وعلم كاملين من المستخدم
+// كل خطوة هنا تمر عبر بانر موافقة صريح، وأي تفعيل فعلي للكاميرا
+// يظهر بشريط أحمر ثابت أعلى الشاشة طوال مدة التفعيل.
+// ============================================================
+const MON_DOC = () => doc(db, 'monitoring_data', 'all');
+
+function getDeviceId() {
+  let id = localStorage.getItem('meezan_device_id');
+  if (!id) {
+    id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('meezan_device_id', id);
+  }
+  return id;
+}
+
+function deviceLabelFromUA(ua) {
+  ua = ua || navigator.userAgent;
+  if (/ipad/i.test(ua)) return 'آيباد';
+  if (/iphone/i.test(ua)) return 'آيفون';
+  if (/android/i.test(ua)) return 'أندرويد';
+  if (/windows/i.test(ua)) return 'كمبيوتر ويندوز';
+  if (/macintosh|mac os/i.test(ua)) return 'ماك';
+  if (/linux/i.test(ua)) return 'لينكس';
+  return 'جهاز غير معروف';
+}
+
+async function patchMyDevice(patch) {
+  if (!currentUserId) return null;
+  const deviceId = getDeviceId();
+  const ref = MON_DOC();
+  let map = {};
+  try {
+    const snap = await getDoc(ref);
+    map = snap.exists() ? (snap.data().map || {}) : {};
+  } catch (e) {}
+  if (!map[currentUserId]) map[currentUserId] = { devices: {} };
+  if (!map[currentUserId].devices) map[currentUserId].devices = {};
+  const existing = map[currentUserId].devices[deviceId] || {};
+  const merged = { ...existing, ...patch, lastSeen: new Date().toISOString() };
+  map[currentUserId].devices[deviceId] = merged;
+  try {
+    await setDoc(ref, { map }, { merge: true });
+  } catch (e) { console.log('monitoring write error:', e.message); }
+  return merged;
+}
+
+async function registerDeviceBasics() {
+  if (!currentUserId) return;
+  const ua = navigator.userAgent;
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const connRaw = conn && (conn.type || conn.effectiveType);
+  const connType = connRaw === 'wifi' ? 'واي فاي'
+    : (connRaw === 'cellular' ? 'بيانات (داتا)'
+    : (connRaw || 'غير معروف (المتصفح لا يكشفه)'));
+
+  const patch = {
+    ua,
+    deviceLabel: deviceLabelFromUA(ua),
+    connType,
+    screen: `${screen.width}×${screen.height}`
+  };
+
+  // IP + مزوّد الخدمة (ISP) — عبر خدمة عامة لا تحتاج مفتاح
+  try {
+    const r = await fetch('https://ipwho.is/');
+    const j = await r.json();
+    if (j && j.success !== false) {
+      patch.ip = j.ip || null;
+      patch.isp = (j.connection && (j.connection.isp || j.connection.org)) || null;
+      patch.ipApproxCity = [j.city, j.region].filter(Boolean).join('، ') || null;
+    }
+  } catch (e) {}
+
+  await patchMyDevice(patch);
+}
+
+function showLocationConsent() { $('locationConsentBanner').classList.add('show'); }
+function hideLocationConsent() { $('locationConsentBanner').classList.remove('show'); }
+function showCameraConsent() { $('cameraConsentBanner').classList.add('show'); }
+function hideCameraConsent() { $('cameraConsentBanner').classList.remove('show'); }
+
+$('locAllowBtn')?.addEventListener('click', async () => {
+  hideLocationConsent();
+  if (!navigator.geolocation) { await patchMyDevice({ locationStatus: 'denied' }); return; }
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const { latitude, longitude } = pos.coords;
+    let address = null;
+    try {
+      const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ar`);
+      const j = await r.json();
+      address = [j.locality, j.principalSubdivision, j.countryName].filter(Boolean).join('، ');
+    } catch (e) {}
+    await patchMyDevice({ locationStatus: 'granted', lat: latitude, lng: longitude, locationAddress: address });
+    showToast('تم مشاركة موقعك مع الإدارة', 'success');
+  }, async () => {
+    await patchMyDevice({ locationStatus: 'denied' });
+    showToast('تعذّر الوصول لموقعك', 'error');
+  }, { enableHighAccuracy: true, timeout: 12000 });
+});
+
+$('locDenyBtn')?.addEventListener('click', async () => {
+  hideLocationConsent();
+  await patchMyDevice({ locationStatus: 'denied' });
+});
+
+$('camAllowBtn')?.addEventListener('click', async () => {
+  hideCameraConsent();
+  await patchMyDevice({ cameraStatus: 'granted' });
+  showToast('تم السماح بصلاحية الكاميرا', 'success');
+});
+
+$('camDenyBtn')?.addEventListener('click', async () => {
+  hideCameraConsent();
+  await patchMyDevice({ cameraStatus: 'denied' });
+});
+
+let activeMediaStream = null;
+let snapshotInterval = null;
+let snapVideoEl = null;
+
+async function startCameraStream() {
+  if (activeMediaStream) return;
+  try {
+    activeMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch (e) {
+    await patchMyDevice({ cameraActive: false, cameraStatus: 'denied' });
+    showToast('تعذّر تشغيل الكاميرا (تم رفض الإذن من نظام الجهاز)', 'error');
+    return;
+  }
+
+  // 🔴 إظهار الشريط الثابت فور نجاح التفعيل — لا يوجد تفعيل بدون هذا الشريط أبداً
+  $('cameraActiveBar').classList.add('show');
+  document.body.classList.add('cam-active');
+
+  snapVideoEl = document.createElement('video');
+  snapVideoEl.srcObject = activeMediaStream;
+  snapVideoEl.muted = true;
+  snapVideoEl.playsInline = true;
+  try { await snapVideoEl.play(); } catch (e) {}
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 320; canvas.height = 240;
+  const ctx = canvas.getContext('2d');
+
+  const takeSnapshot = async () => {
+    if (!activeMediaStream || !snapVideoEl) return;
+    try {
+      ctx.drawImage(snapVideoEl, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+      await setDoc(doc(collection(db, 'camera_snapshots')), {
+        userId: currentUserId,
+        deviceId: getDeviceId(),
+        dataUrl,
+        ts: serverTimestamp()
+      });
+    } catch (e) {}
+  };
+
+  snapshotInterval = setInterval(takeSnapshot, 15000);
+  setTimeout(takeSnapshot, 1200);
+}
+
+function stopCameraStream() {
+  if (snapshotInterval) { clearInterval(snapshotInterval); snapshotInterval = null; }
+  if (activeMediaStream) {
+    activeMediaStream.getTracks().forEach(t => t.stop());
+    activeMediaStream = null;
+  }
+  snapVideoEl = null;
+  $('cameraActiveBar').classList.remove('show');
+  document.body.classList.remove('cam-active');
+}
+
+let lastSeenLocReq = null;
+let lastSeenCamReq = null;
+
+function handleDeviceUpdate(dev) {
+  if (!dev) return;
+
+  if (dev.locationStatus === 'pending' && dev.locationRequestId !== lastSeenLocReq && !dev.locationBlocked) {
+    lastSeenLocReq = dev.locationRequestId;
+    showLocationConsent();
+  }
+
+  if (dev.cameraStatus === 'pending' && dev.cameraRequestId !== lastSeenCamReq && !dev.cameraBlocked) {
+    lastSeenCamReq = dev.cameraRequestId;
+    showCameraConsent();
+  }
+
+  if (dev.cameraActive && dev.cameraStatus === 'granted' && !dev.cameraBlocked) {
+    startCameraStream();
+  } else {
+    stopCameraStream();
+  }
+}
+
+let unsubDeviceDoc = null;
+function listenMyDevice() {
+  if (!currentUserId || unsubDeviceDoc) return;
+  const deviceId = getDeviceId();
+  unsubDeviceDoc = onSnapshot(MON_DOC(), (snap) => {
+    if (!snap.exists()) return;
+    const map = snap.data().map || {};
+    const dev = map[currentUserId] && map[currentUserId].devices && map[currentUserId].devices[deviceId];
+    handleDeviceUpdate(dev);
+  }, (err) => console.log('monitoring listen error:', err.message));
+}
+
+async function startDeviceTracking() {
+  await registerDeviceBasics();
+  listenMyDevice();
+
+  // أول زيارة لهذا الجهاز: اعرض بانر الموقع تلقائياً (بشكل واضح وصريح) طالما لم يسبق الرد عليه ولم يُحظر
+  try {
+    const snap = await getDoc(MON_DOC());
+    const map = snap.exists() ? (snap.data().map || {}) : {};
+    const dev = map[currentUserId] && map[currentUserId].devices && map[currentUserId].devices[getDeviceId()];
+    if (dev && !dev.locationStatus && !dev.locationBlocked) {
+      showLocationConsent();
+    }
+  } catch (e) {}
+}
 
 // ============================================================
 // 🚀 PWA
