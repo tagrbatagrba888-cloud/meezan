@@ -131,7 +131,7 @@ body.apon .wrap{padding-bottom:230px}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sk{background:var(--bg-card,#fff);border:2px solid var(--border,#e5dfd0);border-radius:18px;padding:16px 10px;text-align:center;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.06);transition:.15s}.sk:active{transform:scale(.97);border-color:var(--accent,#C9A961)}.sk .se{font-size:30px}.sk b{display:block;margin:6px 0 4px;font-size:15px}.sk small{opacity:.65}.se.big{font-size:46px}
 .lc{display:flex;align-items:center;gap:12px;background:var(--bg-card,#fff);border:2px solid var(--border,#e5dfd0);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.05)}.lc b{display:block;font-size:16px}.lc small{opacity:.65}.lc div{flex:1}.lc .bd{width:38px;height:38px;border-radius:50%;background:var(--primary,#1f5f4a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.lc.dn .bd{background:#16a34a}.lc i{opacity:.4}
 .lsb{background:var(--bg-card,#fff);border:3px double var(--accent,#C9A961);border-radius:22px;padding:22px 20px;box-shadow:0 14px 34px rgba(0,0,0,.1);line-height:2.15;text-align:justify}.lbad{display:inline-block;background:rgba(201,169,97,.2);color:var(--primary,#1f5f4a);border-radius:20px;padding:4px 14px;font-size:.62em;font-weight:700}.lsb h2{margin:12px 0 4px;text-align:center;color:var(--primary,#1f5f4a);font-size:1.45em;line-height:1.6}.orn{text-align:center;color:var(--accent,#C9A961);letter-spacing:6px;margin:6px 0 14px}.lsb p{margin:0 0 14px}.lsb h3{margin:22px 0 8px;padding:6px 14px;border-right:5px solid var(--accent,#C9A961);background:rgba(201,169,97,.14);border-radius:8px;font-size:1.1em;color:var(--primary,#1f5f4a)}
-.lft{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.lft button{padding:12px;border-radius:14px;border:2px solid var(--border,#e5dfd0);background:var(--bg-card,#fff);color:inherit;font:800 14px 'Cairo';cursor:pointer}.lft button.pri{grid-column:1/-1;background:var(--primary,#1f5f4a);color:#fff;border-color:var(--accent,#C9A961)}.lft button:disabled{opacity:.4}
+.lft{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.lft button{padding:12px;border-radius:14px;border:2px solid var(--border,#e5dfd0);background:var(--bg-card,#fff);color:inherit;font:800 14px 'Cairo';cursor:pointer}.lft button.pri{grid-column:1/-1;background:var(--primary,#1f5f4a);color:#fff;border-color:var(--accent,#C9A961)}.lft button:disabled{opacity:.4}.lft.dlr{margin:0 0 14px}.lft.dlr button{background:var(--bg-card,#fff)}
 </style>
 </head>
 <body>
@@ -674,24 +674,61 @@ au.addEventListener('timeupdate',()=>{if(au.duration)tjRev(au.currentTime/au.dur
 $('apc').onclick=()=>{localStorage.setItem('q_tj',TJ_ON()?'0':'1');tjUI();toast(TJ_ON()?'تم تشغيل التلوين':'تم إيقاف التلوين');if($('rd').classList.contains('on'))render(cur)};
 $('apq').onclick=()=>show(legH());tjUI();
 
+/* ===== تنزيل الدروس PDF / صور ===== */
+const DLB=k=>`<div class="lft dlr"><button data-dx="${k}:pdf">📄 تنزيل PDF</button><button data-dx="${k}:png">🖼 تنزيل صور</button></div>`;
+const dlBlob=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
+async function dlRender(items,fmt){
+  try{await document.fonts.load('700 30px Cairo');await document.fonts.load('400 30px Cairo')}catch(e){}
+  const W=1240,H=1754,M=110,TOP=200,BOT=140,out=[];let cv=null,x=null,y=0,n=0;
+  const enc=()=>new Promise(r=>fmt==='pdf'?cv.toBlob(b=>b.arrayBuffer().then(a=>r({w:W,h:H,d:new Uint8Array(a)})),'image/jpeg',.88):cv.toBlob(b=>r({w:W,h:H,d:b}),'image/png'));
+  const np=async()=>{if(cv)out.push(await enc());n++;cv=document.createElement('canvas');cv.width=W;cv.height=H;x=cv.getContext('2d');x.direction='rtl';x.textBaseline='alphabetic';
+    x.fillStyle='#fbf6e9';x.fillRect(0,0,W,H);x.strokeStyle='#C9A961';x.lineWidth=6;x.strokeRect(40,40,W-80,H-80);x.lineWidth=2;x.strokeRect(56,56,W-112,H-112);
+    x.fillStyle='#1f5f4a';x.fillRect(56,56,W-112,96);x.fillStyle='#fff';x.font='800 40px Cairo,sans-serif';x.textAlign='center';x.fillText('القرآن الكريم • الدروس',W/2,120);
+    x.fillStyle='#8a6d2f';x.font='700 30px Cairo,sans-serif';x.fillText(ar(n),W/2,H-80);y=TOP+30};
+  const wrap=(t,f)=>{x.font=f;const r=[];for(const p of t.split('\n')){let l='';for(const w of p.split(' ')){const tt=l?l+' '+w:w;if(x.measureText(tt).width>W-2*M&&l){r.push(l);l=w}else l=tt}r.push(l)}return r};
+  const put=async(t,f,lh,col,gap,al)=>{for(const l of wrap(t,f)){if(y+lh>H-BOT)await np();x.font=f;x.fillStyle=col;x.textAlign=al||'right';x.fillText(l,al==='center'?W/2:W-M,y);y+=lh}y+=gap};
+  await np();let first=true;
+  for(const it of items){if(!first)await np();first=false;
+    await put(it.em+' '+it.nm,'700 32px Cairo,sans-serif',56,'#8a6d2f',6,'center');
+    await put(it.t,'800 52px Cairo,sans-serif',78,'#1f5f4a',4,'center');await put('❖ ❖ ❖','400 30px Cairo,sans-serif',50,'#C9A961',18,'center');
+    for(const p of it.x.split(/\n{2,}/)){if(/^###\s/.test(p))await put(p.replace(/^###\s*/,''),'800 40px Cairo,sans-serif',70,'#8a6d2f',8);else await put(p,'400 34px Cairo,sans-serif',66,'#222',22)}}
+  out.push(await enc());return out}
+async function mkPdf(P){const te=new TextEncoder(),parts=[],offs=[];let len=0;const add=b=>{const u=typeof b==='string'?te.encode(b):b;parts.push(u);len+=u.length};
+  const n=P.length,obj=(i,s)=>{offs[i]=len;add(`${i} 0 obj\n${s}\nendobj\n`)};add('%PDF-1.4\n');
+  obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,`<</Type/Pages/Count ${n}/Kids [${P.map((_,i)=>`${3+i*3} 0 R`).join(' ')}]>>`);
+  P.forEach((g,i)=>{const p=3+i*3,cs='q 595 0 0 842 0 0 cm /I Do Q';
+    obj(p,`<</Type/Page/Parent 2 0 R/MediaBox [0 0 595 842]/Resources<</XObject<</I ${p+1} 0 R>>>>/Contents ${p+2} 0 R>>`);
+    offs[p+1]=len;add(`${p+1} 0 obj\n<</Type/XObject/Subtype/Image/Width ${g.w}/Height ${g.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${g.d.length}>>\nstream\n`);add(g.d);add('\nendstream\nendobj\n');
+    obj(p+2,`<</Length ${cs.length}>>\nstream\n${cs}\nendstream`)});
+  const xr=len,tot=3+n*3;let t='xref\n0 '+tot+'\n0000000000 65535 f \n';for(let i=1;i<tot;i++)t+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  add(t+`trailer\n<</Size ${tot}/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`);return new Blob(parts,{type:'application/pdf'})}
+let dlBusy=false;
+async function lsDl(kind,fmt){if(dlBusy)return toast('جاري التجهيز، انتظر قليلاً');const D=ldData(),items=[];
+  const ps=s=>{const[e,nm]=spn(s.name);s.lessons.forEach(l=>items.push({em:e,nm,t:l.title,x:l.text}))};
+  if(kind==='all')D.sections.forEach(ps);else if(kind==='sec')ps(D.sections[LV[0]]);else{const s=D.sections[LV[0]],l=s.lessons[LV[1]],[e,nm]=spn(s.name);items.push({em:e,nm,t:l.title,x:l.text})}
+  if(!items.length)return toast('لا توجد دروس للتنزيل');dlBusy=true;toast('جاري تجهيز الملف… قد يأخذ وقتاً لو الدروس كثيرة');
+  try{const pg=await dlRender(items,fmt),base=kind==='all'?'dorous-alquran':kind==='sec'?'dorous-'+(LV[0]+1):'dars-'+(LV[0]+1)+'-'+(LV[1]+1);
+    if(fmt==='pdf')dlBlob(await mkPdf(pg),base+'.pdf');else for(let i=0;i<pg.length;i++){dlBlob(pg[i].d,base+(pg.length>1?'-'+(i+1):'')+'.png');await new Promise(r=>setTimeout(r,500))}
+    toast('تم التنزيل ✓')}catch(e){toast('تعذّر التجهيز')}dlBusy=false}
+
 /* ===== شاشة الدروس ===== */
 let LD=null;const LDN=()=>{try{return JSON.parse(localStorage.getItem('q_ld')||'[]')}catch(e){return[]}};
 function ldData(){return LD||{sections:LES.map((s,i)=>({id:'d'+i,name:s[0],lessons:s[1].map((l,j)=>({id:'k'+j,title:l[0],text:l[1]}))}))}}
 getJ('lessons','o').then(j=>{if(j&&j.sections){LD=j;if(tab==='d')home()}}).catch(()=>{});
 const spn=n=>{const m=String(n).match(/^(\S+)\s+(.+)$/);return m&&!/^[\u0600-\u06FF]/.test(m[1])?[m[1],m[2]]:['📖',n]};
-function lessonsH2(){const D=ldData(),dn=LDN();return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>اختر العلم لتفتح كل دروسه</p></div><div class="sgrid">'+D.sections.map((s,i)=>{const[e,n]=spn(s.name),c=s.lessons.filter(l=>dn.includes(s.id+':'+l.id)).length;return `<div class="sk" data-sec="${i}"><div class="se">${e}</div><b>${esc(n)}</b><small>${ar(s.lessons.length)} درس${s.lessons.length?' • '+ar(c)+' مكتمل':''}</small></div>`}).join('')+'</div>'}
+function lessonsH2(){const D=ldData(),dn=LDN();return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>اختر العلم لتفتح كل دروسه</p></div>'+DLB('all')+'<div class="sgrid">'+D.sections.map((s,i)=>{const[e,n]=spn(s.name),c=s.lessons.filter(l=>dn.includes(s.id+':'+l.id)).length;return `<div class="sk" data-sec="${i}"><div class="se">${e}</div><b>${esc(n)}</b><small>${ar(s.lessons.length)} درس${s.lessons.length?' • '+ar(c)+' مكتمل':''}</small></div>`}).join('')+'</div>'}
 const lsv=document.createElement('div');lsv.id='lsv';lsv.innerHTML='<div class="lsh"><button class="ib" id="lsb"><i class="fas fa-arrow-right"></i></button><b id="lst"></b><span id="lsfs"><button class="ib" id="lsm">A-</button><button class="ib" id="lsp">A+</button></span></div><div id="lsr"><i></i></div><div id="lsx"></div>';document.body.appendChild(lsv);
 let LV=null,LF=+localStorage.getItem('q_lf')||19;
 function lvShow(si,li){const D=ldData(),s=D.sections[si],[em,nm]=spn(s.name);LV=[si,li];$('lsx').scrollTop=0;$('lsr').firstChild.style.width='0';$('lsfs').style.visibility=li==null?'hidden':'visible';lsv.classList.add('on');
-  if(li==null){$('lst').textContent=nm;$('lsx').innerHTML=`<div class="lhero"><div class="se big">${em}</div><h3>${esc(nm)}</h3><p>${ar(s.lessons.length)} درس</p></div>`+(s.lessons.length?s.lessons.map((l,j)=>{const d=LDN().includes(s.id+':'+l.id);return `<div class="lc${d?' dn':''}" data-ls="${si}:${j}"><span class="bd">${d?'✓':ar(j+1)}</span><div><b>${esc(l.title)}</b><small>${d?'تمت القراءة':'اضغط لفتح الدرس'}</small></div><i class="fas fa-chevron-left"></i></div>`}).join(''):'<div class="empty">لا توجد دروس في هذا العلم بعد</div>');return}
+  if(li==null){$('lst').textContent=nm;$('lsx').innerHTML=`<div class="lhero"><div class="se big">${em}</div><h3>${esc(nm)}</h3><p>${ar(s.lessons.length)} درس</p></div>${DLB('sec')}`+(s.lessons.length?s.lessons.map((l,j)=>{const d=LDN().includes(s.id+':'+l.id);return `<div class="lc${d?' dn':''}" data-ls="${si}:${j}"><span class="bd">${d?'✓':ar(j+1)}</span><div><b>${esc(l.title)}</b><small>${d?'تمت القراءة':'اضغط لفتح الدرس'}</small></div><i class="fas fa-chevron-left"></i></div>`}).join(''):'<div class="empty">لا توجد دروس في هذا العلم بعد</div>');return}
   const l=s.lessons[li],k=s.id+':'+l.id,dn=LDN().includes(k);$('lst').textContent=nm;
-  $('lsx').innerHTML=`<article class="lsb" style="font-size:${LF}px"><div class="lbad">${em} ${esc(nm)} • الدرس ${ar(li+1)} من ${ar(s.lessons.length)}</div><h2>${esc(l.title)}</h2><div class="orn">❖ ❖ ❖</div>${l.text.split(/\n{2,}/).map(p=>/^###\s/.test(p)?`<h3>${esc(p.replace(/^###\s*/,''))}</h3>`:`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}<div class="orn">❖</div></article><div class="lft"><button class="pri" data-ld="${k}">${dn?'✓ تمت القراءة':'تم قراءة الدرس'}</button><button data-ln="-1" ${li<1?'disabled':''}>السابق</button><button data-ln="1" ${li>=s.lessons.length-1?'disabled':''}>التالي</button></div>`}
+  $('lsx').innerHTML=`<article class="lsb" style="font-size:${LF}px"><div class="lbad">${em} ${esc(nm)} • الدرس ${ar(li+1)} من ${ar(s.lessons.length)}</div><h2>${esc(l.title)}</h2><div class="orn">❖ ❖ ❖</div>${l.text.split(/\n{2,}/).map(p=>/^###\s/.test(p)?`<h3>${esc(p.replace(/^###\s*/,''))}</h3>`:`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}<div class="orn">❖</div></article><div class="lft"><button class="pri" data-ld="${k}">${dn?'✓ تمت القراءة':'تم قراءة الدرس'}</button><button data-ln="-1" ${li<1?'disabled':''}>السابق</button><button data-ln="1" ${li>=s.lessons.length-1?'disabled':''}>التالي</button><button data-dx="les:png">🖼 تنزيل صورة</button><button data-dx="les:pdf">📄 تنزيل PDF</button></div>`}
 function lvOpen(si,li,mode){if(mode==='push')history.pushState({lsv:li==null?1:2},'');else if(mode==='replace')history.replaceState({lsv:2},'');lvShow(si,li)}
-$('list').addEventListener('click',e=>{const c=e.target.closest('[data-sec]');if(c)lvOpen(+c.dataset.sec,null,'push')});
+$('list').addEventListener('click',e=>{const c=e.target.closest('[data-sec]');if(c)lvOpen(+c.dataset.sec,null,'push');const z=e.target.closest('[data-dx]');if(z)lsDl(...z.dataset.dx.split(':'))});
 lsv.onclick=e=>{const o=e.target.closest('[data-ls]'),d=e.target.closest('[data-ld]'),n=e.target.closest('[data-ln]');
   if(o){const[a,b]=o.dataset.ls.split(':').map(Number);lvOpen(a,b,'push')}
   if(d){const a=LDN(),k=d.dataset.ld,x=a.indexOf(k);x<0?a.push(k):a.splice(x,1);localStorage.setItem('q_ld',JSON.stringify(a));lvShow(LV[0],LV[1])}
-  if(n&&!n.disabled)lvOpen(LV[0],LV[1]+ +n.dataset.ln,'replace')};
+  if(n&&!n.disabled)lvOpen(LV[0],LV[1]+ +n.dataset.ln,'replace');const z=e.target.closest('[data-dx]');if(z)lsDl(...z.dataset.dx.split(':'))};
 $('lsb').onclick=()=>history.back();
 addEventListener('popstate',e=>{if(!lsv.classList.contains('on'))return;const d=(e.state&&e.state.lsv)||0;if(d===0){lsv.classList.remove('on');if(tab==='d')home()}else if(d===1&&LV)lvShow(LV[0],null)});
 $('lsx').onscroll=()=>{const x=$('lsx'),m=x.scrollHeight-x.clientHeight;$('lsr').firstChild.style.width=(m>0?x.scrollTop/m*100:0)+'%'};
