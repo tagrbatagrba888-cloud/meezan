@@ -123,6 +123,7 @@ body.apon .wrap{padding-bottom:230px}
 .li.air{border-color:var(--accent);background:var(--bg-input)}
 .li .pl{margin-right:auto;color:var(--accent);padding:6px 10px}
 .tj-gh{color:#16a34a}.tj-ib{color:#6b7280}.tj-ik{color:#dc2626}.tj-iq{color:#9333ea}.tj-ms{color:#0d9488}.tj-ql{color:#2563eb}.tj-md{color:#ea580c}.a.tjp .w:not(.rv) .tj{color:inherit}details.kc summary{cursor:pointer;font-size:16px}details.kc[open] summary{margin-bottom:8px}
+#lsv{position:fixed;inset:0;z-index:9999;background:var(--bg-main,var(--bg-card));color:var(--text-main);display:none;flex-direction:column}#lsv.on{display:flex}.lsh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-bottom:2px solid var(--border)}#lsx{flex:1;overflow-y:auto;padding:14px;max-width:820px;width:100%;margin:auto}.lsb{line-height:2.1}.lsb h2{margin:0 0 12px;color:var(--primary)}.lsb h3{margin:18px 0 6px;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -619,7 +620,7 @@ function home(){
   if(tab==='k')h=khHtml();
   else if(tab==='b'){const L=BM();h=L.length?L.map((x,k)=>`<div class="li" data-i="${x.i}"><div class="num">${ar(k+1)}</div><div><b>${SN[SI[x.i]]} • آية ${ar(AI[x.i])}</b><small>${esc(Q[x.i].slice(0,60))}…</small></div><span class="x" data-del="${k}"><i class="fas fa-trash"></i></span></div>`).join(''):'<div class="empty">لا توجد علامات بعد. اضغط على رقم أي آية واختر علامة مرجعية</div>'}
   else if(tab==='l'){if(!AU().enabled)h='<div class="empty">الاستماع غير متاح حالياً</div>';else{h=`<div class="kc"><h3>🎧 الاستماع المتواصل</h3><p>اختر الشيخ، ثم اضغط على أي سورة لتسمعها كاملة آية بآية وتنتقل تلقائياً للسورة التي بعدها. الصوت يكمل حتى لو أغلقت المصحف.</p><div class="slot" data-lk="1"><div>🎙 الشيخ<small>${esc(RECS[apRec()].n)}</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div><div class="slot" data-dla="1"><div>⬇️ تحميل التلاوة<small>حمّل أي سورة (أو كل السور) صوتاً بصوت أي شيخ</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div></div>`;for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;const air=apOn&&SI[apI]===s;h+=`<div class="li${air?' air':''}" data-ls="${s}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية${air?' • يُسمع الآن':''}</small></div><span class="pl"><i class="fas ${air?'fa-volume-high':'fa-play'}"></i></span></div>`}}}
-  else if(tab==='d')h=lessonsH();
+  else if(tab==='d')h=lessonsH2();
   else if(tab==='s')for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;h+=`<div class="li" data-i="${g(s,1)}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية • جزء ${ar(loc(JG,g(s,1)))}</small></div></div>`}
   else if(tab==='j')JG.forEach((x,k)=>h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الجزء ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`);
   else if(HZs)for(let k=0;k<60;k++){const x=HZs[k*4];h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الحزب ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`}
@@ -664,6 +665,25 @@ function tjRev(f){const e=document.querySelector('.a.tjp');if(!e)return;e.queryS
 au.addEventListener('timeupdate',()=>{if(au.duration)tjRev(au.currentTime/au.duration)});au.addEventListener('ended',()=>tjRev(1));
 $('apc').onclick=()=>{localStorage.setItem('q_tj',TJ_ON()?'0':'1');tjUI();toast(TJ_ON()?'تم تشغيل التلوين':'تم إيقاف التلوين');if($('rd').classList.contains('on'))render(cur)};
 $('apq').onclick=()=>show(legH());tjUI();
+
+/* ===== شاشة الدروس ===== */
+let LD=null;const LDN=()=>{try{return JSON.parse(localStorage.getItem('q_ld')||'[]')}catch(e){return[]}};
+function ldData(){return LD||{sections:LES.map((s,i)=>({id:'d'+i,name:s[0],lessons:s[1].map((l,j)=>({id:'k'+j,title:l[0],text:l[1]}))}))}}
+getJ('lessons','o').then(j=>{if(j&&j.sections){LD=j;if(tab==='d')home()}}).catch(()=>{});
+function lessonsH2(){const D=ldData(),dn=LDN();return '<div class="kc"><h3>📚 دروس القرآن الكريم</h3><p class="nf">اختر العلم لتفتح كل دروسه.</p></div>'+D.sections.map((s,i)=>`<div class="li" data-sec="${i}"><div class="num">${ar(i+1)}</div><div><b>${esc(s.name)}</b><small>${ar(s.lessons.length)} درس • أتممت ${ar(s.lessons.filter(l=>dn.includes(s.id+':'+l.id)).length)}</small></div></div>`).join('')}
+const lsv=document.createElement('div');lsv.id='lsv';lsv.innerHTML='<div class="lsh"><button class="ib" id="lsb"><i class="fas fa-arrow-right"></i></button><b id="lst"></b><span><button class="ib" id="lsm">A-</button><button class="ib" id="lsp">A+</button></span></div><div id="lsx"></div>';document.body.appendChild(lsv);
+let LV=null,LF=+localStorage.getItem('q_lf')||20;
+function lvOpen(si,li){const D=ldData(),s=D.sections[si];LV=[si,li];lsv.classList.add('on');$('lsx').scrollTop=0;
+  if(li==null){$('lst').textContent=s.name;$('lsx').innerHTML=s.lessons.length?s.lessons.map((l,j)=>`<div class="li" data-ls="${si}:${j}"><div class="num">${ar(j+1)}</div><div><b>${esc(l.title)}</b><small>${LDN().includes(s.id+':'+l.id)?'✓ تمت القراءة':'اضغط لفتح الدرس'}</small></div></div>`).join(''):'<div class="empty">لا توجد دروس في هذا العلم بعد</div>';return}
+  const l=s.lessons[li],k=s.id+':'+l.id,dn=LDN().includes(k);$('lst').textContent=l.title;
+  $('lsx').innerHTML=`<div class="lsb" style="font-size:${LF}px"><h2>${esc(l.title)}</h2>${l.text.split(/\n{2,}/).map(p=>/^###\s/.test(p)?`<h3>${esc(p.replace(/^###\s*/,''))}</h3>`:`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div><div class="act"><button class="pri" data-ld="${k}">${dn?'✓ تمت القراءة':'تم قراءة الدرس'}</button><button data-ln="-1" ${li<1?'disabled':''}>السابق</button><button data-ln="1" ${li>=s.lessons.length-1?'disabled':''}>التالي</button></div>`}
+$('list').addEventListener('click',e=>{const c=e.target.closest('[data-sec]');if(c)lvOpen(+c.dataset.sec,null)});
+lsv.onclick=e=>{const o=e.target.closest('[data-ls]'),d=e.target.closest('[data-ld]'),n=e.target.closest('[data-ln]');
+  if(o){const[a,b]=o.dataset.ls.split(':').map(Number);lvOpen(a,b)}
+  if(d){const a=LDN(),k=d.dataset.ld,x=a.indexOf(k);x<0?a.push(k):a.splice(x,1);localStorage.setItem('q_ld',JSON.stringify(a));lvOpen(...LV)}
+  if(n&&!n.disabled)lvOpen(LV[0],LV[1]+ +n.dataset.ln)};
+$('lsb').onclick=()=>{if(LV[1]!=null)lvOpen(LV[0],null);else{lsv.classList.remove('on');if(tab==='d')home()}};
+const lsf=d=>{LF=Math.max(14,Math.min(40,LF+d));localStorage.setItem('q_lf',LF);const b=lsv.querySelector('.lsb');if(b)b.style.fontSize=LF+'px'};$('lsm').onclick=()=>lsf(-2);$('lsp').onclick=()=>lsf(2);
 
 (async()=>{
   if(!await loadQ()){const M={404:'ملف quran.json غير موجود على الموقع. ارفعه في نفس مكان quran.html',bad:'ملف quran.json غير سليم أو ناقص. نزّله من جديد من صفحة الأدمن',net:'اتصل بالإنترنت مرة واحدة على الأقل لتحميل القرآن'};$('stt').textContent='تعذّر تحميل القرآن';$('list').innerHTML='<div class="empty">'+(M[why]||M.net)+'</div>';return}
