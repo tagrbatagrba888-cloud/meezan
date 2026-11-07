@@ -498,7 +498,7 @@ function qrHash(str){ let h1=0x811c9dc5,h2=0x1b873593; for(let i=0;i<str.length;
 const qrToken=(uid,w)=>qrHash(QR_SALT+'|'+uid+'|'+w);
 const QRP=new URLSearchParams(location.search).get('q');
 let qrOk=false;
-if(QRP){ const m=/^([0-9a-z]+)-([0-9a-z]+)$/.exec(QRP); if(m){ const w=parseInt(m[1],36); qrOk=!!id&&qrToken(id,w)===m[2]&&Math.abs(Math.floor(Date.now()/QR_STEP)-w)<=QR_GRACE; } }
+if(QRP){ const m=/^([0-9a-z]+)-([0-9a-z]+)$/.exec(QRP); if(m){ const w=parseInt(m[1],36); qrOk=!!id&&qrToken(id,w)===m[2]; } }
 function drawQrInfo(){
   const box=$('qrInfo'); if(!box)return;
   if(!qrOk||!U){ box.hidden=true; return; }
