@@ -30,11 +30,10 @@ h1,h3{margin:0}p{margin:0;line-height:1.7}
 #bars i{position:absolute;left:0;right:0;height:12vh;background:#000}#bars i:first-child{top:0}#bars i:nth-child(2){bottom:0}
 #ct{position:absolute;bottom:16vh;left:0;right:0;text-align:center;font-size:34px;text-shadow:0 2px 12px #000;margin:0}
 #skip{position:absolute;bottom:3vh;right:20px;pointer-events:auto}
-#rot{position:fixed;inset:0;background:#0d1520;z-index:99;display:none;align-items:center;justify-content:center;font-size:20px;text-align:center;padding:30px}
-@media(orientation:portrait){#rot{display:flex}}
+#stage{position:fixed;left:0;top:0;transform-origin:0 0;overflow:hidden}
 .bar{width:100%;height:8px;background:#3a4658;border-radius:4px;overflow:hidden}.bar b{display:block;height:100%;background:#5fb37c}
 #dc{max-width:520px;display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
-</style></head><body>
+</style></head><body><div id="stage">
 <canvas id="c"></canvas>
 <div id="hud"><div id="top"><button id="gear" aria-label="الإعدادات">⚙</button><div class="chip" id="tm"></div><div class="chip" id="st"></div></div><div id="jb"><div id="jk"></div></div><button id="act"></button><div id="toast" role="status"></div></div>
 <div id="bars"><i></i><i></i><h1 id="ct"></h1><button id="skip" class="alt">تخطي</button></div>
@@ -47,7 +46,7 @@ h1,h3{margin:0}p{margin:0;line-height:1.7}
 <div class="row"><button id="sapply">تطبيق وحفظ</button><button id="sclose" class="alt">إغلاق</button></div></div>
 <div class="scr" id="dlg"><div id="dc"></div><div class="row" id="db"></div></div>
 <div class="scr" id="ban"></div>
-<div id="rot">لف الهاتف بالعرض لتلعب</div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -132,10 +131,18 @@ function room(k){const g=new THREE.Group();g.position.z=IZ;bx(g,20,.2,20,'#8a7b6
 const pl=new THREE.Group();scene.add(pl);let legs=[],pm=null,wt=0;
 function procChar(g){const sk=0xd9a77d,cl1=g==='فتاة'?0xb23a48:0x3d5a80,b=new THREE.Mesh(new THREE.CylinderGeometry(.32,.36,.9),mat(cl1));b.position.y=1.15;b.castShadow=true;const h=new THREE.Mesh(new THREE.SphereGeometry(.25,14,10),mat(sk));h.position.y=1.85;const hr=new THREE.Mesh(new THREE.SphereGeometry(.27,14,8,0,6.3,0,g==='فتاة'?2.2:1.4),mat(0x2a1d14));hr.position.y=1.9;
  const m=new THREE.Group();m.add(b,h,hr);legs=[-.15,.15].map(x=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.8),mat(0x2a3140));l.geometry.translate(0,-.4,0);l.position.set(x,.8,0);m.add(l);return l});return m}
-function loadChar(){pl.clear();legs=[];pm=procChar(G.gender);pl.add(pm);
- try{new THREE.GLTFLoader().load(C.settings.base+C.settings[G.gender==='فتاة'?'female':'male'],g=>{const o=g.scene,b=new THREE.Box3().setFromObject(o);o.scale.setScalar(1.75/((b.max.y-b.min.y)||1));const b2=new THREE.Box3().setFromObject(o);o.position.y=-b2.min.y;o.userData.by=o.position.y;o.traverse(n=>{if(n.isMesh)n.castShadow=true});pl.clear();legs=[];pm=o;pl.add(o)},undefined,()=>{})}catch(e){}}
+const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('uniA',1);q.onupgradeneeded=()=>q.result.createObjectStore('a');q.onsuccess=()=>r(q.result);q.onerror=j});
+const ig=async k=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('a').objectStore('a').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
+const is=async(k,v)=>{try{const d=await idb();d.transaction('a','readwrite').objectStore('a').put(v,k)}catch(e){}};
+async function asset(w){if(!db)return null;const r=db.collection('gameAssets').doc(w),m=await r.get();if(!m.exists)return null;const d=m.data(),k=w+'_'+d.at,c=await ig(k);if(c)return c;
+ let s='';for(let i=0;i<d.n;i++)s+=(await r.collection('c').doc(String(i)).get()).data().d;const t=atob(s),u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);
+ const buf=await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();is(k,buf);return buf}
+const fit=g=>{const o=g.scene,b=new THREE.Box3().setFromObject(o);o.scale.setScalar(1.75/((b.max.y-b.min.y)||1));const b2=new THREE.Box3().setFromObject(o);o.position.y=-b2.min.y;o.userData.by=o.position.y;o.traverse(n=>{if(n.isMesh)n.castShadow=true});pl.clear();legs=[];pm=o;pl.add(o)};
+function loadChar(){pl.clear();legs=[];pm=procChar(G.gender);pl.add(pm);const w=G.gender==='فتاة'?'female':'male';
+ asset(w).then(buf=>{if(buf)new THREE.GLTFLoader().parse(buf.slice(0),'',fit,()=>{});else new THREE.GLTFLoader().load(C.settings.base+C.settings[w],fit,undefined,()=>{})}).catch(()=>{})}
 function applyQ(){const q=Q[ST.q];rd.setPixelRatio(Math.min(devicePixelRatio,q.pr));rd.shadowMap.enabled=!!q.sh;sun.castShadow=!!q.sh;if(q.sh){sun.shadow.mapSize.set(q.sh,q.sh);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}scene.fog.far=IN?60:q.fog;rs();scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))o.material.needsUpdate=true});treeBuild();npcBuild()}
-function rs(){rd.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',rs);
+let ROT=false;
+function rs(){const W=innerWidth,H=innerHeight;ROT=H>W;const w=ROT?H:W,h=ROT?W:H,st=$('stage').style;st.width=w+'px';st.height=h+'px';st.transform=ROT?'translateX('+W+'px) rotate(90deg)':'none';rd.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,250));
 /* ---------- game state ---------- */
 const crs=()=>{const l=C.courses.filter(c=>!c.college||c.college===G.college);return l.length>=2?l:C.courses},cur=()=>G.ph==='summer'||G.ph==='sexam'?crs().filter(c=>G.failed.includes(c.name)):crs();
 function newG(name,gender,college){const g=C.global;return{name,gender,college,year:1,day:1,clock:8,ph:'term',energy:+g.energy,money:+g.money,gpa:0,effort:30,know:{},failed:[],res:{},yd:0,rep:0,career:'',done:false}}
@@ -177,11 +184,11 @@ function enter(b){IN=b.k;out.visible=false;inn.clear();inn.add(room(b.k));plL.in
 function leave(s){if(!IN&&!s)return;const b=B.find(x=>x.k===IN);IN='';out.visible=true;inn.clear();plL.intensity=0;hemi.intensity=.75;scene.fog.far=Q[ST.q].fog;if(b)pl.position.set(b.x,0,b.dz+b.f*1.8)}
 /* ---------- controls ---------- */
 let jx=0,jy=0,jid=null,cid=null,lx=0,ly=0,cy=0,cp=.35,dr=0;const K={},jb=$('jb'),jk=$('jk');
-function jm(e){const r=jb.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),m=Math.min(1,Math.hypot(dx,dy)/45),a=Math.atan2(dy,dx);jx=Math.cos(a)*m;jy=Math.sin(a)*m;jk.style.transform='translate('+jx*45+'px,'+jy*45+'px)'}
+function jm(e){const r=jb.getBoundingClientRect(),sx=e.clientX-(r.left+r.width/2),sy=e.clientY-(r.top+r.height/2),dx=ROT?sy:sx,dy=ROT?-sx:sy,m=Math.min(1,Math.hypot(dx,dy)/45),a=Math.atan2(dy,dx);jx=Math.cos(a)*m;jy=Math.sin(a)*m;jk.style.transform='translate('+jx*45+'px,'+jy*45+'px)'}
 jb.addEventListener('pointerdown',e=>{jid=e.pointerId;jb.setPointerCapture(jid);jm(e)});jb.addEventListener('pointermove',e=>{if(e.pointerId===jid)jm(e)});
 const je=e=>{if(e.pointerId===jid){jid=null;jx=jy=0;jk.style.transform=''}};jb.addEventListener('pointerup',je);jb.addEventListener('pointercancel',je);
 const cv=$('c');cv.addEventListener('pointerdown',e=>{if(cid===null){cid=e.pointerId;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(cid)}});
-cv.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;const s=ST.sen/50*.005;cy-=(e.clientX-lx)*s;cp=cl(cp+(e.clientY-ly)*s,.1,1.1);lx=e.clientX;ly=e.clientY});
+cv.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;const s=ST.sen/50*.005,ax=e.clientX-lx,ay=e.clientY-ly,dx=ROT?ay:ax,dy=ROT?-ax:ay;cy-=dx*s;cp=cl(cp+dy*s,.1,1.1);lx=e.clientX;ly=e.clientY});
 const ce=e=>{if(e.pointerId===cid)cid=null};cv.addEventListener('pointerup',ce);cv.addEventListener('pointercancel',ce);
 addEventListener('keydown',e=>{K[e.key.toLowerCase()]=1;if(e.key.toLowerCase()==='e')act()});addEventListener('keyup',e=>K[e.key.toLowerCase()]=0);
 const LN=['ذاكرت للامتحان؟','المحاضرة النهارده كانت صعبة','الكافتيريا زحمة النهارده','سمعت إن امتحانات السنة دي صعبة','المكتبة هادية الصبح','اشتغل وقت فراغك، المصروف مش بيكفي'];
