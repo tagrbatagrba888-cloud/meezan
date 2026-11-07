@@ -161,7 +161,7 @@ body.apon .wrap{padding-bottom:230px}
 <div id="ap"><div class="aph"><div id="apt" title="افتح الآية في المصحف"></div><button class="ib" id="apg" title="خيارات"><i class="fas fa-sliders"></i></button><button class="ib" id="apx" title="إغلاق"><i class="fas fa-xmark"></i></button></div>
 <div class="apb"><i id="apb"></i></div>
 <div class="apc"><button id="apn" title="الآية السابقة"><i class="fas fa-chevron-right"></i></button><button id="app" title="تشغيل / إيقاف"><i class="fas fa-play" id="api"></i></button><button id="apf" title="الآية التالية"><i class="fas fa-chevron-left"></i></button></div>
-<div class="apo"><button id="apr"></button><button id="ape">🔁 ردد ورا الشيخ</button><button id="apk">⏭ متتالي</button><button id="apa">📚 يكمل السور</button><button id="aps"></button><button id="apv"></button><button id="apc">🎨 التلوين</button><button id="apq">❓ الألوان</button></div></div>
+<div class="apo"><button id="apr"></button><button id="ape">🔁 ردد ورا الشيخ</button><button id="apk">⏭ متتالي</button><button id="apa">📚 يكمل السور</button><button id="aps"></button><button id="apv"></button><button id="apc">🎨 التلوين</button><button id="apq">❓ الألوان</button><button id="aprg">🎯 تحديد آيات</button></div></div>
 <div class="sheet" id="sh"><div class="shx"><button id="shx" type="button" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div><div id="shb"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -366,6 +366,7 @@ function apPlay(i,keep){clearTimeout(apTm);apOn=true;apI=i;apN=1;if(!keep)apSrc=
 function apGap(ms){const b=$('apb');b.style.transition='none';b.style.width='100%';void b.offsetWidth;b.style.transition=`width ${ms}ms linear`;b.style.width='0%'}
 function apAfter(){if(!apOn)return;
   if(apN<P.rep){apN++;apSt='play';apUI();au.currentTime=0;const pr=au.play();if(pr&&pr.catch)pr.catch(()=>{})}
+  else if(RG){if(apI<RG.b)apPlay(apI+1,1);else if(!RG.k||RG.n<RG.k){RG.n++;toast('الدورة '+ar(RG.n));apPlay(RG.a,1)}else{RG=null;apSt='done';apUI();toast('انتهى المقطع ✓')}}
   else if(P.cont){const j=apI+1;if(j<=TOTAL&&(P.all||SI[j]===SI[apI]))apPlay(j,1);else{apSt='done';apUI();toast(P.all?'انتهى المصحف ✓':'انتهت السورة ✓')}}
   else{apSt='done';apUI()}}
 au.onplaying=()=>{if(!apOn)return;apSt='play';apUI();if(P.cont&&apI<TOTAL&&(P.all||SI[apI+1]===SI[apI])){const u=apUrl(apI+1,apSrc);if(u&&nx.dataset.u!==u){nx.dataset.u=u;nx.src=u}}};
@@ -379,13 +380,13 @@ function apToggle(){if(!apOn)return;
   else apPlay(apI,1);
   apUI()}
 function apStep(d){if(!apOn)return;const j=apI+d;if(j>=1&&j<=TOTAL)apPlay(j,1)}
-function apStop(){apOn=false;clearTimeout(apTm);try{au.pause();au.removeAttribute('src')}catch(e){}apSt='idle';apUI();hl();if(tab==='l')home()}
+function apStop(){RG=null;apOn=false;clearTimeout(apTm);try{au.pause();au.removeAttribute('src')}catch(e){}apSt='idle';apUI();hl();if(tab==='l')home()}
 function apStart(i,echo){if(!AU().enabled)return toast('الاستماع غير متاح حالياً');if(!navigator.onLine)toast('الصوت يحتاج اتصالاً بالإنترنت');
-  P.echo=!!echo;P.rep=echo?3:1;P.cont=!!echo;P.all=false;asSet(false);apPlay(i)}
+  RG=null;P.echo=!!echo;P.rep=echo?3:1;P.cont=!!echo;P.all=false;asSet(false);apPlay(i)}
 function apStartSurah(s){if(!AU().enabled)return toast('الاستماع غير متاح حالياً');
   if(apOn&&SI[apI]===s&&P.all&&!P.echo){apToggle();return}
   if(!navigator.onLine)toast('الصوت يحتاج اتصالاً بالإنترنت');
-  P.echo=false;P.rep=1;P.cont=true;P.all=true;asSet(false);apPlay(g(s,1))}
+  RG=null;P.echo=false;P.rep=1;P.cont=true;P.all=true;asSet(false);apPlay(g(s,1))}
 function apUI(){const a=$('ap'),was=$('rd').classList.contains('apon');a.classList.toggle('on',apOn);$('rd').classList.toggle('apon',apOn);if(was!==apOn&&mode==='page')fitPage();document.body.classList.toggle('apon',apOn);if(!apOn)return;
   a.classList.toggle('gap',apSt==='gap');
   const t=apSt==='gap'?'🎙 رددها الآن ورا الشيخ':apSt==='error'?'تعذّر تحميل الصوت':apSt==='done'?'انتهى — اضغط للإعادة':RECS[apRec()].n+(P.rep>1?` • مرة ${ar(apN)} من ${ar(P.rep)}`:'');
@@ -627,7 +628,7 @@ function home(){
   const q=$('sq').value.trim().replace(/[أإآ]/g,'ا'),L=$('list');$('sq').style.display=(tab==='s'||tab==='l')?'':'none';try{document.querySelector('#tabs [data-t="l"]').style.display=AU().enabled?'':'none'}catch(e){};let h='';
   if(tab==='k')h=khHtml();
   else if(tab==='b'){const L=BM();h=L.length?L.map((x,k)=>`<div class="li" data-i="${x.i}"><div class="num">${ar(k+1)}</div><div><b>${SN[SI[x.i]]} • آية ${ar(AI[x.i])}</b><small>${esc(Q[x.i].slice(0,60))}…</small></div><span class="x" data-del="${k}"><i class="fas fa-trash"></i></span></div>`).join(''):'<div class="empty">لا توجد علامات بعد. اضغط على رقم أي آية واختر علامة مرجعية</div>'}
-  else if(tab==='l'){if(!AU().enabled)h='<div class="empty">الاستماع غير متاح حالياً</div>';else{h=`<div class="kc"><h3>🎧 الاستماع المتواصل</h3><p>اختر الشيخ، ثم اضغط على أي سورة لتسمعها كاملة آية بآية وتنتقل تلقائياً للسورة التي بعدها. الصوت يكمل حتى لو أغلقت المصحف.</p><div class="slot" data-lk="1"><div>🎙 الشيخ<small>${esc(RECS[apRec()].n)}</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div><div class="slot" data-dla="1"><div>⬇️ تحميل التلاوة<small>حمّل أي سورة (أو كل السور) صوتاً بصوت أي شيخ</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div></div>`;for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;const air=apOn&&SI[apI]===s;h+=`<div class="li${air?' air':''}" data-ls="${s}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية${air?' • يُسمع الآن':''}</small></div><span class="pl"><i class="fas ${air?'fa-volume-high':'fa-play'}"></i></span></div>`}}}
+  else if(tab==='l'){if(!AU().enabled)h='<div class="empty">الاستماع غير متاح حالياً</div>';else{h=`<div class="kc"><h3>🎧 الاستماع المتواصل</h3><p>اختر الشيخ، ثم اضغط على أي سورة لتسمعها كاملة آية بآية وتنتقل تلقائياً للسورة التي بعدها. الصوت يكمل حتى لو أغلقت المصحف.</p><div class="slot" data-rng="1"><div>🎯 تحديد آيات<small>اختر مقطعاً من آية إلى آية وكرره</small></div></div><div class="slot" data-lk="1"><div>🎙 الشيخ<small>${esc(RECS[apRec()].n)}</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div><div class="slot" data-dla="1"><div>⬇️ تحميل التلاوة<small>حمّل أي سورة (أو كل السور) صوتاً بصوت أي شيخ</small></div><span class="ck"><i class="fas fa-chevron-left"></i></span></div></div>`;for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;const air=apOn&&SI[apI]===s;h+=`<div class="li${air?' air':''}" data-ls="${s}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية${air?' • يُسمع الآن':''}</small></div><span class="pl"><i class="fas ${air?'fa-volume-high':'fa-play'}"></i></span></div>`}}}
   else if(tab==='d')h=lessonsH2();
   else if(tab==='s')for(let s=1;s<=114;s++){if(q&&!SN[s].replace(/[أإآ]/g,'ا').includes(q))continue;h+=`<div class="li" data-i="${g(s,1)}"><div class="num">${ar(s)}</div><div><b>${SN[s]}</b><small>${MD.has(s)?'مدنية':'مكية'} • ${ar(AC[s])} آية • جزء ${ar(loc(JG,g(s,1)))}</small></div></div>`}
   else if(tab==='j')JG.forEach((x,k)=>h+=`<div class="li" data-i="${x}"><div class="num">${ar(k+1)}</div><div><b>الجزء ${ar(k+1)}</b><small>يبدأ من ${SN[SI[x]]} • آية ${ar(AI[x])}</small></div></div>`);
@@ -673,6 +674,18 @@ function tjRev(f){const e=document.querySelector('.a.tjp');if(!e)return;e.queryS
 au.addEventListener('timeupdate',()=>{if(au.duration)tjRev(au.currentTime/au.duration)});au.addEventListener('ended',()=>tjRev(1));
 $('apc').onclick=()=>{localStorage.setItem('q_tj',TJ_ON()?'0':'1');tjUI();toast(TJ_ON()?'تم تشغيل التلوين':'تم إيقاف التلوين');if($('rd').classList.contains('on'))render(cur)};
 $('apq').onclick=()=>show(legH());tjUI();
+
+/* ===== تحديد مدى الآيات ===== */
+let RG=null;
+const rgH=()=>{const s=SI[cur]||1;return `<h4>🎯 تحديد الآيات</h4><p style="font-size:12px;color:var(--text-sub)">اختر السورة والآيات، وهيقرأ لك المقطع ده بس ويكرره.</p><label>السورة</label><select id="rgS">${Array.from({length:114},(_,k)=>`<option value="${k+1}"${k+1===s?' selected':''}>${ar(k+1)} - ${SN[k+1]}</option>`).join('')}</select><div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1"><label>من آية</label><input id="rgA" type="number" min="1" value="1" style="width:100%"></div><div style="flex:1"><label>إلى آية</label><input id="rgB" type="number" min="1" value="${Math.min(10,AC[s])}" style="width:100%"></div></div><label style="display:block;margin-top:8px">تكرار المقطع كله</label><select id="rgK"><option value="0">بلا توقف ∞</option><option value="2">مرتين</option><option value="3" selected>٣ مرات</option><option value="5">٥ مرات</option><option value="10">١٠ مرات</option><option value="20">٢٠ مرة</option></select><label style="display:block;margin:10px 0"><input type="checkbox" id="rgE" checked> وقفة بعد كل آية لأردد ورا الشيخ</label><div class="act" style="grid-template-columns:1fr"><button class="pri" id="rgGo">▶ ابدأ</button></div>`};
+document.addEventListener('change',e=>{if(e.target.id==='rgS'){const s=+e.target.value;$('rgA').value=1;$('rgB').value=Math.min(10,AC[s])}});
+document.addEventListener('click',e=>{
+  if(e.target.closest('#aprg,[data-rng]')){if(!AU().enabled)return toast('الاستماع غير متاح حالياً');show(rgH());return}
+  if(e.target.closest('#rgGo')){const s=+$('rgS').value,a=+$('rgA').value,b=+$('rgB').value,k=+$('rgK').value;
+    if(!(a>=1&&b>=a&&b<=AC[s]))return toast('الآيات لازم تكون من ١ إلى '+ar(AC[s])+'، و«من» أصغر من «إلى»');
+    $('sh').classList.remove('on');if(!navigator.onLine)toast('الصوت يحتاج اتصالاً بالإنترنت');
+    P.echo=$('rgE').checked;P.rep=1;P.cont=false;P.all=false;asSet(false);RG={a:g(s,a),b:g(s,b),k,n:1};
+    toast(`سورة ${SN[s]} • من آية ${ar(a)} إلى ${ar(b)}`);apPlay(RG.a)}});
 
 /* ===== تنزيل الدروس PDF / صور ===== */
 const DLB=k=>`<div class="lft dlr"><button data-dx="${k}:pdf">📄 تنزيل PDF</button><button data-dx="${k}:png">🖼 تنزيل صور</button></div>`;
