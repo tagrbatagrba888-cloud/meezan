@@ -2677,7 +2677,7 @@ function renderUser(user) {
     $('lockNidValue').textContent = user.nationalId || 'غير مسجل';
     $('lockBirthValue').textContent = user.birthDate ? formatDateOnly(user.birthDate) : 'غير مسجل';
     $('lockPhoneValue').textContent = user.phone || 'غير مسجل';
-    $('lockGenderValue').textContent = genderLabel(user.gender || user.sex);
+    $('lockGenderValue').textContent = userGenderLabel(user);
     $('lockEmailValue').textContent = user.email || 'غير مسجل';
 
     // الإحصائيات
@@ -3456,15 +3456,47 @@ startMyPostsListener();
 // ============================================================
 // 👤 الجنس + مشاركة الملف + QR كود متغيّر كل 15 ثانية
 // ============================================================
-function genderLabel(g) {
+function normGenderKey(g) {
   const v = String(g == null ? '' : g).trim().toLowerCase();
-  if (!v) return 'غير مسجل';
-  if (['male', 'm', 'ذكر', '1'].includes(v)) return 'ذكر';
-  if (['female', 'f', 'أنثى', 'انثى', 'أنثي', 'انثي', '2'].includes(v)) return 'أنثى';
-  return String(g);
+  if (['male', 'm', 'ذكر', 'ولد', '1'].includes(v)) return 'male';
+  if (['female', 'f', 'أنثى', 'انثى', 'أنثي', 'انثي', 'بنت', '2'].includes(v)) return 'female';
+  return '';
+}
+function genderLabel(g) {
+  const k = normGenderKey(g);
+  if (k === 'male') return 'ذكر';
+  if (k === 'female') return 'أنثى';
+  const raw = String(g == null ? '' : g).trim();
+  return raw ? raw : 'غير مسجل';
+}
+// النوع كما حدّده الأدمن (gender) ← sex ← استنتاج من الرقم القومي (الرقم الـ13: فردي = ذكر / زوجي = أنثى)
+function userGenderLabel(u) {
+  u = u || {};
+  let k = normGenderKey(u.gender) || normGenderKey(u.sex);
+  if (!k && !u.selfFillGender) {
+    const nid = String(u.nationalId || '').trim();
+    if (/^\d{14}$/.test(nid)) k = parseInt(nid[12], 10) % 2 ? 'male' : 'female';
+  }
+  if (k) return genderLabel(k);
+  return genderLabel(u.gender || u.sex);
 }
 
-const QR_STEP = 15000;                 // يتغير كل 15 ثانية
+const QR_DEFAULT_SEC = 15;             // القيمة الافتراضية لو الأدمن ما حدّدش
+// إعدادات الـ QR بتيجي من الأدمن (users.html): qrFixed = ثابت / qrStepSec = مدة التغيير بالثواني
+function qrCfg(u) {
+  u = u || currentUser || {};
+  let s = Math.round(Number(u.qrStepSec));
+  if (!(s >= 5)) s = QR_DEFAULT_SEC;
+  if (s > 604800) s = 604800;
+  return { fixed: u.qrFixed === true, step: s * 1000 };
+}
+function qrFmtDur(sec) {
+  sec = Math.max(0, Math.round(sec));
+  if (sec >= 86400) { const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600); return d + ' يوم' + (h ? ' و ' + h + ' ساعة' : ''); }
+  if (sec >= 3600) { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60); return h + ' ساعة' + (m ? ' و ' + m + ' دقيقة' : ''); }
+  if (sec >= 60) { const m = Math.floor(sec / 60), r = sec % 60; return m + ' دقيقة' + (r ? ' و ' + r + ' ثانية' : ''); }
+  return sec + ' ثانية';
+}
 const QR_SALT = 'MZN-QR-v1';           // لازم يكون نفس القيمة في user.html
 function qrHash(str) {
   let h1 = 0x811c9dc5, h2 = 0x1b873593;
@@ -3661,9 +3693,9 @@ function buildQROverlay() {
         '<div class="qr-frame"><canvas id="qrCanvas"></canvas><div class="qr-load" id="qrLoad"><i class="fas fa-spinner fa-spin"></i></div></div>' +
         '<div class="qr-name" id="qrName"></div>' +
         '<div class="qr-user" id="qrUser"></div>' +
-        '<div class="qr-timer"><div class="qr-bar"><i id="qrBar"></i></div>' +
-          '<span><i class="fas fa-rotate"></i> يتغير تلقائيًا بعد <b id="qrSec">15</b> ثانية</span></div>' +
-        '<div class="qr-note">الرمز مؤقت وبيتجدد كل 15 ثانية، فلا يصلح لصورة قديمة منه.</div>' +
+        '<div class="qr-timer"><div class="qr-bar" id="qrBarWrap"><i id="qrBar"></i></div>' +
+          '<span id="qrTxt"></span></div>' +
+        '<div class="qr-note" id="qrNote"></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(qrOv);
@@ -3674,9 +3706,11 @@ function buildQROverlay() {
   return qrOv;
 }
 
-function qrRender(w) {
+function qrRender(w, fixed) {
   const canvas = $('qrCanvas');
-  const url = profileUrl('&q=' + w.toString(36) + '-' + qrToken(userId, w));
+  const url = fixed
+    ? profileUrl('&q=f-' + qrToken(userId, 'fixed'))
+    : profileUrl('&q=' + w.toString(36) + '-' + qrToken(userId, w));
   try {
     drawStyledQR(canvas, url);
     canvas.classList.remove('swap');
@@ -3690,12 +3724,22 @@ function qrRender(w) {
 }
 
 function qrTick() {
+  const cfg = qrCfg();
   const now = Date.now();
-  const w = Math.floor(now / QR_STEP);
-  const left = QR_STEP - (now % QR_STEP);
-  if (w !== qrWindow) { qrWindow = w; qrRender(w); }
-  $('qrBar').style.width = (left / QR_STEP * 100).toFixed(1) + '%';
-  $('qrSec').textContent = Math.ceil(left / 1000);
+  const w = cfg.fixed ? 'fixed' : Math.floor(now / cfg.step);
+  const sig = cfg.fixed ? 'fixed' : cfg.step + ':' + w;
+  if (sig !== qrWindow) { qrWindow = sig; qrRender(w, cfg.fixed); }
+  if (cfg.fixed) {
+    $('qrBarWrap').style.display = 'none';
+    $('qrTxt').innerHTML = '<i class="fas fa-lock"></i> الرمز ثابت ولا يتغير';
+    $('qrNote').textContent = 'هذا الرمز ثابت وصالح دائمًا.';
+    return;
+  }
+  const left = cfg.step - (now % cfg.step);
+  $('qrBarWrap').style.display = '';
+  $('qrBar').style.width = (left / cfg.step * 100).toFixed(1) + '%';
+  $('qrTxt').innerHTML = '<i class="fas fa-rotate"></i> يتغير تلقائيًا بعد <b id="qrSec">' + qrFmtDur(Math.ceil(left / 1000)) + '</b>';
+  $('qrNote').textContent = 'الرمز مؤقت وبيتجدد كل ' + qrFmtDur(cfg.step / 1000) + '، فلا يصلح لصورة قديمة منه.';
 }
 
 function closeQR() {
