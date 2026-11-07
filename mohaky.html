@@ -2,30 +2,41 @@
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1520">
 <title>حياة جامعية</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
 html,body{margin:0;height:100%;overflow:hidden;background:#0d1520;color:#fff;font:600 14px "IBM Plex Sans Arabic",Tahoma,sans-serif;touch-action:none;overscroll-behavior:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 button{font:inherit;color:#fff;background:#2b5d8a;border:0;border-radius:10px;padding:10px 18px;cursor:pointer}
-button.alt{background:#3a4658}button.sel{background:#c0504d}
+button:active{transform:scale(.97)}
+button.alt{background:#3a4658}button.sel{background:#c0504d}button.ok{background:#3f8f5f}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffd27a;outline-offset:2px}
-input,select{font:inherit;color:#fff;background:#1d2938;border:1px solid #3a4658;border-radius:10px;padding:10px 14px;min-width:220px}
-.scr{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(10,16,26,.9);z-index:20;text-align:center;padding:16px;overflow:auto}
-.scr.on{display:flex}#ban{z-index:40}
+input,select{font:inherit;color:#fff;background:#1d2938;border:1px solid #3a4658;border-radius:10px;padding:10px 14px;min-width:200px;max-width:100%}
+.scr{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(10,16,26,.9);text-align:center;padding:16px;overflow:auto;touch-action:pan-y}
+.scr.on{display:flex}
+#menu{z-index:20;background:linear-gradient(rgba(10,16,26,.25),rgba(10,16,26,.8))}#set{z-index:22}#dlg{z-index:24}#ban{z-index:40}
+.card{background:rgba(20,30,46,.94);border:1px solid #2f3d52;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;align-items:center;width:min(94vw,460px);max-height:96%;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.card h1{font-size:28px}.sub{color:#9fb0c8;font-size:13px;font-weight:400}
+.sv{background:#18283b;border-radius:12px;padding:12px;width:100%;display:flex;flex-direction:column;gap:8px}
+.sl{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%}.sl input[type=range]{min-width:140px}
+.sg{display:flex;flex-direction:column;gap:6px;width:100%}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 h1,h3{margin:0}p{margin:0;line-height:1.7}
 #hud{position:fixed;inset:0;pointer-events:none;display:none;z-index:5}#hud.on{display:block}
-#top{position:absolute;top:calc(8px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));display:flex;gap:8px;align-items:center}
-.chip{background:rgba(10,16,26,.55);border-radius:20px;padding:5px 12px;backdrop-filter:blur(6px)}
-#gear{pointer-events:auto;border-radius:50%;width:42px;height:42px;padding:0;font-size:20px;background:rgba(10,16,26,.6)}
+#top{position:absolute;top:calc(8px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));display:flex;gap:6px;align-items:center}
+.chip{background:rgba(10,16,26,.55);border-radius:20px;padding:5px 11px;backdrop-filter:blur(6px);font-size:12px;white-space:nowrap}
+#gear{pointer-events:auto;border-radius:50%;width:42px;height:42px;padding:0;font-size:20px;background:rgba(10,16,26,.6);flex:none}
 #st{margin-inline-start:auto}
 #jb{position:absolute;left:calc(26px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);pointer-events:auto;touch-action:none}
 #jk{position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.55);left:34px;top:34px}
 #act{position:absolute;right:calc(30px + env(safe-area-inset-right));bottom:calc(34px + env(safe-area-inset-bottom));pointer-events:auto;display:none;padding:16px 24px;font-size:16px;background:#c0504d}
-#toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(10,16,26,.8);padding:8px 16px;border-radius:12px;opacity:0;transition:opacity .3s;max-width:70vw;text-align:center}
+#toast{position:absolute;top:62px;left:50%;transform:translateX(-50%);background:rgba(10,16,26,.85);padding:8px 16px;border-radius:12px;opacity:0;transition:opacity .3s;max-width:70vw;text-align:center}
 #toast.on{opacity:1}
+#msgc{position:absolute;top:100px;right:calc(14px + env(safe-area-inset-right));display:none;pointer-events:auto;background:rgba(20,30,46,.95);border:1px solid #3f8f5f;border-radius:14px;padding:10px 14px;max-width:min(320px,60vw);flex-direction:column;gap:8px}
+#msgc.on{display:flex}
 #bars{position:fixed;inset:0;z-index:8;display:none;pointer-events:none}#bars.on{display:block}
 #bars i{position:absolute;left:0;right:0;height:12vh;background:#000}#bars i:first-child{top:0}#bars i:nth-child(2){bottom:0}
 #ct{position:absolute;bottom:16vh;left:0;right:0;text-align:center;font-size:34px;text-shadow:0 2px 12px #000;margin:0}
@@ -33,49 +44,85 @@ h1,h3{margin:0}p{margin:0;line-height:1.7}
 #stage{position:fixed;left:0;top:0;transform-origin:0 0;overflow:hidden}
 .bar{width:100%;height:8px;background:#3a4658;border-radius:4px;overflow:hidden}.bar b{display:block;height:100%;background:#5fb37c}
 #dc{max-width:520px;display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+#fade{position:fixed;inset:0;z-index:30;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0;pointer-events:none;transition:opacity .6s}
+#fade.on{opacity:1;pointer-events:auto}
+#chat{position:fixed;left:0;right:0;bottom:0;z-index:21;display:none;margin:0 auto;width:min(100%,600px);background:rgba(16,24,38,.97);border:1px solid #2f3d52;border-radius:16px 16px 0 0;padding:10px;flex-direction:column;gap:8px}
+#chat.on{display:flex}
+.chh{display:flex;justify-content:space-between;align-items:center}
+#chl{height:max(80px,26vh);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;padding:2px}
+.m{max-width:82%;padding:6px 12px;border-radius:12px;margin:3px 0;line-height:1.6;font-weight:400;-webkit-user-select:text;user-select:text}
+.m.me{background:#2b5d8a;align-self:flex-start}.m.ot{background:#3a4658;align-self:flex-end}.m.sy{align-self:center;opacity:.7;font-size:12px}
+#chq{display:flex;gap:6px;flex-wrap:wrap}#chq button{padding:5px 10px;font-size:12px;background:#27364a}
+.chi{display:flex;gap:8px}.chi input{flex:1;min-width:0}
 </style></head><body><div id="stage">
 <canvas id="c"></canvas>
-<div id="hud"><div id="top"><button id="gear" aria-label="الإعدادات">⚙</button><div class="chip" id="tm"></div><div class="chip" id="st"></div></div><div id="jb"><div id="jk"></div></div><button id="act"></button><div id="toast" role="status"></div></div>
+<div id="hud"><div id="top"><button id="gear" aria-label="الإعدادات">⚙</button><div class="chip" id="tm"></div><div class="chip" id="on"></div><div class="chip" id="st"></div></div><div id="jb"><div id="jk"></div></div><button id="act"></button><div id="toast" role="status"></div><div id="msgc"></div></div>
 <div id="bars"><i></i><i></i><h1 id="ct"></h1><button id="skip" class="alt">تخطي</button></div>
-<div class="scr on" id="menu"><h1>حياة جامعية</h1><input id="nm" placeholder="اسمك" maxlength="20"><div class="row"><button id="gm" class="sel">رجل</button><button id="gf" class="alt">فتاة</button></div><select id="co" aria-label="الكلية"></select><button id="go">ابدأ</button><button id="cont" class="alt" style="display:none"></button></div>
-<div class="scr" id="set"><h3>الإعدادات</h3>
-<div class="row" id="qr"><button data-q="low">ضعيفة</button><button data-q="med">متوسطة</button><button data-q="high">عالية</button></div>
-<label class="row"><input type="checkbox" id="mus" style="min-width:0"> الموسيقى</label>
-<label>مستوى الصوت <input type="range" id="vol" min="0" max="100"></label>
-<label>حساسية الكاميرا <input type="range" id="sen" min="10" max="100"></label>
-<div class="row"><button id="sapply">تطبيق وحفظ</button><button id="sclose" class="alt">إغلاق</button></div></div>
-<div class="scr" id="dlg"><div id="dc"></div><div class="row" id="db"></div></div>
+<div class="scr on" id="menu"><div class="card">
+ <h1>🎓 حياة جامعية</h1><p class="sub">من أول سنة لحد التخرج، كل قرار بتاخده يرسم مستقبلك</p>
+ <div class="sv" id="saved" style="display:none"><p id="svt"></p><button id="cont" class="ok">▶ أكمل رحلتي</button></div>
+ <button id="nbtn" class="alt" style="display:none">🆕 ابدأ من جديد</button>
+ <div id="newbox" style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:center">
+  <input id="nm" placeholder="اسمك" maxlength="20" autocomplete="off">
+  <div class="row"><button id="gm" class="sel">👨 رجل</button><button id="gf" class="alt">👩 فتاة</button></div>
+  <select id="co" aria-label="الكلية"></select>
+  <button id="go">🎮 ابدأ لعبة جديدة</button>
+ </div>
+ <div class="row" id="mdr"><button data-m="on">🌐 أونلاين</button><button data-m="off">👤 أوفلاين</button></div>
+ <p class="sub" id="mdt"></p><p class="sub" id="ld"></p>
+ <div class="row"><button id="mset" class="alt">⚙ الإعدادات</button><button id="mkey" class="alt">🔑 استرجاع بكود</button><button id="mexit" class="alt">⏻ خروج</button></div>
+</div></div>
+<div class="scr" id="set"><div class="card"><h3>⚙ الإعدادات</h3>
+<div class="sg"><span>جودة الرسوميات</span><div class="row" id="qr"><button data-q="low">ضعيفة</button><button data-q="med">متوسطة</button><button data-q="high">عالية</button></div></div>
+<label class="sl"><span>🎵 الموسيقى</span><input type="checkbox" id="mus" style="min-width:0"></label>
+<label class="sl"><span>مستوى الصوت</span><input type="range" id="vol" min="0" max="100"></label>
+<label class="sl"><span>حساسية الكاميرا</span><input type="range" id="sen" min="10" max="100"></label>
+<p class="sub">كود اللاعب (للتكملة من جهاز آخر): <b id="pcode" style="-webkit-user-select:text;user-select:text"></b></p>
+<div class="row"><button id="sapply" class="ok">💾 تطبيق وحفظ</button><button id="sclose" class="alt">إغلاق</button></div>
+<div class="row" id="ingame"><button id="sfs" class="alt">🖥 ملء الشاشة</button><button id="sexit" class="alt">🏠 القائمة الرئيسية</button><button id="squit" class="sel">⏻ خروج من اللعبة</button></div>
+</div></div>
+<div class="scr" id="dlg"><div id="dc"></div><div class="row" id="dbt"></div></div>
 <div class="scr" id="ban"></div>
+<div id="chat"><div class="chh"><b id="cht"></b><button id="chx" class="alt" aria-label="إغلاق">✕</button></div><div id="chl"></div><div id="chq"></div><div class="chi"><input id="chin" maxlength="120" placeholder="اكتب رسالتك..." autocomplete="off"><button id="chs">إرسال</button></div></div>
+<div id="fade"></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const FBC={apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"};
 const $=id=>document.getElementById(id),R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)],esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const jp=(k,d)=>{try{const v=JSON.parse(localStorage[k]);return v==null?d:v}catch(e){return d}};
+const tmo=(p,ms)=>Promise.race([p,new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),ms))]);
 let C={settings:{base:'models/',male:'male.glb',female:'female.glb'},colleges:[{name:'الهندسة'},{name:'الحقوق'},{name:'التجارة'}],
 courses:[{name:'مقدمة في البرمجة',college:'الهندسة',diff:6},{name:'القانون المدني',college:'الحقوق',diff:7},{name:'محاسبة مالية',college:'التجارة',diff:5},{name:'الرياضيات',college:'',diff:6},{name:'اللغة الإنجليزية',college:'',diff:3}],
 careers:[{name:'معيد في الجامعة',minGpa:3.5,minEffort:80,college:'',salary:6000,desc:'بدأت مسارا أكاديميا.'},{name:'محامٍ مشهور',minGpa:2,minEffort:40,college:'الحقوق',salary:15000,desc:'اشتهرت في قضايا كبيرة.'},{name:'مهندس',minGpa:2.5,minEffort:50,college:'الهندسة',salary:9000,desc:'تعمل في شركة مرموقة.'},{name:'موظف',minGpa:1,minEffort:0,college:'',salary:4000,desc:'وظيفة مستقرة.'}],
 events:[{text:'الأستاذ غاب والمحاضرة اتلغت، ارتحت شوية',gpa:0,energy:10,money:0,chance:20},{text:'نمت متأخر وحسيت بإرهاق',gpa:0,energy:-10,money:0,chance:25},{text:'الأهل بعتوا مصروف إضافي',gpa:0,energy:0,money:300,chance:10},{text:'صاحبك ساعدك في مراجعة مادة',gpa:.05,energy:-3,money:0,chance:15}],
 diff:{exam:60,effort:50,events:30,drain:40,living:50},global:{reg:'مفتوح',maint:'إيقاف',notice:'',money:1000,energy:100,years:4}};
-let ST=Object.assign({q:'med',mus:true,vol:60,sen:50},JSON.parse(localStorage.uniSet||'{}'));
-const Q={low:{pr:1,sh:0,npc:18,tree:50,fog:120},med:{pr:1.5,sh:1024,npc:40,tree:100,fog:200},high:{pr:2,sh:2048,npc:70,tree:160,fog:300}};
-let db,G=null,mode='menu',paused=false,near=null,gen='رجل',seen=+localStorage.uniSeen||0,dirty=false,lc=0,svT,IN='';
+let ST=Object.assign({q:'med',mus:true,vol:60,sen:50,online:true},jp('uniSet',{}));
+const Q={low:{pr:1,sh:0,npc:8,tree:50,fog:120},med:{pr:1.5,sh:1024,npc:14,tree:100,fog:200},high:{pr:2,sh:2048,npc:24,tree:160,fog:300}};
+let db,G=null,mode='menu',paused=false,near=null,gen='رجل',seen=+localStorage.uniSeen||0,dirty=false,lc=0,svT,IN='',online=false,LW={},unsubMe=null,unsubP=null,unsubC=null,cs=0,tick=0;
 const pid=localStorage.uniPid||(localStorage.uniPid='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
 /* ---------- cloud ---------- */
 try{firebase.initializeApp(FBC);db=firebase.firestore()}catch(e){db=null}
 const me=()=>db.collection('gameUsers').doc(pid);
-function save(){dirty=true;lc=Date.now();clearTimeout(svT);svT=setTimeout(()=>{if(!G)return;localStorage.uniG=JSON.stringify(G);if(!db){dirty=false;return}
- me().set({name:G.name,gender:G.gender,college:G.college,career:G.career||'',year:G.year,gpa:+(+G.gpa).toFixed(2),effort:Math.round(G.effort),energy:Math.round(G.energy),money:Math.round(G.money),state:JSON.stringify({day:G.day,clock:G.clock,ph:G.ph,know:G.know,failed:G.failed,res:G.res,yd:G.yd,rep:G.rep,done:G.done}),settings:ST,seenAt:Date.now()},{merge:true}).then(()=>dirty=false,()=>dirty=false)},1500)}
-function listen(){if(!db)return;me().onSnapshot(s=>{if(!s.exists||s.metadata.hasPendingWrites)return;const d=s.data();
- if(d.banned){$('ban').innerHTML='<h1>تم حظرك من اللعبة</h1><p>'+esc(d.banReason||'')+'</p>';$('ban').classList.add('on');return}$('ban').classList.remove('on');
- if(G&&!dirty&&Date.now()-lc>4000)['name','gender','college','career','year','gpa','effort','energy','money'].forEach(k=>{if(d[k]!==undefined&&typeof d[k]===typeof G[k]&&d[k]!==G[k])G[k]=d[k]});
- (d.inbox||[]).filter(m=>m.at>seen).forEach(m=>{seen=Math.max(seen,m.at);dlg('<h3>رسالة من الإدارة</h3><p>'+esc(m.text)+'</p>',[['حسنا']])});localStorage.uniSeen=seen;hud()})}
+const pack=()=>({name:G.name,gender:G.gender,college:G.college,career:G.career||'',year:G.year,gpa:+(+G.gpa).toFixed(2),effort:Math.round(G.effort),energy:Math.round(G.energy),money:Math.round(G.money),state:JSON.stringify({day:G.day,clock:G.clock,ph:G.ph,know:G.know,failed:G.failed,res:G.res,yd:G.yd,rep:G.rep,done:G.done}),settings:ST,seenAt:Date.now()});
+function saveNow(){if(!G)return;try{localStorage.uniG=JSON.stringify(G)}catch(e){}if(!db){dirty=false;return}LW=pack();me().set(LW,{merge:true}).then(()=>dirty=false,()=>dirty=false)}
+function save(){dirty=true;lc=Date.now();clearTimeout(svT);svT=setTimeout(saveNow,1500)}
+function banShow(r){$('ban').innerHTML='<div class="card"><h1>تم حظرك من اللعبة</h1><p>'+esc(r||'')+'</p></div>';$('ban').classList.add('on')}
+const KEYS=['name','gender','college','career','year','gpa','effort','energy','money'];
+function listen(){if(!db)return;unsubMe&&unsubMe();unsubMe=me().onSnapshot(s=>{if(!s.exists||s.metadata.hasPendingWrites||!G)return;const d=s.data();
+ if(d.banned){banShow(d.banReason);return}$('ban').classList.remove('on');
+ KEYS.forEach(k=>{if(d[k]!==undefined&&LW[k]!==undefined&&typeof d[k]===typeof G[k]&&d[k]!==LW[k]){G[k]=d[k];LW[k]=d[k]}});
+ (d.inbox||[]).filter(m=>m.at>seen).forEach(m=>{seen=Math.max(seen,m.at);dlg('<h3>رسالة من الإدارة</h3><p>'+esc(m.text)+'</p>',[['حسنا']])});localStorage.uniSeen=seen;hud()},()=>{})}
+function fromCloud(d){let s={};try{s=JSON.parse(d.state||'{}')}catch(e){}
+ return Object.assign(newG(d.name||'لاعب',d.gender||'رجل',d.college||''),{career:d.career||'',year:d.year||1,gpa:+d.gpa||0,effort:d.effort??30,energy:d.energy??100,money:d.money??0,day:s.day||1,clock:s.clock??8,ph:s.ph||'term',know:s.know||{},failed:s.failed||[],res:s.res||{},yd:s.yd||0,rep:s.rep||0,done:!!s.done})}
 /* ---------- audio ---------- */
 let ac,mg;
 function music(){if(!ST.mus){if(mg)mg.gain.value=0;return}
- if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();mg=ac.createGain();const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;mg.connect(lp);lp.connect(ac.destination);
+ if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}mg=ac.createGain();const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;mg.connect(lp);lp.connect(ac.destination);
   const ch=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],f=m=>440*Math.pow(2,(m-69)/12);let i=0;
   const n=(fr,t,a,len,ty)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=ty;o.frequency.value=fr;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a,t+Math.min(1.2,len/3));g.gain.linearRampToValueAtTime(0,t+len);o.connect(g);g.connect(mg);o.start(t);o.stop(t+len+.1)};
   const play=()=>{const t=ac.currentTime,c=ch[i++%4];c.forEach(m=>n(f(m),t,.16,4.2,'triangle'));[0,1,2,1].forEach((j,k)=>n(f(c[j]+12),t+k,.09,.9,'sine'))};play();setInterval(play,4000)}
@@ -87,77 +134,191 @@ const hemi=new THREE.HemisphereLight(0xffffff,0x4a5a3a,.75),sun=new THREE.Direct
 Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,far:300});plL.position.set(0,5,500);
 const out=new THREE.Group(),inn=new THREE.Group();scene.add(hemi,sun,sun.target,plL,out,inn);
 const mat=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c},o||{})),IZ=500;
-const B=[{k:'lec',n:'قاعة المحاضرات',x:-40,z:-30,w:26,d:18,h:16,c:'#b7a38a',f:1},{k:'lib',n:'المكتبة',x:40,z:-30,w:24,d:18,h:14,c:'#8f9fb3',f:1},{k:'caf',n:'الكافتيريا',x:-40,z:30,w:20,d:14,h:8,c:'#c98e6b',f:1},{k:'dorm',n:'المدينة الجامعية',x:40,z:30,w:26,d:16,h:20,c:'#a9b59a',f:1},{k:'exam',n:'قاعة الامتحانات',x:0,z:-62,w:30,d:16,h:12,c:'#9a8fb3',f:1},{k:'job',n:'مكتب العمل الطلابي',x:-90,z:-8,w:16,d:12,h:8,c:'#7fa3a0',f:1},{k:'adm',n:'مبنى الإدارة',x:0,z:62,w:26,d:14,h:14,c:'#b0a58f',f:-1}];
+const B=[{k:'lec',n:'قاعة المحاضرات',x:-40,z:-30,w:26,d:18,h:16,c:'#b7a38a',f:1},{k:'lib',n:'المكتبة',x:40,z:-30,w:24,d:18,h:14,c:'#8f9fb3',f:1},{k:'caf',n:'الكافتيريا',x:-40,z:30,w:20,d:14,h:8,c:'#c98e6b',f:1},{k:'dorm',n:'السكن الجامعي (نوم)',x:40,z:30,w:26,d:16,h:20,c:'#a9b59a',f:1},{k:'exam',n:'قاعة الامتحانات',x:0,z:-62,w:30,d:16,h:12,c:'#9a8fb3',f:1},{k:'job',n:'مكتب العمل الطلابي',x:-90,z:-8,w:16,d:12,h:8,c:'#7fa3a0',f:1},{k:'adm',n:'مبنى الإدارة',x:0,z:62,w:26,d:14,h:14,c:'#b0a58f',f:-1}];
 B.forEach(b=>b.dz=b.z+b.f*(b.d/2+2));
 const SG=[[0,-52,0,53,8],[-90,0,90,0,6],[-60,-19,60,-19,5],[-60,39.5,60,39.5,5]];
 function tex(c,rx,ry){const k=document.createElement('canvas');k.width=k.height=128;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,128,128);for(let i=0;i<2;i++)for(let j=0;j<2;j++){g.fillStyle=Math.random()<.3?'#ffe9a8':'#3d5a78';g.fillRect(14+i*60,18+j*56,36,34)}const t=new THREE.CanvasTexture(k);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return t}
 function lab(s,w){const k=document.createElement('canvas');k.width=512;k.height=128;const g=k.getContext('2d');g.fillStyle='rgba(10,16,26,.7)';g.fillRect(0,0,512,128);g.fillStyle='#fff';g.font='700 52px Tahoma,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(s,256,66);const m=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k)}));m.scale.set(w||8,(w||8)/4,1);return m}
 function world(){const g=new THREE.Mesh(new THREE.PlaneGeometry(500,500),mat(0x6b9a4f));g.rotation.x=-Math.PI/2;g.receiveShadow=true;out.add(g);
  SG.forEach(s=>{const L=Math.hypot(s[2]-s[0],s[3]-s[1]),r=new THREE.Mesh(new THREE.PlaneGeometry(s[2]===s[0]?s[4]:L,s[2]===s[0]?L:s[4]),mat(0x555a60));r.rotation.x=-Math.PI/2;r.position.set((s[0]+s[2])/2,.03,(s[1]+s[3])/2);r.receiveShadow=true;out.add(r)});
- const pl=new THREE.Mesh(new THREE.CircleGeometry(13,40),mat(0xc8c2b4));pl.rotation.x=-Math.PI/2;pl.position.y=.05;pl.receiveShadow=true;out.add(pl);
- const fo=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,1,24),mat(0x9aa0a6));fo.position.y=.5;fo.castShadow=true;out.add(fo);const wt=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,.1,24),mat(0x4a90c2));wt.position.y=1;out.add(wt);
+ const pz=new THREE.Mesh(new THREE.CircleGeometry(13,40),mat(0xc8c2b4));pz.rotation.x=-Math.PI/2;pz.position.y=.05;pz.receiveShadow=true;out.add(pz);
+ const fo=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,1,24),mat(0x9aa0a6));fo.position.y=.5;fo.castShadow=true;out.add(fo);const wt2=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,.1,24),mat(0x4a90c2));wt2.position.y=1;out.add(wt2);
  B.forEach(b=>{const tz=tex(b.c,b.w/8,b.h/6),tx=tex(b.c,b.d/8,b.h/6),top=mat('#6e6a64'),m=new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d),[new THREE.MeshStandardMaterial({map:tx}),new THREE.MeshStandardMaterial({map:tx}),top,top,new THREE.MeshStandardMaterial({map:tz}),new THREE.MeshStandardMaterial({map:tz})]);m.position.set(b.x,b.h/2,b.z);m.castShadow=m.receiveShadow=true;out.add(m);
   const dr=new THREE.Mesh(new THREE.BoxGeometry(3.4,4.2,.4),mat(0x2a2320));dr.position.set(b.x,2.1,b.z+b.f*(b.d/2+.1));out.add(dr);
   const mk=new THREE.Mesh(new THREE.RingGeometry(1,1.5,24),new THREE.MeshBasicMaterial({color:0xffd27a,side:2}));mk.rotation.x=-Math.PI/2;mk.position.set(b.x,.08,b.dz);out.add(mk);
   const l=lab(b.n);l.position.set(b.x,b.h+2,b.z+b.f*(b.d/2));out.add(l)});
  treeBuild()}
 const AB=B.map(b=>({x1:b.x-b.w/2-.6,x2:b.x+b.w/2+.6,z1:b.z-b.d/2-.6,z2:b.z+b.d/2+.6}));
-let TR,NB,NH,npcs=[];const dm=new THREE.Object3D();
+let TR,npcs=[];const dm=new THREE.Object3D();
 function treeBuild(){if(TR){out.remove(TR[0],TR[1])}const n=Q[ST.q].tree,tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(.3,.4,2.5),mat(0x6b4a2b),n),cr=new THREE.InstancedMesh(new THREE.ConeGeometry(2.2,5.5,8),mat(0xffffff),n);
  for(let i=0,k=0;i<n&&k<4000;k++){const x=R(-190,190),z=R(-190,190);if(Math.hypot(x,z)<18||Math.abs(x)<8||(Math.abs(z)<7&&Math.abs(x)<95)||(Math.abs(z+19)<6&&Math.abs(x)<65)||(Math.abs(z-39.5)<6&&Math.abs(x)<65)||AB.some(a=>x>a.x1-5&&x<a.x2+5&&z>a.z1-5&&z<a.z2+5))continue;
   const s=R(.8,1.4);dm.position.set(x,1.25*s,z);dm.scale.set(s,s,s);dm.rotation.set(0,0,0);dm.updateMatrix();tr.setMatrixAt(i,dm.matrix);dm.position.y=(2.5+2.7)*s;dm.updateMatrix();cr.setMatrixAt(i,dm.matrix);cr.setColorAt(i,new THREE.Color().setHSL(R(.25,.35),.5,R(.25,.38)));i++}
  tr.castShadow=cr.castShadow=!!Q[ST.q].sh;out.add(tr,cr);TR=[tr,cr]}
-function npcBuild(){if(NB)out.remove(NB,NH);const n=Q[ST.q].npc;NB=new THREE.InstancedMesh(new THREE.CylinderGeometry(.35,.38,1.3),mat(0xffffff),n);NH=new THREE.InstancedMesh(new THREE.SphereGeometry(.26,10,8),mat(0xffffff),n);
- npcs=[];for(let i=0;i<n;i++){npcs.push({s:i%7===6?-1:i%4,t:Math.random(),d:Math.random()<.5?1:-1,v:R(1.2,1.8),w:0,o:R(-1.6,1.6),a:R(0,6.28),r:R(6,12),x:0,z:0,ry:0});NB.setColorAt(i,new THREE.Color().setHSL(Math.random(),.5,.45));NH.setColorAt(i,new THREE.Color().setHSL(.07,.4,R(.3,.75)))}
- NB.castShadow=!!Q[ST.q].sh;out.add(NB,NH);npcStep(0)}
-function npcStep(dt){npcs.forEach((p,i)=>{let nx=p.x,nz=p.z;
- if(p.s<0){p.a+=dt*.35*p.d;nx=Math.cos(p.a)*p.r;nz=Math.sin(p.a)*p.r}
- else if(p.w>0)p.w-=dt;
- else{const s=SG[p.s],L=Math.hypot(s[2]-s[0],s[3]-s[1]);p.t+=p.d*p.v*dt/L;if(p.t>1||p.t<0){p.t=cl(p.t,0,1);p.d=-p.d;p.w=R(1,4)}nx=s[0]+(s[2]-s[0])*p.t+(-(s[3]-s[1])/L)*p.o;nz=s[1]+(s[3]-s[1])*p.t+((s[2]-s[0])/L)*p.o}
- if(dt&&(Math.abs(nx-p.x)+Math.abs(nz-p.z))>.001)p.ry=Math.atan2(nx-p.x,nz-p.z);p.x=nx;p.z=nz;
- dm.rotation.set(0,p.ry,0);dm.scale.set(1,1,1);dm.position.set(nx,.65+Math.abs(Math.sin(performance.now()/180+i))*.04*(p.w>0?0:1),nz);dm.updateMatrix();NB.setMatrixAt(i,dm.matrix);dm.position.y=1.55;dm.updateMatrix();NH.setMatrixAt(i,dm.matrix)});NB.instanceMatrix.needsUpdate=NH.instanceMatrix.needsUpdate=true;if(NB.instanceColor)NB.instanceColor.needsUpdate=NH.instanceColor.needsUpdate=true}
 const bx=(g,w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m};
-const SPOT={lec:'حضور محاضرة',lib:'مذاكرة',caf:'أكل وراحة',dorm:'نوم',exam:'دخول الامتحان',job:'عمل',adm:'كشف الدرجات'};
+const SPOT={lec:'حضور محاضرة',lib:'مذاكرة',caf:'أكل وراحة',dorm:'نوم 🛏',exam:'دخول الامتحان',job:'عمل',adm:'كشف الدرجات'};
 function room(k){const g=new THREE.Group();g.position.z=IZ;bx(g,20,.2,20,'#8a7b6a',0,-.1,0);bx(g,20,6,.3,'#d8d2c4',0,3,-10);bx(g,20,6,.3,'#d8d2c4',0,3,10);bx(g,.3,6,20,'#d8d2c4',-10,3,0);bx(g,.3,6,20,'#d8d2c4',10,3,0);bx(g,20,.2,20,'#eee',0,6,0);
  if(k==='lec'){for(let r=0;r<3;r++)for(let i=-3;i<=3;i++)bx(g,1.1,.9,.7,'#6b5a45',i*2.2,.45,r*2.2);bx(g,10,3,.1,'#f4f4f4',0,3.2,-9.7);bx(g,3,1,1.2,'#4a3b2c',0,.5,-6)}
  else if(k==='lib'){for(let i=-8;i<=8;i+=4)bx(g,.8,4,6,'#5a4030',i,2,-6.5);bx(g,6,.9,2,'#7a5b3a',0,.45,3);bx(g,6,.9,2,'#7a5b3a',-6,.45,0)}
  else if(k==='caf'){for(let i=-6;i<=6;i+=6)for(let j=-5;j<=3;j+=4){bx(g,1.6,.9,1.6,'#a67c52',i,.45,j)}bx(g,16,1.1,1.2,'#4a3b2c',0,.55,-8)}
- else if(k==='dorm'){bx(g,2,.6,4,'#4a6fa5',-6,.3,-6);bx(g,2,.6,4,'#a54a5a',6,.3,-6);bx(g,5,.9,1.6,'#7a5b3a',0,.45,-8)}
+ else if(k==='dorm'){bx(g,3.4,.6,5,'#4a6fa5',0,.4,-6.2);bx(g,3.4,.25,1.3,'#f1ede2',0,.85,-8.2);bx(g,3.4,.15,3.4,'#6f93c7',0,.75,-5.4);bx(g,2,.6,4,'#4a6fa5',-6.5,.3,-6.5);bx(g,2,.6,4,'#a54a5a',6.5,.3,-6.5);bx(g,2,3,1,'#7a5b3a',-8,1.5,2)}
  else if(k==='exam'){for(let i=-6;i<=6;i+=3)for(let j=-4;j<=4;j+=3)bx(g,1.4,.9,1,'#6b5a45',i,.45,j)}
  else if(k==='job'){bx(g,8,1.1,1.5,'#4a3b2c',0,.55,-6);bx(g,3,.9,1.5,'#7a5b3a',-6,.45,2);bx(g,3,.9,1.5,'#7a5b3a',6,.45,2)}
  else {bx(g,12,1.1,1.5,'#4a3b2c',0,.55,-7);bx(g,2,.9,1,'#7a5b3a',-7,.45,3)}
  [[0,-3,0x5fb37c,SPOT[k]],[0,8.4,0xc0504d,'خروج']].forEach(a=>{const m=new THREE.Mesh(new THREE.RingGeometry(.9,1.4,24),new THREE.MeshBasicMaterial({color:a[2],side:2}));m.rotation.x=-Math.PI/2;m.position.set(a[0],.06,a[1]);g.add(m);const l=lab(a[3],4);l.position.set(a[0],2.2,a[1]);g.add(l)});return g}
-/* player */
-const pl=new THREE.Group();scene.add(pl);let legs=[],pm=null,wt=0;
-function procChar(g){const sk=0xd9a77d,cl1=g==='فتاة'?0xb23a48:0x3d5a80,b=new THREE.Mesh(new THREE.CylinderGeometry(.32,.36,.9),mat(cl1));b.position.y=1.15;b.castShadow=true;const h=new THREE.Mesh(new THREE.SphereGeometry(.25,14,10),mat(sk));h.position.y=1.85;const hr=new THREE.Mesh(new THREE.SphereGeometry(.27,14,8,0,6.3,0,g==='فتاة'?2.2:1.4),mat(0x2a1d14));hr.position.y=1.9;
- const m=new THREE.Group();m.add(b,h,hr);legs=[-.15,.15].map(x=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.8),mat(0x2a3140));l.geometry.translate(0,-.4,0);l.position.set(x,.8,0);m.add(l);return l});return m}
+/* ---------- characters: models ---------- */
+function procChar(g,rnd){const sk=0xd9a77d,col=rnd?new THREE.Color().setHSL(Math.random(),.5,.45):new THREE.Color(g==='فتاة'?0xb23a48:0x3d5a80),b=new THREE.Mesh(new THREE.CylinderGeometry(.32,.36,.9),mat(col));b.position.y=1.15;b.castShadow=true;
+ const h=new THREE.Mesh(new THREE.SphereGeometry(.25,14,10),mat(sk));h.position.y=1.85;const hr=new THREE.Mesh(new THREE.SphereGeometry(.27,14,8,0,6.3,0,g==='فتاة'?2.2:1.4),mat(0x2a1d14));hr.position.y=1.9;
+ const m=new THREE.Group();m.add(b,h,hr);m.userData.legs=[-.15,.15].map(x=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.8),mat(0x2a3140));l.geometry.translate(0,-.4,0);l.position.set(x,.8,0);m.add(l);return l});return m}
+/* قياس حقيقي بعد تأثير الهيكل العظمي (سبب ظهور الرجلين فقط) */
+function meas(o){o.updateMatrixWorld(true);const b=new THREE.Box3(),v=new THREE.Vector3();
+ o.traverse(n=>{if(!n.isMesh||!n.geometry)return;const g=n.geometry,p=g.attributes.position;if(!p)return;
+  if(n.isSkinnedMesh&&n.skeleton&&n.boneTransform&&g.attributes.skinIndex){n.skeleton.update();const st=Math.max(1,Math.floor(p.count/3000));for(let i=0;i<p.count;i+=st){n.boneTransform(i,v);v.applyMatrix4(n.matrixWorld);b.expandByPoint(v)}}
+  else if(n.isSkinnedMesh&&n.skeleton){n.skeleton.bones.forEach(bn=>{bn.getWorldPosition(v);b.expandByPoint(v)})}
+  else{if(!g.boundingBox)g.computeBoundingBox();b.union(g.boundingBox.clone().applyMatrix4(n.matrixWorld))}});
+ return b}
+function norm(o,H){const w=new THREE.Group();w.add(o);o.traverse(n=>{if(n.isMesh){n.frustumCulled=false;n.castShadow=true}});
+ for(let i=0;i<3;i++){const b=meas(w),h=b.max.y-b.min.y;if(!isFinite(h)||h<1e-6)break;const s=H/h;if(i&&Math.abs(s-1)<.03)break;o.scale.multiplyScalar(s);const c=meas(w);o.position.x-=(c.min.x+c.max.x)/2;o.position.z-=(c.min.z+c.max.z)/2;o.position.y-=c.min.y}
+ return w}
+const cloneM=s=>THREE.SkeletonUtils?THREE.SkeletonUtils.clone(s):s.clone(true);
+function anim(o,clips){if(!clips||!clips.length)return null;const f=re=>clips.find(c=>re.test(c.name)),cw=f(/walk/i)||f(/run/i)||clips.find(c=>!/t-?pose/i.test(c.name));if(!cw)return null;
+ const mx=new THREE.AnimationMixer(o),wk=mx.clipAction(cw);wk.play();const ci=f(/idle|stand|breath/i);let id=null;if(ci&&ci!==cw){id=mx.clipAction(ci);id.play()}
+ const a={mx,walk:wk,idle:id,m:null};setMove(a,false);return a}
+function setMove(a,m){if(!a||a.m===m)return;a.m=m;if(a.idle){a.walk.setEffectiveWeight(m?1:0);a.idle.setEffectiveWeight(m?0:1)}else a.walk.timeScale=m?1:0}
+const MODELS={};let MREADY=false;
 const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('uniA',1);q.onupgradeneeded=()=>q.result.createObjectStore('a');q.onsuccess=()=>r(q.result);q.onerror=j});
 const ig=async k=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('a').objectStore('a').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
 const is=async(k,v)=>{try{const d=await idb();d.transaction('a','readwrite').objectStore('a').put(v,k)}catch(e){}};
 async function asset(w){if(!db)return null;const r=db.collection('gameAssets').doc(w),m=await r.get();if(!m.exists)return null;const d=m.data(),k=w+'_'+d.at,c=await ig(k);if(c)return c;
  let s='';for(let i=0;i<d.n;i++)s+=(await r.collection('c').doc(String(i)).get()).data().d;const t=atob(s),u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);
  const buf=await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();is(k,buf);return buf}
-const fit=g=>{const o=g.scene,b=new THREE.Box3().setFromObject(o);o.scale.setScalar(1.75/((b.max.y-b.min.y)||1));const b2=new THREE.Box3().setFromObject(o);o.position.y=-b2.min.y;o.userData.by=o.position.y;o.traverse(n=>{if(n.isMesh)n.castShadow=true});pl.clear();legs=[];pm=o;pl.add(o)};
-function loadChar(){pl.clear();legs=[];pm=procChar(G.gender);pl.add(pm);const w=G.gender==='فتاة'?'female':'male';
- asset(w).then(buf=>{if(buf)new THREE.GLTFLoader().parse(buf.slice(0),'',fit,()=>{});else new THREE.GLTFLoader().load(C.settings.base+C.settings[w],fit,undefined,()=>{})}).catch(()=>{})}
+const parseGLB=buf=>new Promise((ok,no)=>new THREE.GLTFLoader().parse(buf.slice(0),'',ok,no));
+const loadURL=u=>new Promise(ok=>new THREE.GLTFLoader().load(u,ok,undefined,()=>ok(null)));
+async function loadModels(){
+ for(const w of['male','female']){try{let g=null;const buf=await asset(w);g=buf?await parseGLB(buf):await loadURL(C.settings.base+C.settings[w]);if(g)MODELS[w]={o:norm(g.scene,1.75),clips:g.animations||[]}}catch(e){}}
+ if(!MODELS.male&&MODELS.female)MODELS.male=MODELS.female;if(!MODELS.female&&MODELS.male)MODELS.female=MODELS.male;
+ MREADY=true;applyModels();const ld=$('ld');if(ld)ld.textContent=MODELS.male?'':'ملفات الشخصيات لسه ما اترفعتش من لوحة الإدارة (هتظهر مجسمات مؤقتة).'}
+const mkey=g=>g==='فتاة'?'female':'male';
+function applyModels(){if(G)setPlayerModel();npcs.forEach(setVis);Object.values(REM).forEach(setVis)}
+/* player */
+const pl=new THREE.Group();scene.add(pl);let pm=null,pa=null,wt=0;
+function setPlayerModel(){pl.clear();pa=null;const m=MODELS[mkey(G.gender)];if(m){pm=cloneM(m.o);pl.add(pm);pa=anim(pm,m.clips)}else{pm=procChar(G.gender);pl.add(pm)}}
+function pAnim(dt,mv){if(pa){setMove(pa,mv);pa.mx.update(dt)}else{const L=pm&&pm.userData.legs;if(L){if(mv)wt+=dt*9;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(wt+i*Math.PI)*.7:0)}}}
+/* people (bots + online players) */
+const NM=['أحمد','محمد','محمود','مصطفى','يوسف','عمر','كريم','طارق','هشام','إسلام','حسام','زياد'],NF=['مريم','سارة','نور','هدى','ياسمين','منة','دينا','ندى','آية','رنا','هبة','إسراء'];
+const LBC={};
+function mkLabel(name){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(10,16,26,.65)';g.fillRect(8,10,240,44);g.fillStyle='#fff';g.font='700 32px Tahoma,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(name,128,33);
+ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k)}));s.scale.set(2.6,.65,1);s.position.y=2.3;return s}
+function mkPerson(gender,name){const g=new THREE.Group(),p={g,name,gender,x:0,z:0,ry:0,vis:null,an:null,lb:mkLabel(name)};g.add(p.lb);setVis(p);out.add(g);return p}
+function setVis(p){const m=MODELS[mkey(p.gender)];if(p.vis&&!m)return;if(p.vis)p.g.remove(p.vis);p.an=null;
+ if(m){p.vis=cloneM(m.o);p.an=anim(p.vis,m.clips)}else p.vis=procChar(p.gender,true);p.g.add(p.vis)}
+function npcBuild(){npcs.forEach(p=>out.remove(p.g));npcs=[];const n=Q[ST.q].npc;
+ for(let i=0;i<n;i++){const gd=Math.random()<.5?'رجل':'فتاة',p=mkPerson(gd,pick(gd==='رجل'?NM:NF));Object.assign(p,{bot:1,s:i%7===6?-1:i%4,t:Math.random(),d:Math.random()<.5?1:-1,v:R(1.2,1.8),w:0,o:R(-1.6,1.6),a:R(0,6.28),r:R(6,12)});npcs.push(p)}
+ npcStep(0)}
+function npcStep(dt){const px=pl.position.x,pz=pl.position.z;npcs.forEach(p=>{let nx=p.x,nz=p.z,mv=false;
+ if(p===TKw){}
+ else if(p.s<0){p.a+=dt*.35*p.d;nx=Math.cos(p.a)*p.r;nz=Math.sin(p.a)*p.r;mv=dt>0}
+ else if(p.w>0)p.w-=dt;
+ else{const s=SG[p.s],L=Math.hypot(s[2]-s[0],s[3]-s[1]);p.t+=p.d*p.v*dt/L;if(p.t>1||p.t<0){p.t=cl(p.t,0,1);p.d=-p.d;p.w=R(1,4)}nx=s[0]+(s[2]-s[0])*p.t+(-(s[3]-s[1])/L)*p.o;nz=s[1]+(s[3]-s[1])*p.t+((s[2]-s[0])/L)*p.o;mv=dt>0}
+ if(dt&&(Math.abs(nx-p.x)+Math.abs(nz-p.z))>.001)p.ry=Math.atan2(nx-p.x,nz-p.z);if(p===TKw)p.ry=Math.atan2(px-p.x,pz-p.z);
+ p.x=nx;p.z=nz;p.g.position.set(nx,0,nz);p.g.rotation.y=p.ry;
+ const d=Math.hypot(nx-px,nz-pz);p.g.visible=d<90;p.lb.visible=d<16;if(p.g.visible&&dt)animP(p,dt,mv,d)})}
+function animP(p,dt,mv,d){if(p.an){setMove(p.an,mv);if(d<45)p.an.mx.update(dt)}else{const L=p.vis.userData.legs;if(L){const t=performance.now()/1000*8;L.forEach((l,i)=>l.rotation.x=mv?Math.sin(t+i*Math.PI)*.7:0)}}}
+/* ---------- online presence ---------- */
+const REM={};let lastPW=0,lpx=1e9,lpz=1e9,lin='?';
+function remUpd(id,d){let r=REM[id];if(!r){r=REM[id]=mkPerson(d.gender||'رجل',d.name||'لاعب');r.pid=id;r.x=d.x||0;r.z=d.z||0;r.g.position.set(r.x,0,r.z)}
+ r.tx=d.x||0;r.tz=d.z||0;r.inside=!!d.in;r.rec=Date.now();hud()}
+function remDel(id){const r=REM[id];if(!r)return;out.remove(r.g);delete REM[id];if(TK&&TK.pid===id){}hud()}
+function remStep(dt){const px=pl.position.x,pz=pl.position.z,k=1-Math.exp(-dt*7);for(const id in REM){const r=REM[id],dx=r.tx-r.x,dz=r.tz-r.z,dd=Math.hypot(dx,dz),mv=dd>.08;
+ if(dd>40){r.x=r.tx;r.z=r.tz}else{r.x+=dx*k;r.z+=dz*k}if(mv)r.ry=Math.atan2(dx,dz);
+ r.g.position.set(r.x,0,r.z);r.g.rotation.y=r.ry;const d=Math.hypot(r.x-px,r.z-pz);r.g.visible=!r.inside&&d<120;r.lb.visible=d<18;if(r.g.visible)animP(r,dt,mv,d)}}
+function presence(now){if(!online||!db||!G)return;const p=pl.position,mv=!IN&&Math.hypot(p.x-lpx,p.z-lpz)>.4,chg=IN!==lin;
+ if(!chg&&now-lastPW<(mv?800:8000))return;lastPW=now;lin=IN;if(!IN){lpx=p.x;lpz=p.z}
+ db.collection('gamePresence').doc(pid).set({name:G.name,gender:G.gender,x:+lpx.toFixed(2),z:+lpz.toFixed(2),in:IN,t:Date.now()}).catch(()=>{})}
+function goOnline(){if(!db){toast('مفيش اتصال بالسيرفر، هتلعب أوفلاين');online=false;return}online=true;lin='?';lastPW=0;
+ unsubP&&unsubP();unsubP=db.collection('gamePresence').onSnapshot(s=>{s.docChanges().forEach(c=>{const id=c.doc.id;if(id===pid)return;if(c.type==='removed')remDel(id);else{const v=c.doc.data();if(!REM[id]&&Math.abs(Date.now()-(v.t||0))>90000)return;remUpd(id,v)}})},()=>{});
+ unsubC&&unsubC();unsubC=db.collection('gameChat').where('to','==',pid).onSnapshot(s=>{s.docChanges().forEach(c=>{if(c.type!=='added')return;const m=c.doc.data();c.doc.ref.delete().catch(()=>{});if(Date.now()-(m.at||0)<180000)incoming(m)})},()=>{});hud()}
+function goOffline(){online=false;unsubP&&unsubP();unsubC&&unsubC();unsubP=unsubC=null;Object.keys(REM).forEach(remDel);if(db)db.collection('gamePresence').doc(pid).delete().catch(()=>{})}
+setInterval(()=>{const n=Date.now();for(const id in REM)if(n-REM[id].rec>25000)remDel(id)},3000);
+/* ---------- chat ---------- */
+let TK=null,TKw=null;const LOG={};
+const ck=t=>t.type==='pl'?'p'+t.pid:'b'+t.name;
+const nz=s=>String(s).replace(/[ً-ٟـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[؟?!.,،]/g,' ').toLowerCase();
+const has=(s,...w)=>w.some(x=>s.includes(x));
+const WHERE={lec:'قاعة المحاضرات قدامك على الشمال (من النافورة ناحية قاعة الامتحانات)',lib:'المكتبة قدامك على اليمين من النافورة',caf:'الكافتيريا ورا على الشمال',dorm:'السكن الجامعي ورا على اليمين، وفيه سريرك عشان تنام',exam:'قاعة الامتحانات في آخر الشارع الرئيسي قدامك',job:'مكتب العمل في أقصى الشمال على الطريق العرضي',adm:'مبنى الإدارة ورا خالص ورا النافورة'};
+const INFO={lec:'في القاعة بتحضر المحاضرات من 8 الصبح لـ 4 العصر وبتزيد معلوماتك',lib:'المكتبة مفتوحة لحد 11 بالليل وبتذاكر فيها المواد',caf:'الكافتيريا بـ 20 جنيه ترجّعلك 25 طاقة',dorm:'السكن فيه سريرك، تنام وطاقتك ترجع كاملة ويبدأ يوم جديد',exam:'هناك بتدخل الامتحانات لما الترم يخلص',job:'مكتب العمل بيديك 120 جنيه في كل وردية بس بتتعبك',adm:'الإدارة فيها كشف درجاتك ومعدلك'};
+const BK={job:['شغل','عمل','وظيف'],lec:['محاضر','قاعه المحاضرات'],lib:['مكتبه'],caf:['كافت','كافيتيريا'],dorm:['نوم','سكن','مدينه','سرير'],exam:['امتحان'],adm:['ادار','درجات','كشف']};
+function botReply(raw,bot){const s=nz(raw).trim(),n=G.name,h=Math.floor(G.clock),left=G.ph==='term'?Math.max(0,20-G.day):0,col=bot.col||(bot.col=pick(C.colleges).name);
+ const kn=Object.entries(G.know||{}).sort((a,b)=>a[1]-b[1]),weak=kn[0]&&kn[0][1]<50?kn[0][0]:'';
+ if(!s)return 'لسه بتفكر تكتب إيه؟ 😄';
+ if(has(s,'مع السلامه','باي','الي اللقاء','بالتوفيق','يلا سلام','تصبح'))return pick(['مع السلامة يا '+n+'، بالتوفيق في المذاكرة!','يلا سلام، شوفك على خير 👋','في رعاية الله، ذاكر كويس!']);
+ if(has(s,'شكرا','متشكر','تسلم','ميرسي','جزاك'))return pick(['العفو يا '+n+'، دي حاجة بسيطة','ولا يهمك، احنا زمايل 😊','تحت أمرك في أي وقت']);
+ if(has(s,'ازيك','عامل ايه','عامله ايه','اخبارك','كيف حالك','ايه الاخبار','اخبار ايه','كيفك'))return pick(['الحمد لله تمام'+(left&&left<6?'، بس الامتحانات قربت وأنا متوتر':'')+'. وانت عامل إيه؟','تمام الحمد لله، يوم دراسي عادي. وانت؟','كله تمام، بس الجامعة بتتعب 😅 إنت أخبارك؟']);
+ if(has(s,'اسمك','انت مين','مين انت','عرفني'))return 'أنا '+bot.name+'، طالب '+(bot.gender==='فتاة'?'ة ':'')+'في كلية '+col+'. وانت '+n+' صح؟';
+ if(has(s,'اسمي','انا مين'))return 'أهلا يا '+n+'، اسمك مكتوب فوق راسك 😄';
+ if(has(s,'السلام عليكم','سلام عليكم'))return 'وعليكم السلام ورحمة الله وبركاته، نورت يا '+n+'!';
+ if(has(s,'اهلا','مرحبا','هاي','هلو','هلا','صباح','مساء','هالو'))return (h<12?'صباح الخير':h<18?'نهارك سعيد':'مساء الخير')+' يا '+n+'! عامل إيه؟';
+ const bk=Object.keys(BK).find(k=>BK[k].some(w=>s.includes(w)))||(has(s,'مكتبه')?'lib':'');
+ const ask=has(s,'فين','اين','مكان','اروح','طريق','ازاي اوصل','اروحه');
+ if(bk&&ask)return WHERE[bk]+'.';
+ if(bk&&!has(s,'امتحان')||(bk==='exam'&&has(s,'قاعه')))return INFO[bk]+'.';
+ if(has(s,'امتحان','ذاكر','مذاكر','نجح','رسب','دور تاني','دور ثاني','نصيحه')){if(G.ph==='exam'||G.ph==='sexam')return 'الامتحانات شغالة دلوقتي! روح قاعة الامتحانات بسرعة وإنت مرتاح';return (left?'فاضل '+left+' يوم على الامتحانات. ':'')+(weak?'ركز على '+weak+' لأنها أضعف مادة عندك ('+(G.know[weak]||0)+'%). ':'ذاكر كل المواد بالتساوي. ')+'وماتنساش تنام كويس قبل الامتحان.'}
+ if(has(s,'معدل','تقدير','gpa'))return 'معدلك دلوقتي '+(+G.gpa).toFixed(2)+'. كشف الدرجات في مبنى الإدارة. الاجتهاد بيرفع نتيجتك فاستمر في المذاكرة.';
+ if(has(s,'فلوس','مصروف','مال','غلبان','فقير','مرتب','راتب','جنيه'))return 'معاك '+Math.round(G.money)+' جنيه. لو محتاج فلوس روح مكتب العمل الطلابي، بتاخد 120 جنيه في الوردية بس بتخلص طاقتك.';
+ if(has(s,'تعبان','طاقه','ارهاق','نعسان','تعب','زهقان'))return G.energy<40?'شكلك فعلا تعبان (طاقتك '+Math.round(G.energy)+'). روح السكن نام أو خد وجبة من الكافتيريا.':'طاقتك '+Math.round(G.energy)+' كويسة، كمل بس خد بالك من نفسك.';
+ if(has(s,'اكل','جعان','جوع'))return 'الكافتيريا ورا على الشمال، بـ 20 جنيه ترجع طاقتك.';
+ if(has(s,'الساعه','الوقت','كام'))return 'الساعة دلوقتي '+String(h).padStart(2,'0')+':'+String(Math.floor((G.clock-h)*60)).padStart(2,'0')+'، واحنا في السنة '+G.year+'.';
+ if(has(s,'كليه','تخصص'))return 'أنا في كلية '+col+'، وإنت في '+G.college+'. كل كلية ليها مواد خاصة بيها.';
+ if(has(s,'وظيفه','مهنه','بعد التخرج','هبقي ايه','هشتغل'))return 'بعد التخرج الوظيفة بتتحدد بمعدلك واجتهادك. لو معدلك عالي ممكن توصل لـ '+(C.careers[0]?C.careers[0].name:'وظيفة كويسة')+'.';
+ if(has(s,'نكته','هزار','اضحكني','فرفش'))return pick(['مرة طالب قال للدكتور: أنا ما ذاكرتش بس كنت ناوي! قاله الدكتور: النية مش بتتصحح في الامتحان 😂','الطالب النجيب هو اللي بيذاكر ليلة الامتحان في نص ساعة وبيطلع بنفس الدرجة 😄','ليه الطالب حط الكتاب تحت المخدة؟ عشان المعلومات تدخل وهو نايم 🤣']);
+ if(has(s,'ساعدني','اعمل ايه','ابدا ازاي','العبه','مساعده','اعمل ايه'))return 'اللعبة بسيطة: روح المحاضرات والمكتبة اتعلم، نام في السكن، اشتغل لو محتاج فلوس، وادخل الامتحانات لما الترم يخلص.';
+ if(has(s,'الجو','حر','برد','مطر'))return 'الجو حلو النهاردة، يفتح النفس للمذاكرة في الجنينة 🌤';
+ if(has(s,'ايوه','ايوا','اه','تمام','ok','اوكي','ماشي'))return pick(['تمام 👍','حلو كده','ماشي يا '+n]);
+ return pick(['ههه معاك حق. وانت بتاخد إيه الترم ده؟','مش فاهمك أوي، بس ممكن تسألني عن المكتبة أو الامتحانات أو الكافتيريا.','ممم، قولي أكتر؟','طب سيبك من ده، ذاكرت النهاردة؟']);}
+function logPush(k,m,t){(LOG[k]=LOG[k]||[]).push({m,t});if(TK&&ck(TK)===k)renderLog()}
+function renderLog(){const l=$('chl');l.innerHTML=(LOG[ck(TK)]||[]).map(x=>'<div class="m '+x.m+'">'+esc(x.t)+'</div>').join('');l.scrollTop=l.scrollHeight}
+const QR=['السلام عليكم','عامل إيه؟','المكتبة فين؟','نصيحة للامتحان','الساعة كام؟','احكيلي نكتة'];
+function openChat(t){TK=t;TKw=t.type==='bot'?t.who:null;paused=true;$('cht').textContent='💬 '+t.name+(t.type==='pl'?' (لاعب)':'');const k=ck(t);
+ if(!LOG[k]){LOG[k]=[];logPush(k,'sy',t.type==='bot'?'بدأت محادثة مع '+t.name:'محادثة مع لاعب أونلاين: '+t.name);if(t.type==='bot')setTimeout(()=>logPush(k,'ot',pick(['أهلا بيك!','إزيك؟ أول مرة أشوفك هنا','أهلا يا '+G.name+'!'])),500)}
+ $('chq').innerHTML=QR.map(q=>'<button data-q="'+q+'">'+q+'</button>').join('');renderLog();$('chat').classList.add('on');
+ if(!matchMedia('(pointer:coarse)').matches)setTimeout(()=>$('chin').focus(),50)}
+function closeChat(){TK=null;TKw=null;$('chat').classList.remove('on');if(!$('dlg').classList.contains('on')&&!$('set').classList.contains('on'))paused=false}
+function sendChat(txt){txt=(txt||'').trim();if(!txt||!TK)return;const t=TK,k=ck(t);logPush(k,'me',txt);$('chin').value='';
+ if(t.type==='bot'){const typ=Date.now();setTimeout(()=>logPush(k,'ot',botReply(txt,t.who)),R(700,1500))}
+ else{if(!db||!REM[t.pid]){logPush(k,'sy','اللاعب ده خرج من اللعبة');return}
+  db.collection('gameChat').add({to:t.pid,from:pid,fromName:G.name,text:txt.slice(0,120),at:Date.now()}).catch(()=>logPush(k,'sy','تعذر الإرسال'))}}
+function incoming(m){if(!G)return;const k='p'+m.from;logPush(k,'ot',m.text);if(TK&&ck(TK)===k)return;
+ const c=$('msgc');c.innerHTML='<div><b>💬 '+esc(m.fromName||'لاعب')+'</b>: '+esc(m.text)+'</div><div class="row"><button class="ok" id="mrp">رد</button><button class="alt" id="mig">تجاهل</button></div>';c.classList.add('on');
+ $('mrp').onclick=()=>{c.classList.remove('on');openChat({type:'pl',pid:m.from,name:m.fromName||'لاعب',who:REM[m.from]})};$('mig').onclick=()=>c.classList.remove('on');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('on'),15000)}
+$('chs').onclick=()=>sendChat($('chin').value);$('chin').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat($('chin').value)});
+$('chq').addEventListener('click',e=>{const q=e.target.dataset&&e.target.dataset.q;if(q)sendChat(q)});$('chx').onclick=closeChat;
+/* ---------- quality / viewport ---------- */
 function applyQ(){const q=Q[ST.q];rd.setPixelRatio(Math.min(devicePixelRatio,q.pr));rd.shadowMap.enabled=!!q.sh;sun.castShadow=!!q.sh;if(q.sh){sun.shadow.mapSize.set(q.sh,q.sh);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}scene.fog.far=IN?60:q.fog;rs();scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))o.material.needsUpdate=true});treeBuild();npcBuild()}
 let ROT=false;
 function rs(){const W=innerWidth,H=innerHeight;ROT=H>W;const w=ROT?H:W,h=ROT?W:H,st=$('stage').style;st.width=w+'px';st.height=h+'px';st.transform=ROT?'translateX('+W+'px) rotate(90deg)':'none';rd.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,250));
+/* تحويل الشاشة للعرض + ملء الشاشة تلقائيا */
+const isFS=()=>document.fullscreenElement||document.webkitFullscreenElement;
+async function goLand(){try{const de=document.documentElement;if(!isFS()){const f=de.requestFullscreen||de.webkitRequestFullscreen;if(f)await f.call(de)}}catch(e){}
+ try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape')}catch(e){}setTimeout(rs,300)}
+if(matchMedia('(pointer:coarse)').matches){addEventListener('pointerup',()=>{if(!isFS())goLand()},{passive:true});addEventListener('touchend',()=>{if(!isFS())goLand()},{passive:true})}
+document.addEventListener('fullscreenchange',()=>setTimeout(rs,300));
 /* ---------- game state ---------- */
 const crs=()=>{const l=C.courses.filter(c=>!c.college||c.college===G.college);return l.length>=2?l:C.courses},cur=()=>G.ph==='summer'||G.ph==='sexam'?crs().filter(c=>G.failed.includes(c.name)):crs();
 function newG(name,gender,college){const g=C.global;return{name,gender,college,year:1,day:1,clock:8,ph:'term',energy:+g.energy,money:+g.money,gpa:0,effort:30,know:{},failed:[],res:{},yd:0,rep:0,career:'',done:false}}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)}
-function dlg(h,bt,cb){paused=true;$('dc').innerHTML=h;const d=$('db');d.innerHTML='';bt.forEach((b,i)=>{const e=document.createElement('button');e.textContent=b[0];if(b[2])e.className='alt';e.onclick=()=>{$('dlg').classList.remove('on');paused=false;(b[1]||cb||(()=>{}))()};d.appendChild(e)});$('dlg').classList.add('on')}
+function dlg(h,bt,cb){paused=true;$('dc').innerHTML=h;const d=$('dbt');d.innerHTML='';bt.forEach(b=>{const e=document.createElement('button');e.textContent=b[0];if(b[2])e.className='alt';e.onclick=()=>{$('dlg').classList.remove('on');paused=!!TK;(b[1]||cb||(()=>{}))()};d.appendChild(e)});$('dlg').classList.add('on')}
 function hud(){if(!G)return;const h=Math.floor(G.clock),m=Math.floor((G.clock-h)*60),p={term:'يوم '+G.day+'/20',exam:'فترة الامتحانات',summer:'الصيف يوم '+Math.min(G.day,10)+'/10',sexam:'امتحان الدور الثاني'}[G.ph];
- $('tm').textContent='السنة '+G.year+' · '+p+' · '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');$('st').textContent='طاقة '+Math.round(G.energy)+' · مال '+Math.round(G.money)+' · معدل '+(+G.gpa).toFixed(2)}
+ $('tm').textContent='السنة '+G.year+' · '+p+' · '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+ $('st').textContent='⚡ '+Math.round(G.energy)+'  💰 '+Math.round(G.money)+'  🎓 '+(+G.gpa).toFixed(2);
+ $('on').textContent=online?'🌐 '+(Object.keys(REM).length+1)+' متصل':'📴 أوفلاين'}
 function adv(h){G.clock+=h;while(G.clock>=24){G.clock-=24;newDay(false)}}
 function newDay(slept){G.day++;G.energy=slept?+C.global.energy:cl(G.energy-15,0,100);G.money-=Math.round(C.diff.living/50*15);
  if(G.ph==='term'&&G.day>20){G.ph='exam';toast('بدأت الامتحانات، اذهب لقاعة الامتحانات')}else if(G.ph==='summer'&&G.day>10){G.ph='sexam';toast('امتحان الدور الثاني، اذهب لقاعة الامتحانات')}save()}
 function use(h,e){adv(h);G.energy=cl(G.energy-e,0,100);G.effort=cl(G.effort+1,0,100);ev();hud();save()}
 function ev(){if(Math.random()*100>C.diff.events*.6||!C.events.length)return;const e=pick(C.events);if(Math.random()*100>(+e.chance||20)*1.5)return;G.gpa=cl(G.gpa+(+e.gpa||0),0,4);G.energy=cl(G.energy+(+e.energy||0),0,100);G.money+=+e.money||0;setTimeout(()=>toast(e.text),1200)}
 const gain=a=>Math.round(a*(G.energy<20?.5:1)*(C.diff.effort/50));
-function chooser(t,fn){const l=cur();if(!l.length)return toast('مفيش مواد مطلوبة');paused=true;$('dc').innerHTML='<h3>'+t+'</h3>'+l.map(c=>'<div style="width:100%;text-align:right">'+esc(c.name)+'<div class="bar"><b style="width:'+(G.know[c.name]||0)+'%"></b></div></div>').join('');const d=$('db');d.innerHTML='';l.forEach(c=>{const e=document.createElement('button');e.textContent=c.name;e.onclick=()=>{$('dlg').classList.remove('on');paused=false;fn(c)};d.appendChild(e)});const x=document.createElement('button');x.textContent='إلغاء';x.className='alt';x.onclick=()=>{$('dlg').classList.remove('on');paused=false};d.appendChild(x);$('dlg').classList.add('on')}
-function sleep(){if(G.clock>=7)newDay(true);else G.energy=+C.global.energy;G.clock=7;ev();hud();save();toast('نمت واستعدت نشاطك')}
+function chooser(t,fn){const l=cur();if(!l.length)return toast('مفيش مواد مطلوبة');paused=true;$('dc').innerHTML='<h3>'+t+'</h3>'+l.map(c=>'<div style="width:100%;text-align:right">'+esc(c.name)+'<div class="bar"><b style="width:'+(G.know[c.name]||0)+'%"></b></div></div>').join('');const d=$('dbt');d.innerHTML='';l.forEach(c=>{const e=document.createElement('button');e.textContent=c.name;e.onclick=()=>{$('dlg').classList.remove('on');paused=false;fn(c)};d.appendChild(e)});const x=document.createElement('button');x.textContent='إلغاء';x.className='alt';x.onclick=()=>{$('dlg').classList.remove('on');paused=false};d.appendChild(x);$('dlg').classList.add('on')}
+function fade(msg,cb){const f=$('fade');f.textContent=msg;f.classList.add('on');paused=true;setTimeout(()=>{try{cb()}catch(e){}hud();f.classList.remove('on');paused=!!TK},1700)}
+function sleep(){fade('💤 جاري النوم...',()=>{if(G.clock>=7)newDay(true);else G.energy=+C.global.energy;G.clock=7;ev();save();toast('صحيت واستعدت نشاطك ☀️')})}
 const pts=s=>s>=90?4:s>=80?3.5:s>=70?3:s>=60?2.5:s>=50?2:0;
 function sit(l){return l.map(c=>{const s=cl(Math.round((G.know[c.name]||0)*.9+(C.diff.exam-50)*.2-(c.diff||5)*1.5+10+R(-6,6)),0,100);return{c,s,p:s>=50}})}
 function examNow(){const sum=G.ph==='sexam',r=sit(cur());adv(3);G.energy=cl(G.energy-15,0,100);
@@ -170,8 +331,8 @@ function examNow(){const sum=G.ph==='sexam',r=sit(cur());adv(3);G.energy=cl(G.en
 function finishYear(){const v=Object.values(G.res),yp=v.length?v.reduce((a,s)=>a+pts(s),0)/v.length:0;G.gpa=G.yd?(G.gpa*G.yd+yp)/(G.yd+1):yp;G.yd++;G.know={};G.failed=[];G.res={};
  if(G.year>=+C.global.years){grad();return}G.year++;G.day=1;G.ph='term';toast('نجحت إلى السنة '+G.year);hud();save()}
 function grad(){const c=C.careers.filter(c=>G.gpa>=+c.minGpa&&G.effort>=+c.minEffort&&(!c.college||c.college===G.college)).sort((a,b)=>b.salary-a.salary)[0]||{name:'عاطل عن العمل',desc:'ما حققتش شروط أي وظيفة.',salary:0};
- G.career=c.name;G.done=true;save();dlg('<h1>مبروك التخرج</h1><p>المعدل النهائي: '+G.gpa.toFixed(2)+'</p><h3>'+esc(c.name)+'</h3><p>'+esc(c.desc)+'</p><p>الراتب: '+c.salary+'</p>',[['حياة جديدة']],()=>reset())}
-function reset(){localStorage.removeItem('uniG');G=null;mode='menu';$('hud').classList.remove('on');$('menu').classList.add('on');leave(true)}
+ G.career=c.name;G.done=true;saveNow();dlg('<h1>🎓 مبروك التخرج</h1><p>المعدل النهائي: '+G.gpa.toFixed(2)+'</p><h3>'+esc(c.name)+'</h3><p>'+esc(c.desc)+'</p><p>الراتب: '+c.salary+'</p>',[['حياة جديدة']],()=>reset())}
+function reset(){localStorage.removeItem('uniG');exitGame()}
 function doIt(k){const h=G.clock;
  if(k==='lec'){if(h<8||h>16)return toast('القاعة مغلقة الآن. المحاضرات من 8 صباحا حتى 4 عصرا.');if(G.ph!=='term')return toast('مفيش محاضرات في الفترة دي.');chooser('اختر المحاضرة',c=>{G.know[c.name]=cl((G.know[c.name]||0)+gain(12),0,100);toast('حضرت محاضرة '+c.name);use(2,10)})}
  else if(k==='lib'){if(h<8||h>23)return toast('المكتبة مقفولة الآن.');if(G.ph==='exam'||G.ph==='sexam')return toast('مفيش وقت للمذاكرة، ادخل الامتحان.');chooser('اختر المادة للمذاكرة',c=>{G.know[c.name]=cl((G.know[c.name]||0)+gain(10),0,100);toast('ذاكرت '+c.name);use(3,14)})}
@@ -180,33 +341,35 @@ function doIt(k){const h=G.clock;
  else if(k==='exam'){if(G.ph==='exam'||G.ph==='sexam')examNow();else toast('مفيش امتحانات حاليا.')}
  else if(k==='job'){if(G.energy<25)return toast('أنت تعبان جدا للشغل.');G.money+=120;toast('اشتغلت وكسبت 120');use(4,20)}
  else dlg('<h3>كشف الدرجات</h3><p>السنة '+G.year+' من '+C.global.years+'</p><p>المعدل التراكمي: '+(+G.gpa).toFixed(2)+'</p><p>الاجتهاد: '+Math.round(G.effort)+'/100</p>'+crs().map(c=>'<p>'+esc(c.name)+': '+(G.know[c.name]||0)+'%'+(G.res[c.name]!=null?' (درجة '+G.res[c.name]+')':'')+'</p>').join(''),[['إغلاق']])}
-function enter(b){IN=b.k;out.visible=false;inn.clear();inn.add(room(b.k));plL.intensity=.9;hemi.intensity=.5;sun.intensity=.1;scene.fog.far=60;scene.background.set(0x20252e);pl.position.set(0,0,IZ+6);pl.rotation.y=Math.PI;cy=0;dr=0}
+function enter(b){IN=b.k;out.visible=false;inn.clear();inn.add(room(b.k));plL.intensity=.9;hemi.intensity=.5;sun.intensity=.1;scene.fog.far=60;scene.background.set(0x20252e);pl.position.set(0,0,IZ+6);pl.rotation.y=Math.PI;cy=0}
 function leave(s){if(!IN&&!s)return;const b=B.find(x=>x.k===IN);IN='';out.visible=true;inn.clear();plL.intensity=0;hemi.intensity=.75;scene.fog.far=Q[ST.q].fog;if(b)pl.position.set(b.x,0,b.dz+b.f*1.8)}
 /* ---------- controls ---------- */
-let jx=0,jy=0,jid=null,cid=null,lx=0,ly=0,cy=0,cp=.35,dr=0;const K={},jb=$('jb'),jk=$('jk');
+let jx=0,jy=0,jid=null,cid=null,lx=0,ly=0,cy=0,cp=.35;const K={},jb=$('jb'),jk=$('jk');
 function jm(e){const r=jb.getBoundingClientRect(),sx=e.clientX-(r.left+r.width/2),sy=e.clientY-(r.top+r.height/2),dx=ROT?sy:sx,dy=ROT?-sx:sy,m=Math.min(1,Math.hypot(dx,dy)/45),a=Math.atan2(dy,dx);jx=Math.cos(a)*m;jy=Math.sin(a)*m;jk.style.transform='translate('+jx*45+'px,'+jy*45+'px)'}
 jb.addEventListener('pointerdown',e=>{jid=e.pointerId;jb.setPointerCapture(jid);jm(e)});jb.addEventListener('pointermove',e=>{if(e.pointerId===jid)jm(e)});
 const je=e=>{if(e.pointerId===jid){jid=null;jx=jy=0;jk.style.transform=''}};jb.addEventListener('pointerup',je);jb.addEventListener('pointercancel',je);
 const cv=$('c');cv.addEventListener('pointerdown',e=>{if(cid===null){cid=e.pointerId;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(cid)}});
 cv.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;const s=ST.sen/50*.005,ax=e.clientX-lx,ay=e.clientY-ly,dx=ROT?ay:ax,dy=ROT?-ax:ay;cy-=dx*s;cp=cl(cp+dy*s,.1,1.1);lx=e.clientX;ly=e.clientY});
 const ce=e=>{if(e.pointerId===cid)cid=null};cv.addEventListener('pointerup',ce);cv.addEventListener('pointercancel',ce);
-addEventListener('keydown',e=>{K[e.key.toLowerCase()]=1;if(e.key.toLowerCase()==='e')act()});addEventListener('keyup',e=>K[e.key.toLowerCase()]=0);
-const LN=['ذاكرت للامتحان؟','المحاضرة النهارده كانت صعبة','الكافتيريا زحمة النهارده','سمعت إن امتحانات السنة دي صعبة','المكتبة هادية الصبح','اشتغل وقت فراغك، المصروف مش بيكفي'];
-function act(){if(!near||paused||mode!=='play')return;if(near.t==='enter')enter(near.b);else if(near.t==='exit')leave();else if(near.t==='talk')toast(pick(LN));else doIt(IN)}
+const typing=e=>e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA');
+addEventListener('keydown',e=>{if(typing(e))return;K[e.key.toLowerCase()]=1;if(e.key.toLowerCase()==='e')act()});addEventListener('keyup',e=>{if(!typing(e))K[e.key.toLowerCase()]=0});
+function act(){if(!near||paused||mode!=='play')return;if(near.t==='enter')enter(near.b);else if(near.t==='exit')leave();else if(near.t==='talk'){const p=near.who;openChat(p.pid?{type:'pl',pid:p.pid,name:p.name,who:p}:{type:'bot',name:p.name,who:p})}else doIt(IN)}
 $('act').onclick=act;
 /* ---------- loop ---------- */
-let last=performance.now(),ct=0;
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;
+let last=performance.now(),lat='';
+function nearest(px,pz){let bd=2.7,bp=null;for(const p of npcs)if(p.g.visible){const d=Math.hypot(px-p.x,pz-p.z);if(d<bd){bd=d;bp=p}}for(const id in REM){const p=REM[id];if(p.g.visible){const d=Math.hypot(px-p.x,pz-p.z);if(d<bd){bd=d;bp=p}}}return bp}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;let mv=false;
  if(mode==='play'&&G&&!paused){const kx=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ky=(K.s||K.arrowdown?1:0)-(K.w||K.arrowup?1:0),ix=jx+kx,iy=jy+ky,m=Math.min(1,Math.hypot(ix,iy));
-  if(m>.08){const fx=-Math.sin(cy),fz=-Math.cos(cy),rx=Math.cos(cy),rz=-Math.sin(cy),vx=fx*-iy+rx*ix,vz=fz*-iy+rz*ix,l=Math.hypot(vx,vz)||1,sp=5.5*m*dt;let nx=pl.position.x+vx/l*sp,nz=pl.position.z+vz/l*sp;
+  if(m>.08){mv=true;const fx=-Math.sin(cy),fz=-Math.cos(cy),rx=Math.cos(cy),rz=-Math.sin(cy),vx=fx*-iy+rx*ix,vz=fz*-iy+rz*ix,l=Math.hypot(vx,vz)||1,sp=5.5*m*dt;let nx=pl.position.x+vx/l*sp,nz=pl.position.z+vz/l*sp;
    if(IN){nx=cl(nx,-9.2,9.2);nz=cl(nz,IZ-9.2,IZ+9.2)}else{nx=cl(nx,-190,190);nz=cl(nz,-190,190);AB.forEach(a=>{if(nx>a.x1&&nx<a.x2&&nz>a.z1&&nz<a.z2){const d=[nx-a.x1,a.x2-nx,nz-a.z1,a.z2-nz],i=d.indexOf(Math.min(...d));if(i===0)nx=a.x1;else if(i===1)nx=a.x2;else if(i===2)nz=a.z1;else nz=a.z2}})}
-   pl.position.x=nx;pl.position.z=nz;pl.rotation.y=Math.atan2(vx,vz);wt+=dt*9*m;if(pm)pm.position.y=(pm.userData.by||0)+(legs.length?0:Math.abs(Math.sin(wt))*.06);legs.forEach((l,i)=>l.rotation.x=Math.sin(wt+i*Math.PI)*.7)}else legs.forEach(l=>l.rotation.x=0);
-  ct+=dt;
+   pl.position.x=nx;pl.position.z=nz;pl.rotation.y=Math.atan2(vx,vz)}
   if(!IN){const px=pl.position.x,pz=pl.position.z;near=null;for(const b of B)if(Math.hypot(px-b.x,pz-b.dz)<3.2){near={t:'enter',b};break}
-   if(!near)for(const p of npcs)if(Math.hypot(px-p.x,pz-p.z)<2.2){near={t:'talk'};break}}
+   if(!near){const p=nearest(px,pz);if(p)near={t:'talk',who:p}}}
   else{const dz=pl.position.z-IZ;near=Math.hypot(pl.position.x,dz+3)<2.8?{t:'do'}:(dz>7?{t:'exit'}:null)}
-  const ab=$('act');ab.style.display=near?'block':'none';if(near)ab.textContent=near.t==='enter'?'دخول '+near.b.n:near.t==='exit'?'خروج':near.t==='talk'?'تحدث':SPOT[IN]}
- npcStep(mode==='play'&&!paused?dt:0);
+  const ab=$('act'),tx=!near?'':near.t==='enter'?'دخول '+near.b.n:near.t==='exit'?'خروج':near.t==='talk'?'💬 تحدث مع '+near.who.name:SPOT[IN];
+  ab.style.display=near?'block':'none';if(tx!==lat){ab.textContent=tx;lat=tx}}
+ if(G)pAnim(dt,mv);
+ npcStep(((mode==='play'&&!paused)||mode==='menu'||mode==='cine')?dt:0);remStep(dt);presence(now);
  const t=now/1000;
  if(mode==='menu'){cam.position.set(Math.sin(t*.1)*90,38,Math.cos(t*.1)*90);cam.lookAt(0,5,0)}
  else if(mode==='cine'){const k=Math.min(1,(now-cs)/9000),a=t*.25,r=90-65*k,y=40-34*k;cam.position.set(Math.sin(a)*r,y,Math.cos(a)*r);cam.lookAt(0,6-4*k,0);if(k>=1)endCine()}
@@ -215,27 +378,50 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
   sun.position.set(p.x+60,100,p.z+40);sun.target.position.copy(p)}
  rd.render(scene,cam)}
 /* ---------- flow ---------- */
-let cs=0;const CT=['سنة أولى جامعة','كل قرار بتاخده بيرسم مستقبلك'];
+const CT=['سنة أولى جامعة','كل قرار بتاخده بيرسم مستقبلك'];
 function startCine(){mode='cine';cs=performance.now();$('bars').classList.add('on');$('ct').textContent=CT[0];setTimeout(()=>{if(mode==='cine')$('ct').textContent=CT[1]},4500)}
-function endCine(){mode='play';$('bars').classList.remove('on');$('hud').classList.add('on');hud();if(C.global.notice)toast(C.global.notice)}
+function endCine(){mode='play';$('bars').classList.remove('on');$('hud').classList.add('on');hud();if(C.global.notice)toast(C.global.notice);
+ if(!localStorage.uniTut){localStorage.uniTut=1;dlg('<h3>إزاي تلعب</h3><p>🕹 الجويستيك للمشي، واسحب على الشاشة لتحريك الكاميرا.</p><p>🏫 قف على الدايرة الصفرا قدام أي مبنى عشان تدخل.</p><p>🛏 للنوم: ادخل «السكن الجامعي (نوم)» وقف على الدايرة الخضرا جنب السرير.</p><p>💬 قف قدام أي طالب أو لاعب واضغط «تحدث» عشان تكلمه.</p><p>⚙ من الترس تقدر تخرج من اللعبة.</p>',[['يلا نبدأ']])}}
 $('skip').onclick=endCine;
-function begin(g,fresh){G=g;try{const de=document.documentElement;(de.requestFullscreen||de.webkitRequestFullscreen||(()=>{})).call(de);screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}
- $('menu').classList.remove('on');pl.position.set(0,0,12);pl.rotation.y=Math.PI;cy=0;loadChar();music();
- if(fresh&&db)me().set({name:g.name,banned:false,inbox:[]},{merge:true});save();listen();fresh?startCine():endCine()}
+function randSpawn(){const s=pick(SG),t=R(.1,.9);return[s[0]+(s[2]-s[0])*t+R(-1.5,1.5),s[1]+(s[3]-s[1])*t+R(-1.5,1.5)]}
+function begin(g,fresh){G=g;online=false;goLand();$('menu').classList.remove('on');IN='';leave(true);
+ if(ST.online&&db){const sp=randSpawn();pl.position.set(sp[0],0,sp[1])}else pl.position.set(0,0,12);
+ pl.rotation.y=Math.PI;cy=0;lpx=1e9;setPlayerModel();music();
+ if(db)me().set({name:g.name},{merge:true}).catch(()=>{});saveNow();listen();
+ if(ST.online){if(db)goOnline();else toast('مفيش اتصال، هتلعب أوفلاين')}
+ fresh?startCine():endCine()}
+function exitGame(){closeChat();if(G&&!G.done)saveNow();goOffline();unsubMe&&unsubMe();unsubMe=null;
+ ['set','dlg'].forEach(i=>$(i).classList.remove('on'));$('msgc').classList.remove('on');paused=false;mode='menu';$('hud').classList.remove('on');$('bars').classList.remove('on');leave(true);G=null;pa=null;
+ try{if(isFS()&&document.exitFullscreen)document.exitFullscreen()}catch(e){}try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}
+ refreshMenu();$('menu').classList.add('on')}
+function mdBtns(){document.querySelectorAll('#mdr button').forEach(b=>b.className=(b.dataset.m==='on')===!!ST.online?'sel':'alt');$('mdt').textContent=ST.online?(db?'هتنزل في الجامعة في مكان عشوائي وتشوف اللاعبين الأونلاين وتتكلم معاهم.':'مفيش اتصال بالسيرفر حاليا.'):'لعب فردي بدون لاعبين آخرين (الطلاب بالذكاء الاصطناعي البسيط بيفضلوا موجودين).'}
+document.querySelectorAll('#mdr button').forEach(b=>b.onclick=()=>{ST.online=b.dataset.m==='on';localStorage.uniSet=JSON.stringify(ST);mdBtns()});
+function refreshMenu(){const g=jp('uniG',null),ok=g&&!g.done;$('saved').style.display=ok?'':'none';$('nbtn').style.display=ok?'':'none';$('newbox').style.display=ok?'none':'flex';
+ if(ok)$('svt').textContent=g.name+' · '+g.college+' · السنة '+g.year+' · '+(g.ph==='term'?'يوم '+g.day:'فترة امتحانات')+' · معدل '+(+g.gpa).toFixed(2);mdBtns()}
+$('nbtn').onclick=()=>{const b=$('newbox');b.style.display=b.style.display==='none'?'flex':'none'};
 $('gm').onclick=()=>{gen='رجل';$('gm').className='sel';$('gf').className='alt'};$('gf').onclick=()=>{gen='فتاة';$('gf').className='sel';$('gm').className='alt'};
-$('go').onclick=()=>{const n=$('nm').value.trim();if(!n)return toast2('اكتب اسمك');if(C.global.reg==='مغلق'&&!localStorage.uniG)return toast2('التسجيل مغلق حاليا.');begin(newG(n,gen,$('co').value),true)};
+function startNew(){const n=$('nm').value.trim();begin(newG(n,gen,$('co').value),true)}
+$('go').onclick=()=>{const n=$('nm').value.trim();if(!n)return toast2('اكتب اسمك الأول');if(C.global.reg==='مغلق'&&!localStorage.uniG)return toast2('التسجيل مغلق حاليا.');
+ const g=jp('uniG',null);if(g&&!g.done)dlg('<p>في رحلة محفوظة باسم <b>'+esc(g.name)+'</b>. لو بدأت من جديد هتتمسح. متأكد؟</p>',[['نعم، ابدأ من جديد',startNew],['لا، رجوع',()=>{},1]]);else startNew()};
 function toast2(t){dlg('<p>'+t+'</p>',[['حسنا']])}
-$('cont').onclick=()=>{const g=JSON.parse(localStorage.uniG);begin(g,false)};
-$('gear').onclick=()=>{$('mus').checked=ST.mus;$('vol').value=ST.vol;$('sen').value=ST.sen;qb();paused=true;$('set').classList.add('on')};
+$('cont').onclick=()=>{const g=jp('uniG',null);if(g)begin(g,false)};
+$('mkey').onclick=()=>{const c=(prompt('اكتب كود اللاعب (من الإعدادات في جهازك القديم):')||'').trim();if(!c||!db)return;db.collection('gameUsers').doc(c).get().then(s=>{const d=s.exists&&s.data();if(!d||!d.state)return toast2('الكود مش صحيح أو مفيش تقدم محفوظ عليه.');localStorage.uniPid=c;localStorage.uniG=JSON.stringify(fromCloud(d));location.reload()},()=>toast2('تعذر الاتصال بالسيرفر.'))};
+function quitApp(){exitGame();try{window.close()}catch(e){}setTimeout(()=>toast2('تم حفظ تقدمك ✅ تقدر تقفل الصفحة أو التطبيق دلوقتي.'),300)}
+$('mexit').onclick=quitApp;$('squit').onclick=quitApp;$('sexit').onclick=exitGame;$('sfs').onclick=()=>{goLand();toast('تم')};
+function openSet(){$('mus').checked=ST.mus;$('vol').value=ST.vol;$('sen').value=ST.sen;$('pcode').textContent=pid;$('ingame').style.display=G&&mode==='play'?'flex':'none';qb();paused=true;$('set').classList.add('on')}
+$('gear').onclick=openSet;$('mset').onclick=openSet;
 function qb(){document.querySelectorAll('#qr button').forEach(b=>b.className=b.dataset.q===ST.q?'sel':'alt')}
 document.querySelectorAll('#qr button').forEach(b=>b.onclick=()=>{ST.q=b.dataset.q;qb()});
-$('sapply').onclick=()=>{ST.mus=$('mus').checked;ST.vol=+$('vol').value;ST.sen=+$('sen').value;localStorage.uniSet=JSON.stringify(ST);applyQ();music();if(G)save();$('set').classList.remove('on');paused=false;toast('تم تطبيق الإعدادات')};
-$('sclose').onclick=()=>{ST=Object.assign(ST,JSON.parse(localStorage.uniSet||'{}'));$('set').classList.remove('on');paused=false};
-setInterval(()=>{if(mode==='play'&&G&&!paused){adv(1/15);G.energy=cl(G.energy-C.diff.drain/100*2.5/15,0,100);hud()}},1000);
-(async function boot(){rs();world();applyQ();requestAnimationFrame(frame);
- if(db){try{const s=await db.collection('game').doc('config').get();if(s.exists){const d=s.data();for(const k in d)if(d[k]!=null&&k!=='fb')C[k]=d[k]}}catch(e){}
-  try{const m=await me().get();if(m.exists&&m.data().banned){$('ban').innerHTML='<h1>تم حظرك من اللعبة</h1><p>'+esc(m.data().banReason||'')+'</p>';$('ban').classList.add('on')}}catch(e){}}
- if(C.global.maint==='تشغيل'){$('menu').innerHTML='<h1>اللعبة تحت الصيانة</h1><p>جرّب بعد قليل.</p>';return}
- $('co').innerHTML=C.colleges.map(c=>'<option>'+esc(c.name)+'</option>').join('');
- if(localStorage.uniG){try{const g=JSON.parse(localStorage.uniG);if(!g.done){$('cont').style.display='';$('cont').textContent='متابعة ('+g.name+')'}}catch(e){}}})();
+$('sapply').onclick=()=>{ST.mus=$('mus').checked;ST.vol=+$('vol').value;ST.sen=+$('sen').value;localStorage.uniSet=JSON.stringify(ST);applyQ();applyModels();music();if(G)save();$('set').classList.remove('on');paused=!!TK;if(mode==='play')toast('تم تطبيق الإعدادات')};
+$('sclose').onclick=()=>{ST=Object.assign(ST,jp('uniSet',{}));$('set').classList.remove('on');paused=!!TK};
+setInterval(()=>{if(mode==='play'&&G&&!paused){adv(1/15);G.energy=cl(G.energy-C.diff.drain/100*2.5/15,0,100);hud();if(++tick%15===0)saveNow()}},1000);
+addEventListener('pagehide',()=>{if(G&&!G.done){try{localStorage.uniG=JSON.stringify(G)}catch(e){}}if(db&&online)db.collection('gamePresence').doc(pid).delete().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&!G.done)saveNow()});
+(async function boot(){rs();$('co').innerHTML=C.colleges.map(c=>'<option>'+esc(c.name)+'</option>').join('');refreshMenu();world();applyQ();requestAnimationFrame(frame);
+ if(db){try{const s=await tmo(db.collection('game').doc('config').get(),5000);if(s.exists){const d=s.data();for(const k in d)if(d[k]!=null&&k!=='fb')C[k]=d[k]}}catch(e){}
+  try{const m=await tmo(me().get(),4000);if(m.exists&&m.data().banned)banShow(m.data().banReason);
+   if(m.exists&&!localStorage.uniG&&m.data().state){const g=fromCloud(m.data());if(!g.done){localStorage.uniG=JSON.stringify(g)}}}catch(e){}}
+ if(C.global.maint==='تشغيل'){$('menu').innerHTML='<div class="card"><h1>اللعبة تحت الصيانة</h1><p>جرّب بعد قليل.</p></div>';return}
+ $('co').innerHTML=C.colleges.map(c=>'<option>'+esc(c.name)+'</option>').join('');refreshMenu();
+ $('ld').textContent='جاري تحميل الشخصيات...';loadModels()})();
 </script></body></html>
