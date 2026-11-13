@@ -2259,7 +2259,7 @@
     <i class="fas fa-location-dot consent-icon"></i>
     <div class="consent-text">
       <strong>طلب الوصول لموقعك الجغرافي</strong>
-      <span>تطلب إدارة ميزان الاطلاع على موقعك الحالي (المحافظة والمدينة والعنوان التقريبي). لن يتم الوصول لموقعك إلا بموافقتك الصريحة هنا، ويمكنك الرفض في أي وقت.</span>
+      <span>تطلب إدارة ميزان الاطلاع على موقعك الحالي (المحافظة والمركز والقرية والعنوان) للتأكد من مطابقته للعنوان المسجّل، وسيتحدّث موقعك تلقائياً أثناء فتح الموقع. لن يتم الوصول لموقعك إلا بموافقتك الصريحة هنا، ويمكنك الرفض في أي وقت.</span>
     </div>
     <div class="consent-actions">
       <button class="consent-btn allow" id="locAllowBtn"><i class="fas fa-check"></i> سماح</button>
@@ -4158,25 +4158,109 @@ function hideLocationConsent() { $('locationConsentBanner').classList.remove('sh
 function showCameraConsent() { $('cameraConsentBanner').classList.add('show'); }
 function hideCameraConsent() { $('cameraConsentBanner').classList.remove('show'); }
 
+// ============================================================
+// 📍 الموقع اللحظي الدقيق + العنوان الفعلي (يعمل فقط بعد موافقة المستخدم وبدون حظر من الإدارة)
+// ============================================================
+const __GEO_MIN_MOVE_M = 75, __GEO_MIN_INTERVAL = 120000;
+let __locWatchId = null, __geoBusy = false;
+let __lastLocPush = { lat: null, lng: null, t: 0, acc: 1e9 };
+
+function __distM(lat1, lng1, lat2, lng2) {
+  const R = 6371000, rad = (x) => x * Math.PI / 180;
+  const dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// تحويل الإحداثيات لعنوان: OpenStreetMap أولاً (تفصيلي: محافظة/مركز/قرية/شارع)، وbigdatacloud احتياطي فقط
+async function reverseGeoDetailed(lat, lng) {
+  const geo = { gov: '', center: '', village: '', road: '', display: '', names: [], source: '' };
+  const names = new Set();
+  const add = (v) => { v = String(v || '').trim(); if (v) names.add(v); };
+  const fetchJson = async (url) => {
+    const ctl = new AbortController();
+    const to = setTimeout(() => ctl.abort(), 9000);
+    try {
+      const r = await fetch(url, { signal: ctl.signal, headers: { 'Accept': 'application/json' } });
+      return await r.json();
+    } finally { clearTimeout(to); }
+  };
+  try {
+    const j = await fetchJson(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=ar`);
+    const a = (j && j.address) || {};
+    if (j && j.address) {
+      geo.gov = a.state || a.region || '';
+      geo.center = a.county || a.state_district || a.city_district || a.city || a.town || '';
+      geo.village = a.village || a.hamlet || a.suburb || a.neighbourhood || a.town || a.city || '';
+      geo.road = a.road || '';
+      geo.display = j.display_name || '';
+      Object.entries(a).forEach(([k, v]) => { if (k !== 'country_code' && k !== 'postcode' && k !== 'country') add(v); });
+      geo.source = 'osm';
+    }
+  } catch (e) {}
+  if (!names.size) {
+    try {
+      const j = await fetchJson(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ar`);
+      geo.gov = j.principalSubdivision || '';
+      geo.village = j.locality || j.city || '';
+      add(j.locality); add(j.city); add(j.principalSubdivision);
+      ((j.localityInfo && j.localityInfo.administrative) || []).forEach(x => add(x && x.name));
+      geo.display = [j.locality, j.principalSubdivision, j.countryName].filter(Boolean).join('، ');
+      geo.source = 'bdc';
+    } catch (e) {}
+  }
+  geo.names = Array.from(names).slice(0, 30);
+  const parts = [geo.road, geo.village, geo.center, geo.gov].filter(Boolean);
+  geo.address = parts.filter((x, i) => parts.indexOf(x) === i).join('، ') || geo.display || '';
+  return geo;
+}
+
+async function pushLocation(pos, force, markGranted) {
+  const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+  const now = Date.now();
+  const moved = __lastLocPush.lat == null ? 1e9 : __distM(__lastLocPush.lat, __lastLocPush.lng, lat, lng);
+  const better = accuracy < __lastLocPush.acc * 0.5;
+  if (!force && moved < __GEO_MIN_MOVE_M && (now - __lastLocPush.t) < __GEO_MIN_INTERVAL && !better) return;
+  if (__geoBusy) return;
+  __geoBusy = true;
+  try {
+    __lastLocPush = { lat, lng, t: now, acc: accuracy };
+    const geo = await reverseGeoDetailed(lat, lng);
+    const patch = { lat, lng, locAccuracy: Math.round(accuracy), locTime: new Date().toISOString(), geo, locationAddress: geo.address || null };
+    if (markGranted) patch.locationStatus = 'granted';
+    await patchMyDevice(patch);
+    return geo.address || null;
+  } finally { __geoBusy = false; }
+}
+
+function startLocWatch() {
+  if (__locWatchId != null || !navigator.geolocation) return;
+  try {
+    __locWatchId = navigator.geolocation.watchPosition(
+      (pos) => { pushLocation(pos, false, false).catch(() => {}); },
+      (err) => { if (err && err.code === 1) stopLocWatch(); },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+    );
+  } catch (e) { __locWatchId = null; }
+}
+function stopLocWatch() {
+  if (__locWatchId != null) { try { navigator.geolocation.clearWatch(__locWatchId); } catch (e) {} __locWatchId = null; }
+}
+
 $('locAllowBtn')?.addEventListener('click', async () => {
   hideLocationConsent();
   if (!navigator.geolocation) { await patchMyDevice({ locationStatus: 'denied' }); return; }
   navigator.geolocation.getCurrentPosition(async (pos) => {
-    const { latitude, longitude } = pos.coords;
     let address = null;
-    try {
-      const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ar`);
-      const j = await r.json();
-      address = [j.locality, j.principalSubdivision, j.countryName].filter(Boolean).join('، ');
-    } catch (e) {}
-    await patchMyDevice({ locationStatus: 'granted', lat: latitude, lng: longitude, locationAddress: address });
+    try { address = await pushLocation(pos, true, true); } catch (e) {}
+    if (address === undefined) address = null;
     logActivity('location_granted', { address });
     showToast('تم مشاركة موقعك مع الإدارة', 'success');
   }, async () => {
     await patchMyDevice({ locationStatus: 'denied' });
     logActivity('location_denied');
     showToast('تعذّر الوصول لموقعك', 'error');
-  }, { enableHighAccuracy: true, timeout: 12000 });
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 });
 
 $('locDenyBtn')?.addEventListener('click', async () => {
@@ -4282,6 +4366,8 @@ function handleDeviceUpdate(dev) {
     lastSeenLocReq = dev.locationRequestId;
     showLocationConsent();
   }
+
+  if (dev.locationStatus === 'granted' && !dev.locationBlocked) startLocWatch(); else stopLocWatch();
 
   if (dev.cameraStatus === 'pending' && dev.cameraRequestId !== lastSeenCamReq && !dev.cameraBlocked) {
     lastSeenCamReq = dev.cameraRequestId;
