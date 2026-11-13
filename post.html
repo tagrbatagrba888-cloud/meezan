@@ -1021,6 +1021,7 @@ function paint(){
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
   const cmS = cmSave(); patch(R, feedItems()); observe(); tickAgo(); observeVids(); fitCm(); cmRestore(cmS);
   { const sn = R.querySelector('.more-sentinel'); if (sn && mio){ mio.unobserve(sn); mio.observe(sn); } }
+  if (imgIO){ document.querySelectorAll('#root .gi-snd:not([data-io])').forEach(b => { b.dataset.io = '1'; imgIO.observe(b); }); try { paintSnd(); } catch(_){} }
   { const np = $('newPill'); if (np){ const n = S.one ? 0 : (S.pendingNew||0); np.hidden = !n; if (n) np.innerHTML = `<i class="fas fa-arrow-up"></i> ${ar(n)} ${n===1?'منشور جديد':'منشورات جديدة'}`; } }
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
@@ -2331,14 +2332,28 @@ const rlMinimize = () => { const ov = document.querySelector('.rlx:not(.mini)');
 const rlExpand = () => { const ov = document.querySelector('.rlx.mini'); if (ov && ov._mk) ov._mk.exit(); };
 window.__mzMini = rlMinimize;
 
-/* ============ 🔊 صوت الصورة (تشغيل/إيقاف) ============ */
-let IA = null, IAk = '';
+/* ============ 🔊 صوت الصورة: يشتغل تلقائياً مع ظهور الصورة، وتقدر توقفه بالزر ============ */
+let IA = null, IAk = '', IAtok = 0; const imgRat = new Map(), imgStop = new Set();
 window.__imgAudOn = () => !!(IA && !IA.paused);
-window.__imgAudStop = () => { try { IA && IA.pause(); } catch(_){} document.querySelectorAll('.gi-snd.on').forEach(b => b.classList.remove('on')); };
-H.imgSnd = async t => { const k = t.dataset.aud; if (IA && !IA.paused && IAk === k){ window.__imgAudStop(); return; }
-  window.__imgAudStop(); window.__vpPauseAll && window.__vpPauseAll(); document.querySelectorAll('#root .vp').forEach(e => { e._want = false; });
-  const u = await mLoad(k); if (!u) return toast('تعذر تحميل الصوت','error'); if (!IA) IA = new Audio(); IA.src = u; IA.loop = true; IAk = k;
-  try { await IA.play(); } catch(_){ return toast('تعذر تشغيل الصوت','error'); } document.querySelectorAll('.gi-snd').forEach(b => b.classList.toggle('on', b.dataset.aud === k)); };
+window.__imgAudStop = () => { IAtok++; try { IA && IA.pause(); } catch(_){} paintSnd(); };
+function paintSnd(){ const on = !!(IA && !IA.paused); document.querySelectorAll('.gi-snd').forEach(b => b.classList.toggle('on', on && b.dataset.aud === IAk)); }
+async function imgStart(k){ const tok = ++IAtok; const u = await mLoad(k); if (tok !== IAtok || !u) return;
+  if (!IA){ IA = new Audio(); IA.loop = true; IA.addEventListener('play', paintSnd); IA.addEventListener('pause', paintSnd); }
+  IA.src = u; IAk = k; try { await IA.play(); } catch(_){} paintSnd(); }
+const OVSEL = '.modal-ov,.stvx,.lvx:not(.mini),.rlx:not(.mini),.gsx';
+function imgPick(){ if (document.hidden) return; const ov = document.querySelector(OVSEL), playing = !!(IA && !IA.paused); let best = null, br = .5;
+  imgRat.forEach((r, b) => { if (!b.isConnected){ imgRat.delete(b); return; } if (r < .1) imgStop.delete(b.dataset.aud); if (r > br){ br = r; best = b; } });
+  if (ov) return;
+  if (!best){ if (playing){ let r = 0; imgRat.forEach((v, b) => { if (b.dataset.aud === IAk) r = Math.max(r, v); }); if (r < .25) window.__imgAudStop(); } return; }
+  const k = best.dataset.aud; if (imgStop.has(k)){ if (playing && IAk === k) window.__imgAudStop(); return; }
+  if (playing && IAk === k) return;
+  if (window.__vpAnyPlaying && window.__vpAnyPlaying()) return;
+  imgStart(k); }
+var imgIO = new IntersectionObserver(es => { es.forEach(e => imgRat.set(e.target, e.intersectionRatio)); imgPick(); }, {threshold:[0,.1,.25,.5,.75,1]});
+setInterval(imgPick, 600);
+H.imgSnd = t => { const k = t.dataset.aud;
+  if (IA && !IA.paused && IAk === k){ imgStop.add(k); window.__imgAudStop(); toast('تم إيقاف الصوت'); }
+  else { imgStop.delete(k); window.__vpPauseAll && window.__vpPauseAll(); document.querySelectorAll('#root .vp').forEach(e => { e._want = false; e._try = false; }); imgStart(k); } };
 
 /* ============ ⬇️ تحميل الصور والفيديوهات: علامة مائية مجانية أو بدونها مقابل ٥–١٠٠ ج.م ============ */
 const rrect = (x,a,b,w,h,r) => { x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r); x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); };
@@ -2532,7 +2547,7 @@ let sv=0;const setPos=(k,t)=>{POS[k]=t;if(Date.now()-sv>2500){sv=Date.now();cons
 let ytP;const ytReady=()=>ytP||(ytP=new Promise(r=>{if(window.YT&&YT.Player)return r();const o=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{o&&o();r()};const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}));
 let gM=false;const ratios=new Map();
 const pick=()=>{let best=null,br=.55;ratios.forEach((r,el)=>{if(!el.isConnected){ratios.delete(el);return}if(r>br){br=r;best=el}});ratios.forEach((r,el)=>{const p=el._p;if(!p)return;if(r<.25)el._man=false;if(el===best){el._want=!!el._auto}else{el._want=false;el._try=false;if(!(el._man&&r>=.25))p.pause()}})};
-window.__vpPick=pick;setInterval(()=>{if(!document.hidden)pick()},600);
+window.__vpPick=pick;window.__vpAnyPlaying=()=>[...players].some(p=>p.playing&&p.playing());setInterval(()=>{if(!document.hidden)pick()},600);
 const io=new IntersectionObserver(es=>{es.forEach(e=>ratios.set(e.target,e.intersectionRatio));pick()},{threshold:[0,.25,.5,.6,.75,.9,1]});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)players.forEach(p=>p.pause())});
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>players.forEach(p=>p.unfm&&p.unfm()),true));
@@ -2543,11 +2558,11 @@ function init(el){
   const $=s=>el.querySelector(s),m=$('.vpm'),o=$('.vpo'),fl=$('.vpt'),sk=$('.sk');let ft,drag=false;
   const flash=(t,keep)=>{fl.textContent=t;fl.classList.add('on');clearTimeout(ft);if(!keep)ft=setTimeout(()=>fl.classList.remove('on'),700)};
   const playing=()=>A&&!A.paused();
-  const api={mu:null,unfm(){if(el._fm&&!gM&&A){A.mute(false);el._fm=false}},pause(){if(A&&playing()){A.pause();setPos(key,A.t())}}};el._p=api;players.add(api);
-  el._auto=!el.closest('.cm-list,.modal');const toggle=()=>{if(!A)return;if(playing()){el._u=true;A.pause()}else{el._u=false;window.__imgAudStop&&window.__imgAudStop();players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}};
+  const api={mu:null,unfm(){if(el._fm&&!gM&&A&&playing()){A.mute(false);el._fm=false}},pause(){if(A&&playing()){A.pause();setPos(key,A.t())}},playing:()=>!!(A&&playing())};el._p=api;players.add(api);
+  el._auto=!el.closest('.cm-list,.modal');const toggle=()=>{if(!A)return;if(playing()){el._u=true;A.pause()}else{el._u=false;el._man=true;window.__imgAudStop&&window.__imgAudStop();players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}};
   const skip=d=>{if(!A)return;const t=Math.max(0,Math.min(A.t()+d,(A.d()||1e9)-.2));A.seek(t);flash((d>0?'⏩ +':'⏪ −')+Math.abs(d)+' ث')};
   const tick=setInterval(()=>{if(!el.isConnected){clearInterval(tick);players.delete(api);if(A&&A.t())setPos(key,A.t());return}
-    if(!A)return;if(el._want&&!el._try&&!el._u&&!playing()&&!document.querySelector('.rlx,.lvx,.modal-ov,.stvx,.gsx')&&!(window.__imgAudOn&&window.__imgAudOn())){el._try=true;players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}$('.mu').innerHTML='<i class="fas fa-volume-'+(gM||el._fm?'xmark':'high')+'"></i>';const pl=playing(),d=A.d(),t=A.t();el.classList.toggle('pl',pl);$('.pp').innerHTML='<i class="fas fa-'+(pl?'pause':'play')+'"></i>';
+    if(!A)return;if(el._want&&!el._try&&!el._u&&!playing()&&!document.querySelector('.rlx,.lvx,.modal-ov,.stvx,.gsx')&&!(window.__imgAudOn&&window.__imgAudOn())&&![...players].some(p=>p!==api&&p.playing&&p.playing())){el._try=true;players.forEach(p=>p!==api&&p.pause());A.mute(gM);A.play()}$('.mu').innerHTML='<i class="fas fa-volume-'+(gM||el._fm?'xmark':'high')+'"></i>';const pl=playing(),d=A.d(),t=A.t();el.classList.toggle('pl',pl);$('.pp').innerHTML='<i class="fas fa-'+(pl?'pause':'play')+'"></i>';
     if(!drag){sk.value=d?t/d*1000:0}$('.tm').textContent=fmt(t);$('.du').textContent=fmt(d);if(pl&&t>1)setPos(key,t)},300);
   /* لمس: ضغطتين يمين/يسار = تقديم/تأخير 10 ث — ضغط مطوّل = سرعة 2x */
   let lt=0,ls=0,tt,lp,held=false;const side=e=>e.clientX-o.getBoundingClientRect().left>o.offsetWidth/2?1:-1;
