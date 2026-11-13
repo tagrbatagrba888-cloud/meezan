@@ -639,7 +639,7 @@ const ytId = u => { const m = String(u||'').match(/(?:youtu\.be\/|youtube\.com\/
 const ytFrame = id => `<div class="vp" data-yt="${id}"></div>`;
 /* ===== عرض المزيد: أي وصف أكثر من 3 كلمات يظهر أول 3 كلمات + «عرض المزيد» ===== */
 const MZO = new Set();
-const mzMore = (text, key) => { text = String(text == null ? '' : text); if (true) return fmt(text); const m = text.match(/^\s*\S+(?:\s+\S+){2}/);
+const mzMore = (text, key) => { text = String(text == null ? '' : text); const m = text.match(/^\s*\S+(?:\s+\S+){2}/);
   if (!m || !text.slice(m[0].length).trim()) return fmt(text);
   const open = MZO.has(key);
   return fmt(m[0]) + `<span class="mz-rest"${open ? '' : ' hidden'}>${fmt(text.slice(m[0].length))}</span><span class="mz-dots"${open ? ' hidden' : ''}>… </span><button type="button" class="mz-more" data-mz-k="${esc(key)}">${open ? 'عرض أقل' : 'عرض المزيد'}</button>`; };
@@ -994,7 +994,7 @@ function feedItems(){
   lvq.forEach(LV => items.push({key:'lvf'+LV.id, html:liveVideoCard(LV)}));
   pq.forEach(pl => items.push({key:'pl'+pl.id, html:pollCard(pl)}));
   if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
-  if (rest.length > show.length) items.push({key:'more',html:`<button class="btn more-b" data-a="more">عرض المزيد (${ar(rest.length-show.length)})</button>`});
+  if (rest.length > show.length) items.push({key:'more',html:'<div class="more-sentinel" style="text-align:center;padding:22px;color:var(--text-sub)"><i class="fas fa-spinner fa-spin"></i></div>'});
   return items; }
 function morphBar(wrap, html){
   const t = document.createElement('div'); t.innerHTML = html.trim(); const nb = t.firstElementChild, ob = wrap.firstElementChild;
@@ -1020,9 +1020,12 @@ function paint(){
   if (document.querySelector('.rlx.mini')) rlSync();
   const R = $('root'), ae = document.activeElement, aid = ae && ae.id && R.contains(ae) ? ae.id : null, pos = aid ? ae.selectionStart : null;
   const cmS = cmSave(); patch(R, feedItems()); observe(); tickAgo(); observeVids(); fitCm(); cmRestore(cmS);
+  { const sn = R.querySelector('.more-sentinel'); if (sn && mio){ mio.unobserve(sn); mio.observe(sn); } }
   { const np = $('newPill'); if (np){ const n = S.one ? 0 : (S.pendingNew||0); np.hidden = !n; if (n) np.innerHTML = `<i class="fas fa-arrow-up"></i> ${ar(n)} ${n===1?'منشور جديد':'منشورات جديدة'}`; } }
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
+/* تحميل المزيد تلقائياً عند الوصول لآخر الصفحة (بدون زر) */
+var mio = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && !S.one){ S.limit += 20; draw(); } }, {rootMargin:'500px'});
 /* ============ 👁️ رصد المشاهدات والإعلانات ============ */
 const seen = new Set(), adSeen = new Set(), vt = new Map();
 const io = new IntersectionObserver(es => es.forEach(e => { const el = e.target, id = el.dataset.post;
@@ -2528,8 +2531,8 @@ const fmt=s=>{s=Math.max(0,s|0);return(s/60|0)+':'+String(s%60).padStart(2,'0')}
 let sv=0;const setPos=(k,t)=>{POS[k]=t;if(Date.now()-sv>2500){sv=Date.now();const ks=Object.keys(POS);if(ks.length>300)delete POS[ks[0]];try{localStorage.vpPos=JSON.stringify(POS)}catch(_){}}};
 let ytP;const ytReady=()=>ytP||(ytP=new Promise(r=>{if(window.YT&&YT.Player)return r();const o=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{o&&o();r()};const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}));
 let gM=false;const ratios=new Map();
-const pick=()=>{let best=null,br=.55;ratios.forEach((r,el)=>{if(!el.isConnected){ratios.delete(el);return}if(r>br){br=r;best=el}});ratios.forEach((r,el)=>{const p=el._p;if(!p)return;if(el===best){el._want=!!el._auto}else{el._want=false;el._try=false;p.pause()}})};
-window.__vpPick=pick;
+const pick=()=>{let best=null,br=.55;ratios.forEach((r,el)=>{if(!el.isConnected){ratios.delete(el);return}if(r>br){br=r;best=el}});ratios.forEach((r,el)=>{const p=el._p;if(!p)return;if(r<.25)el._man=false;if(el===best){el._want=!!el._auto}else{el._want=false;el._try=false;if(!(el._man&&r>=.25))p.pause()}})};
+window.__vpPick=pick;setInterval(()=>{if(!document.hidden)pick()},600);
 const io=new IntersectionObserver(es=>{es.forEach(e=>ratios.set(e.target,e.intersectionRatio));pick()},{threshold:[0,.25,.5,.6,.75,.9,1]});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)players.forEach(p=>p.pause())});
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>players.forEach(p=>p.unfm&&p.unfm()),true));
