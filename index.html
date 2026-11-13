@@ -3772,16 +3772,42 @@ async function unregisterPushToken() {
 }
 
 const __isMuted = () => { try { const v = localStorage.getItem('meezan_mute_until'); return v === 'forever' || (!!v && Number(v) > Date.now()); } catch (e) { return false; } };
-async function showSystemNotification(title, body, tag) {
+// الصفحة التي يفتحها الإشعار (نفس منطق سيرفر Push)
+function __notifTarget(n, id) {
+  n = n || {};
+  const clean = (u) => { u = String(u || '').trim().replace(/^\.?\/+/, ''); if (!u) return ''; if (/^https?:\/\//i.test(u)) return u; return /\.[a-z0-9]+(\?|#|$)/i.test(u) ? u : u + '.html'; };
+  if (n.kind === 'store' || n.kind === 'reward' || n.source === 'store') return 'stor.html';
+  if (n.type === 'page' && n.url) return clean(n.url) || 'asharat.html';
+  if (n.type === 'link' && /^https?:\/\//i.test(n.url || '')) return n.url;
+  return 'asharat.html' + (id ? '?n=' + encodeURIComponent(id) : '');
+}
+// 🚨 صوت تنبيه قوي (يعمل والموقع مفتوح فقط)
+function __playAlarm() {
+  try {
+    if (navigator.vibrate) navigator.vibrate([800, 300, 800, 300, 800, 300, 1200]);
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = new AC(); const g = ctx.createGain(); g.gain.value = 1; g.connect(ctx.destination);
+    for (let i = 0; i < 6; i++) {
+      const o = ctx.createOscillator(); o.type = 'square';
+      o.frequency.value = i % 2 ? 880 : 660; o.connect(g);
+      o.start(ctx.currentTime + i * 0.35); o.stop(ctx.currentTime + i * 0.35 + 0.3);
+    }
+    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 3000);
+  } catch (e) {}
+}
+async function showSystemNotification(title, body, tag, extra) {
   if (!pushSupported() || Notification.permission !== 'granted') return;
-  const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', tag: tag || 'meezan-notif', renotify: true, dir: 'rtl', lang: 'ar', vibrate: [200, 100, 200], data: { url: 'index.html' } };
+  extra = extra || {};
+  const urgent = !!extra.urgent;
+  const target = extra.url || 'index.html';
+  const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', image: extra.image || undefined, tag: tag || 'meezan-notif', renotify: true, requireInteraction: urgent, dir: 'rtl', lang: 'ar', vibrate: urgent ? [800, 300, 800, 300, 800, 300, 1200] : [200, 100, 200], data: { url: target } };
   try {
     const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
     if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
   } catch (e) {}
   try {
     const n = new Notification(title, opts);
-    n.onclick = () => { window.focus(); window.location.href = 'index.html'; n.close(); };
+    n.onclick = () => { window.focus(); window.location.href = target; n.close(); };
   } catch (e) {}
 }
 
@@ -3836,7 +3862,10 @@ function startNotificationsListener() {
         if (!nSnap.exists()) return;
         const nData = nSnap.data();
         if (nid === newest && !__isMuted()) showToastNotification(nData.title || 'إشعار جديد', 'info');
-        if (!isFirstSnap && !__isMuted()) showSystemNotification(nData.title || 'إشعار جديد', 'ميزان — اضغط لفتح الإشعارات', nid);
+        if (!isFirstSnap && !__isMuted()) {
+          showSystemNotification(nData.title || 'إشعار جديد', String(nData.body || 'ميزان — اضغط لفتح الإشعارات').slice(0, 140), nid, { url: __notifTarget(nData, nid), image: nData.type === 'image' ? nData.url : '', urgent: !!nData.urgent });
+          if (nData.urgent) __playAlarm();
+        }
       }).catch((e) => console.log('notif detail error:', e.message));
     });
     notifSnapDone = true;
