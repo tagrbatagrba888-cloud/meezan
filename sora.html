@@ -3470,16 +3470,17 @@ function genderLabel(g) {
   return raw ? raw : 'غير مسجل';
 }
 // النوع كما حدّده الأدمن (gender) ← sex ← استنتاج من الرقم القومي (الرقم الـ13: فردي = ذكر / زوجي = أنثى)
+let genderProfiles = {};
 function userGenderLabel(u) {
   u = u || {};
-  let k = normGenderKey(u.gender) || normGenderKey(u.sex);
-  if (!k && !u.selfFillGender) {
-    const nid = String(u.nationalId || '').trim();
-    if (/^\d{14}$/.test(nid)) k = parseInt(nid[12], 10) % 2 ? 'male' : 'female';
-  }
-  if (k) return genderLabel(k);
-  return genderLabel(u.gender || u.sex);
+  // النوع يُقرأ من users/profiles (المحفوظ من الصفحة الرئيسية)
+  const k = normGenderKey((genderProfiles[u.id] || {}).gender);
+  return k ? genderLabel(k) : 'غير مسجل';
 }
+onSnapshot(doc(db, 'users', 'profiles'), (snap) => {
+  genderProfiles = (snap.exists() && snap.data().map) || {};
+  if (currentUser && $('lockGenderValue')) $('lockGenderValue').textContent = userGenderLabel(currentUser);
+}, () => {});
 
 const QR_DEFAULT_SEC = 15;             // القيمة الافتراضية لو الأدمن ما حدّدش
 // إعدادات الـ QR بتيجي من الأدمن (users.html): qrFixed = ثابت / qrStepSec = مدة التغيير بالثواني

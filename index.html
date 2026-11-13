@@ -1928,10 +1928,24 @@
 .action-btn:active{transform:scale(.96)}
 .action-btn.mz-hide{display:none!important}
 .mz-nav{position:fixed;inset:auto 12px 12px;z-index:60;display:none;justify-content:space-around;padding:8px;border-radius:22px;background:color-mix(in srgb,var(--bg-card) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);box-shadow:0 12px 30px -10px var(--shadow);padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-.mz-nav a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:14px;font-size:11px;font-weight:800;color:var(--text-sub);text-decoration:none}
-.mz-nav a.on{color:var(--primary);background:color-mix(in srgb,var(--accent) 22%,transparent)}
-.mz-nav i{font-size:17px}
-@media(max-width:820px){.mz-nav.show{display:flex}body.mz-has-nav{padding-bottom:92px}}
+.mz-nav{gap:2px;padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));border-radius:26px}
+.mz-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border-radius:18px;font-size:11.5px;font-weight:800;color:var(--text-sub);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .2s,color .2s,transform .15s}
+.mz-nav a:active{transform:scale(.94)}
+.mz-nav a.on{color:var(--primary);background:color-mix(in srgb,var(--accent) 24%,transparent)}
+.mz-nav i{font-size:22px}
+@media(max-width:380px){.mz-nav a{font-size:10.5px}.mz-nav i{font-size:20px}}
+@media(max-width:820px){.mz-nav.show{display:flex}body.mz-has-nav{padding-bottom:112px}}
+/* ===== لمسات تصميم أحدث ===== */
+.topbar{background:color-mix(in srgb,var(--bg-card) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);box-shadow:0 6px 24px -12px var(--shadow)}
+.welcome-card{border-radius:28px!important}
+.section-title{letter-spacing:.2px}
+.action-btn{border-radius:22px;border:1px solid var(--border);box-shadow:0 8px 22px -14px var(--shadow)}
+.action-btn:hover{box-shadow:0 16px 32px -14px var(--shadow)}
+.action-btn-icon{border-radius:18px}
+.icon-btn,.avatar-btn{box-shadow:0 4px 12px -6px var(--shadow)}
+.mz-search{border-radius:18px;height:48px;box-shadow:0 4px 14px -10px var(--shadow)}
+.mz-resume{border-radius:20px;box-shadow:0 6px 18px -12px var(--shadow)}
+.mz-chip{transition:transform .15s}.mz-chip:active{transform:scale(.95)}
 .mz-off{position:fixed;top:0;inset-inline:0;z-index:99999;transform:translateY(-100%);transition:transform .3s;background:#C0392B;color:#fff;text-align:center;padding:8px;font:800 13px Cairo,sans-serif}
 .mz-off.on{transform:none}
 .mz-ptr{position:fixed;top:-48px;left:50%;translate:-50% 0;z-index:99998;width:40px;height:40px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--primary);box-shadow:0 6px 18px var(--shadow);transition:top .2s}
@@ -3499,41 +3513,43 @@ function showAddressGate(user, role, needAddr, needGender) {
       if (err) return showToast(err, 'error');
       v = w.getValue();
     }
-    // ⚡ حفظ فوري: نغلق النافذة مباشرة ونكمل الكتابة في الخلفية (ولو فشلت نعيدها مع رسالة)
+    // 💾 الحفظ: النوع يُحفظ في users/profiles فقط (من هذه الصفحة)، والعنوان في ملف المستخدم.
+    // لا نغلق النافذة إلا بعد نجاح الكتابة فعلياً في السيرفر.
     const pr = { gender, t: new Date().toISOString() };
-    const prevProfile = profileMap[user.id];
     gateSaving = true;
-    if (needGender) profileMap[user.id] = pr;
-    hideAddressGate();
-    showToast('تم حفظ البيانات ✓', 'success');
+    btn.disabled = true;
+    const btnHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     try {
-      const jobs = [];
-      if (needGender) jobs.push(setDoc(doc(db, 'users', 'profiles'), { map: { [user.id]: pr } }, { merge: true }));
-      if (w) jobs.push(w.commit());
-      const sync = (async () => {
+      if (needGender) {
+        await setDoc(doc(db, 'users', 'profiles'), { map: { [user.id]: pr } }, { merge: true });
+        profileMap[user.id] = pr;
+      }
+      if (needAddr && w) {
+        await w.commit();
         const col = role === 'teacher' ? 'teachers' : 'users';
         const ref = doc(db, col, 'all');
         const snap = await getDoc(ref);
         const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
         const idx = items.findIndex(u => u.id === user.id);
         if (idx === -1) throw new Error('الحساب غير موجود');
-        const patch = { ...v, updatedAt: new Date().toISOString() };
-        if (needGender) { patch.gender = gender; patch.selfFillGender = false; }
-        if (needAddr) patch.selfFillAddress = false;
-        items[idx] = { ...items[idx], ...patch };
+        items[idx] = { ...items[idx], ...v, selfFillAddress: false, updatedAt: new Date().toISOString() };
         await setDoc(ref, { items, updatedAt: serverTimestamp() });
-      })();
-      if (needAddr || !needGender) jobs.push(sync); else sync.catch((e2) => console.log('items sync skipped:', e2 && e2.message));
-      await Promise.all(jobs);
+        __lastGateUser = items[idx];
+      }
     } catch (e) {
-      // فشل فعلي: نرجّع الحالة السابقة ونعيد النافذة
-      if (needGender) { if (prevProfile) profileMap[user.id] = prevProfile; else delete profileMap[user.id]; }
       showToast(e && e.code === 'permission-denied' ? 'ليس لديك صلاحية الحفظ' : ('تعذّر الحفظ: ' + (e && e.message || '')), 'error');
       gateSaving = false;
-      runProfileGate(user, role);
+      btn.disabled = false;
+      btn.innerHTML = btnHtml;
+      hideAddressGate();
+      runProfileGate(__lastGateUser || user, role);
       return;
     }
     gateSaving = false;
+    hideAddressGate();
+    showToast('تم حفظ البيانات ✓', 'success');
+    runProfileGate(__lastGateUser || user, role);
   });
 }
 
@@ -3579,7 +3595,8 @@ async function confirmDeletedFromServer(collectionName, userId, sName) {
 // 🚻 النوع محفوظ في users/profiles (مستند مستقل) + بوابة النوع/العنوان
 // ============================================================
 let profileMap = {}, profilesReady = false, __lastGateUser = null, __lastGateRole = null;
-const effGender = (u) => normGender(u && u.gender) || normGender((profileMap[u && u.id] || {}).gender);
+// النوع يُقرأ من users/profiles فقط (لا يُعتمد على u.gender القديم)
+const effGender = (u) => normGender((profileMap[u && u.id] || {}).gender);
 function runProfileGate(user, role) {
   if (!user || !profilesReady || gateSaving) return;
   const needAddr = !hasFullAddress(user), needGender = !effGender(user);
@@ -4609,10 +4626,10 @@ var em=$('emptyState');if(em){var e3=em.querySelector('h3'),e4=em.querySelector(
 }
 /* bottom nav (students only) */
 var nav=document.createElement('nav');nav.className='mz-nav';
-var POOL=[[/منشور/,'post.html','fa-newspaper','المنشورات'],[/دعم/,'daam.html','fa-headset','الدعم'],[/متجر|محفظ/,'stor.html','fa-store','المتجر'],[/مسابق/,'contest.html','fa-trophy','المسابقات'],[/نتائج/,'results_1.html','fa-award','نتائجي']];
+var POOL=[[/منشور/,'post.html','fa-newspaper','المنشورات'],[/دعم/,'daam.html','fa-headset','الدعم'],[/متجر|محفظ/,'stor.html','fa-store','المتجر'],[/مسابق/,'contest.html','fa-trophy','المسابقات'],[/نتائج/,'results_1.html','fa-award','نتائجي'],[/إشعار|اشعار/,'asharat.html','fa-bell','الإشعارات']];
 function hrefOf(x){var bs=window.__mzButtons||[];for(var i=0;i<bs.length;i++){var b=bs[i];if(b.url&&(x[0].test(b.label||'')||(x[1]==='post.html'&&/post/i.test(b.url))))return b.url}return x[1]}
 function buildNav(){var used={};if(grid)grid.querySelectorAll('a.action-btn').forEach(function(a){used[(a.getAttribute('href')||'').split('?')[0]]=1});
-var pick=POOL.map(function(x){return [hrefOf(x),x[2],x[3]]}).filter(function(x){return !used[x[0].split('?')[0]]}).slice(0,3);
+var pick=POOL.map(function(x){return [hrefOf(x),x[2],x[3]]}).filter(function(x){return !used[x[0].split('?')[0]]}).slice(0,4);
 nav.innerHTML='<a class="on" href="index.html"><i class="fas fa-house"></i>الرئيسية</a>'+pick.map(function(x){return '<a href="'+x[0]+'"><i class="fas '+x[1]+'"></i>'+x[2]+'</a>'}).join('')+'<a href="sora.html"><i class="fas fa-user"></i>حسابي</a>'}
 buildNav();window.addEventListener('mz:buttons',buildNav);if(grid)new MutationObserver(buildNav).observe(grid,{childList:true});
 document.body.appendChild(nav);
