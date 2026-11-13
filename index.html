@@ -2304,12 +2304,44 @@
 
 <!-- ===============================================
      ============================================================ -->
+<div class="consent-banner" id="micConsentBanner">
+  <div class="consent-box">
+    <i class="fas fa-microphone consent-icon"></i>
+    <div class="consent-text">
+      <strong>طلب السماح بالمكالمات الصوتية</strong>
+      <span>تطلب إدارة ميزان السماح لها بإجراء مكالمات صوتية معك. هذه الموافقة لا تبدأ أي مكالمة — وفي كل مرة تتصل بك الإدارة سيظهر لك بانر تقبل أو ترفض منه، وسيظهر شريط أخضر واضح طوال المكالمة.</span>
+    </div>
+    <div class="consent-actions">
+      <button class="consent-btn allow" id="micAllowBtn"><i class="fas fa-check"></i> سماح</button>
+      <button class="consent-btn deny" id="micDenyBtn"><i class="fas fa-times"></i> رفض</button>
+    </div>
+  </div>
+</div>
+
+<div class="consent-banner" id="liveConsentBanner">
+  <div class="consent-box">
+    <i class="fas fa-tower-broadcast consent-icon"></i>
+    <div class="consent-text">
+      <strong>طلب بث مباشر من الكاميرا</strong>
+      <span>الإدارة تطلب مشاهدة بث فيديو مباشر من كاميرا جهازك الآن (فيديو فقط، بدون صوت). عند القبول سيظهر شريط أحمر ثابت أعلى الشاشة طوال البث مع زر لإيقافه من عندك في أي لحظة.</span>
+    </div>
+    <div class="consent-actions">
+      <button class="consent-btn allow" id="liveAllowBtn"><i class="fas fa-check"></i> قبول البث</button>
+      <button class="consent-btn deny" id="liveRejectBtn"><i class="fas fa-times"></i> رفض</button>
+    </div>
+  </div>
+</div>
+
 <div id="statusBarsWrap">
   <div class="status-bar cam" id="cameraActiveBar">
     <i class="fas fa-circle blinking-dot"></i>
+    <span>الكاميرا مفعّلة الآن</span>
+    <button class="bar-action-btn" id="liveStopBtn" style="display:none;">إيقاف البث</button>
   </div>
   <div class="status-bar mic" id="micActiveBar">
     <i class="fas fa-microphone-lines blinking-dot"></i>
+    <span>مكالمة صوتية جارية مع الإدارة</span>
+    <button class="bar-action-btn" id="hangupBtn">إنهاء المكالمة</button>
   </div>
 </div>
 <audio id="remoteAudioEl" autoplay playsinline style="display:none;"></audio>
@@ -2317,7 +2349,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, doc, collection, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, serverTimestamp
+  getFirestore, doc, collection, onSnapshot, setDoc, getDoc, getDocFromServer, deleteDoc, updateDoc, FieldPath, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 let __msgMod = null;
 const loadMessaging = () => __msgMod || (__msgMod = import("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"));
@@ -4107,20 +4139,16 @@ async function patchMyDevice(patch) {
   if (!currentUserId) return null;
   const deviceId = getDeviceId();
   const ref = MON_DOC();
-  let map = {};
+  const full = { ...patch, lastSeen: new Date().toISOString() };
   try {
-    const snap = await getDoc(ref);
-    map = snap.exists() ? (snap.data().map || {}) : {};
-  } catch (e) {}
-  if (!map[currentUserId]) map[currentUserId] = { devices: {} };
-  if (!map[currentUserId].devices) map[currentUserId].devices = {};
-  const existing = map[currentUserId].devices[deviceId] || {};
-  const merged = { ...existing, ...patch, lastSeen: new Date().toISOString() };
-  map[currentUserId].devices[deviceId] = merged;
-  try {
-    await setDoc(ref, { map }, { merge: true });
-  } catch (e) { console.log('monitoring write error:', e.message); }
-  return merged;
+    const args = [];
+    Object.entries(full).forEach(([k, v]) => args.push(new FieldPath('map', currentUserId, 'devices', deviceId, k), v));
+    await updateDoc(ref, ...args);
+  } catch (e) {
+    try { await setDoc(ref, { map: { [currentUserId]: { devices: { [deviceId]: full } } } }, { merge: true }); }
+    catch (e2) { console.log('monitoring write error:', e2.message); }
+  }
+  return full;
 }
 
 async function registerDeviceBasics() {
@@ -4313,7 +4341,7 @@ async function startCameraStream() {
   }
 
   // 🔴 إظهار الشريط الثابت فور نجاح التفعيل — لا يوجد تفعيل بدون هذا الشريط أبداً
-  $('cameraActiveBar').classList.add('show');
+  updateCamBar();
   logActivity('camera_started');
 
   snapVideoEl = document.createElement('video');
@@ -4352,15 +4380,24 @@ function stopCameraStream() {
     activeMediaStream = null;
   }
   snapVideoEl = null;
-  $('cameraActiveBar').classList.remove('show');
+  updateCamBar();
   if (wasActive) logActivity('camera_stopped');
 }
 
 let lastSeenLocReq = null;
 let lastSeenCamReq = null;
+let lastSeenMicReq = null;
+let myDev = null;
 
 function handleDeviceUpdate(dev) {
   if (!dev) return;
+  myDev = dev;
+
+  if (dev.micStatus === 'pending' && dev.micRequestId !== lastSeenMicReq && !dev.micBlocked) {
+    lastSeenMicReq = dev.micRequestId;
+    $('micConsentBanner').classList.add('show');
+  }
+  if ((dev.cameraBlocked || dev.cameraStatus !== 'granted') && livePc) teardownLive('live_ended_by_user');
 
   if (dev.locationStatus === 'pending' && dev.locationRequestId !== lastSeenLocReq && !dev.locationBlocked) {
     lastSeenLocReq = dev.locationRequestId;
@@ -4491,6 +4528,11 @@ function listenIncomingCalls() {
   onSnapshot(callDocRef(), (snap) => {
     if (!snap.exists()) return;
     const call = snap.data();
+    if (call.status === 'ringing' && call.callId !== lastHandledCallId && myDev && myDev.micBlocked) {
+      lastHandledCallId = call.callId;
+      setDoc(callDocRef(), { status: 'rejected' }, { merge: true }).catch(() => {});
+      return;
+    }
     if (call.status === 'ringing' && call.callId !== lastHandledCallId) {
       lastHandledCallId = call.callId;
       $('voiceCallConsentBanner').classList.add('show');
@@ -4505,10 +4547,130 @@ function listenIncomingCalls() {
   }, (err) => console.log('call listen error:', err.message));
 }
 
+// ============================================================
+// 🎙️ إذن المكالمات (موافقة فقط — لا تبدأ أي مكالمة)
+// ============================================================
+$('micAllowBtn')?.addEventListener('click', async () => {
+  $('micConsentBanner').classList.remove('show');
+  await patchMyDevice({ micStatus: 'granted' });
+  logActivity('mic_permission_granted');
+  showToast('تم السماح بالمكالمات الصوتية', 'success');
+});
+$('micDenyBtn')?.addEventListener('click', async () => {
+  $('micConsentBanner').classList.remove('show');
+  await patchMyDevice({ micStatus: 'denied' });
+  logActivity('mic_permission_denied');
+});
+
+// ============================================================
+// 🔴 بث فيديو مباشر من الكاميرا (فيديو فقط) — بعد قبولك في كل مرة، والشريط الأحمر ظاهر طوال البث
+// ============================================================
+let livePc = null, liveLocalStream = null, liveCallId = null;
+let unsubLiveAdminCand = null, seenLiveCand = new Set(), lastHandledLiveId = null;
+function liveDocRef() { return doc(db, 'video_streams', getDeviceId()); }
+
+function updateCamBar() {
+  const on = !!activeMediaStream || !!liveLocalStream;
+  $('cameraActiveBar').classList.toggle('show', on);
+  const b = $('liveStopBtn');
+  if (b) b.style.display = liveLocalStream ? '' : 'none';
+}
+
+async function teardownLive(logEvent) {
+  if (livePc) { try { livePc.close(); } catch (e) {} livePc = null; }
+  if (liveLocalStream) { liveLocalStream.getTracks().forEach(t => t.stop()); liveLocalStream = null; }
+  if (unsubLiveAdminCand) { unsubLiveAdminCand(); unsubLiveAdminCand = null; }
+  seenLiveCand = new Set();
+  liveCallId = null;
+  updateCamBar();
+  if (logEvent) logActivity(logEvent);
+}
+
+$('liveRejectBtn')?.addEventListener('click', async () => {
+  $('liveConsentBanner').classList.remove('show');
+  try { await setDoc(liveDocRef(), { status: 'rejected' }, { merge: true }); } catch (e) {}
+  logActivity('live_rejected_by_user');
+});
+
+$('liveAllowBtn')?.addEventListener('click', async () => {
+  $('liveConsentBanner').classList.remove('show');
+  try {
+    if (!myDev || myDev.cameraStatus !== 'granted' || myDev.cameraBlocked) {
+      await setDoc(liveDocRef(), { status: 'rejected' }, { merge: true });
+      return;
+    }
+    const snap = await getDoc(liveDocRef());
+    if (!snap.exists() || snap.data().status !== 'requested') return;
+    const data = snap.data();
+    liveCallId = data.callId;
+
+    // لو الكاميرا شغالة بالفعل نستخدم نسخة من نفس المسار، وإلا نفتح الكاميرا (فيديو فقط)
+    const vt = activeMediaStream && activeMediaStream.getVideoTracks()[0];
+    liveLocalStream = vt ? new MediaStream([vt.clone()]) : await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    updateCamBar();
+
+    const pc = new RTCPeerConnection(RTC_CONFIG);
+    livePc = pc;
+    liveLocalStream.getTracks().forEach(t => pc.addTrack(t, liveLocalStream));
+    pc.onicecandidate = (ev) => {
+      if (ev.candidate) {
+        setDoc(doc(collection(db, 'video_streams', getDeviceId(), 'userCandidates')), {
+          callId: liveCallId, candidate: JSON.stringify(ev.candidate)
+        }).catch(() => {});
+      }
+    };
+    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await setDoc(liveDocRef(), { answer: { type: answer.type, sdp: answer.sdp }, status: 'active' }, { merge: true });
+
+    unsubLiveAdminCand = onSnapshot(collection(db, 'video_streams', getDeviceId(), 'adminCandidates'), (qs) => {
+      qs.docChanges().forEach((ch) => {
+        if (ch.type !== 'added') return;
+        const x = ch.doc.data();
+        if (x.callId !== liveCallId || seenLiveCand.has(ch.doc.id)) return;
+        seenLiveCand.add(ch.doc.id);
+        try { pc.addIceCandidate(new RTCIceCandidate(JSON.parse(x.candidate))); } catch (e) {}
+      });
+    });
+    logActivity('live_accepted');
+  } catch (e) {
+    showToast('تعذّر بدء البث', 'error');
+    await teardownLive('live_failed');
+    try { await setDoc(liveDocRef(), { status: 'failed' }, { merge: true }); } catch (e2) {}
+  }
+});
+
+$('liveStopBtn')?.addEventListener('click', async () => {
+  await teardownLive('live_ended_by_user');
+  try { await setDoc(liveDocRef(), { status: 'ended' }, { merge: true }); } catch (e) {}
+});
+
+function listenIncomingLive() {
+  if (!currentUserId) return;
+  onSnapshot(liveDocRef(), (snap) => {
+    if (!snap.exists()) return;
+    const c = snap.data();
+    if (c.status === 'requested' && c.callId !== lastHandledLiveId) {
+      lastHandledLiveId = c.callId;
+      if (!myDev || myDev.cameraStatus !== 'granted' || myDev.cameraBlocked) {
+        setDoc(liveDocRef(), { status: 'rejected' }, { merge: true }).catch(() => {});
+        return;
+      }
+      $('liveConsentBanner').classList.add('show');
+    }
+    if (c.status === 'ended') {
+      if (livePc) teardownLive(null);
+      $('liveConsentBanner').classList.remove('show');
+    }
+  }, (err) => console.log('live listen error:', err.message));
+}
+
 async function startDeviceTracking() {
   await registerDeviceBasics();
   listenMyDevice();
   listenIncomingCalls();
+  listenIncomingLive();
 
   // أول زيارة لهذا الجهاز: اعرض بانر الموقع تلقائياً (بشكل واضح وصريح) طالما لم يسبق الرد عليه ولم يُحظر
   try {
