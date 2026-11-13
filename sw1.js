@@ -13,19 +13,30 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// يصل الإشعار والموقع مقفول → يظهر هنا
+// v2 — يصل الإشعار والموقع مقفول → يظهر هنا
+const NOTIF_PAGE = 'asharat.html';
+const parseList = (v) => { try { const a = JSON.parse(v); return Array.isArray(a) ? a : null; } catch (e) { return null; } };
+
 messaging.onBackgroundMessage((payload) => {
-  const d = payload.data || {};
+  // نقرأ البيانات من أي مكان وصلت فيه (data أو notification) عشان ما يظهرش إشعار عام فاضي
+  const d = Object.assign({}, (payload && payload.notification) || {}, (payload && payload.data) || {});
+  console.log('[sw1] push payload:', JSON.stringify(payload));
+  const urgent = d.urgent === '1' || d.urgent === 'true' || d.urgent === true;
+  // لو الرابط ناقص نفتح صفحة الإشعارات على نفس الإشعار — مش الرئيسية
+  const target = d.url || (NOTIF_PAGE + (d.tag ? '?n=' + encodeURIComponent(d.tag) : ''));
   return self.registration.showNotification(d.title || 'إشعار جديد', {
     body: d.body || 'ميزان — اضغط لفتح الإشعارات',
     icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png',
+    badge: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png',
     image: d.image || undefined,
     tag: d.tag || 'meezan-notif',
     renotify: true,
+    requireInteraction: urgent,
+    silent: false,
     dir: 'rtl',
     lang: 'ar',
-    vibrate: [200, 100, 200],
-    data: { url: d.url || 'index.html' }
+    vibrate: urgent ? (parseList(d.vibrate) || [800, 300, 800, 300, 800, 300, 1200]) : [200, 100, 200],
+    data: { url: target }
   });
 });
 
