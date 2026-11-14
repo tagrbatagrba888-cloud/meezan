@@ -7,8 +7,9 @@
 <title>الرسائل | MEEZAN</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link rel="preconnect" href="https://firestore.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <script>
 /* دخول فوري: لو الكاش بيقول إنك غير مسموح (وتم تأكيده من السيرفر حديثًا) تخرج على طول بدون تحميل */
 try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');if(th)document.documentElement.setAttribute('data-theme',th)}catch(e){}
@@ -22,7 +23,7 @@ try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');i
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--accent:#C9A961;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B;--success:#1E7A5A;--mine:#DCF1E6}
 [data-theme=dark]{--primary:#C9A961;--primary-light:#E0C888;--accent:#0B3D2E;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C;--success:#2ECC71;--mine:#1E4A3A}
-html,body{font-family:'Cairo',sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100%;overflow-x:hidden;overscroll-behavior-y:none}
+html,body{font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100%;overflow-x:hidden;overscroll-behavior-y:none}
 input,textarea,button{font-family:inherit;font-size:16px;color:inherit}
 body.chat-open{position:fixed;inset:0;overflow:hidden;width:100%}
 body.chat-open .header,body.chat-open .wrap,body.chat-open .fab{visibility:hidden}
@@ -243,6 +244,23 @@ body.locked #block{display:flex}
 .mf .fn{unicode-bidi:plaintext;text-align:start}
 .mf .fz,.mt .cap span{direction:ltr;unicode-bidi:isolate;text-align:right}
 .vv{background:rgba(0,0,0,.97)}
+/* ===== إضافات v2 ===== */
+.recbar{min-width:0}.wv{min-width:0;flex:1 1 0}.cbar{gap:6px;overflow:hidden}.send{width:40px;height:40px}.send.rc{box-shadow:none}.cbar .ib{width:38px;height:38px}
+.tkw{color:var(--text-sub);animation:pop .2s}.tkw.r{color:#34B7F1}.tkw svg{width:16px;height:11px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#sbar{display:none;flex:0 0 auto;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-card);border-bottom:1px solid var(--border)}#sbar.on{display:flex}
+#sbar input{flex:1;min-width:0;padding:9px 12px;border-radius:12px;border:2px solid var(--border);background:var(--bg-input);outline:none}
+mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cur{background:#ff9f43}
+#net{position:fixed;top:0;left:0;right:0;z-index:960;background:#b9770e;color:#fff;font-size:12px;font-weight:700;text-align:center;padding:calc(3px + env(safe-area-inset-top)) 8px 3px;display:none}
+#minv{position:fixed;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;z-index:805;display:flex;flex-direction:column;gap:6px;max-width:520px;margin:auto;pointer-events:none}#minv .card{margin:0;pointer-events:auto}
+.cam{position:fixed;inset:0;z-index:650;background:#000;display:none;flex-direction:column;color:#fff}.cam.on{display:flex}.cam video{flex:1;min-height:0;width:100%;object-fit:cover}
+.cam .ctl{position:static;justify-content:space-around;align-items:center;padding:14px 0 calc(22px + env(safe-area-inset-bottom))}
+.cam .top{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between}
+.shut{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.25);cursor:pointer;transition:.2s}.shut.v{background:#E74C3C}.shut.rec{border-radius:18px;transform:scale(.8)}
+.vp video{display:block;max-width:100%;max-height:76dvh;border-radius:12px;background:#000}
+.vc{display:flex;align-items:center;gap:8px;background:var(--bg-card);color:var(--text-main);border-radius:14px;padding:6px 10px;margin-top:8px}
+.vb{width:34px;height:34px;border-radius:50%;border:none;background:var(--primary);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}[data-theme=dark] .vb{color:var(--bg-page)}
+.vc .s{direction:ltr;flex-shrink:0}.vs{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:5px;border-radius:5px;background:var(--border);outline:none;direction:ltr}
+.vs::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--primary)}
 </style>
 </head>
 <body class="pend">
@@ -251,6 +269,7 @@ body.locked #block{display:flex}
 <div class="header">
   <a href="index.html" class="ib" id="hBack"><i class="fas fa-arrow-right"></i></a>
   <h1><i class="fas fa-comments"></i> الرسائل</h1>
+  <button class="ib" id="hMusic" title="الموسيقى"><i class="fas fa-music"></i></button>
 </div>
 <div class="wrap">
   <div id="notice"></div>
@@ -268,18 +287,18 @@ body.locked #block{display:flex}
     <button class="ib" id="cVid"><i class="fas fa-video"></i></button>
     <button class="ib" id="cMore"><i class="fas fa-ellipsis-vertical"></i></button>
   </div>
-  <div class="mbar" id="mbar"></div>
+  <div id="sbar"><input id="sq" placeholder="ابحث في الرسائل..."><span class="s" id="sc" style="flex-shrink:0"></span><button class="ib mini" id="sUp"><i class="fas fa-chevron-up"></i></button><button class="ib mini" id="sDn"><i class="fas fa-chevron-down"></i></button><button class="ib mini" id="sX"><i class="fas fa-xmark"></i></button></div>
   <div class="msgs" id="msgs"></div>
   <button id="toBot" title="آخر رسالة"><i class="fas fa-angles-down"></i></button>
   <div class="cbar">
     <div class="recbar" id="recbar">
       <button class="rx2" id="recX"><i class="fas fa-trash"></i></button>
-      <div class="rd"></div><div class="rt" id="recT">0:00</div><div class="wv" id="wv"></div>
+      <div class="rd"></div><div class="rt" id="recT">0:00</div><div class="wv" id="wv"></div><button class="rx2" id="recVo" title="عرض لمرة واحدة" style="color:var(--text-sub)"><i class="fas fa-eye"></i></button>
     </div>
     <button class="ib" id="attach"><i class="fas fa-paperclip"></i></button>
     <button class="ib" id="musicB" title="تشغيل أغنية"><i class="fas fa-music"></i></button>
     <input type="file" id="file" hidden>
-    <input type="file" id="mfile" accept="audio/*" multiple hidden>
+    <input type="file" id="mfile" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" multiple hidden><input type="file" id="gal" accept="image/*,video/*" multiple hidden><input type="file" id="avf" accept="image/*" hidden>
     <textarea id="txt" rows="1" placeholder="اكتب رسالة..."></textarea>
     <button class="send" id="send"><i class="fas fa-microphone"></i></button>
   </div>
@@ -299,6 +318,8 @@ body.locked #block{display:flex}
 <div id="diag" title="اضغط للإخفاء"></div>
 <button id="mFab" title="الموسيقى"><i class="fas fa-compact-disc"></i></button>
 <div class="ov" id="mOv"><div class="sheet" id="mBody"></div></div>
+<div id="minv"></div><div id="net">لا يوجد اتصال — ستُرسل الرسائل تلقائيًا عند عودة الإنترنت</div>
+<div class="cam" id="cam"><video id="cv" playsinline muted></video><div class="top"><button class="cb" id="camX"><i class="fas fa-xmark"></i></button><button class="cb" id="camFlip"><i class="fas fa-camera-rotate"></i></button></div><div class="ctl"><button class="cb" id="camMode"><i class="fas fa-video"></i></button><button class="shut" id="shut"></button><span style="width:60px"></span></div></div>
 <audio id="rAud" autoplay playsinline></audio>
 
 <script type="module">
@@ -306,7 +327,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,getFirestore,doc,onSnapshot,setDoc,updateDoc,deleteField,deleteDoc,collection,query,where,orderBy,limit,addDoc,serverTimestamp,arrayUnion,increment,getDocs,getDoc,writeBatch,Bytes} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 if(window.__kick)throw new Error('redirecting');
 const app=initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
-let db;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=getFirestore(app)}
+let db;try{db=initializeFirestore(app,{experimentalAutoDetectLongPolling:true,localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=getFirestore(app)}
 const $=id=>document.getElementById(id);
 const PUSH_API='https://vercel-server-nine-tau.vercel.app/api/send';
 const PUSH_KEY='Meezan2026Secret';
@@ -330,12 +351,12 @@ const rebuild=()=>{byId={};users.forEach(u=>{const p=profiles[u.id]||{};byId[u.i
 const realName=u=>u?(u.fullName||u.username||'مستخدم'):'مستخدم';
 const nm=id=>id==='platform'?'منصة ميزان':(nicks[id]||realName(byId[id]));
 const IMG_OK=/^(https?:|data:image\/)/;
-const avatar=id=>{const u=byId[id];if(id==='platform')return '<div class="av"><i class="fas fa-scale-balanced"></i></div>';return u&&IMG_OK.test(u.avatarUrl||'')?`<img class="av" src="${esc(u.avatarUrl)}" loading="lazy">`:`<div class="av">${esc((nm(id)||'؟').trim()[0]||'؟')}</div>`};
+let avs=LS.get('rsl_av_'+me,{});const avatar=id=>{const u=Object.assign({},byId[id]);if(avs[id])u.avatarUrl=avs[id];if(id==='platform')return '<div class="av"><i class="fas fa-scale-balanced"></i></div>';return u&&IMG_OK.test(u.avatarUrl||'')?`<img class="av" src="${esc(u.avatarUrl)}" loading="lazy">`:`<div class="av">${esc((nm(id)||'؟').trim()[0]||'؟')}</div>`};
 const isAllowed=id=>id in (cfg.overrides||{})?!!cfg.overrides[id]:!!cfg.allowAll;
 const allowed=()=>isAllowed(me);
 let lockIv=null;
 function lockOut(){const bd=document.body;if(bd.classList.contains('locked'))return;bd.classList.remove('pend');bd.classList.remove('chat-open');bd.classList.add('locked');
-  try{if(unsub)unsub();unsub=null;cur=null;if(lunsub)lunsub();lunsub=null;mReset()}catch(e){}try{if(call)endCall('ended')}catch(e){}incId=null;
+  try{if(unsub)unsub();unsub=null;cur=null;mReset()}catch(e){}try{if(call)endCall('ended')}catch(e){}incId=null;
   let n=5;$('blkN').textContent=n;lockIv=setInterval(()=>{n--;$('blkN').textContent=Math.max(n,0);if(n<=0){clearInterval(lockIv);location.replace('index.html')}},1000)}
 /* الدخول يتم فورًا لو مسموح؛ المنع لا يُقرّر إلا من رد السيرفر (حتى لا يتم إخراجك بالغلط من كاش قديم) */
 const gate=srv=>{if(!cfgOk)return;if(allowed()){const bd=document.body;if(!bd.classList.contains('locked')){bd.classList.remove('pend');clearInterval(lockIv)}}else if(srv)lockOut()};
@@ -356,7 +377,7 @@ onSnapshot(query(collection(db,'chats'),where('members','array-contains',me)),s=
   const next=s.docs.map(d=>{const x=d.data();return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:x.reads||{},delivered:x.delivered||{},typing:x.typing||{},cleared:x.cleared||{},muted:x.muted||{}}});
   if(initDone)s.docChanges().forEach(ch=>{if(ch.type==='removed'||ch.doc.metadata.hasPendingWrites)return;const c=next.find(x=>x.id===ch.doc.id);if(c&&c.updatedAt>(prevUpd[c.id]||0)&&!muted(c)&&c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>(c.reads[me]||0)&&(!cur||cur.id!==c.id)&&c.updatedAt>myClr(c))banner(c)});
   next.forEach(c=>{prevUpd[c.id]=Math.max(prevUpd[c.id]||0,c.updatedAt);
-    if(c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.delivered||{})[me]||0)&&dlSent[c.id]!==c.updatedAt){dlSent[c.id]=c.updatedAt;setDoc(doc(db,'chats',c.id),{delivered:{[me]:Date.now()}},{merge:true}).catch(()=>{})}});
+    if(c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.delivered||{})[me]||0)&&dlSent[c.id]!==c.updatedAt){dlSent[c.id]=c.updatedAt;setDoc(doc(db,'chats',c.id),{delivered:{[me]:Math.max(Date.now(),c.updatedAt)}},{merge:true}).catch(()=>{})}});
   chats=next;chatsOk=true;initDone=true;LS.set('rsl_chats_'+me,chats);render();deep();if(cur){head();updTicks()}},e=>diag('المحادثات',e));
 
 /* ===== نوافذ بستايل الموقع ===== */
@@ -376,11 +397,12 @@ async function askSend(label){
 /* ===== قائمة المحادثات ===== */
 const ago=ms=>{if(!ms)return '';const d=new Date(ms),n=new Date();return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ar-EG',{day:'numeric',month:'short'})};
 const unread=c=>c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>(c.reads[me]||0);
-function render(){
+let rq=0;const render=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;render0()})};
+function render0(){
   $('notice').innerHTML=(cfgOk&&!allowed())?'<div class="card empty"><i class="fas fa-lock"></i>المراسلة غير متاحة لحسابك حاليًا</div>':'';
   $('fab').style.display=(cfgOk&&allowed())?'block':'none';
   const q=$('qList').value.trim().toLowerCase();
-  const l=chats.filter(c=>c.updatedAt>myClr(c)||!c.updatedAt).filter(c=>!q||nm(c.kind==='platform'?'platform':other(c)).toLowerCase().includes(q))
+  const l=chats.filter(c=>c.updatedAt>myClr(c)||!c.updatedAt).filter(c=>!q||nm(c.kind==='platform'?'platform':other(c)).toLowerCase().includes(q)||(c.lastText||'').toLowerCase().includes(q))
     .sort((a,b)=>(a.kind==='platform'?-1:0)-(b.kind==='platform'?-1:0)||b.updatedAt-a.updatedAt);
   if(!chatsOk&&!l.length){$('list').innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div>';return}
   $('list').innerHTML=l.length?l.map(c=>{const o=c.kind==='platform'?'platform':other(c);return `<div class="card row" data-c="${esc(c.id)}" style="cursor:pointer">${avatar(o)}<div class="grow"><div class="t">${esc(nm(o))}${muted(c)?' <i class="fas fa-bell-slash" style="font-size:11px;color:var(--text-sub)"></i>':''}</div><div class="s">${esc(c.lastText)}</div></div><div style="text-align:left"><div class="s">${ago(c.updatedAt)}</div>${unread(c)?'<div class="dot" style="margin:6px 0 0 auto"></div>':''}</div><button class="ib mini" data-k="${esc(c.id)}"><i class="fas fa-ellipsis-vertical"></i></button></div>`}).join(''):`<div class="empty"><i class="fas fa-comments"></i>${q?'لا نتائج':'لا توجد محادثات بعد<br>اضغط الزر الأخضر لبدء محادثة'}</div>`;
@@ -395,10 +417,18 @@ function restore(){if(deepDone||cur||!cfgOk||!allowed())return;const s=SS.get('r
 function openById(id){const c=chats.find(x=>x.id===id);if(c)openChat(id,c.kind==='platform'?'platform':other(c),c.kind==='platform')}
 
 /* ===== إجراءات المحادثة ===== */
-async function renameFlow(o){const n=await askText('تغيير الاسم','' + nm(o),'الاسم الذي يظهر لك فقط');if(n===null)return;if(n.trim())nicks[o]=n.trim().slice(0,40);else delete nicks[o];LS.set('rsl_nick_'+me,nicks);if(cur)head();render();toast('تم حفظ الاسم على جهازك')}
+let avT=null;const pickAv=o=>{avT=o;$('avf').click()};
+$('avf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!avT)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const z=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(im,(im.width-z)/2,(im.height-z)/2,z,z,0,0,160,160);avs[avT]=c.toDataURL('image/jpeg',.75);LS.set('rsl_av_'+me,avs);URL.revokeObjectURL(u);render();head();toast('تم تغيير الصورة على جهازك')};im.src=u};
+async function renameFlow(o){
+  const v=await showD(`<div class="sh-t">تعديل جهة الاتصال</div><div style="display:flex;justify-content:center;margin:8px 0">${avatar(o)}</div><input class="inp" value="${esc(nm(o))}" placeholder="الاسم الذي يظهر لك فقط" maxlength="40"><div class="opt" data-v="§av"><i class="fas fa-image"></i>تغيير الصورة (عندي فقط)</div>${avs[o]?'<div class="opt red" data-v="§avx"><i class="fas fa-trash"></i>إزالة الصورة المخصصة</div>':''}<div class="opt" data-v="§sr"><i class="fas fa-magnifying-glass"></i>بحث في الرسائل</div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="__in">حفظ</button></div>`);
+  if(v===null)return;
+  if(v==='§sr'){const cid=cur&&cur.o===o?cur.id:[me,o].sort().join('_');if(!cur||cur.id!==cid)openChat(cid,o,false);return startSearch()}
+  if(v==='§av')return pickAv(o);
+  if(v==='§avx'){delete avs[o];LS.set('rsl_av_'+me,avs);render();if(cur)head();return}
+  if(v.trim())nicks[o]=v.trim().slice(0,40);else delete nicks[o];LS.set('rsl_nick_'+me,nicks);pubNick(o);if(cur)head();render();toast('تم حفظ الاسم على جهازك')}
 function chatActions(id){const c=chats.find(x=>x.id===id)||(cur&&cur.id===id?{id,kind:cur.plat?'platform':'user',muted:{}}:null);if(!c)return;
   const plat=c.kind==='platform',o=plat?'platform':(other(c)||(cur&&cur.o)),mt=muted(c);
-  const it=[];if(!plat)it.push({i:'fa-pen',l:'تغيير الاسم',f:()=>renameFlow(o)});
+  const it=[{i:'fa-magnifying-glass',l:'بحث في الرسائل',f:()=>{if(!cur||cur.id!==id)openById(id);startSearch()}}];if(!plat)it.push({i:'fa-pen',l:'تغيير الاسم والصورة',f:()=>renameFlow(o)});
   it.push({i:mt?'fa-bell':'fa-bell-slash',l:mt?'إلغاء كتم الإشعارات':'كتم الإشعارات من هذا المستخدم',f:async()=>{try{await setDoc(doc(db,'chats',id),{muted:{[me]:!mt}},{merge:true});const x=chats.find(z=>z.id===id);if(x)x.muted=Object.assign({},x.muted,{[me]:!mt});if(cur&&cur.id===id)head();render();toast(mt?'تم إلغاء الكتم':'تم كتم الإشعارات من هذا المستخدم')}catch(e){toast('تعذّر الحفظ')}}});
   it.push({i:'fa-eraser',l:'حذف المحادثة عندي',red:1,f:async()=>{if(await askYes('حذف المحادثة','ستُمسح الرسائل من عندك فقط ويبقى الطرف الآخر محتفظًا بها.','حذف')){await setDoc(doc(db,'chats',id),{cleared:{[me]:Date.now()}},{merge:true});if(cur&&cur.id===id)closeChat();toast('تم حذف المحادثة')}}});
   if(!plat)it.push({i:'fa-trash',l:'حذف كامل للجميع',red:1,f:async()=>{if(await askYes('حذف كامل','ستُحذف المحادثة من عندك وعند الطرف الآخر ولا يمكن التراجع.','حذف نهائي')){try{if(cfg.autoDelete)await wipeChat(id);else await setDoc(doc(db,'chats',id),{cleared:{[me]:Date.now(),[o]:Date.now()}},{merge:true});if(cur&&cur.id===id)closeChat();toast('تم الحذف')}catch(e){toast('تعذّر الحذف')}}}});
@@ -423,30 +453,54 @@ function fit(){const v=window.visualViewport,c=$('chat');if(v&&c.classList.conta
 if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}
 function head(){if(!cur)return;$('cName').textContent=nm(cur.o);$('cAv').innerHTML=avatar(cur.o);const c=chats.find(x=>x.id===cur.id);paintSub((cur.plat?' · الحساب الرسمي':'')+(muted(c)?' · 🔕':''))}
 function closeChat(){
-  tyPing(false);watchPeer(null);mReset();if(lunsub)lunsub();lunsub=null;L=null;
-  $('chat').classList.remove('on');document.body.classList.remove('chat-open');if(unsub)unsub();unsub=null;cur=null;deepDone=true;SS.del('rsl_open_'+me);
-  if(history.replaceState)history.replaceState(null,'',location.pathname)}
+  tyPing(false);watchPeer(null);$('chat').classList.remove('on');document.body.classList.remove('chat-open');if(unsub)unsub();unsub=null;cur=null;deepDone=true;SQ='';$('sbar').classList.remove('on');SS.del('rsl_open_'+me);
+  if(history.replaceState)history.replaceState(null,'',location.pathname);mRefresh()}
+function mkI(k,h){const t=document.createElement('template');t.innerHTML=h.trim();const n=t.content.firstElementChild;n.dataset.k=k;n._h=h;return n}
+function patch(box,it){box.querySelectorAll('.sk,.empty').forEach(x=>x.remove());[...box.children].forEach(e=>{if(!e.dataset.k)e.remove()});
+  const map=new Map([...box.children].map(e=>[e.dataset.k,e]));let prev=null;
+  it.forEach(([k,h])=>{let el=map.get(k);if(el){map.delete(k);if(el._h!==h){const n=mkI(k,h);el.replaceWith(n);el=n}}else el=mkI(k,h);
+    const ref=prev?prev.nextSibling:box.firstChild;if(el!==ref)box.insertBefore(el,ref);prev=el});
+  map.forEach(e=>e.remove())}
+let LIM=100,subM=null,SQ='',SM=[],SI=0;
 function draw(force){if(!cur)return;const box=$('msgs');
   const near=force||firstRender||box.scrollHeight-box.scrollTop-box.clientHeight<180;
-  const c=chats.find(x=>x.id===cur.id),clr=c?myClr(c):0;msgCache={};let html='',last='';const fids=new Set();
+  const c=chats.find(x=>x.id===cur.id),clr=c?myClr(c):0;msgCache={};const it=[],fids=new Set();let last='';
+  if(LD.length>=LIM)it.push(['more','<button class="btn o" id="more" style="align-self:center">عرض رسائل أقدم</button>']);
   LD.forEach(m=>{const tt=tsv(m.createdAt),t=tt||Date.now();if(clr&&tt&&t<=clr)return;msgCache[m.id]=m;if(m.fileId)fids.add(m.fileId);
-    const day=new Date(t).toDateString();if(day!==last){last=day;const n=new Date(),y=new Date(Date.now()-864e5);html+=`<div class="dsep">${day===n.toDateString()?'اليوم':day===y.toDateString()?'أمس':new Date(t).toLocaleDateString('ar-EG',{day:'numeric',month:'long'})}</div>`}
-    html+=bub(m)});
-  html+=obHtml(cur.id,fids);
-  box.innerHTML=html||'<div class="empty"><i class="fas fa-hand"></i>ابدأ المحادثة...</div>';
-  bindBub();autoLoad();Object.keys(AUD).forEach(apSync);if(near)box.scrollTop=box.scrollHeight;firstRender=false;togBot()}
-function openChat(id,o,plat){if(cur&&cur.id!==id){mReset();tyPing(false)}cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;SS.set('rsl_open_'+me,{id,o,plat});
+    const day=new Date(t).toDateString();if(day!==last){last=day;const n=new Date(),y=new Date(Date.now()-864e5);it.push(['d'+day,`<div class="dsep">${day===n.toDateString()?'اليوم':day===y.toDateString()?'أمس':new Date(t).toLocaleDateString('ar-EG',{day:'numeric',month:'long'})}</div>`])}
+    const h=bub(m);if(h)it.push(['m'+m.id,h])});
+  obHtml(cur.id,fids);OB.filter(o=>o.cid===cur.id).forEach(o=>it.push(['o'+o.tid,obEl(o)]));
+  if(!it.length)it.push(['e','<div class="empty"><i class="fas fa-hand"></i>ابدأ المحادثة...</div>']);
+  patch(box,it);hl();bindBub();autoLoad();Object.keys(AUD).forEach(apSync);if(near&&!SQ)box.scrollTop=box.scrollHeight;firstRender=false;togBot()}
+/* ===== البحث داخل الرسائل ===== */
+const nzc=c=>c==='ى'?'ي':c==='ة'?'ه':/[أإآٱ]/.test(c)?'ا':c.toLowerCase(),SKP=/[\u0610-\u061A\u064B-\u065F\u0670\u0640]/;
+function hl(){const box=$('msgs');box.querySelectorAll('mark.hl').forEach(m=>m.replaceWith(document.createTextNode(m.textContent)));box.normalize();SM=[];
+  const q=[...SQ].filter(c=>!SKP.test(c)).map(nzc).join('');
+  if(q){box.querySelectorAll('.b .tx').forEach(d=>{const w=document.createTreeWalker(d,NodeFilter.SHOW_TEXT),ns=[];while(w.nextNode())ns.push(w.currentNode);
+    ns.forEach(n=>{const t=n.nodeValue,idx=[];let z='';for(let i=0;i<t.length;i++){if(SKP.test(t[i]))continue;z+=nzc(t[i]);idx.push(i)}
+      let p=0;const r=[];while((p=z.indexOf(q,p))>=0){r.push([idx[p],idx[p+q.length-1]+1]);p+=q.length}
+      for(let k=r.length-1;k>=0;k--){n.splitText(r[k][1]);const b=n.splitText(r[k][0]),m=document.createElement('mark');m.className='hl';b.replaceWith(m);m.appendChild(b)}})});
+    SM=[...box.querySelectorAll('mark.hl')]}
+  if(q&&LD.length>=LIM&&LIM<600){LIM=600;subM&&subM()}
+  $('sc').textContent=q?(SM.length?(Math.min(SI,SM.length-1)+1)+'/'+SM.length:'لا نتائج'):'';
+  if(SM.length){SI=Math.max(0,Math.min(SI,SM.length-1));SM[SI].classList.add('cur')}}
+function goS(d){if(!SM.length)return;SM[SI]&&SM[SI].classList.remove('cur');SI=(SI+d+SM.length)%SM.length;SM[SI].classList.add('cur');SM[SI].scrollIntoView({block:'center'});$('sc').textContent=(SI+1)+'/'+SM.length}
+function startSearch(){$('sbar').classList.add('on');$('sq').focus()}
+$('sq').oninput=()=>{SQ=$('sq').value.trim();SI=1e9;hl();if(SM.length)SM[SI].scrollIntoView({block:'center'})};
+$('sUp').onclick=()=>goS(-1);$('sDn').onclick=()=>goS(1);$('sq').onkeydown=e=>{if(e.key==='Enter')goS(e.shiftKey?1:-1)};
+$('sX').onclick=()=>{SQ='';$('sq').value='';$('sbar').classList.remove('on');hl();bottom()};
+function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;LIM=100;SQ='';$('sq').value='';$('sbar').classList.remove('on');SS.set('rsl_open_'+me,{id,o,plat});
   if(history.replaceState)history.replaceState(null,'',location.pathname+'?c='+encodeURIComponent(id));
   head();$('cCall').style.display=$('cVid').style.display='flex';$('musicB').style.display='';
-  document.body.classList.add('chat-open');$('chat').classList.add('on');fit();watchPeer(o);
-  if(unsub)unsub();$('msgs').innerHTML='<div class="sk"></div><div class="sk"></div>';
-  unsub=onSnapshot(query(collection(db,'chats',id,'messages'),orderBy('createdAt'),limit(300)),{includeMetadataChanges:true},s=>{
-    LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites}));draw();markRead()},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'});
-  if(lunsub)lunsub();L=null;lunsub=onSnapshot(lref(),onListen,e=>diag('الموسيقى',e));renderMbar();mRefresh();bgSync()}
+  document.body.classList.add('chat-open');$('chat').classList.add('on');fit();watchPeer(o);if(!plat)nickFor(o);
+  $('msgs').innerHTML='<div class="sk"></div><div class="sk"></div>';
+  subM=()=>{if(unsub)unsub();unsub=onSnapshot(query(collection(db,'chats',id,'messages'),orderBy('createdAt','desc'),limit(LIM)),{includeMetadataChanges:true},s=>{
+    LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites})).reverse();draw();markRead()},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'})};
+  subM();bgSync();mRefresh()}
 let lastRead=0;
 function markRead(){if(!cur||document.visibilityState!=='visible')return;const c=chats.find(x=>x.id===cur.id);if(!c)return;
   const newest=LD.reduce((a,m)=>m.senderId!==me?Math.max(a,tsv(m.createdAt)):a,0);if(!newest||newest<=lastRead||newest<=((c.reads||{})[me]||0))return;lastRead=newest;
-  setDoc(doc(db,'chats',cur.id),{reads:{[me]:Date.now()}},{merge:true}).catch(()=>{})}
+  setDoc(doc(db,'chats',cur.id),{reads:{[me]:Math.max(Date.now(),newest)}},{merge:true}).catch(()=>{})}
 $('cBack').onclick=closeChat;
 $('cHead').onclick=()=>{if(cur&&!cur.plat)renameFlow(cur.o)};
 $('cMore').onclick=()=>{if(cur)chatActions(cur.id)};
@@ -458,7 +512,7 @@ function prev(url){const u=url.toLowerCase(),yt=url.match(/(?:youtube\.com\/watc
   if(/\.(png|jpe?g|gif|webp)(\?|$)/.test(u))return `<img src="${esc(url)}" loading="lazy">`;
   if(/\.(mp4|webm|mov)(\?|$)/.test(u))return `<video src="${esc(url)}" controls preload="metadata"></video>`;return ''}
 const linkify=t=>esc(t).replace(URL_RE,m=>`<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
-const CH=700000,MAX=30*1024*1024,fcache={};const pad=i=>String(i).padStart(4,'0');
+const autoMax=()=>{const n=navigator.connection||{};return n.saveData?0:/^(slow-2g|2g|3g)$/.test(n.effectiveType||'')?15e4:15e5};const CH=700000,MAX=30*1024*1024,fcache={};const pad=i=>String(i).padStart(4,'0');
 const fmt=n=>!n?'':n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const TL={image:'صورة',video:'فيديو',audio:'رسالة صوتية',file:'ملف'};
 /* مشغل الصوت */
@@ -475,7 +529,9 @@ function voEl(m,mine){
   if(mine)return `<div class="vo"><i class="fas fa-eye"></i> ${TL[m.type]||'ملف'} · عرض ${lbl}</div>`;
   return `<div class="vo on" data-mid="${esc(m.id)}"><i class="fas fa-eye"></i> ${TL[m.type]||'ملف'} · اضغط للعرض (متبقي ${left})</div>`}
 const gunzip=async b=>new Response(b.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
-async function fetchBlob(m){
+async function fetchBlob(m){if(m.vo)return fetchBlob0(m);const k='https://rsl.local/f/'+m.fileId;let c=null;try{c=await caches.open('rsl');const h=await c.match(k);if(h)return await h.blob()}catch(e){}
+  const b=await fetchBlob0(m);try{c&&await c.put(k,new Response(b))}catch(e){}return b}
+async function fetchBlob0(m){
   const snap=await getDocs(query(collection(db,'chat_files',m.fileId,'parts'),orderBy('i')));
   const arr=snap.docs.map(d=>{const x=d.data();if(x.bytes)return x.bytes.toUint8Array();const b=atob(x.data),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u});
   if(!arr.length)throw 0;let blob=new Blob(arr,{type:m.gz?'application/gzip':(sniffMime(arr[0],m.mime||'')||'application/octet-stream')});
@@ -495,11 +551,11 @@ function bub(m){
   const mine=m.senderId===me;let body='';
   if(m.deletedAll)body='<i class="fas fa-ban"></i> تم حذف هذه الرسالة';
   else{if(m.fileId)body+=m.vo>0?voEl(m,mine):fileEl(m);
-    if(m.text){body+=`<div>${linkify(m.text)}</div>`;(m.text.match(URL_RE)||[]).slice(0,1).forEach(u=>body+=prev(u))}}
+    if(m.text){body+=`<div class="tx">${linkify(m.text)}</div>`;(m.text.match(URL_RE)||[]).slice(0,1).forEach(u=>body+=prev(u))}}
   const t=tsv(m.createdAt)?new Date(tsv(m.createdAt)).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):'';
   const rc={};Object.values(m.reactions||{}).forEach(e=>rc[e]=(rc[e]||0)+1);const my=(m.reactions||{})[me],rk=Object.keys(rc);
   return `<div class="b ${mine?'me':''} ${m.deletedAll?'del':''} ${rk.length?'hx':''}" data-m="${esc(m.id)}">${m.senderId==='platform'?'<div class="s" style="font-weight:800">منصة ميزان</div>':''}${body}<div class="meta"><span>${t}</span>${m.edited?'<span>معدّلة</span>':''}${mine&&!m.deletedAll?tkHtml(m):''}</div>${rk.length?`<div class="rx">${rk.map(e=>`<span class="${my===e?'m':''}">${e}${rc[e]>1?`<b>${rc[e]}</b>`:''}</span>`).join('')}</div>`:''}</div>`}
-function bindBub(){document.querySelectorAll('#msgs .b').forEach(el=>{let h;const go=()=>showMenu(el.dataset.m,el.getBoundingClientRect(),el);
+function bindBub(){document.querySelectorAll('#msgs .b').forEach(el=>{if(el._b)return;el._b=1;let h;const go=()=>showMenu(el.dataset.m,el.getBoundingClientRect(),el);
   el.addEventListener('touchstart',()=>{h=setTimeout(go,450)},{passive:true});['touchend','touchmove','touchcancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(h),{passive:true}));
   el.addEventListener('contextmenu',e=>{e.preventDefault();go()})})}
 function closeMenu(){$('menu').classList.remove('on');$('mbk').classList.remove('on');document.querySelectorAll('#msgs .b.sel').forEach(x=>x.classList.remove('sel'))}
@@ -523,14 +579,19 @@ function showMenu(mid,r,el){const m=msgCache[mid];if(!cur||!m||m.deletedAll)retu
     if(a==='edit'){const n=await askText('تعديل الرسالة',m.text,'اكتب النص الجديد');if(n!==null&&n.trim()&&n.trim()!==m.text)await updateDoc(mref,{text:n.trim(),edited:true})}})}
 
 /* ===== الإشعارات ===== */
+const NKC={};
+const nickFor=to=>{const c=NKC[to];if(c&&Date.now()-c.t<3e5)return c.p;const p=getDoc(doc(db,'contact_names',to+'__'+me)).then(x=>x.exists()?(x.data().name||''):'').catch(()=>'');NKC[to]={t:Date.now(),p};return p};
+const pubNick=o=>{const r=doc(db,'contact_names',me+'__'+o);(nicks[o]?setDoc(r,{owner:me,contact:o,name:nicks[o]}):deleteDoc(r)).catch(()=>{})};
+if(!LS.get('rsl_nick_sync_'+me,0)){Object.keys(nicks).forEach(pubNick);LS.set('rsl_nick_sync_'+me,1)}
 async function notifyUser(to,title,body,url,urgent,key){
   if(to==='platform')return;
   const id=key||('n_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),now=new Date().toISOString();
-  const sender=realName(byId[me])!=='مستخدم'?realName(byId[me]):(sessionStorage.getItem('meezan_username')||'مستخدم');
-  await setDoc(doc(db,'notifications',id),{id,title:title||sender,body:String(body||'').slice(0,140),type:'page',url,mediaType:'page',senderId:me,senderName:sender,createdAt:now,target:'custom',targetLabel:nm(to),recipients:[to],urgent:!!urgent,kind:'chat'});
-  const ur=doc(db,'user_notifications',String(to)),sn=await getDoc(ur),d=sn.exists()?sn.data():{},ids=d.notifIds||[];
-  await setDoc(ur,{userId:String(to),notifIds:[id,...ids.filter(x=>x!==id)].slice(0,100),unreadCount:(d.unreadCount||0)+(ids.includes(id)?0:1),updatedAt:serverTimestamp()},{merge:true});
-  const r=await fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':PUSH_KEY},body:JSON.stringify({notifId:id,resend:true,urgent:!!urgent,alarm:!!urgent,requireInteraction:!!urgent})});
+  const lname=await nickFor(to);
+  const sender=lname||(realName(byId[me])!=='مستخدم'?realName(byId[me]):(sessionStorage.getItem('meezan_username')||'مستخدم'));
+  const ur=doc(db,'user_notifications',String(to));
+  const [,sn]=await Promise.all([setDoc(doc(db,'notifications',id),{id,title:title==='📞'?'📞 '+sender:(title||sender),body:String(body||'').slice(0,140),type:'page',url,mediaType:'page',senderId:me,senderName:sender,createdAt:now,target:'custom',targetLabel:nm(to),recipients:[to],urgent:!!urgent,kind:'chat'}),getDoc(ur)]);
+  const d=sn.exists()?sn.data():{},ids=d.notifIds||[];
+  const [,r]=await Promise.all([setDoc(ur,{userId:String(to),notifIds:[id,...ids.filter(x=>x!==id)].slice(0,100),unreadCount:(d.unreadCount||0)+(ids.includes(id)?0:1),updatedAt:serverTimestamp()},{merge:true}),fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':PUSH_KEY},body:JSON.stringify({notifId:id,resend:true,urgent:!!urgent,alarm:!!urgent,requireInteraction:!!urgent})})]);
   return r.json()}
 /* هل الطرف الآخر كاتم الإشعارات مني؟ */
 async function isMutedByOther(chatId,o){const c=chats.find(x=>x.id===chatId);if(c&&c.members)return !!(c.muted||{})[o];try{const s=await getDoc(doc(db,'chats',chatId));return !!((s.data()||{}).muted||{})[o]}catch(e){return false}}
@@ -584,24 +645,29 @@ function sniffMime(u8,def){const h=i=>u8[i];let t='';
 const nowHM=()=>new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
 
 /* ----- علامات الإرسال: ساعة / صح / صحين / صحين زرق ----- */
-const TK={p:'<i class="far fa-clock tk gray"></i>',s:'<i class="fas fa-check tk gray"></i>',d:'<i class="fas fa-check-double tk gray"></i>',r:'<i class="fas fa-check-double tk blue"></i>'};
-function tkOf(m){if(m.__p)return 'p';const cd=getCD()||{},pr=tkPeer(),t=tsv(m.createdAt),rd=(cd.reads||{})[pr]||0,dl=(cd.delivered||{})[pr]||0;
+const SV=p=>`<svg viewBox="0 0 16 11">${p}</svg>`;
+const TK={p:SV('<circle cx="8" cy="5.5" r="4.2"/><path d="M8 3.3v2.4l1.6 1"/>'),s:SV('<path d="M2.5 5.8 6 9.2 13 1.6"/>'),d:SV('<path d="M1 5.9 4.3 9.2 10.6 1.6M5.8 9.2 13 1.6"/>')};TK.r=TK.d;
+const PT={};
+function tkOf(m){if(m.__p){const f=PT[m.id]||(PT[m.id]=Date.now());return(!navigator.onLine||Date.now()-f>6000)?'p':'s'}
+  const cd=getCD()||{},pr=tkPeer(),t=tsv(m.createdAt),rd=(cd.reads||{})[pr]||0,dl=(cd.delivered||{})[pr]||0;
   if(t&&rd>=t)return 'r';if(t&&dl>=t)return 'd';return 's'}
-const tkHtml=m=>`<span class="tkw" data-tk>${TK[tkOf(m)]}</span>`;
-function updTicks(){document.querySelectorAll('#msgs .b.me[data-m]').forEach(el=>{const m=msgCache[el.dataset.m],w=el.querySelector('[data-tk]');if(m&&w)w.innerHTML=TK[tkOf(m)]})}
+const tkHtml=m=>{const k=tkOf(m);return `<span class="tkw${k==='r'?' r':''}" data-tk>${TK[k]}</span>`};
+function updTicks(){document.querySelectorAll('#msgs .b.me[data-m]').forEach(el=>{const m=msgCache[el.dataset.m],w=el.querySelector('[data-tk]');if(m&&w){const k=tkOf(m);w.innerHTML=TK[k];w.classList.toggle('r',k==='r')}})}
+setInterval(()=>{if(cur)updTicks()},2000);
+addEventListener('online',()=>$('net').style.display='none');addEventListener('offline',()=>$('net').style.display='block');if(!navigator.onLine)$('net').style.display='block';
 
 /* ----- الحضور (متصل / غير متصل) + يكتب الآن ----- */
 let PR=null,punsub=null;
-const isOn=p=>!!(p&&p.on&&Date.now()-(p.t||0)<75000);
+const isOn=p=>!!(p&&p.on&&Date.now()-(p.t||0)<50000);
 function beat(on){setDoc(doc(db,'presence',ME),{on:!!on,t:Date.now()},{merge:true}).catch(()=>{})}
-beat(true);setInterval(()=>{if(document.visibilityState==='visible')beat(true)},30000);
+beat(true);setInterval(()=>{if(document.visibilityState==='visible')beat(true)},20000);
 document.addEventListener('visibilitychange',()=>{beat(document.visibilityState==='visible');if(document.visibilityState==='visible')try{markRead()}catch(e){}});
 addEventListener('pagehide',()=>beat(false));addEventListener('online',()=>beat(true));
 setInterval(()=>{if(cur)refreshHead()},20000);
 function watchPeer(pid){if(punsub)punsub();punsub=null;PR=null;if(!pid)return;punsub=onSnapshot(doc(db,'presence',pid),s=>{PR=s.exists()?s.data():null;refreshHead()},()=>{})}
 const peerTyping=()=>{const cd=getCD()||{};return Date.now()-(((cd.typing||{})[tkPeer()])||0)<5000};
 function paintSub(extra){const ty=peerTyping(),on=isOn(PR),el=$('cSub');
-  el.className='s'+((ty||on)?' onl':'');el.innerHTML=(ty?'<span class="ty">يكتب الآن...</span>':on?'<i class="od"></i>متصل':'غير متصل')+(extra||'');
+  el.className='s'+((ty||on)?' onl':'');el.innerHTML=(ty?'<span class="ty">يكتب الآن...</span>':on?'<i class="od"></i>متصل':'غير متصل'+(PR&&PR.t?' · آخر ظهور '+ago(PR.t):''))+(extra||'');
   clearTimeout(paintSub.h);if(ty)paintSub.h=setTimeout(()=>{if(cur)refreshHead()},5200)}
 let tyLast=0,tyOn=false;
 function tyPing(on){if(!cur||!canTy())return;const now=Date.now();
@@ -620,17 +686,17 @@ $('txt').addEventListener('blur',()=>tyPing(false));
 /* ----- معاينات الوسائط بستايل الموقع ----- */
 const big=(m,u,nodl)=>{
   if(m.type==='image')return `<img src="${u}">`;
-  if(m.type==='video')return `<video src="${u}" controls playsinline ${nodl?'controlsList="nodownload" disablePictureInPicture':''} preload="metadata"></video>`;
+  if(m.type==='video')return `<div class="vp"><video src="${u}" playsinline preload="metadata"></video><div class="vc"><button class="vb"><i class="fas fa-play"></i></button><input type="range" class="vs" min="0" max="1000" value="0"><span class="s vt">0:00</span><button class="ib mini vf"><i class="fas fa-expand"></i></button></div></div>`;
   if(m.type==='audio')return `<div class="ap" data-src="${u}" data-dur="${m.dur||0}"><button class="apb"><i class="fas fa-play"></i></button><div class="apw"><input type="range" class="aps" min="0" max="100" step="0.1" value="0"><div class="apt"><span class="apc">0:00</span><span class="apd">${m.dur?mmss(m.dur):''}</span></div></div></div>`;
   return `<a href="${u}" download="${esc(m.name||'file')}">${esc(m.name||'ملف')}</a>`};
 function thumb(m,u){
   if(m.type==='image')return `<div class="mt" data-u="${u}" data-k="image" data-n="${esc(m.name||'image')}"><img src="${u}" onerror="this.parentNode.classList.add('bad')"></div>`;
   if(m.type==='video')return `<div class="mt vid" data-u="${u}" data-k="video" data-n="${esc(m.name||'video')}"><video src="${u}#t=0.1" preload="metadata" muted playsinline></video><div class="pb"><i class="fas fa-play"></i></div>${m.size?`<span class="cap"><span>${fmt(m.size)}</span></span>`:''}</div>`;
   if(m.type==='audio')return big(m,u);
-  return `<a class="mf" href="${u}" download="${esc(m.name||'file')}"><div class="fi"><i class="fas ${FILE_IC(m.name)}"></i></div><div class="grow"><div class="fn">${esc(m.name||'ملف')}</div><div class="fz">${fmt(m.size)}</div></div><span class="rg"><i class="fas fa-download"></i></span></a>`}
+  return `<div class="mf" data-fu="${u}" data-n="${esc(m.name||'file')}"><div class="fi"><i class="fas ${FILE_IC(m.name)}"></i></div><div class="grow"><div class="fn">${esc(m.name||'ملف')}</div><div class="fz">${fmt(m.size)}</div></div><span class="rg"><i class="fas fa-download"></i></span></div>`}
 function fileEl(m){
   if(fcache[m.fileId])return thumb(m,fcache[m.fileId]);
-  const auto=(m.type==='image'||m.type==='audio')&&(m.size||0)<=2097152?' data-auto="1"':'';
+  const auto=(m.type==='image'||m.type==='audio')&&(m.size||0)<=autoMax()?' data-auto="1"':'';
   if(m.type==='image'||m.type==='video')return `<div class="mt ld${m.type==='video'?' vid':''}" data-mid="${esc(m.id)}"${auto}><div class="pb"><i class="fas ${m.type==='video'?'fa-play':'fa-image'}"></i></div><span class="cap"><span>${fmt(m.size)}</span><i class="fas fa-arrow-down"></i></span></div>`;
   return `<div class="mf ld" data-mid="${esc(m.id)}"${auto}><div class="fi"><i class="fas ${m.type==='audio'?'fa-microphone':FILE_IC(m.name)}"></i></div><div class="grow"><div class="fn">${m.type==='audio'?'رسالة صوتية':esc(m.name||'ملف')}</div><div class="fz">${fmt(m.size)}</div></div><span class="rg"><i class="fas fa-arrow-down"></i></span></div>`}
 async function loadFile(el,openAfter){
@@ -643,7 +709,7 @@ const autoLoad=()=>document.querySelectorAll('#msgs .ld[data-auto]').forEach(x=>
 
 /* ----- عارض ملء الشاشة + تنزيل ----- */
 let vvCb=null;
-function openViewer(u,kind,name){$('vvB').innerHTML=big({type:kind},u);const d=$('vvD');d.href=u;d.download=name||'file';d.style.display='flex';$('vv').classList.add('on')}
+function openViewer(u,kind,name){$('vvB').innerHTML=big({type:kind},u);const d=$('vvD');d.href=u;d.download=name||'file';d.style.display='flex';$('vv').classList.add('on');const pv=$('vvB').querySelector('video');if(pv)pv.play().catch(()=>{})}
 function closeVV(){$('vv').classList.remove('on');$('vvB').querySelectorAll('video,audio').forEach(v=>{try{v.pause()}catch(e){}});$('vvB').innerHTML='';$('vvD').style.display='none';Object.values(AUD).forEach(a=>a.pause());if(vvCb){const f=vvCb;vvCb=null;f()}}
 $('vvX').onclick=closeVV;$('vv').addEventListener('click',e=>{if(e.target===$('vv'))closeVV()});
 addEventListener('keydown',e=>{if(e.key==='Escape'&&$('vv').classList.contains('on'))closeVV()});
@@ -680,14 +746,15 @@ document.addEventListener('click',e=>{const rt=e.target.closest('[data-rt]'),rm=
   if(rt){const o=OB.find(x=>x.tid===rt.dataset.rt);if(o){o.st='up';o.prog=0;draw();runOb(o)}}
   if(rm){const i=OB.findIndex(x=>x.tid===rm.dataset.rm);if(i>=0){OB.splice(i,1);draw()}}});
 $('msgs').addEventListener('click',e=>{const ld=e.target.closest('.ld');if(ld)return loadFile(ld,true);
+  const mf=e.target.closest('.mf[data-fu]');if(mf)return fileSheet(mf);if(e.target.closest('#more')){LIM+=150;return subM()}
   const mt=e.target.closest('.mt[data-u]');if(mt)openViewer(mt.dataset.u,mt.dataset.k,mt.dataset.n)});
 
 /* ----- تسجيل صوتي بشكل أجمل ----- */
-let REC=null;const BARS=34;
+let REC=null;const BARS=24;
 function recUI(on){$('recbar').style.display=on?'flex':'none';$('txt').style.display=$('attach').style.display=$('musicB').style.display=on?'none':'';
   $('send').classList.toggle('rc',on);if(on)$('send').innerHTML='<i class="fas fa-paper-plane"></i>';else{$('recT').textContent='0:00';syncSend();refreshMusicBtn()}}
 async function startRec(done){
-  let s;try{s=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){return toast('اسمح بالميكروفون من إعدادات المتصفح')}
+  let s;try{s=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){return permHelp('الميكروفون')}
   const mt=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'';
   const rec=new MediaRecorder(s,mt?{mimeType:mt,audioBitsPerSecond:24000}:{audioBitsPerSecond:24000}),ch=[];
   const R=REC={rec,cancel:false,t0:Date.now(),lv:Array(BARS).fill(0)};
@@ -704,9 +771,11 @@ $('recX').onclick=()=>{if(REC){REC.cancel=true;REC.rec.stop()}};
 
 /* ----- أصوات الرنة والموسيقى الخلفية (من إعدادات الأدمن) ----- */
 const SNDURL={call:'',video:'',bg:''},SNDMETA={},sndCache={};let ringA=null;
-async function sndFetch(m){const snap=await getDocs(query(collection(db,'chat_files',m.fid,'parts'),orderBy('i')));
-  const arr=snap.docs.map(d=>d.data().bytes.toUint8Array());if(!arr.length)throw 0;return URL.createObjectURL(new Blob(arr,{type:m.mime||'audio/mpeg'}))}
-onSnapshot(doc(db,'settings','sounds'),async s=>{const d=s.exists()?s.data():{};
+async function sndFetch(m){const k='https://rsl.local/s/'+m.fid;let c=null;try{c=await caches.open('rsl');const h=await c.match(k);if(h)return URL.createObjectURL(await h.blob())}catch(e){}
+  const b=await sndFetch0(m);try{c&&await c.put(k,new Response(b))}catch(e){}return URL.createObjectURL(b)}
+async function sndFetch0(m){const snap=await getDocs(query(collection(db,'chat_files',m.fid,'parts'),orderBy('i')));
+  const arr=snap.docs.map(d=>d.data().bytes.toUint8Array());if(!arr.length)throw 0;return new Blob(arr,{type:m.mime||'audio/mpeg'})}
+onSnapshot(doc(db,'settings','sounds'),async s=>{if(!sndFetch.w){sndFetch.w=1;await new Promise(r=>setTimeout(r,2500))}const d=s.exists()?s.data():{};
   for(const k of ['call','video','bg']){const m=d[k];SNDMETA[k]=m||null;if(!m){SNDURL[k]='';continue}
     if(!sndCache[m.fid]){try{sndCache[m.fid]=await sndFetch(m)}catch(e){sndCache[m.fid]=''}}SNDURL[k]=sndCache[m.fid]}
   if(typeof onSnd==='function')onSnd()},()=>{});
@@ -722,54 +791,84 @@ btn.onclick=async()=>{
   if(REC){REC.rec.stop();return}
   const t=$('txt').value.trim();
   if(t){$('txt').value='';$('txt').style.height='auto';sync();tyPing(false);$('txt').focus();bottomSoon();try{await sendMsg({type:'text',text:t})}catch(e){if(e.message!=='not-allowed'){diag('الإرسال',e);toast('تعذّر الإرسال')}}return}
-  startRec(async(blob,dur,ext)=>{const vo=await askSend('الرسالة الصوتية');if(vo===null)return;up(blob,'voice.'+ext,'audio',vo,{dur})})};
-$('attach').onclick=()=>$('file').click();
-$('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur)return;
-  const type=f.type.startsWith('image/')?'image':f.type.startsWith('video/')?'video':f.type.startsWith('audio/')?'audio':'file';
-  const vo=await askSend(TL[type]);if(vo===null)return;up(f,f.name,type,vo);bottomSoon()};
+  startRec((blob,dur,ext)=>{const vo=RVO?1:0;RVO=0;paintVo();up(blob,'voice.'+ext,'audio',vo,{dur})})};
+let RVO=0;const paintVo=()=>{$('recVo').style.color=RVO?'var(--accent)':'var(--text-sub)'};$('recVo').onclick=()=>{RVO=RVO?0:1;paintVo();toast(RVO?'ستُرسل لمرة واحدة':'إرسال عادي')};
+/* ===== المرفقات والكاميرا بستايل الموقع ===== */
+const permHelp=w=>showD(`<div class="sh-t"><i class="fas fa-lock"></i> السماح بـ ${w}</div><div class="sh-m">لم يتم السماح بالوصول. اضغط على أيقونة القفل بجانب عنوان الصفحة ← الأذونات ← فعّل ${w} ثم أعد المحاولة.</div><div class="btns"><button class="btn" data-v="__no">حسنًا</button></div>`);
+async function pickFiles(fs){if(!fs.length||!cur)return;const ty=f=>f.type.startsWith('image/')?'image':f.type.startsWith('video/')?'video':f.type.startsWith('audio/')?'audio':'file';
+  const vo=await askSend(fs.length>1?fs.length+' ملفات':TL[ty(fs[0])]);if(vo===null)return;fs.forEach(f=>up(f,f.name,ty(f),vo));bottomSoon()}
+$('file').onchange=$('gal').onchange=e=>{const fs=[...e.target.files];e.target.value='';pickFiles(fs)};
+$('attach').onclick=()=>sheet('إرسال',[{i:'fa-camera',l:'الكاميرا',f:openCam},{i:'fa-images',l:'صور وفيديوهات من المعرض',f:()=>$('gal').click()},{i:'fa-file',l:'ملف / مستند',f:()=>$('file').click()}]);
+let CM=null;
+async function camStart(){if(CM.st)CM.st.getTracks().forEach(t=>t.stop());CM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:CM.face,width:{ideal:1280}},audio:CM.mode==='video'});const v=$('cv');v.srcObject=CM.st;v.style.transform=CM.face==='user'?'scaleX(-1)':'';await v.play().catch(()=>{})}
+async function openCam(){if(!cur||!navigator.mediaDevices)return pickFiles([]);CM={face:'environment',mode:'photo',st:null,rec:null};
+  try{await camStart();$('cam').classList.add('on');$('shut').className='shut';$('camMode').innerHTML='<i class="fas fa-video"></i>'}catch(e){camClose();permHelp('الكاميرا')}}
+function camClose(){if(CM){if(CM.rec&&CM.rec.state!=='inactive'){CM.cancel=1;try{CM.rec.stop()}catch(e){}}CM.st&&CM.st.getTracks().forEach(t=>t.stop())}CM=null;$('cam').classList.remove('on');$('cv').srcObject=null}
+async function camSend(b,n,t){const vo=await askSend(TL[t]);if(vo===null)return;up(b,n,t,vo);bottomSoon()}
+$('camX').onclick=camClose;
+$('camFlip').onclick=async()=>{if(!CM||CM.rec)return;CM.face=CM.face==='user'?'environment':'user';try{await camStart()}catch(e){}};
+$('camMode').onclick=async()=>{if(!CM||CM.rec)return;CM.mode=CM.mode==='photo'?'video':'photo';$('camMode').innerHTML=CM.mode==='photo'?'<i class="fas fa-video"></i>':'<i class="fas fa-camera"></i>';$('shut').className='shut'+(CM.mode==='video'?' v':'');try{await camStart()}catch(e){}};
+$('shut').onclick=()=>{if(!CM)return;
+  if(CM.mode==='photo'){const v=$('cv'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d');if(CM.face==='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);c.toBlob(b=>{camClose();camSend(b,'photo.jpg','image')},'image/jpeg',.85);return}
+  if(CM.rec){CM.rec.stop();return}
+  const mt=['video/mp4','video/webm;codecs=vp8,opus','video/webm'].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'',ch=[],r=CM.rec=new MediaRecorder(CM.st,mt?{mimeType:mt,videoBitsPerSecond:700000}:{});
+  r.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  r.onstop=()=>{const cx=CM&&CM.cancel,ty=(r.mimeType||mt||'video/webm').split(';')[0];camClose();if(!cx)camSend(new Blob(ch,{type:ty}),'video.'+(ty.includes('mp4')?'mp4':'webm'),'video')};
+  r.start();$('shut').classList.add('rec')};
+async function fileSheet(el){const u=el.dataset.fu,n=el.dataset.n;
+  const v=await showD(`<div class="sh-t"><i class="fas fa-file"></i> ${esc(n)}</div><div class="sh-m">${esc(el.querySelector('.fz').textContent)}</div><div class="opt" data-v="o"><i class="fas fa-up-right-from-square"></i>فتح</div><div class="opt" data-v="d"><i class="fas fa-download"></i>حفظ على الجهاز</div>${navigator.canShare?'<div class="opt" data-v="s"><i class="fas fa-share-nodes"></i>مشاركة</div>':''}<div class="btns"><button class="btn o" data-v="__no">إغلاق</button></div>`);
+  if(v==='o')window.open(u,'_blank');
+  if(v==='d'){const a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove()}
+  if(v==='s'){try{const b=await(await fetch(u)).blob(),f=new File([b],n,{type:b.type});if(navigator.canShare({files:[f]}))await navigator.share({files:[f]})}catch(e){}}}
+/* مشغل الفيديو بستايل الموقع */
+document.addEventListener('click',e=>{const p=e.target.closest('.vp');if(!p)return;const v=p.querySelector('video');
+  if(e.target.closest('.vb')||e.target===v){v.paused?v.play().catch(()=>{}):v.pause()}
+  if(e.target.closest('.vf')){const f=v.requestFullscreen||v.webkitEnterFullscreen;f&&f.call(v)}});
+['timeupdate','play','pause','loadedmetadata'].forEach(ev=>document.addEventListener(ev,e=>{const v=e.target;if(!v.closest)return;const p=v.closest('.vp');if(!p)return;const d=v.duration||0,sl=p.querySelector('.vs');
+  p.querySelector('.vb i').className='fas '+(v.paused?'fa-play':'fa-pause');if(!sl._d)sl.value=d?v.currentTime/d*1000:0;p.querySelector('.vt').textContent=mmss(v.currentTime)},true));
+document.addEventListener('input',e=>{const x=e.target;if(!x.classList||!x.classList.contains('vs'))return;const v=x.closest('.vp').querySelector('video');if(v.duration){x._d=1;v.currentTime=x.value/1000*v.duration;clearTimeout(x._t);x._t=setTimeout(()=>x._d=0,300)}});
 
-
-/* ===== الموسيقى: قائمة من جهازك + بث مباشر للطرف الآخر (بدون رفع أي ملف) ===== */
+/* ===== الموسيقى: مشغّل عام يستمر حتى بعد الخروج من المحادثة ===== */
 const mAud=new Audio();mAud.preload='auto';
-let PL=[],pi=-1,M={declined:''},L=null,lunsub=null,MC=null,mctx=null,mdest=null,mgain=null,lmute=false,gmute=false;
-const lref=()=>doc(db,'listen',cur.id),lcand=id=>collection(db,'listen',id,'cand');
-const isGuest=()=>!!(MC&&MC.role==='guest'),isHost=()=>!!(MC&&MC.role==='host');
-const mMode=()=>isGuest()?'guest':(PL.length?'host':'none');
+let PL=[],pi=-1,HS={},GS=null,INV={},DCL={},mctx=null,mdest=null,mgain=null,lmute=false,gmute=false;
+const lref=id=>doc(db,'listen',id),lcand=id=>collection(db,'listen',id,'cand'),cidOf=u=>[ME,u].sort().join('_');
+const hosts=()=>Object.values(HS),isGuest=()=>!!GS;
+const mMode=()=>GS?'guest':(PL.length?'host':'none');
 const mDur=()=>isFinite(mAud.duration)?mAud.duration:0;
-const mName=()=>isGuest()?((L&&L.name)||''):(PL[pi]?PL[pi].name:'');
+const mName=()=>GS?(GS.name||''):(PL[pi]?PL[pi].name:'');
 async function cleanCand(id){try{const x=await getDocs(lcand(id));if(!x.docs.length)return;const bt=writeBatch(db);x.docs.forEach(d=>bt.delete(d.ref));await bt.commit()}catch(e){}}
 function mGraph(){try{if(!mctx){const AC=window.AudioContext||window.webkitAudioContext;mctx=new AC();const src=mctx.createMediaElementSource(mAud);mdest=mctx.createMediaStreamDestination();mgain=mctx.createGain();src.connect(mdest);src.connect(mgain);mgain.connect(mctx.destination);mgain.gain.value=lmute?0:1}
   if(mctx.state==='suspended')mctx.resume()}catch(e){diag('الصوت',e)}return !!mdest}
-function mPlay(i){if(i<0||i>=PL.length)return;pi=i;mGraph();mAud.loop=!!PL[i].bg;mAud.src=PL[i].url;mAud.play().catch(()=>{});
-  if(isHost()&&L&&L.sid===MC.sid&&cur)updateDoc(lref(),{name:PL[i].name}).catch(()=>{});mRefresh()}
+function mPlay(i){if(i<0||i>=PL.length)return;pi=i;mGraph();mAud.loop=!!PL[i].bg;mAud.src=PL[i].url;mAud.play().catch(()=>{});hosts().forEach(h=>updateDoc(lref(h.chatId),{name:PL[i].name}).catch(()=>{}));mRefresh()}
 function mRemove(i){const x=PL[i];if(!x)return;if(!x.bg)URL.revokeObjectURL(x.url);else if(typeof onBgOff==='function')onBgOff();PL.splice(i,1);
   if(i===pi){mAud.pause();mAud.removeAttribute('src');mAud.load();pi=-1;if(PL.length)mPlay(Math.min(i,PL.length-1))}else if(i<pi)pi--;
-  if(!PL.length&&isHost())mStopShare(true);mRefresh()}
+  if(!PL.length)hosts().forEach(h=>hostDrop(h.chatId,true));mRefresh()}
 function mClearAll(){while(PL.length)mRemove(PL.length-1)}
 function mProg(){const sl=$('pSl');if(sl&&!sl._d){const d=mDur();sl.value=d?mAud.currentTime/d*1000:0}const t=$('pT');if(t)t.textContent=mmss(mAud.currentTime)+(mDur()?' / '+mmss(mDur()):'')}
 ['timeupdate','loadedmetadata'].forEach(e=>mAud.addEventListener(e,mProg));
 ['play','pause'].forEach(e=>{mAud.addEventListener(e,()=>mRefresh());$('rAud').addEventListener(e,()=>mRefresh())});
 mAud.addEventListener('ended',()=>{if(pi+1<PL.length)mPlay(pi+1);else{mAud.currentTime=0;mRefresh()}});
-function mRefresh(){const m=mMode(),f=$('mFab'),ra=$('rAud');f.style.display=(cur&&m!=='none')?'flex':'none';
-  const playing=m==='guest'?!!(ra.srcObject&&!ra.paused&&!gmute):!mAud.paused;f.classList.toggle('spin',playing);renderMbar();
-  if($('mOv').classList.contains('on')){if(m==='none')$('mOv').classList.remove('on');else mPanel()}}
-function mPanel(){const m=mMode(),b=$('mBody');if(m==='none'||!cur)return;const name=esc(mName()||'—'),peer=esc(peerName());
-  let h='<div class="sh-t"><i class="fas fa-music"></i> مشغل الموسيقى</div>';
+try{const ms=navigator.mediaSession;ms.setActionHandler('play',()=>{mAud.play()});ms.setActionHandler('pause',()=>mAud.pause());ms.setActionHandler('nexttrack',()=>{if(pi+1<PL.length)mPlay(pi+1)});ms.setActionHandler('previoustrack',()=>mPlay(Math.max(0,pi-1)))}catch(e){}
+function mRefresh(){const m=mMode(),f=$('mFab'),ra=$('rAud');f.style.display=m!=='none'?'flex':'none';
+  const playing=m==='guest'?!!(ra.srcObject&&!ra.paused&&!gmute):!mAud.paused;f.classList.toggle('spin',playing);
+  try{if('mediaSession' in navigator){navigator.mediaSession.metadata=mName()?new MediaMetadata({title:mName(),artist:'ميزان'}):null;navigator.mediaSession.playbackState=playing?'playing':'paused'}}catch(e){}
+  renderInv();if($('mOv').classList.contains('on')){if(m==='none')$('mOv').classList.remove('on');else mPanel()}}
+function mPanel(){const m=mMode(),b=$('mBody');if(m==='none')return;let h='<div class="sh-t"><i class="fas fa-music"></i> مشغل الموسيقى</div>';
   if(m==='guest'){const ra=$('rAud'),pl=!!(ra.srcObject&&!ra.paused);
-    h+=`<div class="mnow"><div class="t">${name}</div><div class="s" style="white-space:normal">🎧 تستمع مع ${peer} · بث مباشر${MC.state==='connected'?'':' · جاري الاتصال...'}</div></div>
+    h+=`<div class="mnow"><div class="t">${esc(mName()||'—')}</div><div class="s" style="white-space:normal">🎧 تستمع مع ${esc(nm(GS.by))} · بث مباشر${GS.state==='connected'?'':' · جاري الاتصال...'}</div></div>
     <div class="mctl"><button class="cb2 big" data-x="gplay"><i class="fas ${pl?'fa-pause':'fa-play'}"></i></button><button class="cb2 ${gmute?'off':''}" data-x="gmute"><i class="fas ${gmute?'fa-volume-xmark':'fa-volume-high'}"></i></button></div>
     <div class="mbt"><button class="btn red" data-x="leave"><i class="fas fa-ban"></i> ترك الاستماع</button><button class="btn o" data-x="hide"><i class="fas fa-eye-slash"></i> إخفاء</button></div>`}
   else{const playing=!mAud.paused;
-    h+=`<div class="mnow"><div class="t">${name}</div><div class="mpr"><input type="range" id="pSl" min="0" max="1000" value="0"><span class="s" id="pT">0:00</span></div></div>
+    h+=`<div class="mnow"><div class="t">${esc(mName()||'—')}</div><div class="mpr"><input type="range" id="pSl" min="0" max="1000" value="0"><span class="s" id="pT">0:00</span></div></div>
     <div class="mctl"><button class="cb2" data-x="prev"><i class="fas fa-backward-step"></i></button><button class="cb2 big" data-x="play"><i class="fas ${playing?'fa-pause':'fa-play'}"></i></button><button class="cb2" data-x="next"><i class="fas fa-forward-step"></i></button><button class="cb2 ${lmute?'off':''}" data-x="lmute"><i class="fas ${lmute?'fa-volume-xmark':'fa-volume-high'}"></i></button></div>
-    <div class="mbt"><button class="btn red" data-x="kill"><i class="fas fa-ban"></i> إيقاف الأغنية</button><button class="btn o" data-x="hide"><i class="fas fa-eye-slash"></i> إخفاء</button></div>`;
-    {const st=isHost()?((L&&L.sid===MC.sid&&L.status==='active')?'active':'wait'):'none';
-      h+=st==='none'?`<button class="btn" data-x="share" style="width:100%;margin-top:14px"><i class="fas fa-tower-broadcast"></i> مشاركة مع ${peer} (بث مباشر)</button>`
-        :`<div class="s msub" style="white-space:normal;margin-top:14px">${st==='active'?'🎧 يستمع معك الآن':'⏳ بانتظار موافقة '+peer+'...'}</div><button class="btn red" data-x="stopshare" style="width:100%;margin-top:8px">${st==='active'?'إيقاف المشاركة':'إلغاء الدعوة'}</button>`}
+    <div class="mbt"><button class="btn red" data-x="kill"><i class="fas fa-ban"></i> إيقاف الأغنية</button><button class="btn o" data-x="hide"><i class="fas fa-eye-slash"></i> إخفاء</button></div>
+    <button class="btn" data-x="share" style="width:100%;margin-top:14px"><i class="fas fa-tower-broadcast"></i> مشاركة مع مستخدمين (بث مباشر)</button>`;
+    if(hosts().length)h+=`<div class="sh-m" style="margin-top:12px;font-weight:800">المستمعون (${hosts().length})</div>`+hosts().map(x=>`<div class="opt mtr"><i class="fas fa-headphones"></i><span class="grow s2">${esc(nm(x.uid))} · ${x.st==='active'?'يستمع الآن':'بانتظار الرد'}</span><button class="ib mini" data-kk="${esc(x.chatId)}"><i class="fas fa-xmark"></i></button></div>`).join('');
     h+=`<div class="sh-m" style="margin-top:16px;font-weight:800">الأغاني (${PL.length})</div>`+PL.map((x,i)=>`<div class="opt mtr ${i===pi?'cur':''}" data-t="${i}"><i class="fas ${i===pi?(playing?'fa-volume-high':'fa-pause'):'fa-music'}"></i><span class="grow s2">${esc(x.name)}</span><button class="ib mini" data-r="${i}"><i class="fas fa-xmark"></i></button></div>`).join('')
-      +'<button class="btn o" data-x="add" style="width:100%;margin-top:10px"><i class="fas fa-plus"></i> إضافة أغاني من جهازك</button>'}
+      +'<button class="btn o" data-x="add" style="width:100%;margin-top:10px"><i class="fas fa-plus"></i> إضافة أغاني (يمكنك تحديد أكثر من أغنية)</button>'}
   b.innerHTML=h;mProg()}
 $('mBody').addEventListener('click',e=>{const r=e.target.closest('[data-r]');if(r){e.stopPropagation();return mRemove(+r.dataset.r)}
+  const kk=e.target.closest('[data-kk]');if(kk){hostDrop(kk.dataset.kk,true);return toast('تم إنهاء استماعه')}
   const t=e.target.closest('[data-t]');if(t)return mPlay(+t.dataset.t);
   const x=e.target.closest('[data-x]');if(!x)return;const a=x.dataset.x;
   if(a==='play'){if(!PL.length)return;if(pi<0)mPlay(0);else{mGraph();mAud.paused?mAud.play().catch(()=>{}):mAud.pause()}}
@@ -777,21 +876,19 @@ $('mBody').addEventListener('click',e=>{const r=e.target.closest('[data-r]');if(
   if(a==='next'&&pi+1<PL.length)mPlay(pi+1);
   if(a==='lmute'){lmute=!lmute;if(mgain)mgain.gain.value=lmute?0:1;mRefresh()}
   if(a==='add')$('mfile').click();
-  if(a==='share')mShare();
-  if(a==='stopshare')mStopShare(true);
+  if(a==='share')mPick();
   if(a==='kill'){if(pi>=0)mRemove(pi);else mClearAll();toast('تم إيقاف الأغنية وحذفها')}
   if(a==='hide')$('mOv').classList.remove('on');
   if(a==='gplay'){const ra=$('rAud');ra.paused?ra.play().catch(()=>{}):ra.pause();mRefresh()}
   if(a==='gmute'){gmute=!gmute;$('rAud').muted=gmute;mRefresh()}
-  if(a==='leave')mLeave(true)});
+  if(a==='leave')gLeave(true)});
 $('mBody').addEventListener('input',e=>{if(e.target.id==='pSl')e.target._d=1});
 $('mBody').addEventListener('change',e=>{if(e.target.id!=='pSl')return;const d=mDur();e.target._d=0;if(d)mAud.currentTime=e.target.value/1000*d});
 $('mOv').onclick=e=>{if(e.target===$('mOv'))$('mOv').classList.remove('on')};
 const mOpen=()=>{mPanel();$('mOv').classList.add('on')};
-$('musicB').onclick=()=>{if(isGuest()||PL.length)mOpen();else $('mfile').click()};
-$('mfile').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length||!cur||isGuest())return;const first=PL.length;
-  fs.forEach(f=>PL.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f),file:f}));
-  if(pi<0)mPlay(first);mRefresh();if(first===0)mOpen()};
+const mBtn=()=>{if(GS||PL.length)mOpen();else $('mfile').click()};$('musicB').onclick=$('hMusic').onclick=mBtn;
+$('mfile').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;if(GS)return toast('اترك الاستماع أولاً لتشغيل أغانيك');const first=PL.length;
+  fs.forEach(f=>PL.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f),file:f}));toast('تمت إضافة '+fs.length+' أغنية');if(pi<0)mPlay(first);mRefresh();if(first===0)mOpen()};
 /* الأيقونة العائمة: تتحرك بحرية وبشكل مائي وتلتصق بحافة الشاشة */
 (function(){const f=$('mFab'),FP={x:14,y:Math.max(90,innerHeight-170)};
   try{const s=JSON.parse(localStorage.getItem('rsl_fab')||'null');if(s&&isFinite(s.x)&&isFinite(s.y))Object.assign(FP,s)}catch(e){}
@@ -810,55 +907,50 @@ $('mfile').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(!fs.le
     place(FP.x<innerWidth/2?10:innerWidth-66,FP.y,'transform .6s cubic-bezier(.34,1.9,.5,1)');
     try{localStorage.setItem('rsl_fab',JSON.stringify(FP))}catch(x){}};
   f.addEventListener('pointerup',end);f.addEventListener('pointercancel',end)})();
-/* ===== البث المباشر (WebRTC) — الإشارات عبر Firestore، والصوت نفسه يمشي مباشرة بين الجهازين ===== */
-function mkPC(sid,role,chatId){const pc=new RTCPeerConnection(ICE);MC={pc,sid,role,chatId,pend:[],unsubs:[],t:null,state:'new',ready:false,gotAns:false};
-  pc.onicecandidate=e=>{if(e.candidate)addDoc(lcand(chatId),{from:ME,sid,c:JSON.stringify(e.candidate)}).catch(()=>{})};
-  pc.onconnectionstatechange=()=>{if(!MC||MC.pc!==pc)return;MC.state=pc.connectionState;if(MC.state==='connected')clearTimeout(MC.t);
-    if(MC.state==='failed'){toast('انقطع اتصال الموسيقى');role==='host'?mStopShare(true):mLeave(true)}else mRefresh()};
-  MC.unsubs.push(onSnapshot(lcand(chatId),s=>s.docChanges().forEach(ch=>{if(ch.type!=='added')return;const d=ch.doc.data();if(d.from===ME||d.sid!==sid)return;const c=JSON.parse(d.c);
-    if(pc.remoteDescription)pc.addIceCandidate(c).catch(()=>{});else if(MC&&MC.pc===pc)MC.pend.push(c)}),()=>{}));
-  return pc}
-async function mShare(){if(!cur||!PL.length||MC)return;const chatId=cur.id,peerId=tkPeer();
-  try{if(!mGraph())return toast('متصفحك لا يدعم مشاركة الصوت');
-    await cleanCand(chatId);
-    const sid='s_'+Date.now()+Math.random().toString(36).slice(2,6),pc=mkPC(sid,'host',chatId);
+/* ===== البث المباشر (WebRTC): الإشارات عبر Firestore — يمكنك مشاركة الموسيقى مع أكثر من مستخدم ===== */
+async function hostInvite(uid){const id=cidOf(uid);if(HS[id]||!PL.length)return;
+  try{if(!mGraph())return toast('متصفحك لا يدعم مشاركة الصوت');await cleanCand(id);
+    const sid='s_'+Date.now()+Math.random().toString(36).slice(2,6),pc=new RTCPeerConnection(ICE),H=HS[id]={pc,sid,uid,chatId:id,pend:[],unsubs:[],gotAns:0,st:'invite'};
+    pc.onicecandidate=e=>{if(e.candidate)addDoc(lcand(id),{from:ME,sid,c:JSON.stringify(e.candidate)}).catch(()=>{})};
+    pc.onconnectionstatechange=()=>{if(HS[id]!==H)return;if(pc.connectionState==='failed'){toast('انقطع اتصال '+nm(uid));hostDrop(id,true)}else mRefresh()};
+    H.unsubs.push(onSnapshot(lcand(id),s=>s.docChanges().forEach(ch=>{if(ch.type!=='added')return;const d=ch.doc.data();if(d.from===ME||d.sid!==sid)return;const c=JSON.parse(d.c);pc.remoteDescription?pc.addIceCandidate(c).catch(()=>{}):H.pend.push(c)}),()=>{}));
     mdest.stream.getAudioTracks().forEach(t=>pc.addTrack(t,mdest.stream));
     const off=await pc.createOffer();await pc.setLocalDescription(off);
-    await setDoc(doc(db,'listen',chatId),{active:true,by:ME,to:peerId,sid,name:mName()||'موسيقى',status:'invite',at:Date.now(),offer:{type:off.type,sdp:off.sdp}});
-    MC.ready=true;MC.t=setTimeout(()=>{if(MC&&MC.sid===sid&&L&&L.status==='invite'){toast('لم يتم الرد على دعوة الاستماع');mStopShare(true)}},90000);
-    mRefresh();sendMsg({type:'text',text:'🎧 يطلب منك تسمع الموسيقى معه (بث مباشر): '+(mName()||'')}).catch(()=>{});toast('تم إرسال دعوة الاستماع')}
-  catch(e){diag('الموسيقى',e);toast('تعذّرت المشاركة');if(isHost())mStopShare(true)}}
-function mStopShare(notify){const c=MC;if(!c||c.role!=='host')return;MC=null;clearTimeout(c.t);c.unsubs.forEach(u=>u());try{c.pc.close()}catch(e){}
-  if(notify)updateDoc(doc(db,'listen',c.chatId),{active:false,status:'ended'}).catch(()=>{});cleanCand(c.chatId);mRefresh()}
-async function mJoin(){if(!L||MC||!cur)return;const d=L;
-  try{toast('جاري الاتصال بالموسيقى...');mAud.pause();const pc=mkPC(d.sid,'guest',cur.id),ra=$('rAud');ra.muted=gmute;
+    await setDoc(lref(id),{active:true,by:ME,to:uid,sid,name:mName()||'موسيقى',status:'invite',at:Date.now(),offer:{type:off.type,sdp:off.sdp}});
+    H.t=setTimeout(()=>{if(HS[id]===H&&H.st==='invite'){toast('لم يرد '+nm(uid));hostDrop(id,true)}},90000);mRefresh();
+    notifyUser(uid,'','🎧 يدعوك للاستماع إلى الموسيقى معه','rasael.html',false,'listen_'+sid).catch(()=>{})}
+  catch(e){diag('الموسيقى',e);toast('تعذّرت المشاركة');hostDrop(id,true)}}
+function hostDrop(id,notify){const H=HS[id];if(!H)return;delete HS[id];clearTimeout(H.t);H.unsubs.forEach(u=>u());try{H.pc.close()}catch(e){}if(notify)updateDoc(lref(id),{active:false,status:'ended'}).catch(()=>{});cleanCand(id);mRefresh()}
+async function mPick(){if(!PL.length)return toast('أضف أغاني أولاً');
+  const cand=users.filter(u=>u.id!==ME&&isAllowed(u.id)&&!HS[cidOf(u.id)]),SEL=new Set();
+  const p=showD(`<div class="sh-t"><i class="fas fa-tower-broadcast"></i> مشاركة الموسيقى</div><div class="sh-m">اختر مستخدمًا أو أكثر (بحث بالاسم أو الرقم)</div><input class="inp" id="pq" placeholder="ابحث..."><div id="pls" style="max-height:44dvh;overflow:auto;margin-top:8px"></div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="go">دعوة</button></div>`);
+  const L=$('pls'),dr=()=>{const q=$('pq').value.trim().toLowerCase();L.innerHTML=cand.filter(u=>!q||(nm(u.id)+' '+(u.phone||'')).toLowerCase().includes(q)).slice(0,60).map(u=>`<div class="opt" data-u="${esc(u.id)}" ${SEL.has(u.id)?'style="border-color:var(--accent)"':''}><i class="far ${SEL.has(u.id)?'fa-square-check':'fa-square'}"></i><span class="grow s2">${esc(nm(u.id))}</span></div>`).join('')||'<div class="empty">لا نتائج</div>'};
+  dr();$('pq').oninput=dr;L.onclick=e=>{const o=e.target.closest('[data-u]');if(!o)return;const id=o.dataset.u;SEL.has(id)?SEL.delete(id):SEL.add(id);dr()};
+  if((await p)==='go'&&SEL.size){if(hosts().length+SEL.size>6)return toast('الحد الأقصى 6 مستمعين');SEL.forEach(hostInvite);toast('تم إرسال الدعوات')}}
+onSnapshot(query(collection(db,'listen'),where('by','==',ME),where('active','==',true)),s=>s.docChanges().forEach(ch=>{const id=ch.doc.id,d=ch.doc.data(),H=HS[id];
+  if(ch.type==='removed'){if(H&&H.sid===d.sid)hostDrop(id,false);return}
+  if(!H||H.sid!==d.sid){updateDoc(lref(id),{active:false,status:'ended'}).catch(()=>{});return}
+  if(d.answer&&!H.gotAns){H.gotAns=1;H.pc.setRemoteDescription(d.answer).then(()=>H.pend.splice(0).forEach(x=>H.pc.addIceCandidate(x).catch(()=>{}))).catch(()=>{})}
+  H.st=d.status;if(d.status==='declined'||d.status==='left'){toast(nm(H.uid)+(d.status==='declined'?' رفض الاستماع':' أنهى الاستماع'));hostDrop(id,true)}else mRefresh()}),()=>{});
+onSnapshot(query(collection(db,'listen'),where('to','==',ME),where('active','==',true)),s=>{INV={};s.docs.forEach(d=>INV[d.id]=d.data());
+  if(GS&&(!INV[GS.chatId]||INV[GS.chatId].sid!==GS.sid)){toast('انتهت جلسة الاستماع');gLeave(false)}mRefresh()},()=>{});
+async function gJoin(id){const d=INV[id];if(!d)return;if(GS)gLeave(true);
+  try{toast('جاري الاتصال بالموسيقى...');mAud.pause();const pc=new RTCPeerConnection(ICE),ra=$('rAud');
+    const G=GS={pc,chatId:id,sid:d.sid,by:d.by,name:d.name,pend:[],unsubs:[],state:'new'};ra.muted=gmute;
     pc.ontrack=e=>{ra.srcObject=e.streams[0];ra.play().catch(()=>{});mRefresh()};
-    await pc.setRemoteDescription(d.offer);MC.pend.splice(0).forEach(c=>pc.addIceCandidate(c).catch(()=>{}));
-    const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
-    await updateDoc(lref(),{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
-    MC.t=setTimeout(()=>{if(MC&&MC.pc===pc&&MC.state!=='connected'){toast('تعذّر الاتصال بالموسيقى');mLeave(true)}},20000);
-    mRefresh();mOpen()}
-  catch(e){diag('الموسيقى',e);toast('تعذّر الانضمام');mLeave(false)}}
-function mLeave(notify){const c=MC;if(!c||c.role!=='guest')return;MC=null;clearTimeout(c.t);c.unsubs.forEach(u=>u());try{c.pc.close()}catch(e){}
-  const ra=$('rAud');ra.srcObject=null;if(notify)updateDoc(doc(db,'listen',c.chatId),{status:'left'}).catch(()=>{});mRefresh()}
-function mReset(){const c=MC;if(c){if(c.role==='host')mStopShare(true);else mLeave(true)}
-  try{mAud.pause();mAud.removeAttribute('src');mAud.load()}catch(e){}PL.forEach(x=>{if(!x.bg)URL.revokeObjectURL(x.url)});PL=[];pi=-1;
-  try{$('rAud').srcObject=null}catch(e){}$('mOv').classList.remove('on');M.declined='';mRefresh()}
-function onListen(s){const d=s.exists()?s.data():null;L=d&&d.active?d:null;
-  if(MC&&MC.role==='host'&&MC.ready){
-    if(!L||L.sid!==MC.sid)mStopShare(false);
-    else{if(L.answer&&!MC.gotAns){MC.gotAns=true;const c=MC;c.pc.setRemoteDescription(L.answer).then(()=>c.pend.splice(0).forEach(x=>c.pc.addIceCandidate(x).catch(()=>{}))).catch(()=>{})}
-      if(L.status==='declined'){toast('رفض الطرف الآخر الاستماع');mStopShare(true)}
-      else if(L.status==='left'){toast('أنهى الطرف الآخر الاستماع');mStopShare(true)}}}
-  else if(MC&&MC.role==='guest'){if(!L||L.sid!==MC.sid){toast('انتهت جلسة الاستماع');mLeave(false)}}
-  renderMbar();mRefresh()}
-function renderMbar(){const el=$('mbar');let h='';
-  if(!MC&&L&&L.by!==ME&&L.status==='invite'&&M.declined!==L.sid&&Date.now()-(L.at||0)<6e5){
-    h=`<div class="mrow"><i class="fas fa-headphones"></i><div class="grow"><div class="t">${esc(nameOf(L.by))} يطلب منك تسمع موسيقى معه</div><div class="s">${esc(L.name)} · بث مباشر</div></div><button class="btn" data-a="acc">قبول</button><button class="btn o" data-a="dec">رفض</button></div>`}
-  el.innerHTML=h;el.classList.toggle('on',!!h)}
-$('mbar').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-  if(a==='acc')mJoin();
-  if(a==='dec'&&L){M.declined=L.sid;updateDoc(lref(),{status:'declined'}).catch(()=>{});renderMbar()}});
+    pc.onicecandidate=e=>{if(e.candidate)addDoc(lcand(id),{from:ME,sid:d.sid,c:JSON.stringify(e.candidate)}).catch(()=>{})};
+    pc.onconnectionstatechange=()=>{if(GS!==G)return;G.state=pc.connectionState;if(G.state==='failed'){toast('انقطع اتصال الموسيقى');gLeave(true)}else mRefresh()};
+    G.unsubs.push(onSnapshot(lcand(id),s=>s.docChanges().forEach(ch=>{if(ch.type!=='added')return;const x=ch.doc.data();if(x.from===ME||x.sid!==d.sid)return;const c=JSON.parse(x.c);pc.remoteDescription?pc.addIceCandidate(c).catch(()=>{}):G.pend.push(c)}),()=>{}));
+    await pc.setRemoteDescription(d.offer);G.pend.splice(0).forEach(c=>pc.addIceCandidate(c).catch(()=>{}));
+    const a=await pc.createAnswer();await pc.setLocalDescription(a);await updateDoc(lref(id),{answer:{type:a.type,sdp:a.sdp},status:'active'});
+    G.t=setTimeout(()=>{if(GS===G&&G.state!=='connected'){toast('تعذّر الاتصال بالموسيقى');gLeave(true)}},20000);mRefresh();mOpen()}
+  catch(e){diag('الموسيقى',e);toast('تعذّر الانضمام');gLeave(false)}}
+function gLeave(notify){const G=GS;if(!G)return;GS=null;clearTimeout(G.t);G.unsubs.forEach(u=>u());try{G.pc.close()}catch(e){}$('rAud').srcObject=null;if(notify)updateDoc(lref(G.chatId),{status:'left'}).catch(()=>{});mRefresh()}
+function mReset(){Object.keys(HS).forEach(id=>hostDrop(id,true));gLeave(true);try{mAud.pause();mAud.removeAttribute('src');mAud.load()}catch(e){}PL.forEach(x=>{if(!x.bg)URL.revokeObjectURL(x.url)});PL=[];pi=-1;try{$('rAud').srcObject=null}catch(e){}$('mOv').classList.remove('on');mRefresh()}
+function renderInv(){const el=$('minv');let h='';Object.entries(INV).forEach(([id,d])=>{if(d.status!=='invite'||DCL[d.sid]||(GS&&GS.chatId===id)||Date.now()-(d.at||0)>6e5)return;
+  h+=`<div class="card row">${avatar(d.by)}<div class="grow"><div class="t">${esc(nm(d.by))} يدعوك للاستماع معه</div><div class="s">${esc(d.name||'')} · بث مباشر</div></div><button class="btn" data-a="acc" data-id="${esc(id)}">قبول</button><button class="btn o" data-a="dec" data-id="${esc(id)}">رفض</button></div>`});
+  if(el._h!==h){el.innerHTML=h;el._h=h}}
+$('minv').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=b.dataset.id,d=INV[id];if(b.dataset.a==='acc')gJoin(id);else if(d){DCL[d.sid]=1;updateDoc(lref(id),{status:'declined'}).catch(()=>{});renderInv()}});
 /* موسيقى الخلفية (من إعدادات الأدمن) */
 let bgQuiet=false;
 const bgKey=()=>SNDMETA.bg?SNDMETA.bg.fid:'';
@@ -895,12 +987,14 @@ function bindCtl(){const c=call;if(!c)return;
   const e=$('cEnd');if(e)e.onclick=()=>endCall('ended');
   const m=$('cMic');if(m)m.onclick=()=>{const t=c.stream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;m.classList.toggle('off',!t.enabled);m.innerHTML=`<i class="fas ${t.enabled?'fa-microphone':'fa-microphone-slash'}"></i>`}};
   const v=$('cCam');if(v)v.onclick=()=>{const t=c.stream.getVideoTracks()[0];if(t){t.enabled=!t.enabled;v.classList.toggle('off',!t.enabled);v.innerHTML=`<i class="fas ${t.enabled?'fa-video':'fa-video-slash'}"></i>`}};
-  const sp=$('cSpk');if(sp){c.spk=c.kind==='video';sp.onclick=async()=>{const el=$('rv');
-    if(!el.setSinkId)return toast('متصفحك لا يدعم تبديل السماعة من هنا، استخدم أزرار الصوت في جهازك');
-    const on=!c.spk;let devs=[];try{devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput')}catch(e){}
-    const pick=on?devs.find(d=>/speaker|مكبر|خارجية/i.test(d.label)&&!/earpiece|receiver|head/i.test(d.label)):devs.find(d=>/earpiece|receiver|الأذن|الداخلية/i.test(d.label));
-    try{await el.setSinkId(pick?pick.deviceId:'default');if(!pick)toast('لا توجد سماعة أخرى متاحة في هذا المتصفح')}catch(e){return toast('تعذّر تبديل السماعة')}
-    c.spk=on;sp.classList.toggle('off',on);sp.innerHTML=`<i class="fas ${on?'fa-volume-high':'fa-volume-low'}"></i>`;toast(on?'السماعة الخارجية':'السماعة الداخلية')}}}
+  const sp=$('cSpk');if(sp){const el=$('rv'),AS=navigator.audioSession;c.spk=c.kind==='video'||!(AS||el.setSinkId);
+  const paint=()=>{sp.classList.toggle('off',c.spk);sp.innerHTML=`<i class="fas ${c.spk?'fa-volume-high':'fa-volume-low'}"></i>`};paint();
+  sp.onclick=async()=>{const on=!c.spk;let real=false;
+    try{if(AS){AS.type=on?'playback':'play-and-record';real=true}}catch(e){}
+    try{if(el.setSinkId){const md=navigator.mediaDevices,devs=(await md.enumerateDevices()).filter(d=>d.kind==='audiooutput');
+      const pick=on?devs.find(d=>/speaker|مكبر|خارجية/i.test(d.label)&&!/earpiece|receiver/i.test(d.label)):devs.find(d=>/earpiece|receiver|الأذن|الداخلية/i.test(d.label));
+      if(pick){await el.setSinkId(pick.deviceId);real=true}else if(md.selectAudioOutput&&!on){const d=await md.selectAudioOutput();await el.setSinkId(d.deviceId);real=true}}}catch(e){}
+    try{el.volume=(real||on)?1:.35}catch(e){}c.spk=on;paint();toast(on?'السماعة الخارجية':real?'السماعة الداخلية':'وضع الصوت الهادئ')}}}
 function setupCall(id,isCaller,o,kind,stream){
   const pc=new RTCPeerConnection(ICE);call={id,pc,stream,isCaller,o,kind,connected:false,pend:[],unsubs:[]};
   stream.getTracks().forEach(t=>pc.addTrack(t,stream));
@@ -915,7 +1009,7 @@ function setupCall(id,isCaller,o,kind,stream){
   if(kind==='video'){$('lv').srcObject=stream;$('lv').style.display='block'}}
 async function startCall(kind){
   if(!cur||call)return;if(!allowed())return toast(cfgOk?'المراسلة غير متاحة لحسابك':'جاري تحميل الإعدادات... حاول بعد ثوانٍ');let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:kind==='video'?{facingMode:'user'}:false})}catch(e){return toast('اسمح بالميكروفون'+(kind==='video'?' والكاميرا':'')+' من الإعدادات')}
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:kind==='video'?{facingMode:'user'}:false})}catch(e){return permHelp(kind==='video'?'الكاميرا والميكروفون':'الميكروفون')}
   const id='call_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),o=cur.o,chatId=cur.id;
   try{await setDoc(doc(db,'calls',id),{chatId,from:me,to:o,kind,status:'ringing',createdAt:serverTimestamp()})}catch(e){stream.getTracks().forEach(t=>t.stop());diag('المكالمات',e);return toast('تعذّر بدء المكالمة: '+(e.code||e.message))}
   setupCall(id,true,o,kind,stream);callUI(o,kind,'جاري الاتصال...');
@@ -923,7 +1017,7 @@ async function startCall(kind){
   bindCtl();
   const pc=call.pc,off=await pc.createOffer();await pc.setLocalDescription(off);
   await updateDoc(doc(db,'calls',id),{offer:{type:off.type,sdp:off.sdp}});
-  if(o!=='platform'&&!(await isMutedByOther(chatId,o)))notifyUser(o,'📞 '+(realName(byId[me])),kind==='video'?'مكالمة فيديو واردة — اضغط للرد':'مكالمة صوتية واردة — اضغط للرد','rasael.html?call='+id,true,'call_'+id).catch(()=>{});
+  if(o!=='platform'&&!(await isMutedByOther(chatId,o)))notifyUser(o,'📞',kind==='video'?'مكالمة فيديو واردة — اضغط للرد':'مكالمة صوتية واردة — اضغط للرد','rasael.html?call='+id,true,'call_'+id).catch(()=>{});
   call.ringTimer=setTimeout(()=>{if(call&&call.id===id&&!call.connected){toast('لم يرد');endCall('missed')}},45000)}
 async function acceptCall(id,d){
   ring(false);let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:d.kind==='video'?{facingMode:'user'}:false})}catch(e){toast('اسمح بالميكروفون والكاميرا');return declineCall(id)}
