@@ -261,6 +261,9 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 .vb{width:34px;height:34px;border-radius:50%;border:none;background:var(--primary);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}[data-theme=dark] .vb{color:var(--bg-page)}
 .vc .s{direction:ltr;flex-shrink:0}.vs{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:5px;border-radius:5px;background:var(--border);outline:none;direction:ltr}
 .vs::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--primary)}
+#ovD{z-index:520}.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sg .opt{flex-direction:column;text-align:center;margin:0;padding:14px 4px;font-size:13px;gap:8px}.sg .opt i{font-size:22px;color:var(--accent);width:auto}
+#camZ{position:absolute;left:18px;right:18px;bottom:calc(120px + env(safe-area-inset-bottom));width:auto;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:rgba(255,255,255,.35);outline:none;direction:ltr}
+#camZ::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#C9A961;border:2px solid #fff}
 </style>
 </head>
 <body class="pend">
@@ -293,12 +296,12 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
   <div class="cbar">
     <div class="recbar" id="recbar">
       <button class="rx2" id="recX"><i class="fas fa-trash"></i></button>
-      <div class="rd"></div><div class="rt" id="recT">0:00</div><div class="wv" id="wv"></div><button class="rx2" id="recVo" title="عرض لمرة واحدة" style="color:var(--text-sub)"><i class="fas fa-eye"></i></button>
+      <div class="rd"></div><div class="rt" id="recT">0:00</div><div class="wv" id="wv"></div>
     </div>
     <button class="ib" id="attach"><i class="fas fa-paperclip"></i></button>
     <button class="ib" id="musicB" title="تشغيل أغنية"><i class="fas fa-music"></i></button>
     <input type="file" id="file" hidden>
-    <input type="file" id="mfile" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" multiple hidden><input type="file" id="gal" accept="image/*,video/*" multiple hidden><input type="file" id="avf" accept="image/*" hidden>
+    <input type="file" id="mfile" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" multiple hidden><input type="file" id="gal" accept="image/*,video/*" multiple hidden><input type="file" id="avf" accept="image/*" hidden><input type="file" id="dir" webkitdirectory multiple hidden>
     <textarea id="txt" rows="1" placeholder="اكتب رسالة..."></textarea>
     <button class="send" id="send"><i class="fas fa-microphone"></i></button>
   </div>
@@ -319,7 +322,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <button id="mFab" title="الموسيقى"><i class="fas fa-compact-disc"></i></button>
 <div class="ov" id="mOv"><div class="sheet" id="mBody"></div></div>
 <div id="minv"></div><div id="net">لا يوجد اتصال — ستُرسل الرسائل تلقائيًا عند عودة الإنترنت</div>
-<div class="cam" id="cam"><video id="cv" playsinline muted></video><div class="top"><button class="cb" id="camX"><i class="fas fa-xmark"></i></button><button class="cb" id="camFlip"><i class="fas fa-camera-rotate"></i></button></div><div class="ctl"><button class="cb" id="camMode"><i class="fas fa-video"></i></button><button class="shut" id="shut"></button><span style="width:60px"></span></div></div>
+<div class="cam" id="cam"><video id="cv" playsinline muted></video><div class="top"><button class="cb" id="camX"><i class="fas fa-xmark"></i></button><button class="cb" id="camFlip"><i class="fas fa-camera-rotate"></i></button></div><input type="range" id="camZ" min="1" max="5" step="0.05" value="1"><div class="ctl"><button class="cb" id="camMode"><i class="fas fa-video"></i></button><button class="shut" id="shut"></button><span style="width:60px"></span></div></div>
 <audio id="rAud" autoplay playsinline></audio>
 
 <script type="module">
@@ -390,7 +393,7 @@ const askText=(title,val,ph,cls)=>showD(`<div class="sh-t">${title}</div><input 
 const askYes=async(title,msg,ok)=>(await showD(`<div class="sh-t">${title}</div><div class="sh-m">${msg}</div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn red" data-v="y">${ok||'تأكيد'}</button></div>`))==='y';
 const sheet=(title,items)=>showD(`<div class="sh-t" style="margin-bottom:6px">${title}</div>`+items.map((x,i)=>`<div class="opt ${x.red?'red':''}" data-v="${i}"><i class="fas ${x.i}"></i>${x.l}</div>`).join('')).then(v=>{if(v!==null&&items[+v])return items[+v].f()});
 async function askSend(label){
-  const v=await showD(`<div class="sh-t">${label}</div><div class="sh-m">اختر طريقة الإرسال</div><div class="opt" data-v="0"><i class="fas fa-paper-plane"></i>إرسال عادي</div><div class="opt" data-v="1"><i class="fas fa-eye"></i>عرض لمرة واحدة</div><div class="opt" data-v="n"><i class="fas fa-hashtag"></i>تحديد عدد مرات العرض</div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button></div>`);
+  const v=await showD(`<div class="sh-t">${label}</div><div class="sh-m">اختر طريقة الإرسال</div><div class="sg"><div class="opt" data-v="0"><i class="fas fa-paper-plane"></i>إرسال عادي</div><div class="opt" data-v="1"><i class="fas fa-eye"></i>لمرة واحدة</div><div class="opt" data-v="n"><i class="fas fa-hashtag"></i>عدة مرات</div></div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button></div>`);
   if(v===null)return null;if(v==='0')return 0;if(v==='1')return 1;
   const n=await askText('كم مرة يمكنه العرض؟','2','من 1 إلى 20','ph');if(n===null)return null;return Math.min(20,Math.max(1,parseInt(n)||1))}
 
@@ -461,7 +464,7 @@ function patch(box,it){box.querySelectorAll('.sk,.empty').forEach(x=>x.remove())
   it.forEach(([k,h])=>{let el=map.get(k);if(el){map.delete(k);if(el._h!==h){const n=mkI(k,h);el.replaceWith(n);el=n}}else el=mkI(k,h);
     const ref=prev?prev.nextSibling:box.firstChild;if(el!==ref)box.insertBefore(el,ref);prev=el});
   map.forEach(e=>e.remove())}
-let LIM=100,subM=null,SQ='',SM=[],SI=0;
+let RS=new Set(),seenInit=0,LIM=100,subM=null,SQ='',SM=[],SI=0;
 function draw(force){if(!cur)return;const box=$('msgs');
   const near=force||firstRender||box.scrollHeight-box.scrollTop-box.clientHeight<180;
   const c=chats.find(x=>x.id===cur.id),clr=c?myClr(c):0;msgCache={};const it=[],fids=new Set();let last='';
@@ -489,13 +492,14 @@ function startSearch(){$('sbar').classList.add('on');$('sq').focus()}
 $('sq').oninput=()=>{SQ=$('sq').value.trim();SI=1e9;hl();if(SM.length)SM[SI].scrollIntoView({block:'center'})};
 $('sUp').onclick=()=>goS(-1);$('sDn').onclick=()=>goS(1);$('sq').onkeydown=e=>{if(e.key==='Enter')goS(e.shiftKey?1:-1)};
 $('sX').onclick=()=>{SQ='';$('sq').value='';$('sbar').classList.remove('on');hl();bottom()};
-function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;LIM=100;SQ='';$('sq').value='';$('sbar').classList.remove('on');SS.set('rsl_open_'+me,{id,o,plat});
+function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;LIM=100;RS=new Set();seenInit=0;SQ='';$('sq').value='';$('sbar').classList.remove('on');SS.set('rsl_open_'+me,{id,o,plat});
   if(history.replaceState)history.replaceState(null,'',location.pathname+'?c='+encodeURIComponent(id));
   head();$('cCall').style.display=$('cVid').style.display='flex';$('musicB').style.display='';
   document.body.classList.add('chat-open');$('chat').classList.add('on');fit();watchPeer(o);if(!plat)nickFor(o);
   $('msgs').innerHTML='<div class="sk"></div><div class="sk"></div>';
   subM=()=>{if(unsub)unsub();unsub=onSnapshot(query(collection(db,'chats',id,'messages'),orderBy('createdAt','desc'),limit(LIM)),{includeMetadataChanges:true},s=>{
-    LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites})).reverse();draw();markRead()},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'})};
+    if(seenInit)s.docChanges().forEach(ch=>{if(ch.type!=='added'||ch.doc.metadata.hasPendingWrites||RS.has(ch.doc.id))return;const x=ch.doc.data();if(x.senderId&&x.senderId!==me&&Date.now()-tsv(x.createdAt)<20000)sndRecv()});
+    s.docs.forEach(d=>RS.add(d.id));seenInit=1;LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites})).reverse();draw();markRead()},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'})};
   subM();bgSync();mRefresh()}
 let lastRead=0;
 function markRead(){if(!cur||document.visibilityState!=='visible')return;const c=chats.find(x=>x.id===cur.id);if(!c)return;
@@ -599,7 +603,7 @@ async function isMutedByOther(chatId,o){const c=chats.find(x=>x.id===chatId);if(
 /* ===== الإرسال ===== */
 async function sendMsg(data,ctx){ctx=ctx||cur;
   if(!allowed()){toast(cfgOk?'المراسلة غير متاحة لحسابك':'جاري تحميل إعدادات المراسلة... حاول بعد ثوانٍ');throw new Error('not-allowed')}
-  const label=data.text||({image:'📷 صورة',video:'🎬 فيديو',audio:'🎤 رسالة صوتية',file:'📎 ملف'}[data.type]||'');
+  sndSend();const label=data.text||({image:'📷 صورة',video:'🎬 فيديو',audio:'🎤 رسالة صوتية',file:'📎 ملف'}[data.type]||'');
   const cref=doc(db,'chats',ctx.id),chatId=ctx.id,plat=ctx.plat,o=ctx.o;
   /* بدون انتظار رد السيرفر: الرسالة تظهر فورًا وتأخذ علامة الساعة لو الإنترنت مقطوع */
   const w1=plat?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp()},{merge:true}):setDoc(cref,{kind:'user',members:[me,o],senders:arrayUnion(me),lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}},{merge:true});
@@ -771,17 +775,16 @@ $('recX').onclick=()=>{if(REC){REC.cancel=true;REC.rec.stop()}};
 
 /* ----- أصوات الرنة والموسيقى الخلفية (من إعدادات الأدمن) ----- */
 const SNDURL={call:'',video:'',bg:''},SNDMETA={},sndCache={};let ringA=null;
-async function sndFetch(m){const k='https://rsl.local/s/'+m.fid;let c=null;try{c=await caches.open('rsl');const h=await c.match(k);if(h)return URL.createObjectURL(await h.blob())}catch(e){}
-  const b=await sndFetch0(m);try{c&&await c.put(k,new Response(b))}catch(e){}return URL.createObjectURL(b)}
+async function sndFetch(m){return URL.createObjectURL(await sndFetch0(m))}
 async function sndFetch0(m){const snap=await getDocs(query(collection(db,'chat_files',m.fid,'parts'),orderBy('i')));
   const arr=snap.docs.map(d=>d.data().bytes.toUint8Array());if(!arr.length)throw 0;return new Blob(arr,{type:m.mime||'audio/mpeg'})}
-onSnapshot(doc(db,'settings','sounds'),async s=>{if(!sndFetch.w){sndFetch.w=1;await new Promise(r=>setTimeout(r,2500))}const d=s.exists()?s.data():{};
+onSnapshot(doc(db,'settings','sounds'),async s=>{const d=s.exists()?s.data():{};
   for(const k of ['call','video','bg']){const m=d[k];SNDMETA[k]=m||null;if(!m){SNDURL[k]='';continue}
     if(!sndCache[m.fid]){try{sndCache[m.fid]=await sndFetch(m)}catch(e){sndCache[m.fid]=''}}SNDURL[k]=sndCache[m.fid]}
   if(typeof onSnd==='function')onSnd()},()=>{});
 function stopRingAud(){if(ringA){try{ringA.pause()}catch(e){}ringA=null}}
 function ringCustom(kind){const u=SNDURL[kind==='video'?'video':'call'];if(!u)return false;
-  try{ringA=new Audio(u);ringA.loop=true;ringA.play().catch(()=>{});return true}catch(e){return false}}
+  try{ringA=new Audio(u);ringA.loop=true;ringA.play().catch(()=>{ringA=null;beep();if(!ringT)ringT=setInterval(beep,1600)});return true}catch(e){return false}}
 
 const btn=$('send');
 const sync=()=>{if(REC)return;btn.innerHTML=$('txt').value.trim()?'<i class="fas fa-paper-plane"></i>':'<i class="fas fa-microphone"></i>'};
@@ -791,8 +794,7 @@ btn.onclick=async()=>{
   if(REC){REC.rec.stop();return}
   const t=$('txt').value.trim();
   if(t){$('txt').value='';$('txt').style.height='auto';sync();tyPing(false);$('txt').focus();bottomSoon();try{await sendMsg({type:'text',text:t})}catch(e){if(e.message!=='not-allowed'){diag('الإرسال',e);toast('تعذّر الإرسال')}}return}
-  startRec((blob,dur,ext)=>{const vo=RVO?1:0;RVO=0;paintVo();up(blob,'voice.'+ext,'audio',vo,{dur})})};
-let RVO=0;const paintVo=()=>{$('recVo').style.color=RVO?'var(--accent)':'var(--text-sub)'};$('recVo').onclick=()=>{RVO=RVO?0:1;paintVo();toast(RVO?'ستُرسل لمرة واحدة':'إرسال عادي')};
+  startRec(async(blob,dur,ext)=>{const vo=await askSend('الرسالة الصوتية');if(vo===null)return;up(blob,'voice.'+ext,'audio',vo,{dur})})};
 /* ===== المرفقات والكاميرا بستايل الموقع ===== */
 const permHelp=w=>showD(`<div class="sh-t"><i class="fas fa-lock"></i> السماح بـ ${w}</div><div class="sh-m">لم يتم السماح بالوصول. اضغط على أيقونة القفل بجانب عنوان الصفحة ← الأذونات ← فعّل ${w} ثم أعد المحاولة.</div><div class="btns"><button class="btn" data-v="__no">حسنًا</button></div>`);
 async function pickFiles(fs){if(!fs.length||!cur)return;const ty=f=>f.type.startsWith('image/')?'image':f.type.startsWith('video/')?'video':f.type.startsWith('audio/')?'audio':'file';
@@ -800,21 +802,32 @@ async function pickFiles(fs){if(!fs.length||!cur)return;const ty=f=>f.type.start
 $('file').onchange=$('gal').onchange=e=>{const fs=[...e.target.files];e.target.value='';pickFiles(fs)};
 $('attach').onclick=()=>sheet('إرسال',[{i:'fa-camera',l:'الكاميرا',f:openCam},{i:'fa-images',l:'صور وفيديوهات من المعرض',f:()=>$('gal').click()},{i:'fa-file',l:'ملف / مستند',f:()=>$('file').click()}]);
 let CM=null;
-async function camStart(){if(CM.st)CM.st.getTracks().forEach(t=>t.stop());CM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:CM.face,width:{ideal:1280}},audio:CM.mode==='video'});const v=$('cv');v.srcObject=CM.st;v.style.transform=CM.face==='user'?'scaleX(-1)':'';await v.play().catch(()=>{})}
-async function openCam(){if(!cur||!navigator.mediaDevices)return pickFiles([]);CM={face:'environment',mode:'photo',st:null,rec:null};
+async function camStart(){if(CM.st)CM.st.getTracks().forEach(t=>t.stop());const vc={facingMode:CM.face,width:{ideal:1280}};try{CM.st=await navigator.mediaDevices.getUserMedia({video:vc,audio:true})}catch(e){CM.st=await navigator.mediaDevices.getUserMedia({video:vc})}const v=$('cv');v.srcObject=CM.st;camXf();await v.play().catch(()=>{})}
+async function openCam(){if(!cur||!navigator.mediaDevices)return pickFiles([]);CM={face:'environment',mode:'photo',st:null,rec:null,z:1};$('camZ').value=1;
   try{await camStart();$('cam').classList.add('on');$('shut').className='shut';$('camMode').innerHTML='<i class="fas fa-video"></i>'}catch(e){camClose();permHelp('الكاميرا')}}
+const camXf=()=>{$('cv').style.transform=(CM&&CM.face==='user'?'scaleX(-1) ':'')+'scale('+(CM?CM.z:1)+')'};
 function camClose(){if(CM){if(CM.rec&&CM.rec.state!=='inactive'){CM.cancel=1;try{CM.rec.stop()}catch(e){}}CM.st&&CM.st.getTracks().forEach(t=>t.stop())}CM=null;$('cam').classList.remove('on');$('cv').srcObject=null}
 async function camSend(b,n,t){const vo=await askSend(TL[t]);if(vo===null)return;up(b,n,t,vo);bottomSoon()}
 $('camX').onclick=camClose;
 $('camFlip').onclick=async()=>{if(!CM||CM.rec)return;CM.face=CM.face==='user'?'environment':'user';try{await camStart()}catch(e){}};
 $('camMode').onclick=async()=>{if(!CM||CM.rec)return;CM.mode=CM.mode==='photo'?'video':'photo';$('camMode').innerHTML=CM.mode==='photo'?'<i class="fas fa-video"></i>':'<i class="fas fa-camera"></i>';$('shut').className='shut'+(CM.mode==='video'?' v':'');try{await camStart()}catch(e){}};
-$('shut').onclick=()=>{if(!CM)return;
-  if(CM.mode==='photo'){const v=$('cv'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d');if(CM.face==='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);c.toBlob(b=>{camClose();camSend(b,'photo.jpg','image')},'image/jpeg',.85);return}
-  if(CM.rec){CM.rec.stop();return}
-  const mt=['video/mp4','video/webm;codecs=vp8,opus','video/webm'].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'',ch=[],r=CM.rec=new MediaRecorder(CM.st,mt?{mimeType:mt,videoBitsPerSecond:700000}:{});
+const camZoom=z=>{if(!CM)return;CM.z=Math.min(5,Math.max(1,z));$('camZ').value=CM.z;camXf()};
+$('camZ').oninput=e=>camZoom(+e.target.value);
+let pd=0;$('cam').addEventListener('touchmove',e=>{if(e.touches.length!==2||!CM)return;const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pd)camZoom(CM.z*d/pd);pd=d},{passive:true});
+$('cam').addEventListener('touchend',()=>{pd=0});
+function drawCrop(x,v,w,h){const z=CM.z,sw=v.videoWidth/z,sh=v.videoHeight/z;if(CM.face==='user'){x.save();x.translate(w,0);x.scale(-1,1)}x.drawImage(v,(v.videoWidth-sw)/2,(v.videoHeight-sh)/2,sw,sh,0,0,w,h);if(CM.face==='user')x.restore()}
+function camPhoto(){const v=$('cv'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;drawCrop(c.getContext('2d'),v,c.width,c.height);c.toBlob(b=>{camClose();camSend(b,'photo.jpg','image')},'image/jpeg',.85)}
+function camRec(){if(!CM||CM.rec||!window.MediaRecorder)return;const R=CM,v=$('cv'),c=document.createElement('canvas');c.width=Math.min(v.videoWidth,720);c.height=Math.round(c.width*v.videoHeight/v.videoWidth);const x=c.getContext('2d');let go=1;
+  const lp=()=>{if(!go)return;drawCrop(x,v,c.width,c.height);requestAnimationFrame(lp)};lp();
+  const out=c.captureStream(24);R.st.getAudioTracks().forEach(t=>out.addTrack(t));
+  const mt=['video/mp4','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'',ch=[],r=R.rec=new MediaRecorder(out,mt?{mimeType:mt,videoBitsPerSecond:900000}:{});
   r.ondataavailable=e=>e.data.size&&ch.push(e.data);
-  r.onstop=()=>{const cx=CM&&CM.cancel,ty=(r.mimeType||mt||'video/webm').split(';')[0];camClose();if(!cx)camSend(new Blob(ch,{type:ty}),'video.'+(ty.includes('mp4')?'mp4':'webm'),'video')};
-  r.start();$('shut').classList.add('rec')};
+  r.onstop=()=>{go=0;const ty=(r.mimeType||mt||'video/webm').split(';')[0];if(CM===R)camClose();if(!R.cancel)camSend(new Blob(ch,{type:ty}),'video.'+(ty.includes('mp4')?'mp4':'webm'),'video')};
+  r.start();$('shut').classList.add('rec')}
+let hT=null,hRec=0,hStop=0;
+$('shut').onpointerdown=e=>{if(!CM)return;e.preventDefault();hRec=0;hStop=!!CM.rec;if(hStop)return;hT=setTimeout(()=>{hT=null;hRec=1;camRec()},350)};
+const shUp=()=>{if(!CM)return;if(hStop){hStop=0;CM.rec&&CM.rec.stop();return}if(hT){clearTimeout(hT);hT=null;CM.mode==='photo'?camPhoto():camRec()}else if(hRec&&CM.rec)CM.rec.stop()};
+$('shut').onpointerup=shUp;$('shut').onpointercancel=shUp;
 async function fileSheet(el){const u=el.dataset.fu,n=el.dataset.n;
   const v=await showD(`<div class="sh-t"><i class="fas fa-file"></i> ${esc(n)}</div><div class="sh-m">${esc(el.querySelector('.fz').textContent)}</div><div class="opt" data-v="o"><i class="fas fa-up-right-from-square"></i>فتح</div><div class="opt" data-v="d"><i class="fas fa-download"></i>حفظ على الجهاز</div>${navigator.canShare?'<div class="opt" data-v="s"><i class="fas fa-share-nodes"></i>مشاركة</div>':''}<div class="btns"><button class="btn o" data-v="__no">إغلاق</button></div>`);
   if(v==='o')window.open(u,'_blank');
@@ -865,7 +878,7 @@ function mPanel(){const m=mMode(),b=$('mBody');if(m==='none')return;let h='<div 
     <button class="btn" data-x="share" style="width:100%;margin-top:14px"><i class="fas fa-tower-broadcast"></i> مشاركة مع مستخدمين (بث مباشر)</button>`;
     if(hosts().length)h+=`<div class="sh-m" style="margin-top:12px;font-weight:800">المستمعون (${hosts().length})</div>`+hosts().map(x=>`<div class="opt mtr"><i class="fas fa-headphones"></i><span class="grow s2">${esc(nm(x.uid))} · ${x.st==='active'?'يستمع الآن':'بانتظار الرد'}</span><button class="ib mini" data-kk="${esc(x.chatId)}"><i class="fas fa-xmark"></i></button></div>`).join('');
     h+=`<div class="sh-m" style="margin-top:16px;font-weight:800">الأغاني (${PL.length})</div>`+PL.map((x,i)=>`<div class="opt mtr ${i===pi?'cur':''}" data-t="${i}"><i class="fas ${i===pi?(playing?'fa-volume-high':'fa-pause'):'fa-music'}"></i><span class="grow s2">${esc(x.name)}</span><button class="ib mini" data-r="${i}"><i class="fas fa-xmark"></i></button></div>`).join('')
-      +'<button class="btn o" data-x="add" style="width:100%;margin-top:10px"><i class="fas fa-plus"></i> إضافة أغاني (يمكنك تحديد أكثر من أغنية)</button>'}
+      +'<button class="btn o" data-x="add" style="width:100%;margin-top:10px"><i class="fas fa-plus"></i> إضافة أغاني (حدّد عدة ملفات)</button><button class="btn o" data-x="addf" style="width:100%;margin-top:8px"><i class="fas fa-folder-open"></i> إضافة مجلد كامل دفعة واحدة</button>'}
   b.innerHTML=h;mProg()}
 $('mBody').addEventListener('click',e=>{const r=e.target.closest('[data-r]');if(r){e.stopPropagation();return mRemove(+r.dataset.r)}
   const kk=e.target.closest('[data-kk]');if(kk){hostDrop(kk.dataset.kk,true);return toast('تم إنهاء استماعه')}
@@ -876,6 +889,7 @@ $('mBody').addEventListener('click',e=>{const r=e.target.closest('[data-r]');if(
   if(a==='next'&&pi+1<PL.length)mPlay(pi+1);
   if(a==='lmute'){lmute=!lmute;if(mgain)mgain.gain.value=lmute?0:1;mRefresh()}
   if(a==='add')$('mfile').click();
+  if(a==='addf')$('dir').click();
   if(a==='share')mPick();
   if(a==='kill'){if(pi>=0)mRemove(pi);else mClearAll();toast('تم إيقاف الأغنية وحذفها')}
   if(a==='hide')$('mOv').classList.remove('on');
@@ -887,8 +901,10 @@ $('mBody').addEventListener('change',e=>{if(e.target.id!=='pSl')return;const d=m
 $('mOv').onclick=e=>{if(e.target===$('mOv'))$('mOv').classList.remove('on')};
 const mOpen=()=>{mPanel();$('mOv').classList.add('on')};
 const mBtn=()=>{if(GS||PL.length)mOpen();else $('mfile').click()};$('musicB').onclick=$('hMusic').onclick=mBtn;
-$('mfile').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;if(GS)return toast('اترك الاستماع أولاً لتشغيل أغانيك');const first=PL.length;
-  fs.forEach(f=>PL.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f),file:f}));toast('تمت إضافة '+fs.length+' أغنية');if(pi<0)mPlay(first);mRefresh();if(first===0)mOpen()};
+const isAud=f=>f.type.startsWith('audio/')||/\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(f.name);
+function addSongs(fs){fs=fs.filter(isAud);if(!fs.length)return toast('لا توجد ملفات صوتية');if(GS)return toast('اترك الاستماع أولاً لتشغيل أغانيك');const first=PL.length;
+  fs.sort((a,b)=>a.name.localeCompare(b.name,'ar',{numeric:true}));fs.forEach(f=>PL.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f),file:f}));toast('تمت إضافة '+fs.length+' أغنية');if(pi<0)mPlay(first);mRefresh();if(first===0)mOpen()}
+$('mfile').onchange=$('dir').onchange=e=>{const fs=[...e.target.files];e.target.value='';addSongs(fs)};
 /* الأيقونة العائمة: تتحرك بحرية وبشكل مائي وتلتصق بحافة الشاشة */
 (function(){const f=$('mFab'),FP={x:14,y:Math.max(90,innerHeight-170)};
   try{const s=JSON.parse(localStorage.getItem('rsl_fab')||'null');if(s&&isFinite(s.x)&&isFinite(s.y))Object.assign(FP,s)}catch(e){}
@@ -922,6 +938,7 @@ async function hostInvite(uid){const id=cidOf(uid);if(HS[id]||!PL.length)return;
   catch(e){diag('الموسيقى',e);toast('تعذّرت المشاركة');hostDrop(id,true)}}
 function hostDrop(id,notify){const H=HS[id];if(!H)return;delete HS[id];clearTimeout(H.t);H.unsubs.forEach(u=>u());try{H.pc.close()}catch(e){}if(notify)updateDoc(lref(id),{active:false,status:'ended'}).catch(()=>{});cleanCand(id);mRefresh()}
 async function mPick(){if(!PL.length)return toast('أضف أغاني أولاً');
+  if(cur&&!cur.plat){hostInvite(cur.o);return toast('تم إرسال دعوة الاستماع إلى '+nm(cur.o))}
   const cand=users.filter(u=>u.id!==ME&&isAllowed(u.id)&&!HS[cidOf(u.id)]),SEL=new Set();
   const p=showD(`<div class="sh-t"><i class="fas fa-tower-broadcast"></i> مشاركة الموسيقى</div><div class="sh-m">اختر مستخدمًا أو أكثر (بحث بالاسم أو الرقم)</div><input class="inp" id="pq" placeholder="ابحث..."><div id="pls" style="max-height:44dvh;overflow:auto;margin-top:8px"></div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="go">دعوة</button></div>`);
   const L=$('pls'),dr=()=>{const q=$('pq').value.trim().toLowerCase();L.innerHTML=cand.filter(u=>!q||(nm(u.id)+' '+(u.phone||'')).toLowerCase().includes(q)).slice(0,60).map(u=>`<div class="opt" data-u="${esc(u.id)}" ${SEL.has(u.id)?'style="border-color:var(--accent)"':''}><i class="far ${SEL.has(u.id)?'fa-square-check':'fa-square'}"></i><span class="grow s2">${esc(nm(u.id))}</span></div>`).join('')||'<div class="empty">لا نتائج</div>'};
@@ -964,11 +981,14 @@ function bgSync(){if(!cur||isGuest())return;const m=SNDMETA.bg,has=PL.findIndex(
 function onSnd(){bgSync()}
 
 /* ===== إشعار داخل الصفحة ===== */
-function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(.12,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.start();o.stop(a.currentTime+.35)}catch(e){}}
+let AC0=null;const ac=()=>{try{AC0=AC0||new(window.AudioContext||window.webkitAudioContext)();if(AC0.state==='suspended')AC0.resume()}catch(e){}return AC0};
+function tone(ns){const a=ac();if(!a)return;let t=a.currentTime;ns.forEach(([f,d,v])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.15,t+.015);g.gain.exponentialRampToValueAtTime(.0008,t+d);o.start(t);o.stop(t+d+.02);t+=d*.7})}
+const sndSend=()=>tone([[660,.09,.12],[990,.14,.12]]),sndRecv=()=>tone([[880,.12,.15],[1175,.12,.15],[1568,.22,.12]]);
+function beep(){tone([[880,.35,.12]])}
 function banner(c){const o=c.kind==='platform'?'platform':other(c);
   $('ban').innerHTML=`${avatar(o)}<div class="grow"><div class="t">${esc(nm(o))}</div><div class="s">${esc(c.lastText)}</div></div><i class="fas fa-comment-dots" style="color:var(--success)"></i>`;
   $('ban').classList.add('on');clearTimeout(banner.h);banner.h=setTimeout(()=>$('ban').classList.remove('on'),5500);
-  if(navigator.vibrate)navigator.vibrate([150,80,150]);beep();
+  if(navigator.vibrate)navigator.vibrate([150,80,150]);sndRecv();
   $('ban').onclick=()=>{$('ban').classList.remove('on');openById(c.id)}}
 
 /* ===== المكالمات (WebRTC عبر Firestore) ===== */
@@ -987,18 +1007,19 @@ function bindCtl(){const c=call;if(!c)return;
   const e=$('cEnd');if(e)e.onclick=()=>endCall('ended');
   const m=$('cMic');if(m)m.onclick=()=>{const t=c.stream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;m.classList.toggle('off',!t.enabled);m.innerHTML=`<i class="fas ${t.enabled?'fa-microphone':'fa-microphone-slash'}"></i>`}};
   const v=$('cCam');if(v)v.onclick=()=>{const t=c.stream.getVideoTracks()[0];if(t){t.enabled=!t.enabled;v.classList.toggle('off',!t.enabled);v.innerHTML=`<i class="fas ${t.enabled?'fa-video':'fa-video-slash'}"></i>`}};
-  const sp=$('cSpk');if(sp){const el=$('rv'),AS=navigator.audioSession;c.spk=c.kind==='video'||!(AS||el.setSinkId);
-  const paint=()=>{sp.classList.toggle('off',c.spk);sp.innerHTML=`<i class="fas ${c.spk?'fa-volume-high':'fa-volume-low'}"></i>`};paint();
+  const sp=$('cSpk');if(sp){const el=$('rv'),AS=navigator.audioSession;c.real=false;c.spk=c.kind==='video'||!(AS||el.setSinkId);
+  const paint=()=>{sp.classList.toggle('off',c.spk);sp.innerHTML=`<i class="fas ${c.spk?'fa-volume-high':'fa-volume-low'}"></i>`;if(c.gain)c.gain.gain.value=c.spk?1.5:(c.real?.6:.3)};c.paint=paint;paint();
   sp.onclick=async()=>{const on=!c.spk;let real=false;
     try{if(AS){AS.type=on?'playback':'play-and-record';real=true}}catch(e){}
     try{if(el.setSinkId){const md=navigator.mediaDevices,devs=(await md.enumerateDevices()).filter(d=>d.kind==='audiooutput');
       const pick=on?devs.find(d=>/speaker|مكبر|خارجية/i.test(d.label)&&!/earpiece|receiver/i.test(d.label)):devs.find(d=>/earpiece|receiver|الأذن|الداخلية/i.test(d.label));
       if(pick){await el.setSinkId(pick.deviceId);real=true}else if(md.selectAudioOutput&&!on){const d=await md.selectAudioOutput();await el.setSinkId(d.deviceId);real=true}}}catch(e){}
-    try{el.volume=(real||on)?1:.35}catch(e){}c.spk=on;paint();toast(on?'السماعة الخارجية':real?'السماعة الداخلية':'وضع الصوت الهادئ')}}}
+    c.real=real;c.spk=on;paint();toast(on?'السماعة الخارجية (صوت أعلى)':'وضع الأذن (صوت أهدأ)')}}}
 function setupCall(id,isCaller,o,kind,stream){
   const pc=new RTCPeerConnection(ICE);call={id,pc,stream,isCaller,o,kind,connected:false,pend:[],unsubs:[]};
   stream.getTracks().forEach(t=>pc.addTrack(t,stream));
-  pc.ontrack=e=>{$('rv').srcObject=e.streams[0];if(kind==='video')$('rv').style.display='block'};
+  pc.ontrack=e=>{const st=e.streams[0];$('rv').srcObject=st;if(kind==='video')$('rv').style.display='block';
+    try{const a=ac();a.resume().then(()=>{if(a.state!=='running')$('rv').muted=false});call.src=a.createMediaStreamSource(st);call.gain=a.createGain();call.src.connect(call.gain);call.gain.connect(a.destination);$('rv').muted=true;call.paint&&call.paint();if(!call.paint)call.gain.gain.value=1.5}catch(x){$('rv').muted=false}};
   pc.onicecandidate=e=>{if(e.candidate)addDoc(collection(db,'calls',id,'cand'),{from:me,c:JSON.stringify(e.candidate)}).catch(()=>{})};
   pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected'&&call&&call.id===id){call.connected=true;clearTimeout(call.ringTimer);ring(false);$('callUI').classList.add('conn');call.t0=Date.now();call.tick=setInterval(()=>{$('cuSt').textContent=mmss((Date.now()-call.t0)/1000)},1000)}if(s==='failed'||s==='closed')endCall('ended')};
   const flush=()=>call.pend.splice(0).forEach(c=>pc.addIceCandidate(c).catch(()=>{}));call.flush=flush;
@@ -1030,8 +1051,8 @@ async function acceptCall(id,d){
 const declineCall=id=>{ring(false);$('callUI').classList.remove('on');updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});cleanupCall(id)};
 /* بعد انتهاء المكالمة نمسح بياناتها من الخادم */
 function cleanupCall(id){setTimeout(async()=>{try{const s=await getDocs(collection(db,'calls',id,'cand'));const b=writeBatch(db);s.docs.forEach(d=>b.delete(d.ref));await b.commit();await deleteDoc(doc(db,'calls',id))}catch(e){}},5000)}
-function endCall(st,remote){if(!call)return;const c=call;call=null;ring(false);clearTimeout(c.ringTimer);clearInterval(c.tick);c.unsubs.forEach(u=>u());try{c.pc.close()}catch(e){}c.stream.getTracks().forEach(t=>t.stop());
-  $('callUI').classList.remove('on','conn');$('rv').srcObject=null;$('lv').srcObject=null;$('rv').style.display=$('lv').style.display='none';
+function endCall(st,remote){if(!call)return;const c=call;call=null;ring(false);clearTimeout(c.ringTimer);clearInterval(c.tick);c.unsubs.forEach(u=>u());try{c.src&&c.src.disconnect();c.gain&&c.gain.disconnect()}catch(e){}try{c.pc.close()}catch(e){}c.stream.getTracks().forEach(t=>t.stop());
+  $('callUI').classList.remove('on','conn');$('rv').muted=false;$('rv').srcObject=null;$('lv').srcObject=null;$('rv').style.display=$('lv').style.display='none';
   if(!remote&&st)updateDoc(doc(db,'calls',c.id),{status:st}).catch(()=>{});cleanupCall(c.id)}
 $('cCall').onclick=()=>startCall('audio');$('cVid').onclick=()=>startCall('video');
 let incId=null;
