@@ -15,9 +15,7 @@ try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');i
 (function(){try{
   if(sessionStorage.getItem('meezan_logged_in')!=='true'){window.__kick=1;location.replace('login.html');return}
   var me=sessionStorage.getItem('meezan_user_id'),c=JSON.parse(localStorage.getItem('rsl_cfg')||'null');
-  if(c){var ov=c.overrides||{},ok=(me in ov)?!!ov[me]:!!c.allowAll;
-    if(!ok&&c._t&&Date.now()-c._t<600000){window.__kick=1;location.replace('index.html')}
-    else if(ok)window.__ready=1}
+  if(c){var ov=c.overrides||{},ok=(me in ov)?!!ov[me]:!!c.allowAll;if(ok)window.__ready=1}
 }catch(e){}})();
 </script>
 <style>
@@ -148,14 +146,19 @@ body.chat-open .header,body.chat-open .wrap,body.chat-open .fab{visibility:hidde
 .ctl{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom));display:flex;gap:14px;z-index:3}
 .cb{width:60px;height:60px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:21px;cursor:pointer;backdrop-filter:blur(6px)}
 .cb.off{background:#fff;color:#0B3D2E}.cb.end{background:#E74C3C}.cb.ok{background:#25A25A}
-body.pend>*:not(#splash){display:none!important}
-#splash{display:none;position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;background:var(--bg-page);color:var(--primary);font-size:34px}
-body.pend #splash{display:flex}
+body.pend>*:not(script){display:none!important}
+body.locked>*:not(#block):not(script){display:none!important}
+#block{display:none;position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:#000;color:#fff;padding:24px;gap:14px}
+body.locked #block{display:flex}
+#block .bi{font-size:84px;color:#E74C3C}
+#block .bt{font-size:28px;font-weight:900;line-height:1.6;max-width:520px}
+#block .bn{font-size:76px;font-weight:900;color:#C9A961;line-height:1}
+#block .bs{opacity:.7;font-weight:700}
 </style>
 </head>
 <body class="pend">
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
-<div id="splash"><i class="fas fa-spinner fa-spin"></i></div>
+<div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
 <div class="header">
   <a href="index.html" class="ib" id="hBack"><i class="fas fa-arrow-right"></i></a>
   <h1><i class="fas fa-comments"></i> الرسائل</h1>
@@ -224,7 +227,7 @@ $('hBack').onclick=()=>SS.del('rsl_open_'+me);
 
 /* ===== الحالة + الكاش ===== */
 let users=LS.get('rsl_users',[]),profiles=LS.get('rsl_prof',{}),byId={};
-const cfg0=LS.get('rsl_cfg',null);let cfg=Object.assign({allowAll:false,overrides:{}},cfg0||{}),cfgOk=!!cfg0;
+const cfg0=LS.get('rsl_cfg',null);const allowedFromCache=!!window.__ready;let cfg=Object.assign({allowAll:false,overrides:{}},cfg0||{}),cfgOk=!!cfg0;
 let chats=LS.get('rsl_chats_'+me,[]),cur=null,unsub=null,msgCache={},nicks=LS.get('rsl_nick_'+me,{}),usersOk=users.length>0,chatsOk=chats.length>0,initDone=false,firstRender=true;
 const rebuild=()=>{byId={};users.forEach(u=>{const p=profiles[u.id]||{};byId[u.id]=Object.assign({},u,{fullName:p.name||u.fullName,avatarUrl:p.avatar||u.avatarUrl})})};rebuild();
 const realName=u=>u?(u.fullName||u.username||'مستخدم'):'مستخدم';
@@ -233,8 +236,13 @@ const IMG_OK=/^(https?:|data:image\/)/;
 const avatar=id=>{const u=byId[id];if(id==='platform')return '<div class="av"><i class="fas fa-scale-balanced"></i></div>';return u&&IMG_OK.test(u.avatarUrl||'')?`<img class="av" src="${esc(u.avatarUrl)}" loading="lazy">`:`<div class="av">${esc((nm(id)||'؟').trim()[0]||'؟')}</div>`};
 const isAllowed=id=>id in (cfg.overrides||{})?!!cfg.overrides[id]:!!cfg.allowAll;
 const allowed=()=>isAllowed(me);
-const gate=()=>{if(!cfgOk)return;if(!allowed()){try{if(call)endCall('ended')}catch(e){}location.replace('index.html');return}document.body.classList.remove('pend')};
-if(cfgOk)gate();
+let lockIv=null;
+function lockOut(){const bd=document.body;if(bd.classList.contains('locked'))return;bd.classList.remove('pend');bd.classList.remove('chat-open');bd.classList.add('locked');
+  try{if(unsub)unsub();unsub=null;cur=null;if(lunsub)lunsub();lunsub=null;mReset()}catch(e){}try{if(call)endCall('ended')}catch(e){}incId=null;
+  let n=5;$('blkN').textContent=n;lockIv=setInterval(()=>{n--;$('blkN').textContent=Math.max(n,0);if(n<=0){clearInterval(lockIv);location.replace('index.html')}},1000)}
+/* الدخول يتم فورًا لو مسموح؛ المنع لا يُقرّر إلا من رد السيرفر (حتى لا يتم إخراجك بالغلط من كاش قديم) */
+const gate=srv=>{if(!cfgOk)return;if(allowed()){const bd=document.body;if(!bd.classList.contains('locked')){bd.classList.remove('pend');clearInterval(lockIv)}}else if(srv)lockOut()};
+if(cfgOk&&allowed())document.body.classList.remove('pend');
 const other=c=>(c.members||[]).find(m=>m!==me);
 const myClr=c=>((c.cleared||{})[me])||0;
 const muted=c=>!!(c&&c.muted&&c.muted[me]);
@@ -243,8 +251,8 @@ onSnapshot(doc(db,'users','all'),s=>{
   users=(s.exists()?(s.data().items||[]):[]).map(u=>({id:u.id,fullName:u.fullName||'',username:u.username||'',phone:u.phone||'',avatarUrl:(typeof u.avatarUrl==='string'&&/^https?:/.test(u.avatarUrl)&&u.avatarUrl.length<300)?u.avatarUrl:''}));
   usersOk=true;rebuild();LS.set('rsl_users',users);render();if(cur)head()});
 onSnapshot(collection(db,'profiles'),s=>{profiles={};s.docs.forEach(d=>{const x=d.data();profiles[d.id]={name:x.name||'',avatar:x.avatar||''}});rebuild();LS.set('rsl_prof',profiles);render();if(cur)head()},()=>{});
-onSnapshot(doc(db,'settings','messaging'),s=>{const srv=!s.metadata.fromCache;if(!srv&&cfg0)return;
-  cfg=Object.assign({allowAll:false,overrides:{}},s.exists()?s.data():{});cfgOk=true;LS.set('rsl_cfg',Object.assign({},cfg,{_t:Date.now()}));render();gate();restore()});
+onSnapshot(doc(db,'settings','messaging'),s=>{const srv=!s.metadata.fromCache;if(!srv&&cfg0&&allowedFromCache)return;
+  cfg=Object.assign({allowAll:false,overrides:{}},s.exists()?s.data():{});cfgOk=true;LS.set('rsl_cfg',Object.assign({},cfg,{_t:Date.now()}));render();gate(srv);restore()});
 onSnapshot(query(collection(db,'chats'),where('members','array-contains',me)),s=>{
   const next=s.docs.map(d=>{const x=d.data();return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:x.reads||{},cleared:x.cleared||{},muted:x.muted||{}}});
   if(initDone)s.docChanges().forEach(ch=>{if(ch.type==='removed'||ch.doc.metadata.hasPendingWrites)return;const c=next.find(x=>x.id===ch.doc.id);if(c&&!muted(c)&&c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>(c.reads[me]||0)&&(!cur||cur.id!==c.id)&&c.updatedAt>myClr(c))banner(c)});
