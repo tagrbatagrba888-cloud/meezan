@@ -63,7 +63,7 @@ async function getMe(tag) {
   return (tag.indexOf('chat_') === 0 && i > 5) ? tag.slice(i + 1) : null;
 }
 
-async function sendReply(chatId, me, text) {
+async function sendReply(chatId, me, text, onSent) {
   const doc = FS_DB + '/chats/' + chatId;
   const g = await fetch('https://firestore.googleapis.com/v1/' + doc + '?key=' + FS_KEY);
   if (!g.ok) throw new Error('chat ' + g.status);
@@ -80,6 +80,7 @@ async function sendReply(chatId, me, text) {
   ] };
   const r = await fetch('https://firestore.googleapis.com/v1/' + FS_DB + ':commit?key=' + FS_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error('commit ' + r.status);
+  if (onSent) onSent(); // نأكد للمستخدم فورًا إن الرسالة اتبعتت، والإشعار يكمل في الخلفية
   // إشعار الطرف الآخر — لازم ننتظره (await) عشان المتصفح ما يقتل الـ service worker قبل ما يتبعت
   const other = vals.map((v) => v.stringValue).find((m) => m !== me);
   return other ? await notifyOther(chatId, me, other, cj, text, msgId) : '';
@@ -97,8 +98,8 @@ async function notifyOther(chatId, me, other, cj, text, msgId) {
     const mm = cj.fields && cj.fields.muted && cj.fields.muted.mapValue && cj.fields.muted.mapValue.fields;
     if (mm && mm[other] && mm[other].booleanValue) return;
     // الاسم اللي يظهر له: اسمك المحفوظ عنده، وإلا اسمك الحقيقي
-    let sender = fsStr(await fsGet('contact_names/' + encodeURIComponent(other + '__' + me)), 'name');
-    if (!sender) sender = fsStr(await fsGet('profiles/' + encodeURIComponent(me)), 'name');
+    const [nk, pf, un] = await Promise.all([fsGet('contact_names/' + encodeURIComponent(other + '__' + me)), fsGet('profiles/' + encodeURIComponent(me)), fsGet('user_notifications/' + encodeURIComponent(other))]);
+    let sender = fsStr(nk, 'name') || fsStr(pf, 'name');
     if (!sender) {
       const ua = await fsGet('users/all');
       const items = (ua && ua.fields && ua.fields.items && ua.fields.items.arrayValue && ua.fields.items.arrayValue.values) || [];
@@ -109,14 +110,15 @@ async function notifyOther(chatId, me, other, cj, text, msgId) {
     const id = 'chat_' + chatId + '_' + other, now = new Date().toISOString();
     const hdr = { 'Content-Type': 'application/json' };
     const put = (path, fields, mask) => fetch('https://firestore.googleapis.com/v1/' + FS_DB + '/' + path + '?' + (mask || []).map((m) => 'updateMask.fieldPaths=' + m + '&').join('') + 'key=' + FS_KEY, { method: 'PATCH', headers: hdr, body: JSON.stringify({ fields }) });
-    const a = await put('notifications/' + id, fsFields({ id, title: sender, body: String(text).slice(0, 140), type: 'page', url: 'rasael.html?c=' + chatId, mediaType: 'page', senderId: me, senderName: sender, createdAt: now, target: 'custom', targetLabel: other, recipients: [other], urgent: false, kind: 'chat' }));
-    if (!a.ok) throw new Error('notif ' + a.status);
-    const un = await fsGet('user_notifications/' + encodeURIComponent(other));
     const ids = ((un && un.fields && un.fields.notifIds && un.fields.notifIds.arrayValue && un.fields.notifIds.arrayValue.values) || []).map((v) => v.stringValue);
     const unread = parseInt((un && un.fields && un.fields.unreadCount && un.fields.unreadCount.integerValue) || '0', 10) + (ids.includes(id) ? 0 : 1);
     const f2 = fsFields({ userId: other, notifIds: [id].concat(ids.filter((x) => x !== id)).slice(0, 100), unreadCount: unread });
     f2.updatedAt = { timestampValue: now };
-    const b = await put('user_notifications/' + encodeURIComponent(other), f2, ['userId', 'notifIds', 'unreadCount', 'updatedAt']);
+    const [a, b] = await Promise.all([
+      put('notifications/' + id, fsFields({ id, title: sender, body: String(text).slice(0, 140), type: 'page', url: 'rasael.html?c=' + chatId, mediaType: 'page', senderId: me, senderName: sender, createdAt: now, target: 'custom', targetLabel: other, recipients: [other], urgent: false, kind: 'chat' })),
+      put('user_notifications/' + encodeURIComponent(other), f2, ['userId', 'notifIds', 'unreadCount', 'updatedAt'])
+    ]);
+    if (!a.ok) throw new Error('notif ' + a.status);
     if (!b.ok) throw new Error('user_notif ' + b.status);
     const r = await fetch(PUSH_API, { method: 'POST', keepalive: true, headers: Object.assign({ 'x-admin-key': PUSH_KEY }, hdr), body: JSON.stringify({ notifId: id, resend: true, urgent: false, alarm: false, requireInteraction: false }) });
     if (!r.ok) throw new Error('push ' + r.status);
@@ -131,20 +133,24 @@ async function notifyOther(chatId, me, other, cj, text, msgId) {
 
 async function handleReply(event) {
   const n = event.notification, d = n.data || {}, text = String(event.reply || '').trim(), tag = d.tag || n.tag || '';
-  let ok = false, warn = '';
-  if (text) {
-    try {
-      let chatId = null;
-      try { chatId = new URL(resolveTarget(d.url)).searchParams.get('c'); } catch (e) {}
-      const me = await getMe(tag);
-      if (chatId && me) { warn = await sendReply(chatId, me, text); ok = true; }
-    } catch (e) { console.log('[reply] failed', e && e.message); }
-  }
-  return self.registration.showNotification(n.title, {
+  const paint = (ok, warn) => self.registration.showNotification(n.title, {
     body: ok ? 'أنت: ' + text + (warn ? '\n⚠️ وصلت الرسالة لكن تعذّر إشعاره (' + warn + ')' : '') : 'تعذّر إرسال الرد — اضغط لفتح المحادثة',
     icon: n.icon, badge: n.badge, tag: n.tag, renotify: false, silent: true, dir: 'rtl', lang: 'ar',
     actions: ok ? REPLY_ACTIONS : undefined, data: d
   });
+  if (!text) return paint(false);
+  let sent = false;
+  try {
+    let chatId = null;
+    try { chatId = new URL(resolveTarget(d.url)).searchParams.get('c'); } catch (e) {}
+    const me = await getMe(tag);
+    if (!chatId || !me) return paint(false);
+    const warn = await sendReply(chatId, me, text, () => { sent = true; paint(true, ''); });
+    if (warn) return paint(true, warn);
+  } catch (e) {
+    console.log('[reply] failed', e && e.message);
+    if (!sent) return paint(false);
+  }
 }
 
 // وصول رسالة والموقع مقفول أو في الخلفية
