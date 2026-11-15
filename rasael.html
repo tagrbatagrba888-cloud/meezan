@@ -290,7 +290,23 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 #rpbar{display:none;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-card);border-top:1px solid var(--border);font-size:12px}#rpbar.on{display:flex}#rpbar .rpc{flex:1;border-inline-start:3px solid var(--accent);padding-inline-start:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .rq{border-inline-start:3px solid var(--accent);background:#0000000d;border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:12px;cursor:pointer}.rq b{display:block;color:var(--accent)}.rq span{opacity:.8;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:220px}
 .fw{font-size:11px;opacity:.7;margin-bottom:2px}.ec{display:flex;align-items:center;gap:8px;background:#0B3D2E;color:#fff;border-radius:10px;padding:14px;margin-top:6px;cursor:pointer;font-size:13px;font-weight:700}.ec i{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center}</style><style>.mt:has(img){height:auto;min-height:80px;background:#0000000d}.mt:has(img) img{height:auto;max-height:340px;object-fit:contain;margin:0 auto;background:transparent}
-.mt.vid:has(video){height:auto;min-height:120px}.mt video{height:auto;max-height:340px;object-fit:contain;background:#000}</style></head>
+.mt.vid:has(video){height:auto;min-height:120px}.mt video{height:auto;max-height:340px;object-fit:contain;background:#000}</style><style>
+#fp{position:fixed;left:0;top:0;z-index:640;display:none;flex-direction:column;background:#000;border:2px solid var(--accent);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.65);overflow:hidden}
+#fp.on{display:flex}
+#fp.full{border-radius:0;border:0}
+#fpH{display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0B3D2E;color:#fff;cursor:grab;flex:0 0 auto;touch-action:none;user-select:none;-webkit-user-select:none}
+#fp.full #fpH{cursor:default}
+#fpH .ft{flex:1;font-size:12px;font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#fpH button{width:32px;height:32px;border-radius:50%;border:0;background:#ffffff26;color:#fff;font-size:13px;cursor:pointer;flex-shrink:0}
+#fpH button:active{transform:scale(.9)}
+#fpB{flex:1;min-height:0;position:relative;background:#000}
+#fpB iframe,#fpB video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;object-fit:contain}
+#fp.min{height:auto!important}#fp.min #fpB,#fp.min #fpR{display:none}
+#fpR{position:absolute;right:0;bottom:0;width:38px;height:38px;z-index:3;cursor:nwse-resize;touch-action:none;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;color:#fff;font-size:15px;background:linear-gradient(135deg,transparent 50%,rgba(11,61,46,.85) 50%);border-bottom-right-radius:12px}
+#fp.full #fpR{display:none}
+#fp.mv #fpB::after,#fp.rs #fpB::after{content:'';position:absolute;inset:0;z-index:2}
+</style>
+</head>
 <body class="pend">
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
 <div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
@@ -349,6 +365,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <div class="ov" id="mOv"><div class="sheet" id="mBody"></div></div>
 <div id="minv"></div><div id="net">لا يوجد اتصال — ستُرسل الرسائل تلقائيًا عند عودة الإنترنت</div>
 <div class="cam" id="cam"><video id="cv" playsinline muted></video><div class="top"><button class="cb" id="camX"><i class="fas fa-xmark"></i></button><button class="cb" id="camFlip"><i class="fas fa-camera-rotate"></i></button></div><input type="range" id="camZ" min="1" max="5" step="0.05" value="1"><div class="ctl"><button class="cb" id="camMode"><i class="fas fa-video"></i></button><button class="shut" id="shut"></button><span style="width:60px"></span></div></div>
+<div id="fp"><div id="fpH"><i class="fas fa-up-down-left-right"></i><span class="ft" id="fpT">فيديو / بث مباشر</span><button id="fpMin" title="تصغير"><i class="fas fa-window-minimize"></i></button><button id="fpFull" title="ملء الشاشة"><i class="fas fa-expand"></i></button><button id="fpX" title="إغلاق"><i class="fas fa-xmark"></i></button></div><div id="fpB"></div><div id="fpR"><i class="fas fa-up-right-and-down-left-from-center" style="transform:scaleX(-1)"></i></div></div>
 <audio id="rAud" autoplay playsinline></audio><button id="cFab"></button><div id="ed"><div id="edTop"><button id="edX"><i class="fas fa-xmark"></i></button><span id="edCnt"></span><div class="edt"><button data-t="crop"><i class="fas fa-crop-simple"></i></button><button data-t="draw" class="on"><i class="fas fa-pen"></i></button><button data-t="text"><i class="fas fa-font"></i></button><button id="edUn"><i class="fas fa-rotate-left"></i></button></div></div><div id="edSt"><div id="edW"><div id="edM"></div><canvas id="edC"></canvas><div id="edCr"><i data-h="nw" style="left:-13px;top:-13px"></i><i data-h="ne" style="right:-13px;top:-13px"></i><i data-h="sw" style="left:-13px;bottom:-13px"></i><i data-h="se" style="right:-13px;bottom:-13px"></i></div></div></div><div id="edBot"><div id="edTr"><input type="range" id="edS" min="0" max="1000" value="0"><input type="range" id="edE" min="0" max="1000" value="1000"></div><div id="edCols"></div><button id="edOk"><i class="fas fa-paper-plane"></i></button></div></div>
 
 <script type="module">
@@ -362,6 +379,7 @@ const PUSH_API='https://vercel-server-nine-tau.vercel.app/api/send';
 const PUSH_KEY='Meezan2026Secret';
 const me=sessionStorage.getItem('meezan_user_id');
 try{if(me&&window.caches)caches.open('rsl-me').then(c=>c.put('/__rsl_me',new Response(String(me)))).catch(()=>{})}catch(e){}
+$('hBack').onclick=()=>SS.del('rsl_open_'+me);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DG={};function diag(src,e){console.warn(src,e)}
 $('diag').onclick=()=>{$('diag').style.display='none';for(const k in DG)delete DG[k]};
@@ -372,7 +390,6 @@ const SS={get(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){retur
 const tsv=v=>v&&v.toMillis?v.toMillis():(+v||0);
 const tmap=o=>{const r={};Object.keys(o||{}).forEach(k=>r[k]=tsv(o[k]));return r};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
-$('hBack').onclick=()=>SS.del('rsl_open_'+me);
 
 /* ===== الحالة + الكاش ===== */
 let users=LS.get('rsl_users',[]),profiles=LS.get('rsl_prof',{}),byId={};
@@ -387,7 +404,7 @@ const isAllowed=id=>id in (cfg.overrides||{})?!!cfg.overrides[id]:!!cfg.allowAll
 const allowed=()=>isAllowed(me);
 let lockIv=null;
 function lockOut(){const bd=document.body;if(bd.classList.contains('locked'))return;bd.classList.remove('pend');bd.classList.remove('chat-open');bd.classList.add('locked');
-  try{if(unsub)unsub();unsub=null;cur=null;mReset()}catch(e){}try{if(call)endCall('ended')}catch(e){}incId=null;
+  try{if(unsub)unsub();unsub=null;cur=null;mReset();fpClose()}catch(e){}try{if(call)endCall('ended')}catch(e){}incId=null;
   let n=5;$('blkN').textContent=n;lockIv=setInterval(()=>{n--;$('blkN').textContent=Math.max(n,0);if(n<=0){clearInterval(lockIv);location.replace('index.html')}},1000)}
 /* الدخول يتم فورًا لو مسموح؛ المنع لا يُقرّر إلا من رد السيرفر (حتى لا يتم إخراجك بالغلط من كاش قديم) */
 const gate=srv=>{if(!cfgOk)return;if(allowed()){const bd=document.body;if(!bd.classList.contains('locked')){bd.classList.remove('pend');clearInterval(lockIv)}}else if(srv)lockOut()};
@@ -638,12 +655,39 @@ async function fwdFlow(m){const L=users.filter(u=>u.id!==me&&isAllowed(u.id)).ma
   dr();$('fq').oninput=dr;Lb.onclick=e=>{const o=e.target.closest('[data-u]');if(!o)return;const x=L.find(z=>z.o===o.dataset.u);$('ovD').click();doFwd(m,x)};await p}
 async function doFwd(m,x){const d={type:m.type,fwd:true,vo:0};['text','fileId','name','mime','size','orig','chunks','gz','dur','emb'].forEach(k=>{if(m[k]!==undefined)d[k]=m[k]});try{await sendMsg(d,{id:x.id,o:x.o,plat:false});toast('تم التوجيه إلى '+nm(x.o))}catch(e){if(e.message!=='not-allowed')toast('تعذّر التوجيه')}}
 async function linkFlow(){const t=await showD(`<div class="sh-t">رابط الفيديو أو البث</div><input class="inp" placeholder="الصق الرابط أو كود التضمين (iframe)"><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="__in">إرسال</button></div>`);if(!t)return;const mm=t.match(/src=["']([^"']+)["']/i),u=((mm?mm[1]:(t.match(/https?:\/\/[^\s"'<>]+/)||[''])[0])||'').replace(/^\/\//,'https://');if(!/^https?:\/\//i.test(u))return toast('الرابط غير صحيح');try{await sendMsg({type:'text',text:u,emb:true})}catch(e){if(e.message!=='not-allowed')toast('تعذّر الإرسال')}bottomSoon()}
-function openEmbed(url){const e=embedOf(url)||{k:'f',s:url};let h;const orig=/^https?:/i.test(url)?url:e.s;const st='width:100%;max-height:86vh;background:#000;border-radius:12px';
-  if(e.k==='v')h=`<video src="${esc(e.s)}" controls autoplay playsinline controlsList="nodownload" style="${st}"></video>`;
-  else if(e.k==='h')h=`<video id="hlsv" controls autoplay playsinline style="${st}"></video>`;
-  else h=`<iframe src="${esc(e.s)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write; web-share; accelerometer; gyroscope" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox allow-forms" style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000"></iframe><div style="text-align:center;margin-top:12px"><a href="${esc(orig)}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> فتح الرابط الأصلي</a></div>`;
-  $('vvB').innerHTML=h;$('vvD').style.display='none';$('vv').classList.add('on');
+/* ===== مشغّل الفيديو/البث العائم: يبقى مفتوحًا فوق المحادثة، يتحرك ويتكبّر ويملأ الشاشة ===== */
+const FP={x:0,y:0,w:0,h:0,full:false,min:false,saved:null};
+function fpLoad(){let o=null;try{o=JSON.parse(localStorage.getItem('rsl_fp')||'null')}catch(e){}
+  const w=Math.min(innerWidth-16,o&&o.w>=180?o.w:Math.min(340,innerWidth-16)),h=Math.min(innerHeight-16,o&&o.h>=140?o.h:Math.round(w*9/16)+44);
+  FP.w=w;FP.h=h;FP.x=o&&isFinite(o.x)?o.x:innerWidth-w-8;FP.y=o&&isFinite(o.y)?o.y:70}
+function fpSave(){if(FP.full)return;try{localStorage.setItem('rsl_fp',JSON.stringify({x:FP.x,y:FP.y,w:FP.w,h:FP.h}))}catch(e){}}
+function fpApply(){const f=$('fp');
+  if(FP.full){Object.assign(f.style,{left:'0px',top:'0px',width:'100vw',height:'100dvh'});return}
+  FP.w=Math.min(Math.max(180,FP.w),innerWidth-8);FP.h=Math.min(Math.max(140,FP.h),innerHeight-8);
+  FP.x=Math.min(Math.max(4,FP.x),innerWidth-FP.w-4);FP.y=Math.min(Math.max(4,FP.y),innerHeight-(FP.min?44:FP.h)-4);
+  Object.assign(f.style,{left:FP.x+'px',top:FP.y+'px',width:FP.w+'px',height:FP.min?'auto':FP.h+'px'})}
+function fpClose(){const f=$('fp');if(!f)return;f.classList.remove('on','full','min');FP.full=false;FP.min=false;$('fpB').innerHTML='';try{const k=$('fpFull');k.innerHTML='<i class="fas fa-expand"></i>'}catch(e){}}
+function openEmbed(url){const e=embedOf(url)||{k:'f',s:url};let h;const orig=/^https?:/i.test(url)?url:e.s;
+  if(e.k==='v')h=`<video src="${esc(e.s)}" controls autoplay playsinline controlsList="nodownload"></video>`;
+  else if(e.k==='h')h=`<video id="hlsv" controls autoplay playsinline></video>`;
+  else h=`<iframe src="${esc(e.s)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write; web-share; accelerometer; gyroscope" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox allow-forms"></iframe>`;
+  const f=$('fp'),wasOn=f.classList.contains('on');$('fpB').innerHTML=h;
+  if(!wasOn){FP.full=false;FP.min=false;f.classList.remove('full','min');fpLoad()}else if(FP.min){FP.min=false;f.classList.remove('min')}
+  $('fpT').textContent=/^https?:/i.test(orig)?orig.replace(/^https?:\/\/(www\.)?/,'').slice(0,60):'فيديو / بث مباشر';
+  f.classList.add('on');fpApply();
   if(e.k==='h'){const v=$('hlsv');if(v.canPlayType('application/vnd.apple.mpegurl'))v.src=e.s;else{const go=()=>{if(window.Hls&&Hls.isSupported()){const H=new Hls();H.loadSource(e.s);H.attachMedia(v)}else toast('المتصفح لا يدعم هذا البث')};if(window.Hls)go();else{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';sc.onload=go;document.head.appendChild(sc)}}}}
+(function(){const f=$('fp');let d=null,r=null;
+  $('fpH').addEventListener('pointerdown',e=>{if(e.target.closest('button')||FP.full)return;d={sx:e.clientX,sy:e.clientY,ox:FP.x,oy:FP.y};f.classList.add('mv');try{$('fpH').setPointerCapture(e.pointerId)}catch(x){}});
+  $('fpH').addEventListener('pointermove',e=>{if(!d)return;FP.x=d.ox+e.clientX-d.sx;FP.y=d.oy+e.clientY-d.sy;fpApply()});
+  const de=()=>{if(!d)return;d=null;f.classList.remove('mv');fpSave()};$('fpH').addEventListener('pointerup',de);$('fpH').addEventListener('pointercancel',de);
+  $('fpR').addEventListener('pointerdown',e=>{r={sx:e.clientX,sy:e.clientY,w:FP.w,h:FP.h};f.classList.add('rs');try{$('fpR').setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+  $('fpR').addEventListener('pointermove',e=>{if(!r)return;FP.w=r.w+e.clientX-r.sx;FP.h=r.h+e.clientY-r.sy;fpApply()});
+  const re=()=>{if(!r)return;r=null;f.classList.remove('rs');fpSave()};$('fpR').addEventListener('pointerup',re);$('fpR').addEventListener('pointercancel',re);
+  $('fpX').onclick=fpClose;
+  $('fpMin').onclick=()=>{if(FP.full)return;FP.min=!FP.min;f.classList.toggle('min',FP.min);fpApply()};
+  $('fpFull').onclick=()=>{FP.full=!FP.full;if(FP.full){FP.min=false;f.classList.remove('min')}f.classList.toggle('full',FP.full);$('fpFull').innerHTML=FP.full?'<i class="fas fa-compress"></i>':'<i class="fas fa-expand"></i>';fpApply()};
+  $('fpH').addEventListener('dblclick',e=>{if(!e.target.closest('button'))$('fpFull').click()});
+  addEventListener('resize',()=>{if(f.classList.contains('on'))fpApply()})})();
 /* ===== محرر الصور والفيديو (قص + رسم + كتابة + قص مدة الفيديو) ===== */
 const EDC=['#ff3b30','#ffcc00','#34c759','#0a84ff','#ffffff','#000000','#af52de'];
 function drawActs(x,w,h,E){const c=E.crop;E.acts.forEach(a=>{if(a.k==='s'){x.strokeStyle=a.c;x.lineWidth=a.s/c.w*w;x.lineCap=x.lineJoin='round';x.beginPath();a.p.forEach((p,i)=>{const X=(p[0]-c.x)/c.w*w,Y=(p[1]-c.y)/c.h*h;i?x.lineTo(X,Y):x.moveTo(X,Y)});if(a.p.length===1)x.lineTo((a.p[0][0]-c.x)/c.w*w+.1,(a.p[0][1]-c.y)/c.h*h);x.stroke()}
