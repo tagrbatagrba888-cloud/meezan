@@ -80,8 +80,45 @@ async function sendReply(chatId, me, text) {
   ] };
   const r = await fetch('https://firestore.googleapis.com/v1/' + FS_DB + ':commit?key=' + FS_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error('commit ' + r.status);
-  // إشعار الطرف الآخر (السيرفر بيتحقق من الرسالة في Firestore)
-  fetch(PUSH_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatMsg: { chatId, msgId } }) }).catch(() => {});
+  // إشعار الطرف الآخر — لازم ننتظره (await) عشان المتصفح ما يقتل الـ service worker قبل ما يتبعت
+  const other = vals.map((v) => v.stringValue).find((m) => m !== me);
+  if (other) await notifyOther(chatId, me, other, cj, text, msgId);
+}
+
+// ===== إرسال إشعار للطرف الآخر (نفس منطق notifyUser في صفحة الرسائل) =====
+const PUSH_KEY = 'Meezan2026Secret';
+const fsv = (v) => typeof v === 'boolean' ? { booleanValue: v } : typeof v === 'number' ? { integerValue: String(v) } : Array.isArray(v) ? { arrayValue: { values: v.map(fsv) } } : { stringValue: String(v) };
+const fsFields = (o) => { const f = {}; for (const k in o) f[k] = fsv(o[k]); return f; };
+const fsGet = async (path) => { try { const r = await fetch('https://firestore.googleapis.com/v1/' + FS_DB + '/' + path + '?key=' + FS_KEY); return r.ok ? r.json() : null; } catch (e) { return null; } };
+const fsStr = (d, k) => (d && d.fields && d.fields[k] && d.fields[k].stringValue) || '';
+async function notifyOther(chatId, me, other, cj, text, msgId) {
+  try {
+    // لو الطرف الآخر كاتم الإشعارات منك
+    const mm = cj.fields && cj.fields.muted && cj.fields.muted.mapValue && cj.fields.muted.mapValue.fields;
+    if (mm && mm[other] && mm[other].booleanValue) return;
+    // الاسم اللي يظهر له: اسمك المحفوظ عنده، وإلا اسمك الحقيقي
+    let sender = fsStr(await fsGet('contact_names/' + encodeURIComponent(other + '__' + me)), 'name');
+    if (!sender) sender = fsStr(await fsGet('profiles/' + encodeURIComponent(me)), 'name');
+    if (!sender) sender = 'مستخدم';
+    const id = 'chat_' + chatId + '_' + other, now = new Date().toISOString();
+    const hdr = { 'Content-Type': 'application/json' };
+    const put = (path, fields, mask) => fetch('https://firestore.googleapis.com/v1/' + FS_DB + '/' + path + '?' + (mask || []).map((m) => 'updateMask.fieldPaths=' + m + '&').join('') + 'key=' + FS_KEY, { method: 'PATCH', headers: hdr, body: JSON.stringify({ fields }) });
+    const a = await put('notifications/' + id, fsFields({ id, title: sender, body: String(text).slice(0, 140), type: 'page', url: 'rasael.html?c=' + chatId, mediaType: 'page', senderId: me, senderName: sender, createdAt: now, target: 'custom', targetLabel: other, recipients: [other], urgent: false, kind: 'chat' }));
+    if (!a.ok) throw new Error('notif ' + a.status);
+    const un = await fsGet('user_notifications/' + encodeURIComponent(other));
+    const ids = ((un && un.fields && un.fields.notifIds && un.fields.notifIds.arrayValue && un.fields.notifIds.arrayValue.values) || []).map((v) => v.stringValue);
+    const unread = parseInt((un && un.fields && un.fields.unreadCount && un.fields.unreadCount.integerValue) || '0', 10) + (ids.includes(id) ? 0 : 1);
+    const f2 = fsFields({ userId: other, notifIds: [id].concat(ids.filter((x) => x !== id)).slice(0, 100), unreadCount: unread });
+    f2.updatedAt = { timestampValue: now };
+    const b = await put('user_notifications/' + encodeURIComponent(other), f2, ['userId', 'notifIds', 'unreadCount', 'updatedAt']);
+    if (!b.ok) throw new Error('user_notif ' + b.status);
+    const r = await fetch(PUSH_API, { method: 'POST', keepalive: true, headers: Object.assign({ 'x-admin-key': PUSH_KEY }, hdr), body: JSON.stringify({ notifId: id, resend: true, urgent: false, alarm: false, requireInteraction: false }) });
+    if (!r.ok) throw new Error('push ' + r.status);
+  } catch (e) {
+    console.log('[reply] notify failed, fallback', e && e.message);
+    // خطة بديلة: السيرفر يبعت الإشعار من الرسالة نفسها
+    try { await fetch(PUSH_API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatMsg: { chatId, msgId } }) }); } catch (x) {}
+  }
 }
 
 async function handleReply(event) {
