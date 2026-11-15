@@ -20,7 +20,10 @@ try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');i
 (function(){try{
   /* حفظ/استرجاع تسجيل الدخول: التطبيق المثبّت نافذة مستقلة ومعندوش sessionStorage بتاع المنصة */
   try{if(sessionStorage.getItem('meezan_logged_in')==='true'){var _o={};for(var _i=0;_i<sessionStorage.length;_i++){var _k=sessionStorage.key(_i);if(_k&&_k.indexOf('meezan_')===0)_o[_k]=sessionStorage.getItem(_k)}localStorage.setItem('rsl_auth',JSON.stringify(_o))}
-  else{var _a=JSON.parse(localStorage.getItem('rsl_auth')||'null');if(_a&&_a.meezan_logged_in==='true'&&_a.meezan_user_id){for(var _j in _a)sessionStorage.setItem(_j,_a[_j])}}}catch(e){}
+  else{var _a=JSON.parse(localStorage.getItem('rsl_auth')||'null');
+  /* لو مفيش نسخة محفوظة منّا، نجرّب نقرأ بيانات الدخول مباشرة لو المنصة حافظاها في localStorage */
+  if(!(_a&&_a.meezan_logged_in==='true'&&_a.meezan_user_id)){_a={};for(var _m=0;_m<localStorage.length;_m++){var _q=localStorage.key(_m);if(_q&&_q.indexOf('meezan_')===0)_a[_q]=localStorage.getItem(_q)}}
+  if(_a.meezan_logged_in==='true'&&_a.meezan_user_id){for(var _j in _a)if(_j!=='meezan_theme')sessionStorage.setItem(_j,_a[_j])}}}catch(e){}
   if(sessionStorage.getItem('meezan_logged_in')!=='true'){window.__kick=1;location.replace('login.html');return}
   var me=sessionStorage.getItem('meezan_user_id'),c=JSON.parse(localStorage.getItem('rsl_cfg')||'null');
   if(c){var ov=c.overrides||{},ok=(me in ov)?!!ov[me]:!!c.allowAll;if(ok)window.__ready=1}
