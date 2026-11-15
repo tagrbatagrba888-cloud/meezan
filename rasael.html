@@ -295,6 +295,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
 <div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
 <div class="header">
+  <a href="index.html" class="ib" id="hBack"><i class="fas fa-arrow-right"></i></a>
   <h1><i class="fas fa-comments"></i> الرسائل</h1>
   <button class="ib" id="hMusic" title="الموسيقى"><i class="fas fa-music"></i></button>
 </div>
@@ -393,6 +394,7 @@ const SS={get(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){retur
 const tsv=v=>v&&v.toMillis?v.toMillis():(+v||0);
 const tmap=o=>{const r={};Object.keys(o||{}).forEach(k=>r[k]=tsv(o[k]));return r};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+$('hBack').onclick=()=>SS.del('rsl_open_'+me);
 
 /* ===== الحالة + الكاش ===== */
 let users=LS.get('rsl_users',[]),profiles=LS.get('rsl_prof',{}),byId={};
