@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0B3D2E">
+<link rel="manifest" href="rasael.webmanifest">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="رسائل ميزان"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <title>الرسائل | MEEZAN</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
 <link rel="preconnect" href="https://firestore.googleapis.com">
@@ -14,6 +18,9 @@
 /* دخول فوري: لو الكاش بيقول إنك غير مسموح (وتم تأكيده من السيرفر حديثًا) تخرج على طول بدون تحميل */
 try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');if(th)document.documentElement.setAttribute('data-theme',th)}catch(e){}
 (function(){try{
+  /* حفظ/استرجاع تسجيل الدخول: التطبيق المثبّت نافذة مستقلة ومعندوش sessionStorage بتاع المنصة */
+  try{if(sessionStorage.getItem('meezan_logged_in')==='true'){var _o={};for(var _i=0;_i<sessionStorage.length;_i++){var _k=sessionStorage.key(_i);if(_k&&_k.indexOf('meezan_')===0)_o[_k]=sessionStorage.getItem(_k)}localStorage.setItem('rsl_auth',JSON.stringify(_o))}
+  else{var _a=JSON.parse(localStorage.getItem('rsl_auth')||'null');if(_a&&_a.meezan_logged_in==='true'&&_a.meezan_user_id){for(var _j in _a)sessionStorage.setItem(_j,_a[_j])}}}catch(e){}
   if(sessionStorage.getItem('meezan_logged_in')!=='true'){window.__kick=1;location.replace('login.html');return}
   var me=sessionStorage.getItem('meezan_user_id'),c=JSON.parse(localStorage.getItem('rsl_cfg')||'null');
   if(c){var ov=c.overrides||{},ok=(me in ov)?!!ov[me]:!!c.allowAll;if(ok)window.__ready=1}
@@ -132,7 +139,7 @@ body.chat-open .header,body.chat-open .wrap,body.chat-open .fab{visibility:hidde
 @keyframes dn{from{transform:translateY(-80px);opacity:0}}
 .vv{position:fixed;inset:0;background:#000;z-index:700;display:none;flex-direction:column;align-items:center;justify-content:center}
 .vv.on{display:flex}.vv .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px}
-.vv img,.vv video{max-width:100%;max-height:82dvh}.vv a{color:#fff;font-weight:800}
+.vv img,.vv video{max-width:100%;max-height:82dvh}#vvB{width:100%;max-width:960px;padding:0 10px}#vvB:has(img),#vvB:has(video){width:auto;padding:0}.vv a{color:#fff;font-weight:800}
 .vv .ap{background:var(--bg-card);color:var(--text-main);border-radius:16px;padding:12px}
 /* المكالمات */
 .callui{position:fixed;inset:0;z-index:600;background:linear-gradient(160deg,#0B3D2E,#06201A);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
@@ -288,6 +295,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
   <a href="index.html" class="ib" id="hBack"><i class="fas fa-arrow-right"></i></a>
   <h1><i class="fas fa-comments"></i> الرسائل</h1>
   <button class="ib" id="hMusic" title="الموسيقى"><i class="fas fa-music"></i></button>
+  <button class="ib" id="hInstall" title="تثبيت التطبيق" style="display:none"><i class="fas fa-download"></i></button>
 </div>
 <div class="wrap">
   <div id="notice"></div>
@@ -532,8 +540,15 @@ $('cMore').onclick=()=>{if(cur)chatActions(cur.id)};
 
 /* ===== عرض الرسائل ===== */
 const URL_RE=/(https?:\/\/[^\s<]+)/g;
-function embedOf(url){const u=url.toLowerCase();let m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/live\/)([\w-]{11})/);if(m)return{k:'f',s:'https://www.youtube-nocookie.com/embed/'+m[1]+'?autoplay=1&rel=0&modestbranding=1&playsinline=1'};
-  m=url.match(/vimeo\.com\/(\d+)/);if(m)return{k:'f',s:'https://player.vimeo.com/video/'+m[1]+'?autoplay=1'};
+function embedOf(url){const u=url.toLowerCase();let m;
+  m=url.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*?&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/i);
+  if(m)return{k:'f',s:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&rel=0&playsinline=1'};
+  m=url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);if(m)return{k:'f',s:'https://player.vimeo.com/video/'+m[1]+'?autoplay=1'};
+  m=url.match(/twitch\.tv\/videos\/(\d+)/i);if(m)return{k:'f',s:'https://player.twitch.tv/?video=v'+m[1]+'&parent='+location.hostname+'&autoplay=true'};
+  m=url.match(/twitch\.tv\/([\w]+)\/?(?:\?|$)/i);if(m&&!/^(videos|directory|downloads|p|settings)$/i.test(m[1]))return{k:'f',s:'https://player.twitch.tv/?channel='+m[1]+'&parent='+location.hostname+'&autoplay=true'};
+  if(/(?:facebook\.com|fb\.watch)\//i.test(url)&&/video|watch|live|fb\.watch|reel/i.test(url))return{k:'f',s:'https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(url)+'&show_text=false&autoplay=true'};
+  m=url.match(/dailymotion\.com\/(?:embed\/)?video\/([\w]+)/i);if(m)return{k:'f',s:'https://www.dailymotion.com/embed/video/'+m[1]+'?autoplay=1'};
+  m=url.match(/drive\.google\.com\/file\/d\/([\w-]+)/i);if(m)return{k:'f',s:'https://drive.google.com/file/d/'+m[1]+'/preview'};
   if(/\.(mp4|webm|mov|m4v)(\?|#|$)/.test(u))return{k:'v',s:url};if(/\.m3u8(\?|#|$)/.test(u))return{k:'h',s:url};return null}
 const ecard=(url,live)=>`<div class="ec" data-emb="${esc(url)}"><i class="fas fa-play"></i><span>${live?'مشاهدة البث':'تشغيل الفيديو'}</span></div>`;
 function prev(url,force){if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(url))return `<img src="${esc(url)}" loading="lazy">`;const e=embedOf(url);return e||force?ecard(url,(e&&e.k==='h')||(force&&!e)):''}
@@ -619,10 +634,10 @@ async function fwdFlow(m){const L=users.filter(u=>u.id!==me&&isAllowed(u.id)).ma
   dr();$('fq').oninput=dr;Lb.onclick=e=>{const o=e.target.closest('[data-u]');if(!o)return;const x=L.find(z=>z.o===o.dataset.u);$('ovD').click();doFwd(m,x)};await p}
 async function doFwd(m,x){const d={type:m.type,fwd:true,vo:0};['text','fileId','name','mime','size','orig','chunks','gz','dur','emb'].forEach(k=>{if(m[k]!==undefined)d[k]=m[k]});try{await sendMsg(d,{id:x.id,o:x.o,plat:false});toast('تم التوجيه إلى '+nm(x.o))}catch(e){if(e.message!=='not-allowed')toast('تعذّر التوجيه')}}
 async function linkFlow(){const t=await showD(`<div class="sh-t">رابط الفيديو أو البث</div><input class="inp" placeholder="الصق الرابط أو كود التضمين (iframe)"><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="__in">إرسال</button></div>`);if(!t)return;const mm=t.match(/src=["']([^"']+)["']/i),u=((mm?mm[1]:(t.match(/https?:\/\/[^\s"'<>]+/)||[''])[0])||'').replace(/^\/\//,'https://');if(!/^https?:\/\//i.test(u))return toast('الرابط غير صحيح');try{await sendMsg({type:'text',text:u,emb:true})}catch(e){if(e.message!=='not-allowed')toast('تعذّر الإرسال')}bottomSoon()}
-function openEmbed(url){const e=embedOf(url)||{k:'f',s:url};let h;const st='width:100%;max-height:86vh;background:#000;border-radius:12px';
+function openEmbed(url){const e=embedOf(url)||{k:'f',s:url};let h;const orig=/^https?:/i.test(url)?url:e.s;const st='width:100%;max-height:86vh;background:#000;border-radius:12px';
   if(e.k==='v')h=`<video src="${esc(e.s)}" controls autoplay playsinline controlsList="nodownload" style="${st}"></video>`;
   else if(e.k==='h')h=`<video id="hlsv" controls autoplay playsinline style="${st}"></video>`;
-  else h=`<iframe src="${esc(e.s)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000"></iframe>`;
+  else h=`<iframe src="${esc(e.s)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write; web-share; accelerometer; gyroscope" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox allow-forms" style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000"></iframe><div style="text-align:center;margin-top:12px"><a href="${esc(orig)}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> فتح الرابط الأصلي</a></div>`;
   $('vvB').innerHTML=h;$('vvD').style.display='none';$('vv').classList.add('on');
   if(e.k==='h'){const v=$('hlsv');if(v.canPlayType('application/vnd.apple.mpegurl'))v.src=e.s;else{const go=()=>{if(window.Hls&&Hls.isSupported()){const H=new Hls();H.loadSource(e.s);H.attachMedia(v)}else toast('المتصفح لا يدعم هذا البث')};if(window.Hls)go();else{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';sc.onload=go;document.head.appendChild(sc)}}}}
 /* ===== محرر الصور والفيديو (قص + رسم + كتابة + قص مدة الفيديو) ===== */
@@ -1173,6 +1188,17 @@ onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==',
   const age=Date.now()-(tsv(d.createdAt)||Date.now());if(age>45000)return;
   incId=id;callUI(d.from,d.kind,'incoming');if(navigator.vibrate)navigator.vibrate([400,200,400,200,400]);ring(true,d.kind);
   $('cDec').onclick=()=>{incId=null;declineCall(id)};$('cAcc').onclick=async()=>{incId=null;await acceptCall(id,d)}}),e=>diag('المكالمات',e));
+
+/* ===== تثبيت الصفحة كتطبيق مستقل ===== */
+(function(){let ev=null;const b=document.getElementById('hInstall'),sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(sa){document.documentElement.classList.add('sa');const hb=document.getElementById('hBack');if(hb)hb.style.display='none';return}
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;b.style.display='flex'});
+  addEventListener('appinstalled',()=>{b.style.display='none';ev=null;try{toast('تم تثبيت التطبيق')}catch(x){}});
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent))b.style.display='flex';
+  b.onclick=async()=>{if(ev){ev.prompt();try{await ev.userChoice}catch(x){}ev=null;b.style.display='none'}
+    else try{toast('من زر المشاركة اختر "إضافة إلى الشاشة الرئيسية"')}catch(x){}}})();
+/* لو الإشعار فتح الصفحة وهي مفتوحة بالفعل (يوصل من الـ service worker) */
+if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='open-chat'&&d.c){try{history.replaceState(history.state,'','rasael.html?c='+encodeURIComponent(d.c));deepDone=false;deep()}catch(x){}}});
 
 /* فتح آخر محادثة فورًا بعد التحديث (بدون انتظار) */
 restore();
