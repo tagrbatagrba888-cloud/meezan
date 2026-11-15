@@ -1207,20 +1207,16 @@ onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==',
   const clean=location.origin+location.pathname;
   const sheet=async()=>{
     const how=ios?'من زر المشاركة اختر «إضافة إلى الشاشة الرئيسية».'
-      :standalone?'التثبيت بيتم من متصفح Chrome العادي: افتح Chrome والصق الرابط، وبعدها من القائمة ⋮ اختر «تثبيت التطبيق».'
+      :standalone?'اضغط مطولًا على أيقونة المنصة في الشاشة الرئيسية، واختر «الرسائل»، ثم اسحبها لأي مكان على الشاشة عشان تبقى أيقونة مستقلة.'
       :'من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «Install app».';
     const v=await showD('<div class="sh-t">تثبيت الرسائل كتطبيق مستقل</div><div class="sh-m">'+how+'</div><div class="btns"><button class="btn o" data-v="copy">نسخ الرابط</button><button class="btn" data-v="__no">تمام</button></div>');
     if(v==='copy'){try{await navigator.clipboard.writeText(clean);toast('تم نسخ الرابط')}catch(x){toast(clean)}}};
   b.onclick=async()=>{
     if(ev){ev.prompt();try{await ev.userChoice}catch(x){}ev=null;return}
-    /* جوه تطبيق المنصة على أندرويد: نفتح Chrome على نفس الصفحة وهناك يظهر زر التثبيت جاهز */
-    if(andr&&standalone){location.href='intent://'+location.host+location.pathname+'?install=1#Intent;scheme=https;package=com.android.chrome;end';
-      setTimeout(()=>{if(document.visibilityState==='visible')sheet()},1500);return}
-    sheet()};
-  /* وصلنا من الزر وإحنا في Chrome: نعرض زر تثبيت جاهز */
-  if(!standalone&&new URLSearchParams(location.search).get('install')==='1')setTimeout(async()=>{if(b.style.display==='none')return;
-    const v=await showD('<div class="sh-t">تثبيت الرسائل</div><div class="sh-m">اضغط «تثبيت» لإضافة الرسائل كتطبيق مستقل على جهازك.</div><div class="btns"><button class="btn o" data-v="__no">لاحقًا</button><button class="btn" data-v="go">تثبيت</button></div>');
-    if(v==='go')b.onclick()},900)})();
+    /* Web Install API (لو المتصفح بيدعمه): بيثبّت الصفحة نفسها من زر، حتى من جوه تطبيق مثبّت */
+    if(navigator.install){try{await navigator.install();done=true;setInst();hide();try{toast('تم تثبيت التطبيق')}catch(x){}return}
+      catch(x){if(x&&x.name==='AbortError')return}}
+    sheet()};})();
 /* لو الإشعار فتح الصفحة وهي مفتوحة بالفعل (يوصل من الـ service worker) */
 if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='open-chat'&&d.c){try{history.replaceState(history.state,'','rasael.html?c='+encodeURIComponent(d.c));deepDone=false;deep()}catch(x){}}});
 

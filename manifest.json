@@ -10,7 +10,10 @@
   "theme_color": "#0B3D2E",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png",
@@ -70,6 +73,18 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "الرسائل",
+      "short_name": "الرسائل",
+      "description": "افتح المراسلات والمكالمات",
+      "url": "/rasael.html",
+      "icons": [
+        {
+          "src": "https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
     {
       "name": "تسجيل الدخول",
       "short_name": "دخول",
