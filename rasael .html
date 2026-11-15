@@ -1189,14 +1189,38 @@ onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==',
   incId=id;callUI(d.from,d.kind,'incoming');if(navigator.vibrate)navigator.vibrate([400,200,400,200,400]);ring(true,d.kind);
   $('cDec').onclick=()=>{incId=null;declineCall(id)};$('cAcc').onclick=async()=>{incId=null;await acceptCall(id,d)}}),e=>diag('المكالمات',e));
 
-/* ===== تثبيت الصفحة كتطبيق مستقل ===== */
-(function(){let ev=null;const b=document.getElementById('hInstall'),sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
-  if(sa){document.documentElement.classList.add('sa');const hb=document.getElementById('hBack');if(hb)hb.style.display='none';return}
-  addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;b.style.display='flex'});
-  addEventListener('appinstalled',()=>{b.style.display='none';ev=null;try{toast('تم تثبيت التطبيق')}catch(x){}});
-  if(/iphone|ipad|ipod/i.test(navigator.userAgent))b.style.display='flex';
-  b.onclick=async()=>{if(ev){ev.prompt();try{await ev.userChoice}catch(x){}ev=null;b.style.display='none'}
-    else try{toast('من زر المشاركة اختر "إضافة إلى الشاشة الرئيسية"')}catch(x){}}})();
+/* ===== تثبيت الصفحة كتطبيق مستقل (حتى لو المنصة نفسها مثبّتة) ===== */
+(function(){let ev=null,done=false;const g=id=>document.getElementById(id),b=g('hInstall'),KEY='rsl_installed',
+  ios=/iphone|ipad|ipod/i.test(navigator.userAgent),andr=/android/i.test(navigator.userAgent),
+  standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone,
+  setInst=()=>{try{localStorage.setItem(KEY,'1')}catch(x){}},isInst=()=>{try{return localStorage.getItem(KEY)==='1'}catch(x){return false}},
+  hide=()=>{b.style.display='none'},show=()=>{if(!done)b.style.display='flex'};
+  /* لو افتحنا من أيقونة تطبيق الرسائل نفسه (?src=app) يبقى مثبّت: نخفي الزر وسهم الرجوع */
+  try{if(new URLSearchParams(location.search).get('src')==='app'){sessionStorage.setItem('rsl_isapp','1');setInst()}}catch(x){}
+  let isApp=false;try{isApp=sessionStorage.getItem('rsl_isapp')==='1'}catch(x){}
+  if(isApp){const hb=g('hBack');if(hb)hb.style.display='none';return}
+  /* الزر ظاهر حتى لو إنت جوه تطبيق المنصة، ويختفي لما يتأكد إن الرسائل مثبّتة */
+  if(isInst())hide();else show();
+  if(navigator.getInstalledRelatedApps)navigator.getInstalledRelatedApps().then(l=>{if(l&&l.length){setInst();hide()}else if(!done)show()}).catch(()=>{});
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;if(!isInst())show()});
+  addEventListener('appinstalled',()=>{done=true;setInst();hide();ev=null;try{toast('تم تثبيت التطبيق')}catch(x){}});
+  const clean=location.origin+location.pathname;
+  const sheet=async()=>{
+    const how=ios?'من زر المشاركة اختر «إضافة إلى الشاشة الرئيسية».'
+      :standalone?'التثبيت بيتم من متصفح Chrome العادي: افتح Chrome والصق الرابط، وبعدها من القائمة ⋮ اختر «تثبيت التطبيق».'
+      :'من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «Install app».';
+    const v=await showD('<div class="sh-t">تثبيت الرسائل كتطبيق مستقل</div><div class="sh-m">'+how+'</div><div class="btns"><button class="btn o" data-v="copy">نسخ الرابط</button><button class="btn" data-v="__no">تمام</button></div>');
+    if(v==='copy'){try{await navigator.clipboard.writeText(clean);toast('تم نسخ الرابط')}catch(x){toast(clean)}}};
+  b.onclick=async()=>{
+    if(ev){ev.prompt();try{await ev.userChoice}catch(x){}ev=null;return}
+    /* جوه تطبيق المنصة على أندرويد: نفتح Chrome على نفس الصفحة وهناك يظهر زر التثبيت جاهز */
+    if(andr&&standalone){location.href='intent://'+location.host+location.pathname+'?install=1#Intent;scheme=https;package=com.android.chrome;end';
+      setTimeout(()=>{if(document.visibilityState==='visible')sheet()},1500);return}
+    sheet()};
+  /* وصلنا من الزر وإحنا في Chrome: نعرض زر تثبيت جاهز */
+  if(!standalone&&new URLSearchParams(location.search).get('install')==='1')setTimeout(async()=>{if(b.style.display==='none')return;
+    const v=await showD('<div class="sh-t">تثبيت الرسائل</div><div class="sh-m">اضغط «تثبيت» لإضافة الرسائل كتطبيق مستقل على جهازك.</div><div class="btns"><button class="btn o" data-v="__no">لاحقًا</button><button class="btn" data-v="go">تثبيت</button></div>');
+    if(v==='go')b.onclick()},900)})();
 /* لو الإشعار فتح الصفحة وهي مفتوحة بالفعل (يوصل من الـ service worker) */
 if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='open-chat'&&d.c){try{history.replaceState(history.state,'','rasael.html?c='+encodeURIComponent(d.c));deepDone=false;deep()}catch(x){}}});
 

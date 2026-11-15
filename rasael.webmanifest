@@ -5,7 +5,7 @@
   "description": "المراسلة والمكالمات في منصة ميزان التعليمية",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "rasael.html",
+  "start_url": "rasael.html?src=app",
   "scope": "rasael.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -23,6 +23,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "rasael.webmanifest"
     }
   ]
 }
