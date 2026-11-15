@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0B3D2E">
+<link rel="manifest" href="rasael.webmanifest">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="رسائل ميزان"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
@@ -291,13 +292,13 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 .fw{font-size:11px;opacity:.7;margin-bottom:2px}.ec{display:flex;align-items:center;gap:8px;background:#0B3D2E;color:#fff;border-radius:10px;padding:14px;margin-top:6px;cursor:pointer;font-size:13px;font-weight:700}.ec i{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center}</style><style>.mt:has(img){height:auto;min-height:80px;background:#0000000d}.mt:has(img) img{height:auto;max-height:340px;object-fit:contain;margin:0 auto;background:transparent}
 .mt.vid:has(video){height:auto;min-height:120px}.mt video{height:auto;max-height:340px;object-fit:contain;background:#000}</style></head>
 <body class="pend">
-<script>try{if(window.__ready)document.body.classList.remove("pend")}catch(e){}</script>
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
 <div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
 <div class="header">
   <a href="index.html" class="ib" id="hBack"><i class="fas fa-arrow-right"></i></a>
   <h1><i class="fas fa-comments"></i> الرسائل</h1>
   <button class="ib" id="hMusic" title="الموسيقى"><i class="fas fa-music"></i></button>
+  <button class="ib" id="hInstall" title="تثبيت التطبيق" style="display:none"><i class="fas fa-download"></i></button>
 </div>
 <div class="wrap">
   <div id="notice"></div>
@@ -350,29 +351,6 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <div class="cam" id="cam"><video id="cv" playsinline muted></video><div class="top"><button class="cb" id="camX"><i class="fas fa-xmark"></i></button><button class="cb" id="camFlip"><i class="fas fa-camera-rotate"></i></button></div><input type="range" id="camZ" min="1" max="5" step="0.05" value="1"><div class="ctl"><button class="cb" id="camMode"><i class="fas fa-video"></i></button><button class="shut" id="shut"></button><span style="width:60px"></span></div></div>
 <audio id="rAud" autoplay playsinline></audio><button id="cFab"></button><div id="ed"><div id="edTop"><button id="edX"><i class="fas fa-xmark"></i></button><span id="edCnt"></span><div class="edt"><button data-t="crop"><i class="fas fa-crop-simple"></i></button><button data-t="draw" class="on"><i class="fas fa-pen"></i></button><button data-t="text"><i class="fas fa-font"></i></button><button id="edUn"><i class="fas fa-rotate-left"></i></button></div></div><div id="edSt"><div id="edW"><div id="edM"></div><canvas id="edC"></canvas><div id="edCr"><i data-h="nw" style="left:-13px;top:-13px"></i><i data-h="ne" style="right:-13px;top:-13px"></i><i data-h="sw" style="left:-13px;bottom:-13px"></i><i data-h="se" style="right:-13px;bottom:-13px"></i></div></div></div><div id="edBot"><div id="edTr"><input type="range" id="edS" min="0" max="1000" value="0"><input type="range" id="edE" min="0" max="1000" value="1000"></div><div id="edCols"></div><button id="edOk"><i class="fas fa-paper-plane"></i></button></div></div>
 
-<script>
-/* رسم فوري لقائمة المحادثات من الكاش قبل ما Firebase يتحمّل (الموديول بيعيد الرسم بعدها ويفعّل الأزرار) */
-(function(){try{
-  if(!window.__ready)return;var me=sessionStorage.getItem('meezan_user_id');if(!me)return;
-  var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
-  var chats=J('rsl_chats_'+me,[]);if(!chats.length)return;
-  var users=J('rsl_users',[]),prof=J('rsl_prof',{}),nicks=J('rsl_nick_'+me,{}),avs=J('rsl_av_'+me,{}),by={};
-  users.forEach(function(u){var p=prof[u.id]||{};by[u.id]={fullName:p.name||u.fullName,username:u.username,avatarUrl:p.avatar||u.avatarUrl}});
-  var E=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
-  var rn=function(u){return u?(u.fullName||u.username||'مستخدم'):'مستخدم'};
-  var nm=function(id){return id==='platform'?'منصة ميزان':(nicks[id]||rn(by[id]))};
-  var av=function(id){if(id==='platform')return '<div class="av"><i class="fas fa-scale-balanced"></i></div>';var u=by[id]||{},url=avs[id]||u.avatarUrl||'';
-    return /^(https?:|data:image\/)/.test(url)?'<img class="av" src="'+E(url)+'" loading="lazy">':'<div class="av">'+E((nm(id)||'؟').trim()[0]||'؟')+'</div>'};
-  var ago=function(ms){if(!ms)return '';var d=new Date(ms),n=new Date();return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ar-EG',{day:'numeric',month:'short'})};
-  var clr=function(c){return (c.cleared||{})[me]||0};
-  var l=chats.filter(function(c){return c.updatedAt>clr(c)||!c.updatedAt}).sort(function(a,b){return (a.kind==='platform'?-1:0)-(b.kind==='platform'?-1:0)||(!!(b.cpin||{})[me])-(!!(a.cpin||{})[me])||b.updatedAt-a.updatedAt});
-  if(!l.length)return;
-  document.getElementById('list').innerHTML=l.map(function(c){var o=c.kind==='platform'?'platform':(c.members||[]).find(function(m){return m!==me});
-    var un=c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.reads||{})[me]||0);
-    return '<div class="card row" data-c="'+E(c.id)+'" style="cursor:pointer">'+av(o)+'<div class="grow"><div class="t">'+E(nm(o))+((c.cpin||{})[me]?' <i class="fas fa-thumbtack" style="font-size:11px;color:var(--text-sub)"></i>':'')+((c.muted||{})[me]?' <i class="fas fa-bell-slash" style="font-size:11px;color:var(--text-sub)"></i>':'')+'</div><div class="s">'+E(c.lastText)+'</div></div><div style="text-align:left"><div class="s">'+ago(c.updatedAt)+'</div>'+(un?'<div class="dot" style="margin:6px 0 0 auto"></div>':'')+'</div><button class="ib mini" data-k="'+E(c.id)+'"><i class="fas fa-ellipsis-vertical"></i></button></div>'}).join('');
-  document.getElementById('fab').style.display='block';
-}catch(e){}})();
-</script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,getFirestore,doc,onSnapshot,setDoc,updateDoc,deleteField,deleteDoc,collection,query,where,orderBy,limit,addDoc,serverTimestamp,arrayUnion,arrayRemove,increment,getDocs,getDoc,writeBatch,Bytes} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -547,13 +525,6 @@ function startSearch(){$('sbar').classList.add('on');$('sq').focus()}
 $('sq').oninput=()=>{SQ=$('sq').value.trim();SI=1e9;hl();if(SM.length)SM[SI].scrollIntoView({block:'center'})};
 $('sUp').onclick=()=>goS(-1);$('sDn').onclick=()=>goS(1);$('sq').onkeydown=e=>{if(e.key==='Enter')goS(e.shiftKey?1:-1)};
 $('sX').onclick=()=>{SQ='';$('sq').value='';$('sbar').classList.remove('on');hl();bottom()};
-/* كاش آخر الرسائل لكل محادثة: بتظهر فورًا أول ما تفتح المحادثة، وبعدها بتتحدّث من السيرفر */
-const MK=id=>'rsl_m_'+me+'_'+id;
-const serM=v=>{if(v==null)return v;if(typeof v.toMillis==='function')return v.toMillis();if(Array.isArray(v))return v.map(serM);if(typeof v==='object'){const o={};for(const k in v)o[k]=serM(v[k]);return o}return v};
-const loadMsgs=id=>{try{const a=JSON.parse(localStorage.getItem(MK(id))||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
-function saveMsgs(id){clearTimeout(saveMsgs.t);saveMsgs.t=setTimeout(()=>{if(!cur||cur.id!==id)return;
-  const a=LD.filter(m=>m&&!m.__p&&!m.vo&&!m.expired&&m.createdAt).slice(-40).map(m=>{const o=serM(m);delete o.__p;return o}),j=JSON.stringify(a);
-  try{localStorage.setItem(MK(id),j)}catch(e){try{Object.keys(localStorage).filter(k=>k.indexOf('rsl_m_')===0&&k!==MK(id)).forEach(k=>localStorage.removeItem(k));localStorage.setItem(MK(id),j)}catch(x){}}},700)}
 function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;LIM=100;RS=new Set();seenInit=0;SQ='';$('sq').value='';$('sbar').classList.remove('on');SS.set('rsl_open_'+me,{id,o,plat});
   {const u=location.pathname+'?c='+encodeURIComponent(id);if(history.state&&history.state.chat)history.replaceState({chat:1},'',u);else history.pushState({chat:1},'',u)}
   head();$('cCall').style.display=$('cVid').style.display='flex';$('musicB').style.display='';
@@ -561,8 +532,7 @@ function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};d
   $('msgs').innerHTML='<div class="sk"></div><div class="sk"></div>';
   subM=()=>{if(unsub)unsub();unsub=onSnapshot(query(collection(db,'chats',id,'messages'),orderBy('createdAt','desc'),limit(LIM)),{includeMetadataChanges:true},s=>{
     if(seenInit)s.docChanges().forEach(ch=>{if(ch.type!=='added'||ch.doc.metadata.hasPendingWrites||RS.has(ch.doc.id))return;const x=ch.doc.data();if(x.senderId&&x.senderId!==me&&Date.now()-tsv(x.createdAt)<20000)sndRecv()});
-    s.docs.forEach(d=>RS.add(d.id));seenInit=1;LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites})).reverse();draw();markRead();saveMsgs(id)},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'})};
-  {const c0=loadMsgs(id);if(c0.length){LD=c0;draw(true)}}
+    s.docs.forEach(d=>RS.add(d.id));seenInit=1;LD=s.docs.map(d=>({id:d.id,...d.data(),__p:d.metadata.hasPendingWrites})).reverse();draw();markRead()},e=>{diag('الرسائل',e);$('msgs').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>تعذّر تحميل الرسائل</div>'})};
   subM();bgSync();mRefresh()}
 let lastRead=0;
 function markRead(){if(!cur||document.visibilityState!=='visible')return;const c=chats.find(x=>x.id===cur.id);if(!c)return;
@@ -1223,6 +1193,34 @@ onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==',
   incId=id;callUI(d.from,d.kind,'incoming');if(navigator.vibrate)navigator.vibrate([400,200,400,200,400]);ring(true,d.kind);
   $('cDec').onclick=()=>{incId=null;declineCall(id)};$('cAcc').onclick=async()=>{incId=null;await acceptCall(id,d)}}),e=>diag('المكالمات',e));
 
+/* ===== تثبيت الصفحة كتطبيق مستقل (حتى لو المنصة نفسها مثبّتة) ===== */
+(function(){let ev=null,done=false;const g=id=>document.getElementById(id),b=g('hInstall'),KEY='rsl_installed',
+  ios=/iphone|ipad|ipod/i.test(navigator.userAgent),andr=/android/i.test(navigator.userAgent),
+  standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone,
+  setInst=()=>{try{localStorage.setItem(KEY,'1')}catch(x){}},isInst=()=>{try{return localStorage.getItem(KEY)==='1'}catch(x){return false}},
+  hide=()=>{b.style.display='none'},show=()=>{if(!done)b.style.display='flex'};
+  /* لو افتحنا من أيقونة تطبيق الرسائل نفسه (?src=app) يبقى مثبّت: نخفي الزر وسهم الرجوع */
+  try{if(new URLSearchParams(location.search).get('src')==='app'){sessionStorage.setItem('rsl_isapp','1');setInst()}}catch(x){}
+  let isApp=false;try{isApp=sessionStorage.getItem('rsl_isapp')==='1'}catch(x){}
+  if(isApp){const hb=g('hBack');if(hb)hb.style.display='none';return}
+  /* الزر ظاهر حتى لو إنت جوه تطبيق المنصة، ويختفي لما يتأكد إن الرسائل مثبّتة */
+  if(isInst())hide();else show();
+  if(navigator.getInstalledRelatedApps)navigator.getInstalledRelatedApps().then(l=>{if(l&&l.length){setInst();hide()}else if(!done)show()}).catch(()=>{});
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;if(!isInst())show()});
+  addEventListener('appinstalled',()=>{done=true;setInst();hide();ev=null;try{toast('تم تثبيت التطبيق')}catch(x){}});
+  const clean=location.origin+location.pathname;
+  const sheet=async()=>{
+    const how=ios?'من زر المشاركة اختر «إضافة إلى الشاشة الرئيسية».'
+      :standalone?'اضغط مطولًا على أيقونة المنصة في الشاشة الرئيسية، واختر «الرسائل»، ثم اسحبها لأي مكان على الشاشة عشان تبقى أيقونة مستقلة.'
+      :'من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «Install app».';
+    const v=await showD('<div class="sh-t">تثبيت الرسائل كتطبيق مستقل</div><div class="sh-m">'+how+'</div><div class="btns"><button class="btn o" data-v="copy">نسخ الرابط</button><button class="btn" data-v="__no">تمام</button></div>');
+    if(v==='copy'){try{await navigator.clipboard.writeText(clean);toast('تم نسخ الرابط')}catch(x){toast(clean)}}};
+  b.onclick=async()=>{
+    if(ev){ev.prompt();try{await ev.userChoice}catch(x){}ev=null;return}
+    /* Web Install API (لو المتصفح بيدعمه): بيثبّت الصفحة نفسها من زر، حتى من جوه تطبيق مثبّت */
+    if(navigator.install){try{await navigator.install();done=true;setInst();hide();try{toast('تم تثبيت التطبيق')}catch(x){}return}
+      catch(x){if(x&&x.name==='AbortError')return}}
+    sheet()};})();
 /* لو الإشعار فتح الصفحة وهي مفتوحة بالفعل (يوصل من الـ service worker) */
 if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='open-chat'&&d.c){try{history.replaceState(history.state,'','rasael.html?c='+encodeURIComponent(d.c));deepDone=false;deep()}catch(x){}}});
 
