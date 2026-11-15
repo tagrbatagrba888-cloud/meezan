@@ -3381,14 +3381,31 @@ function createButtonElement(btn) {
 // ============================================================
 // 🎨 تطبيق الأزرار (من الكاش أو Firestore)
 // ============================================================
+// 💬 زر المراسلة (rasael.html): يظهر فقط لمن له صلاحية في settings/messaging
+let __rawBtns = [];
+let __msgCfg = null;
+try { __msgCfg = JSON.parse(localStorage.getItem('rsl_cfg') || 'null'); } catch (e) {}
+const __isMsgBtn = b => /(^|\/)rasael[\w\-]*(\.html)?([?#]|$)/i.test(String((b && b.url) || '').trim());
+const __msgOk = () => {
+  const me = sessionStorage.getItem('meezan_user_id') || '';
+  const c = __msgCfg; if (!c) return false;
+  const ov = c.overrides || {};
+  return (me in ov) ? !!ov[me] : !!c.allowAll;
+};
 function applyButtons(items) {
+  __rawBtns = items || [];
   allCurrentButtons = (items || [])
-    .filter(b => b && b.visible !== false && b.label)
+    .filter(b => b && b.visible !== false && b.label && (!__isMsgBtn(b) || __msgOk()))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   renderGridButtons();
   renderDrawerButtons();
 }
+onSnapshot(doc(db, 'settings', 'messaging'), (snap) => {
+  __msgCfg = Object.assign({ allowAll: false, overrides: {} }, snap.exists() ? snap.data() : {});
+  try { localStorage.setItem('rsl_cfg', JSON.stringify(Object.assign({}, __msgCfg, { _t: Date.now() }))); } catch (e) {}
+  applyButtons(__rawBtns);
+}, () => {});
 
 // ============================================================
 // 🚫 شاشة الحظر
