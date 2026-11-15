@@ -99,7 +99,7 @@ async function sendReply(chatId, me, text) {
   if (!r.ok) throw new Error('commit ' + r.status);
   // إشعار الطرف الآخر — لازم ننتظره (await) عشان المتصفح ما يقتل الـ service worker قبل ما يتبعت
   const other = vals.map((v) => v.stringValue).find((m) => m !== me);
-  if (other) await notifyOther(chatId, me, other, cj, text, msgId);
+  return other ? await notifyOther(chatId, me, other, cj, text, msgId) : '';
 }
 
 // ===== إرسال إشعار للطرف الآخر (نفس منطق notifyUser في صفحة الرسائل) =====
@@ -116,7 +116,13 @@ async function notifyOther(chatId, me, other, cj, text, msgId) {
     // الاسم اللي يظهر له: اسمك المحفوظ عنده، وإلا اسمك الحقيقي
     let sender = fsStr(await fsGet('contact_names/' + encodeURIComponent(other + '__' + me)), 'name');
     if (!sender) sender = fsStr(await fsGet('profiles/' + encodeURIComponent(me)), 'name');
-    if (!sender) sender = 'مستخدم';
+    if (!sender) {
+      const ua = await fsGet('users/all');
+      const items = (ua && ua.fields && ua.fields.items && ua.fields.items.arrayValue && ua.fields.items.arrayValue.values) || [];
+      const mine = items.map((v) => (v.mapValue && v.mapValue.fields) || {}).find((x) => x.id && x.id.stringValue === me);
+      if (mine) sender = (mine.fullName && mine.fullName.stringValue) || (mine.username && mine.username.stringValue) || '';
+    }
+    if (!sender || sender === me || /^user_\d+_/.test(sender)) sender = 'مستخدم';
     const id = 'chat_' + chatId + '_' + other, now = new Date().toISOString();
     const hdr = { 'Content-Type': 'application/json' };
     const put = (path, fields, mask) => fetch('https://firestore.googleapis.com/v1/' + FS_DB + '/' + path + '?' + (mask || []).map((m) => 'updateMask.fieldPaths=' + m + '&').join('') + 'key=' + FS_KEY, { method: 'PATCH', headers: hdr, body: JSON.stringify({ fields }) });
@@ -131,26 +137,28 @@ async function notifyOther(chatId, me, other, cj, text, msgId) {
     if (!b.ok) throw new Error('user_notif ' + b.status);
     const r = await fetch(PUSH_API, { method: 'POST', keepalive: true, headers: Object.assign({ 'x-admin-key': PUSH_KEY }, hdr), body: JSON.stringify({ notifId: id, resend: true, urgent: false, alarm: false, requireInteraction: false }) });
     if (!r.ok) throw new Error('push ' + r.status);
+    return '';
   } catch (e) {
     console.log('[reply] notify failed, fallback', e && e.message);
     // خطة بديلة: السيرفر يبعت الإشعار من الرسالة نفسها
     try { await fetch(PUSH_API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatMsg: { chatId, msgId } }) }); } catch (x) {}
+    return String((e && e.message) || e);
   }
 }
 
 async function handleReply(event) {
   const n = event.notification, d = n.data || {}, text = String(event.reply || '').trim(), tag = d.tag || n.tag || '';
-  let ok = false;
+  let ok = false, warn = '';
   if (text) {
     try {
       let chatId = null;
       try { chatId = new URL(resolveTarget(d.url)).searchParams.get('c'); } catch (e) {}
       const me = await getMe(tag);
-      if (chatId && me) { await sendReply(chatId, me, text); ok = true; }
+      if (chatId && me) { warn = await sendReply(chatId, me, text); ok = true; }
     } catch (e) { console.log('[reply] failed', e && e.message); }
   }
   return self.registration.showNotification(n.title, {
-    body: ok ? 'أنت: ' + text : 'تعذّر إرسال الرد — اضغط لفتح المحادثة',
+    body: ok ? 'أنت: ' + text + (warn ? '\n⚠️ وصلت الرسالة لكن تعذّر إشعاره (' + warn + ')' : '') : 'تعذّر إرسال الرد — اضغط لفتح المحادثة',
     icon: n.icon, badge: n.badge, tag: n.tag, renotify: false, silent: true, dir: 'rtl', lang: 'ar',
     actions: ok ? REPLY_ACTIONS : undefined, data: d
   });
