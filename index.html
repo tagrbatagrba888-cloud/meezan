@@ -3385,7 +3385,7 @@ function createButtonElement(btn) {
 let __rawBtns = [];
 let __msgCfg = null;
 try { __msgCfg = JSON.parse(localStorage.getItem('rsl_cfg') || 'null'); } catch (e) {}
-const __isMsgBtn = b => /(^|\/)rasael[\w\-]*(\.html)?([?#]|$)/i.test(String((b && b.url) || '').trim());
+const __isMsgBtn = b => !!(b && (b.gate === 'msg' || b.id === 'msgbtn')) || /(^|\/)rasael[\w\-]*(\.html)?([?#]|$)/i.test(String((b && b.url) || '').trim());
 const __msgOk = () => {
   const me = sessionStorage.getItem('meezan_user_id') || '';
   const c = __msgCfg; if (!c) return false;
