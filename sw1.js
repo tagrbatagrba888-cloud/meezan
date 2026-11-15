@@ -36,7 +36,7 @@ messaging.onBackgroundMessage((payload) => {
     dir: 'rtl',
     lang: 'ar',
     vibrate: urgent ? (parseList(d.vibrate) || [800, 300, 800, 300, 800, 300, 1200]) : [200, 100, 200],
-    data: { url: target }
+    data: { url: target, tag: d.tag || '' }
   });
 });
 
@@ -62,18 +62,44 @@ async function safeTarget(url) {
   return url;
 }
 
+// نستنتج الصفحة من نوع الإشعار (tag = معرّف الإشعار اللي بتبعته صفحة الرسائل)
+// بنستخدمه فقط لو الرابط وصل ناقص أو بيشاور على الرئيسية/الإشعارات
+function fromTag(tag) {
+  tag = String(tag || '');
+  if (tag.indexOf('chat_') === 0) { const i = tag.lastIndexOf('_'); if (i > 5) return 'rasael.html?c=' + encodeURIComponent(tag.slice(5, i)); }
+  if (tag.indexOf('call_') === 0) return 'rasael.html?call=' + encodeURIComponent(tag.slice(5));
+  if (tag.indexOf('listen_') === 0) return 'rasael.html';
+  return null;
+}
+
 // الضغط على الإشعار يفتح الصفحة المطلوبة
-// لو في تاب مفتوح للموقع نحوّله للصفحة (تبقى الجلسة محفوظة)، وإلا نفتح تاب جديد
+// - لو صفحة الرسائل مفتوحة بالفعل: نركّز عليها ونبعتلها فتح المحادثة (من غير إعادة تحميل، عشان المكالمة ما تتقطعش)
+// - لو في تاب تاني للموقع نحوّله للصفحة، وإلا نفتح نافذة جديدة
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const raw = resolveTarget(event.notification.data && event.notification.data.url);
+  const data = event.notification.data || {};
+  const tag = data.tag || event.notification.tag || '';
+  let raw = resolveTarget(data.url);
+  const last = new URL(raw).pathname.split('/').pop();
+  const derived = fromTag(tag);
+  if (derived && (!data.url || last === '' || last === 'index.html' || last === 'asharat.html')) raw = resolveTarget(derived);
   event.waitUntil((async () => {
-    const sameOrigin = new URL(raw).origin === new URL(self.registration.scope).origin;
+    const origin = new URL(self.registration.scope).origin;
+    const sameOrigin = new URL(raw).origin === origin;
     const url = sameOrigin ? await safeTarget(raw) : raw;
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const origin = new URL(self.registration.scope).origin;
     if (sameOrigin) {
-      for (const c of list.filter((w) => w.url.startsWith(origin))) {
+      const tu = new URL(url), mine = list.filter((w) => w.url.startsWith(origin));
+      if (tu.pathname.split('/').pop() === 'rasael.html') {
+        const ex = mine.find((w) => new URL(w.url).pathname === tu.pathname);
+        if (ex) {
+          try { await ex.focus(); } catch (e) {}
+          const c = tu.searchParams.get('c');
+          if (c) ex.postMessage({ type: 'open-chat', c });
+          return;
+        }
+      }
+      for (const c of mine) {
         try {
           const nc = await c.navigate(url);
           if (nc) { await nc.focus(); return; }
@@ -86,3 +112,6 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+
+// مطلوب عند بعض المتصفحات لاعتبار الصفحة قابلة للتثبيت كتطبيق (لا يغيّر أي سلوك)
+self.addEventListener('fetch', () => {});
