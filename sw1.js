@@ -42,16 +42,18 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // يحوّل أي رابط لعنوان كامل على دومين الموقع نفسه (ويصلّح لو السيرفر لزّق دومينه على الرابط)
+// الروابط النسبية دايمًا بتتحل من جذر الموقع (مش من scope بتاع الـ service worker)
+const ROOT = self.location.origin + '/';
 const PUSH_SERVER_HOST = 'vercel-server-nine-tau.vercel.app';
 function resolveTarget(u) {
   try {
-    const base = self.registration.scope;
+    const base = ROOT;
     const x = new URL(u || 'index.html', base);
     if (x.host === PUSH_SERVER_HOST) {
       return new URL(x.pathname.replace(/^\/+/, '') + x.search + x.hash, base).href;
     }
     return x.href;
-  } catch (e) { return new URL('index.html', self.registration.scope).href; }
+  } catch (e) { return new URL('index.html', ROOT).href; }
 }
 
 // لو الصفحة المطلوبة مش موجودة (404) نرجع لصفحة الإشعارات بدل الشاشة السوداء
@@ -59,7 +61,7 @@ async function safeTarget(url) {
   try { if (/\/(rasael|user-support)\.html$/.test(new URL(url).pathname)) return url; } catch (e) {}
   try {
     const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-    if (r.status === 404) return new URL('asharat.html', self.registration.scope).href;
+    if (r.status === 404) return new URL('asharat.html', ROOT).href;
   } catch (e) { /* أوفلاين: نكمل بالرابط كما هو */ }
   return url;
 }
@@ -140,7 +142,7 @@ self.addEventListener('notificationclick', (event) => {
   const derived = fromTag(tag);
   if (derived && (!data.url || last === '' || last === 'index.html' || last === 'asharat.html')) raw = resolveTarget(derived);
   event.waitUntil((async () => {
-    const origin = new URL(self.registration.scope).origin;
+    const origin = new URL(ROOT).origin;
     const sameOrigin = new URL(raw).origin === origin;
     const url = sameOrigin ? await safeTarget(raw) : raw;
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
