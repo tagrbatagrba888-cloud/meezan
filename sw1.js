@@ -36,6 +36,7 @@ messaging.onBackgroundMessage((payload) => {
     dir: 'rtl',
     lang: 'ar',
     vibrate: urgent ? (parseList(d.vibrate) || [800, 300, 800, 300, 800, 300, 1200]) : [200, 100, 200],
+    actions: String(d.tag || '').indexOf('chat_') === 0 ? REPLY_ACTIONS : undefined,
     data: { url: target, tag: d.tag || '' }
   });
 });
@@ -55,11 +56,65 @@ function resolveTarget(u) {
 
 // لو الصفحة المطلوبة مش موجودة (404) نرجع لصفحة الإشعارات بدل الشاشة السوداء
 async function safeTarget(url) {
+  try { if (/\/(rasael|user-support)\.html$/.test(new URL(url).pathname)) return url; } catch (e) {}
   try {
     const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
     if (r.status === 404) return new URL('asharat.html', self.registration.scope).href;
   } catch (e) { /* أوفلاين: نكمل بالرابط كما هو */ }
   return url;
+}
+
+
+// ===== الرد من الإشعار (زي واتساب) =====
+const FS_DB = 'projects/qanon-c716d/databases/(default)/documents';
+const FS_KEY = 'AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0';
+const PUSH_API = 'https://vercel-server-nine-tau.vercel.app/api/send';
+const REPLY_ACTIONS = [{ action: 'reply', type: 'text', title: 'رد', placeholder: 'اكتب ردك...' }];
+
+// معرّف المستخدم الحالي: صفحة الرسائل بتحفظه في الكاش (وبنجرب نستنتجه من الـ tag لو مش موجود)
+async function getMe(tag) {
+  try { const c = await caches.open('rsl-me'); const r = await c.match('/__rsl_me'); if (r) { const t = (await r.text()).trim(); if (t) return t; } } catch (e) {}
+  tag = String(tag || ''); const i = tag.lastIndexOf('_');
+  return (tag.indexOf('chat_') === 0 && i > 5) ? tag.slice(i + 1) : null;
+}
+
+async function sendReply(chatId, me, text) {
+  const doc = FS_DB + '/chats/' + chatId;
+  const g = await fetch('https://firestore.googleapis.com/v1/' + doc + '?key=' + FS_KEY);
+  if (!g.ok) throw new Error('chat ' + g.status);
+  const cj = await g.json();
+  const vals = (cj.fields && cj.fields.members && cj.fields.members.arrayValue && cj.fields.members.arrayValue.values) || [];
+  if (!vals.map((v) => v.stringValue).includes(me)) throw new Error('not a member'); // نتأكد إنك عضو في المحادثة
+  const msgId = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const body = { writes: [
+    { update: { name: doc + '/messages/' + msgId, fields: { senderId: { stringValue: me }, type: { stringValue: 'text' }, text: { stringValue: text } } },
+      updateTransforms: [{ fieldPath: 'createdAt', setToServerValue: 'REQUEST_TIME' }], currentDocument: { exists: false } },
+    { update: { name: doc, fields: { lastText: { stringValue: text }, lastSenderId: { stringValue: me } } },
+      updateMask: { fieldPaths: ['lastText', 'lastSenderId'] },
+      updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }, { fieldPath: 'reads.`' + me + '`', setToServerValue: 'REQUEST_TIME' }] }
+  ] };
+  const r = await fetch('https://firestore.googleapis.com/v1/' + FS_DB + ':commit?key=' + FS_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('commit ' + r.status);
+  // إشعار الطرف الآخر (السيرفر بيتحقق من الرسالة في Firestore)
+  fetch(PUSH_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatMsg: { chatId, msgId } }) }).catch(() => {});
+}
+
+async function handleReply(event) {
+  const n = event.notification, d = n.data || {}, text = String(event.reply || '').trim(), tag = d.tag || n.tag || '';
+  let ok = false;
+  if (text) {
+    try {
+      let chatId = null;
+      try { chatId = new URL(resolveTarget(d.url)).searchParams.get('c'); } catch (e) {}
+      const me = await getMe(tag);
+      if (chatId && me) { await sendReply(chatId, me, text); ok = true; }
+    } catch (e) { console.log('[reply] failed', e && e.message); }
+  }
+  return self.registration.showNotification(n.title, {
+    body: ok ? 'أنت: ' + text : 'تعذّر إرسال الرد — اضغط لفتح المحادثة',
+    icon: n.icon, badge: n.badge, tag: n.tag, renotify: false, silent: true, dir: 'rtl', lang: 'ar',
+    actions: ok ? REPLY_ACTIONS : undefined, data: d
+  });
 }
 
 // نستنتج الصفحة من نوع الإشعار (tag = معرّف الإشعار اللي بتبعته صفحة الرسائل)
@@ -76,6 +131,7 @@ function fromTag(tag) {
 // - لو صفحة الرسائل مفتوحة بالفعل: نركّز عليها ونبعتلها فتح المحادثة (من غير إعادة تحميل، عشان المكالمة ما تتقطعش)
 // - لو في تاب تاني للموقع نحوّله للصفحة، وإلا نفتح نافذة جديدة
 self.addEventListener('notificationclick', (event) => {
+  if (event.action === 'reply') { event.waitUntil(handleReply(event)); return; }
   event.notification.close();
   const data = event.notification.data || {};
   const tag = data.tag || event.notification.tag || '';

@@ -1,5 +1,22 @@
-/* chess_core.js — قوانين الشطرنج الكاملة + لوحة ثابتة واقعية. يتحمّل بعد chess_engine.js ويعرّف window.CH2 */
+/*!
+ * chess_core.js — محرك الشطرنج المشترك لصفحة المستخدم وصفحة الأدمن (ميزان)
+ * ---------------------------------------------------------------------------
+ * - قوانين كاملة: تبييت، أخذ بالمرور، ترقية، كش مات، ستيلميت، مواد غير كافية،
+ *   قاعدة الخمسين نقلة، وتكرار الوضع 3 مرات.
+ * - يعرّف window.CH2 (وكمان window.CH لو مش موجود) — مفيش اعتماد إجباري على chess_engine.js.
+ * - لو chess_engine.js القديم موجود، بياخد منه applyTheme / aiMove / coach / askAI.
+ * - التحميل أكتر من مرة آمن (بيتجاهل التحميل المكرر).
+ *
+ * الترتيب في الصفحات:
+ *   <script src="chess_engine.js"></script>   <!-- اختياري -->
+ *   <script src="chess_core.js"></script>
+ *
+ * تمثيل الرقعة: S.b مصفوفة 64 خانة (0 = a8 ... 63 = h1)، الخانة الفاضية '' ،
+ * الأبيض حروف كبيرة والأسود صغيرة. النقلة: {f,t,p?,e?,c?}.
+ */
 (()=>{
+'use strict';
+if(window.CH2&&window.CH2.__core)return;
 const O=(typeof CH!=='undefined'&&CH)||{};
 const F='abcdefgh',START='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const N=[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]],D=[[1,1],[1,-1],[-1,1],[-1,-1]],R=[[1,0],[-1,0],[0,1],[0,-1]],DR=D.concat(R);
@@ -71,6 +88,31 @@ function san(S,m){const p=S.b[m.f],P=p.toUpperCase(),cap=S.b[m.t]||m.e;let s;
 function replay(us){let S=fromFEN(START);for(const u of us){const m=legal(S).find(x=>uci(x)===u);if(!m)return null;S=ap(S,m,1)}return S}
 function sans(us){let S=fromFEN(START);const o=[];for(const u of us){const m=legal(S).find(x=>uci(x)===u);if(!m)break;o.push(san(S,m));S=ap(S,m,1)}return o}
 
+/* ===== أدوات مساعدة للأدمن والتحقق ===== */
+/** يرجّع حالة بعد تنفيذ نقلة بصيغة UCI (مثل e2e4 أو e7e8q)، أو null لو النقلة مش قانونية */
+function play(S,u){const m=legal(S).find(x=>uci(x)===u);return m?ap(S,m,1):null}
+/** مكان الملك على الرقعة (-1 لو مش موجود) */
+const kingAt=(b,white)=>b.indexOf(white?'K':'k');
+/** هل الـ FEN سليم ومنطقي؟ (ملك واحد لكل لون، مفيش جنود في الصف الأول/الأخير، والطرف اللي مش دوره مش في كش) */
+function fenValid(f){try{if(typeof f!=='string')return false;const S=fromFEN(f);if(S.b.length!==64)return false;
+ const cnt=c=>S.b.filter(p=>p===c).length;if(cnt('K')!==1||cnt('k')!==1)return false;
+ for(let i=0;i<64;i++){const p=S.b[i];if(p&&!/^[pnbrqkPNBRQK]$/.test(p))return false;if((i<8||i>55)&&p&&p.toLowerCase()==='p')return false}
+ if(!/^[wb]$/.test(S.turn))return false;
+ const other=S.turn==='w'?'b':'w',ok=S.b.indexOf(other==='w'?'K':'k');return !att(S.b,ok,S.turn)}catch(e){return false}}
+/** اتصال موحّد بمزوّدي الذكاء الاصطناعي (gemini / openai-compatible / custom) — بيُستخدم لو chess_engine.js مفيهوش askAI */
+async function askAIFallback(p,prompt){
+ const base=String(p.url||'').replace(/\/+$/,''),H={'Content-Type':'application/json'};let r,j;
+ if(p.type==='gemini'){r=await fetch(`${base}/models/${encodeURIComponent(p.model||'gemini-2.0-flash')}:generateContent?key=${encodeURIComponent(p.key||'')}`,{method:'POST',headers:H,body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+  return((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(x=>x.text||'').join('')}
+ if(p.type==='openai'){const u=/\/chat\/completions$/.test(base)?base:base+'/chat/completions';if(p.key)H.Authorization='Bearer '+p.key;
+  r=await fetch(u,{method:'POST',headers:H,body:JSON.stringify({model:p.model,messages:[{role:'user',content:prompt}]})});
+  j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+  return(((j.choices||[])[0]||{}).message||{}).content||''}
+ if(p.key)H.Authorization='Bearer '+p.key;
+ r=await fetch(base,{method:'POST',headers:H,body:JSON.stringify({prompt,model:p.model})});
+ j=await r.json().catch(()=>({}));if(!r.ok)throw new Error('HTTP '+r.status);return j.text||j.response||j.output||j.answer||JSON.stringify(j)}
+
 /* ألغاز */
 const good=(S,m,n,ck)=>{const ns=ap(S,m),dl=legal(ns),c=inCheck(ns);if(!dl.length)return c;return n>1&&(!ck||c)&&dl.every(r=>mateIn(ap(ns,r),n-1,ck))};
 const mateIn=(S,n,ck)=>legal(S).some(m=>good(S,m,n,ck));
@@ -141,8 +183,9 @@ function snd(k){if(muted())return;try{AC=AC||new(window.AudioContext||window.web
  else if(k==='check'){mv(0);tn(.1,880,.25,.25)}else if(k==='end'){[523,392,330].forEach((f,i)=>tn(.15+i*.18,f,.4,.3,'triangle'))}
  else if(k==='chat'){tn(0,1040,.12,.25);tn(.1,1320,.18,.25)}}catch(e){}}
 
-window.CH2={...O,START,fromFEN,toFEN,isW,idx,sq,uci,legal,movesFrom:(S,i)=>legal(S).filter(m=>m.f===i),apply:(S,m)=>ap(S,m,1),inCheck,status,best,mateIn,goodMoves,san,sans,replay,render,
+window.CH2={...O,__core:1,v:'2.1.0',START,fromFEN,toFEN,isW,idx,sq,uci,legal,movesFrom:(S,i)=>legal(S).filter(m=>m.f===i),apply:(S,m)=>ap(S,m,1),inCheck,status,best,mateIn,goodMoves,san,sans,replay,play,kingAt,fenValid,render,
  snd,muted,setMute:v=>localStorage.chess_snd=v?'0':'1',glyph:p=>G[p]+'\uFE0E',themes:THEMES,board,setBoard,
  applyTheme(cfg){try{O.applyTheme&&O.applyTheme(cfg)}catch(e){}if(cfg&&cfg.board&&!localStorage.chess_board)document.documentElement.dataset.board=cfg.board},
- aiMove:O.aiMove||(async()=>null),coach:O.coach||(async()=>{throw 0})};
+ aiMove:O.aiMove||(async()=>null),coach:O.coach||(async()=>{throw 0}),askAI:O.askAI||askAIFallback};
+if(typeof window.CH==='undefined')window.CH=window.CH2;
 })();

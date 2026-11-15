@@ -361,6 +361,7 @@ const $=id=>document.getElementById(id);
 const PUSH_API='https://vercel-server-nine-tau.vercel.app/api/send';
 const PUSH_KEY='Meezan2026Secret';
 const me=sessionStorage.getItem('meezan_user_id');
+try{if(me&&window.caches)caches.open('rsl-me').then(c=>c.put('/__rsl_me',new Response(String(me)))).catch(()=>{})}catch(e){}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DG={};function diag(src,e){console.warn(src,e)}
 $('diag').onclick=()=>{$('diag').style.display='none';for(const k in DG)delete DG[k]};
