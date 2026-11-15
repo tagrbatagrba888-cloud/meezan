@@ -268,7 +268,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <style>.callui.hid{display:none!important}#cMinB{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;z-index:5;background:#ffffff22;border:0;color:#fff;width:40px;height:40px;border-radius:50%}#cFab.ringing{animation:pls 1s infinite}@keyframes pls{50%{box-shadow:0 0 0 12px #1a9d6c55}}
 #cFab{position:fixed;top:0;left:0;z-index:650;display:none;width:60px;height:60px;border-radius:50%;background:#1a9d6c;color:#fff;align-items:center;justify-content:center;flex-direction:column;font-size:11px;font-weight:800;box-shadow:0 4px 14px #0006;touch-action:none;border:0}
 #pinbar{display:none;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:13px;cursor:pointer}#pinbar.on{display:flex}#pinbar .tx{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.chat.lk .cbar{display:none}#lockbar{display:none;padding:14px;text-align:center;color:var(--text-sub);font-size:13px}.chat.lk #lockbar{display:block}.b.fl{box-shadow:0 0 0 3px var(--accent)}.b .sn{font-size:12px;font-weight:800;color:var(--accent)}</style></head>
+.b.fl{box-shadow:0 0 0 3px var(--accent)}</style></head>
 <body class="pend">
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
 <div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
@@ -296,7 +296,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
   <div id="sbar"><input id="sq" placeholder="ابحث في الرسائل..."><span class="s" id="sc" style="flex-shrink:0"></span><button class="ib mini" id="sUp"><i class="fas fa-chevron-up"></i></button><button class="ib mini" id="sDn"><i class="fas fa-chevron-down"></i></button><button class="ib mini" id="sX"><i class="fas fa-xmark"></i></button></div>
   <div id="pinbar"><i class="fas fa-thumbtack"></i><span class="tx" id="pinTx"></span><button class="ib mini" id="pinMore"><i class="fas fa-list"></i></button></div><div class="msgs" id="msgs"></div>
   <button id="toBot" title="آخر رسالة"><i class="fas fa-angles-down"></i></button>
-  <div id="lockbar">🔒 فقط المشرفون يمكنهم الإرسال</div><div class="cbar">
+  <div class="cbar">
     <div class="recbar" id="recbar">
       <button class="rx2" id="recX"><i class="fas fa-trash"></i></button>
       <div class="rd"></div><div class="rt" id="recT">0:00</div><div class="wv" id="wv"></div>
@@ -370,8 +370,7 @@ if(cfgOk&&allowed())document.body.classList.remove('pend');
 const other=c=>(c.members||[]).find(m=>m!==me);
 const myClr=c=>((c.cleared||{})[me])||0;
 const muted=c=>!!(c&&c.muted&&c.muted[me]);
-const isG=c=>!!c&&c.kind==='group',gC=()=>chats.find(x=>cur&&x.id===cur.id)||{},isAdm=(c,u)=>!!c&&(c.admins||[]).includes(u||me);
-const gAv=c=>'<div class="av"><i class="fas fa-users"></i></div>',cName=c=>isG(c)?(c.name||'مجموعة'):nm(c.kind==='platform'?'platform':other(c));
+const gC=()=>chats.find(x=>cur&&x.id===cur.id)||{},cName=c=>nm(c.kind==='platform'?'platform':other(c));
 
 onSnapshot(doc(db,'users','all'),s=>{
   users=(s.exists()?(s.data().items||[]):[]).map(u=>({id:u.id,fullName:u.fullName||'',username:u.username||'',phone:u.phone||'',avatarUrl:(typeof u.avatarUrl==='string'&&/^https?:/.test(u.avatarUrl)&&u.avatarUrl.length<300)?u.avatarUrl:''}));
@@ -382,11 +381,11 @@ onSnapshot(doc(db,'settings','messaging'),s=>{const srv=!s.metadata.fromCache;if
 
 const prevUpd={},dlSent={};
 onSnapshot(query(collection(db,'chats'),where('members','array-contains',me)),s=>{
-  const next=s.docs.map(d=>{const x=d.data();return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:x.reads||{},delivered:x.delivered||{},typing:x.typing||{},cleared:x.cleared||{},muted:x.muted||{},name:x.name||'',admins:x.admins||[],lock:!!x.lock,pins:x.pins||{},cpin:x.cpin||{},gcall:x.gcall||null}});
+  const next=s.docs.filter(d=>d.data().kind!=='group').map(d=>{const x=d.data();return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:x.reads||{},delivered:x.delivered||{},typing:x.typing||{},cleared:x.cleared||{},muted:x.muted||{},pins:x.pins||{},cpin:x.cpin||{}}});
   if(initDone)s.docChanges().forEach(ch=>{if(ch.type==='removed'||ch.doc.metadata.hasPendingWrites)return;const c=next.find(x=>x.id===ch.doc.id);if(c&&c.updatedAt>(prevUpd[c.id]||0)&&!muted(c)&&c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>(c.reads[me]||0)&&(!cur||cur.id!==c.id)&&c.updatedAt>myClr(c))banner(c)});
   next.forEach(c=>{prevUpd[c.id]=Math.max(prevUpd[c.id]||0,c.updatedAt);
     if(c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.delivered||{})[me]||0)&&dlSent[c.id]!==c.updatedAt){dlSent[c.id]=c.updatedAt;setDoc(doc(db,'chats',c.id),{delivered:{[me]:Math.max(Date.now(),c.updatedAt)}},{merge:true}).catch(()=>{})}});
-  chats=next;chatsOk=true;initDone=true;gWatch();LS.set('rsl_chats_'+me,chats);render();deep();if(cur){head();draw();updTicks()}},e=>diag('المحادثات',e));
+  chats=next;chatsOk=true;initDone=true;LS.set('rsl_chats_'+me,chats);render();deep();if(cur){head();draw();updTicks()}},e=>diag('المحادثات',e));
 
 /* ===== نوافذ بستايل الموقع ===== */
 function showD(html){return new Promise(res=>{const o=$('ovD'),b=$('dBody');b.innerHTML=html;o.classList.add('on');const i=b.querySelector('input');
@@ -413,7 +412,7 @@ function render0(){
   const l=chats.filter(c=>c.updatedAt>myClr(c)||!c.updatedAt).filter(c=>!q||cName(c).toLowerCase().includes(q)||(c.lastText||'').toLowerCase().includes(q))
     .sort((a,b)=>(a.kind==='platform'?-1:0)-(b.kind==='platform'?-1:0)||(!!(b.cpin||{})[me])-(!!(a.cpin||{})[me])||b.updatedAt-a.updatedAt);
   if(!chatsOk&&!l.length){$('list').innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div>';return}
-  $('list').innerHTML=l.length?l.map(c=>{const o=c.kind==='platform'?'platform':other(c);return `<div class="card row" data-c="${esc(c.id)}" style="cursor:pointer">${isG(c)?gAv(c):avatar(o)}<div class="grow"><div class="t">${esc(cName(c))}${(c.cpin||{})[me]?' <i class="fas fa-thumbtack" style="font-size:11px;color:var(--text-sub)"></i>':''}${muted(c)?' <i class="fas fa-bell-slash" style="font-size:11px;color:var(--text-sub)"></i>':''}</div><div class="s">${esc(c.lastText)}</div></div><div style="text-align:left"><div class="s">${ago(c.updatedAt)}</div>${unread(c)?'<div class="dot" style="margin:6px 0 0 auto"></div>':''}</div><button class="ib mini" data-k="${esc(c.id)}"><i class="fas fa-ellipsis-vertical"></i></button></div>`}).join(''):`<div class="empty"><i class="fas fa-comments"></i>${q?'لا نتائج':'لا توجد محادثات بعد<br>اضغط الزر الأخضر لبدء محادثة'}</div>`;
+  $('list').innerHTML=l.length?l.map(c=>{const o=c.kind==='platform'?'platform':other(c);return `<div class="card row" data-c="${esc(c.id)}" style="cursor:pointer">${avatar(o)}<div class="grow"><div class="t">${esc(cName(c))}${(c.cpin||{})[me]?' <i class="fas fa-thumbtack" style="font-size:11px;color:var(--text-sub)"></i>':''}${muted(c)?' <i class="fas fa-bell-slash" style="font-size:11px;color:var(--text-sub)"></i>':''}</div><div class="s">${esc(c.lastText)}</div></div><div style="text-align:left"><div class="s">${ago(c.updatedAt)}</div>${unread(c)?'<div class="dot" style="margin:6px 0 0 auto"></div>':''}</div><button class="ib mini" data-k="${esc(c.id)}"><i class="fas fa-ellipsis-vertical"></i></button></div>`}).join(''):`<div class="empty"><i class="fas fa-comments"></i>${q?'لا نتائج':'لا توجد محادثات بعد<br>اضغط الزر الأخضر لبدء محادثة'}</div>`;
   $('list').querySelectorAll('[data-c]').forEach(e=>{let h;e.onclick=ev=>{if(ev.target.closest('[data-k]'))return;openById(e.dataset.c)};
     e.addEventListener('touchstart',()=>{h=setTimeout(()=>chatActions(e.dataset.c),550)},{passive:true});['touchend','touchmove','touchcancel'].forEach(x=>e.addEventListener(x,()=>clearTimeout(h),{passive:true}))});
   $('list').querySelectorAll('[data-k]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();chatActions(b.dataset.k)})}
@@ -422,7 +421,7 @@ $('qList').oninput=render;render();
 let deepDone=false;
 function deep(){if(deepDone||!allowed())return;const p=new URLSearchParams(location.search).get('c');if(p){const c=chats.find(x=>x.id===p);if(c){deepDone=true;openById(p)}}}
 function restore(){if(deepDone||cur||!cfgOk||!allowed())return;const s=SS.get('rsl_open_'+me);if(s&&s.id){deepDone=true;openChat(s.id,s.o,!!s.plat)}}
-function openById(id){const c=chats.find(x=>x.id===id);if(c)openChat(id,isG(c)?id:(c.kind==='platform'?'platform':other(c)),c.kind==='platform')}
+function openById(id){const c=chats.find(x=>x.id===id);if(c)openChat(id,c.kind==='platform'?'platform':other(c),c.kind==='platform')}
 
 /* ===== إجراءات المحادثة ===== */
 let avT=null;const pickAv=o=>{avT=o;$('avf').click()};
@@ -436,19 +435,18 @@ async function renameFlow(o){
   if(v.trim())nicks[o]=v.trim().slice(0,40);else delete nicks[o];LS.set('rsl_nick_'+me,nicks);pubNick(o);if(cur)head();render();toast('تم حفظ الاسم على جهازك')}
 function chatActions(id){const c=chats.find(x=>x.id===id)||(cur&&cur.id===id?{id,kind:cur.plat?'platform':'user',muted:{}}:null);if(!c)return;
   const plat=c.kind==='platform',o=plat?'platform':(other(c)||(cur&&cur.o)),mt=muted(c);
-  const it=[{i:'fa-magnifying-glass',l:'بحث في الرسائل',f:()=>{if(!cur||cur.id!==id)openById(id);startSearch()}}];if(!plat&&!isG(c))it.push({i:'fa-pen',l:'تغيير الاسم والصورة',f:()=>renameFlow(o)});
+  const it=[{i:'fa-magnifying-glass',l:'بحث في الرسائل',f:()=>{if(!cur||cur.id!==id)openById(id);startSearch()}}];if(!plat)it.push({i:'fa-pen',l:'تغيير الاسم والصورة',f:()=>renameFlow(o)});
   it.push({i:mt?'fa-bell':'fa-bell-slash',l:mt?'إلغاء كتم الإشعارات':'كتم الإشعارات من هذا المستخدم',f:async()=>{try{await setDoc(doc(db,'chats',id),{muted:{[me]:!mt}},{merge:true});const x=chats.find(z=>z.id===id);if(x)x.muted=Object.assign({},x.muted,{[me]:!mt});if(cur&&cur.id===id)head();render();toast(mt?'تم إلغاء الكتم':'تم كتم الإشعارات من هذا المستخدم')}catch(e){toast('تعذّر الحفظ')}}});
   it.push({i:'fa-thumbtack',l:(c.cpin||{})[me]?'إلغاء تثبيت المحادثة':'تثبيت المحادثة',f:()=>chats.find(z=>z.id===id)?updateDoc(doc(db,'chats',id),{['cpin.'+me]:!(c.cpin||{})[me]}).then(()=>toast('تم')).catch(()=>toast('تعذّر')):toast('ابدأ المحادثة أولاً')});
   it.push({i:'fa-eraser',l:'حذف المحادثة عندي',red:1,f:async()=>{if(await askYes('حذف المحادثة','ستُمسح الرسائل من عندك فقط ويبقى الطرف الآخر محتفظًا بها.','حذف')){await setDoc(doc(db,'chats',id),{cleared:{[me]:Date.now()}},{merge:true});if(cur&&cur.id===id)closeChat();toast('تم حذف المحادثة')}}});
-  if(!plat&&!isG(c))it.push({i:'fa-trash',l:'حذف كامل للجميع',red:1,f:async()=>{if(await askYes('حذف كامل','ستُحذف المحادثة من عندك وعند الطرف الآخر ولا يمكن التراجع.','حذف نهائي')){try{if(cfg.autoDelete)await wipeChat(id);else await setDoc(doc(db,'chats',id),{cleared:{[me]:Date.now(),[o]:Date.now()}},{merge:true});if(cur&&cur.id===id)closeChat();toast('تم الحذف')}catch(e){toast('تعذّر الحذف')}}}});
-  sheet(esc(isG(c)?cName(c):nm(o)),it)}
+  if(!plat)it.push({i:'fa-trash',l:'حذف كامل للجميع',red:1,f:async()=>{if(await askYes('حذف كامل','ستُحذف المحادثة من عندك وعند الطرف الآخر ولا يمكن التراجع.','حذف نهائي')){try{if(cfg.autoDelete)await wipeChat(id);else await setDoc(doc(db,'chats',id),{cleared:{[me]:Date.now(),[o]:Date.now()}},{merge:true});if(cur&&cur.id===id)closeChat();toast('تم الحذف')}catch(e){toast('تعذّر الحذف')}}}});
+  sheet(esc(nm(o)),it)}
 async function wipeChat(id){const ms=await getDocs(collection(db,'chats',id,'messages'));for(const d of ms.docs){const m=d.data();if(m.fileId)await dropFile({fileId:m.fileId,chunks:m.chunks})}
   for(let i=0;i<ms.docs.length;i+=400){const b=writeBatch(db);ms.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}await deleteDoc(doc(db,'chats',id))}
 
 /* ===== محادثة جديدة برقم الهاتف ===== */
 const norm=p=>{let d=String(p||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.startsWith('20')&&d.length===12)d='0'+d.slice(2);return d};
-$('fab').onclick=()=>sheet('جديد',[{i:'fa-address-book',l:'مراسلة برقم الهاتف',f:newDM},{i:'fa-users',l:'إنشاء مجموعة',f:newGroup}]);
-function newDM(){showD(`<div class="sh-t"><i class="fas fa-address-book"></i> مراسلة برقم الهاتف</div><div class="sh-m">اكتب الرقم كاملًا وصحيحًا ثم اضغط بحث</div><input class="inp ph" id="ph" type="tel" inputmode="numeric" placeholder="01xxxxxxxxx" autocomplete="off"><button class="btn" id="srch" style="width:100%;margin-top:10px"><i class="fas fa-magnifying-glass"></i> بحث</button><div class="res" id="res"></div><div id="found"></div>`);
+$('fab').onclick=()=>{showD(`<div class="sh-t"><i class="fas fa-address-book"></i> مراسلة برقم الهاتف</div><div class="sh-m">اكتب الرقم كاملًا وصحيحًا ثم اضغط بحث</div><input class="inp ph" id="ph" type="tel" inputmode="numeric" placeholder="01xxxxxxxxx" autocomplete="off"><button class="btn" id="srch" style="width:100%;margin-top:10px"><i class="fas fa-magnifying-glass"></i> بحث</button><div class="res" id="res"></div><div id="found"></div>`);
   setTimeout(()=>{const ph=$('ph');if(ph)ph.focus();$('srch').onclick=()=>{const n=norm(ph.value),r=$('res');$('found').innerHTML='';
     if(!usersOk){r.className='res';r.textContent='جاري تحميل المستخدمين...';return}
     if(n.length<10){r.className='res no';r.textContent='اكتب الرقم كاملًا وصحيحًا';return}
@@ -461,12 +459,13 @@ function newDM(){showD(`<div class="sh-t"><i class="fas fa-address-book"></i> م
 /* ===== نافذة المحادثة ===== */
 function fit(){const v=window.visualViewport,c=$('chat');if(v&&c.classList.contains('on')){c.style.top=v.offsetTop+'px';c.style.height=v.height+'px'}window.scrollTo(0,0);if(document.activeElement===$('txt'))bottom()}
 if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}
-function head(){if(!cur)return;const c=chats.find(x=>x.id===cur.id),g=isG(c);$('chat').classList.toggle('lk',g&&c.lock&&!isAdm(c));
-  $('cName').textContent=g?cName(c):nm(cur.o);$('cAv').innerHTML=g?gAv(c):avatar(cur.o);$('cCall').style.display='flex';$('cVid').style.display=g?'none':'flex';
-  if(g)$('cSub').textContent=(c.members||[]).length+' أعضاء'+(muted(c)?' · 🔕':'')+(c.gcall?' · 📞 مكالمة جارية':'');else paintSub((cur.plat?' · الحساب الرسمي':'')+(muted(c)?' · 🔕':''));renderPins()}
-function closeChat(){
+function head(){if(!cur)return;$('cName').textContent=nm(cur.o);$('cAv').innerHTML=avatar(cur.o);const c=chats.find(x=>x.id===cur.id);paintSub((cur.plat?' · الحساب الرسمي':'')+(muted(c)?' · 🔕':''));renderPins()}
+function closeChat(fromPop){
   tyPing(false);watchPeer(null);$('chat').classList.remove('on');document.body.classList.remove('chat-open');if(unsub)unsub();unsub=null;cur=null;deepDone=true;SQ='';$('sbar').classList.remove('on');SS.del('rsl_open_'+me);
-  if(history.replaceState)history.replaceState(null,'',location.pathname);mRefresh()}
+  if(!fromPop&&history.state&&history.state.chat)history.back();else if(history.replaceState)history.replaceState(null,'',location.pathname);mRefresh()}
+addEventListener('popstate',()=>{const keep=()=>history.pushState({chat:1},'',location.href);
+  if($('vv').classList.contains('on')){closeVV();return keep()}if($('ovD').classList.contains('on')){$('ovD').click();return keep()}if($('mOv').classList.contains('on')){$('mOv').classList.remove('on');return keep()}if($('cam').classList.contains('on')){camClose();return keep()}
+  if($('menu').classList.contains('on')){closeMenu();return keep()}if(cur)closeChat(true)});
 function mkI(k,h){const t=document.createElement('template');t.innerHTML=h.trim();const n=t.content.firstElementChild;n.dataset.k=k;n._h=h;return n}
 function patch(box,it){box.querySelectorAll('.sk,.empty').forEach(x=>x.remove());[...box.children].forEach(e=>{if(!e.dataset.k)e.remove()});
   const map=new Map([...box.children].map(e=>[e.dataset.k,e]));let prev=null;
@@ -502,8 +501,8 @@ $('sq').oninput=()=>{SQ=$('sq').value.trim();SI=1e9;hl();if(SM.length)SM[SI].scr
 $('sUp').onclick=()=>goS(-1);$('sDn').onclick=()=>goS(1);$('sq').onkeydown=e=>{if(e.key==='Enter')goS(e.shiftKey?1:-1)};
 $('sX').onclick=()=>{SQ='';$('sq').value='';$('sbar').classList.remove('on');hl();bottom()};
 function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};deepDone=true;firstRender=true;LD=[];lastRead=0;LIM=100;RS=new Set();seenInit=0;SQ='';$('sq').value='';$('sbar').classList.remove('on');SS.set('rsl_open_'+me,{id,o,plat});
-  if(history.replaceState)history.replaceState(null,'',location.pathname+'?c='+encodeURIComponent(id));
-  head();$('cCall').style.display=$('cVid').style.display='flex';head();$('musicB').style.display='';
+  {const u=location.pathname+'?c='+encodeURIComponent(id);if(history.state&&history.state.chat)history.replaceState({chat:1},'',u);else history.pushState({chat:1},'',u)}
+  head();$('cCall').style.display=$('cVid').style.display='flex';$('musicB').style.display='';
   document.body.classList.add('chat-open');$('chat').classList.add('on');fit();watchPeer(o);if(!plat)nickFor(o);
   $('msgs').innerHTML='<div class="sk"></div><div class="sk"></div>';
   subM=()=>{if(unsub)unsub();unsub=onSnapshot(query(collection(db,'chats',id,'messages'),orderBy('createdAt','desc'),limit(LIM)),{includeMetadataChanges:true},s=>{
@@ -514,8 +513,8 @@ let lastRead=0;
 function markRead(){if(!cur||document.visibilityState!=='visible')return;const c=chats.find(x=>x.id===cur.id);if(!c)return;
   const newest=LD.reduce((a,m)=>m.senderId!==me?Math.max(a,tsv(m.createdAt)):a,0);if(!newest||newest<=lastRead||newest<=((c.reads||{})[me]||0))return;lastRead=newest;
   setDoc(doc(db,'chats',cur.id),{reads:{[me]:Math.max(Date.now(),newest)}},{merge:true}).catch(()=>{})}
-$('cBack').onclick=closeChat;
-$('cHead').onclick=()=>{if(cur&&!cur.plat){isG(gC())?groupInfo():renameFlow(cur.o)}};
+$('cBack').onclick=()=>closeChat();
+$('cHead').onclick=()=>{if(cur&&!cur.plat)renameFlow(cur.o)};
 $('cMore').onclick=()=>{if(cur)chatActions(cur.id)};
 
 /* ===== عرض الرسائل ===== */
@@ -561,13 +560,13 @@ async function openVO(m){if(!m||voBusy)return;voBusy=true;const used=((m.viewed|
   catch(e){toast('تعذّر فتح الملف')}voBusy=false}
 function bub(m){
   if((m.hiddenFor||[]).includes(me))return '';
-  const mine=m.senderId===me,gc0=gC();let body='';
+  const mine=m.senderId===me;let body='';
   if(m.deletedAll)body='<i class="fas fa-ban"></i> تم حذف هذه الرسالة';
   else{if(m.fileId)body+=m.vo>0?voEl(m,mine):fileEl(m);
     if(m.text){body+=`<div class="tx">${linkify(m.text)}</div>`;(m.text.match(URL_RE)||[]).slice(0,1).forEach(u=>body+=prev(u))}}
   const t=tsv(m.createdAt)?new Date(tsv(m.createdAt)).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):'';
   const rc={};Object.values(m.reactions||{}).forEach(e=>rc[e]=(rc[e]||0)+1);const my=(m.reactions||{})[me],rk=Object.keys(rc);
-  return `<div class="b ${mine?'me':''} ${m.deletedAll?'del':''} ${rk.length?'hx':''}" data-m="${esc(m.id)}">${m.senderId==='platform'?'<div class="s" style="font-weight:800">منصة ميزان</div>':(isG(gc0)&&!mine?'<div class="sn">'+esc(nm(m.senderId))+'</div>':'')}${body}<div class="meta">${PN[m.id]?'<i class="fas fa-thumbtack"></i>':''}<span>${t}</span>${m.edited?'<span>معدّلة</span>':''}${mine&&!m.deletedAll?tkHtml(m):''}</div>${rk.length?`<div class="rx">${rk.map(e=>`<span class="${my===e?'m':''}">${e}${rc[e]>1?`<b>${rc[e]}</b>`:''}</span>`).join('')}</div>`:''}</div>`}
+  return `<div class="b ${mine?'me':''} ${m.deletedAll?'del':''} ${rk.length?'hx':''}" data-m="${esc(m.id)}">${m.senderId==='platform'?'<div class="s" style="font-weight:800">منصة ميزان</div>':''}${body}<div class="meta">${PN[m.id]?'<i class="fas fa-thumbtack"></i>':''}<span>${t}</span>${m.edited?'<span>معدّلة</span>':''}${mine&&!m.deletedAll?tkHtml(m):''}</div>${rk.length?`<div class="rx">${rk.map(e=>`<span class="${my===e?'m':''}">${e}${rc[e]>1?`<b>${rc[e]}</b>`:''}</span>`).join('')}</div>`:''}</div>`}
 function bindBub(){document.querySelectorAll('#msgs .b').forEach(el=>{if(el._b)return;el._b=1;let h;const go=()=>showMenu(el.dataset.m,el.getBoundingClientRect(),el);
   el.addEventListener('touchstart',()=>{h=setTimeout(go,450)},{passive:true});['touchend','touchmove','touchcancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(h),{passive:true}));
   el.addEventListener('contextmenu',e=>{e.preventDefault();go()})})}
@@ -594,7 +593,7 @@ function showMenu(mid,r,el){const m=msgCache[mid];if(!cur||!m||m.deletedAll)retu
     if(a==='edit'){const n=await askText('تعديل الرسالة',m.text,'اكتب النص الجديد');if(n!==null&&n.trim()&&n.trim()!==m.text)await updateDoc(mref,{text:n.trim(),edited:true})}})}
 
 /* ===== تثبيت الرسائل ===== */
-let PN={};const canPin=()=>{const c=gC();return !isG(c)||isAdm(c)};
+let PN={};const canPin=()=>true;
 const activePins=c=>{const o={},n=Date.now();Object.entries((c&&c.pins)||{}).forEach(([k,v])=>{if(!v.until||v.until>n)o[k]=v});return o};
 async function pinFlow(m){const v=await showD(`<div class="sh-t">تثبيت الرسالة</div><div class="opt" data-v="86400000">24 ساعة</div><div class="opt" data-v="604800000">7 أيام</div><div class="opt" data-v="2592000000">30 يومًا</div><div class="opt" data-v="0">دائم</div><div class="opt" data-v="c"><i class="fas fa-pen"></i>أحدد المدة بنفسي</div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button></div>`);if(v===null)return;let ms=+v;
   if(v==='c'){const u=await showD(`<div class="sh-t">مدة التثبيت</div><input class="inp" type="number" min="1" value="1" inputmode="numeric"><div class="sg"><div class="opt" data-v="60000">دقائق</div><div class="opt" data-v="3600000">ساعات</div><div class="opt" data-v="86400000">أيام</div></div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button></div>`);if(u===null)return;ms=Math.max(1,parseInt($('dBody').querySelector('input').value)||1)*(+u)}
@@ -606,26 +605,6 @@ let pIx=0;function renderPins(){const P=activePins(gC()),k=Object.keys(P),b=$('p
 $('pinbar').onclick=e=>{if(e.target.closest('#pinMore'))return pinList();const id=$('pinbar').dataset.id,el=document.querySelector(`#msgs [data-m="${id}"]`);if(el){el.scrollIntoView({block:'center'});el.classList.add('fl');setTimeout(()=>el.classList.remove('fl'),1400)}else toast('الرسالة قديمة، اضغط عرض رسائل أقدم');pIx++;renderPins()};
 function pinList(){const P=activePins(gC());sheet(canPin()?'المثبتة (اضغط لإلغاء التثبيت)':'الرسائل المثبتة',Object.entries(P).map(([id,v])=>({i:'fa-thumbtack',l:esc(v.t||'رسالة')+(v.until?' · حتى '+ago(v.until):' · دائم'),f:()=>canPin()?unpin(id):0})))}
 setInterval(()=>{if(cur){renderPins();draw()}},30000);
-/* ===== المجموعات ===== */
-async function pickUsers(title,cand,ok,top){const SEL=new Set();
-  const p=showD(`<div class="sh-t"><i class="fas fa-users"></i> ${title}</div>${top||''}<input class="inp" id="pq" placeholder="ابحث بالاسم أو الرقم..." style="margin-top:8px"><div id="pls" style="max-height:38dvh;overflow:auto;margin-top:8px"></div><div class="btns"><button class="btn o" data-v="__no">إلغاء</button><button class="btn" data-v="go">${ok}</button></div>`);
-  const L=$('pls'),dr=()=>{const q=$('pq').value.trim().toLowerCase();L.innerHTML=cand.filter(u=>!q||(nm(u.id)+' '+(u.phone||'')).toLowerCase().includes(q)).slice(0,60).map(u=>`<div class="opt" data-u="${esc(u.id)}" ${SEL.has(u.id)?'style="border-color:var(--accent)"':''}><i class="far ${SEL.has(u.id)?'fa-square-check':'fa-square'}"></i><span class="grow s2">${esc(nm(u.id))}</span></div>`).join('')||'<div class="empty">لا نتائج</div>'};
-  dr();$('pq').oninput=dr;L.onclick=e=>{const o=e.target.closest('[data-u]');if(!o)return;const id=o.dataset.u;SEL.has(id)?SEL.delete(id):SEL.add(id);dr()};
-  return (await p)==='go'?[...SEL]:null}
-async function newGroup(){const r=await pickUsers('مجموعة جديدة',users.filter(u=>u.id!==me&&isAllowed(u.id)),'إنشاء','<input class="inp" id="gn" placeholder="اسم المجموعة" maxlength="40">');if(r===null)return;
-  const n=($('gn')||{}).value;if(!n||!n.trim()||!r.length)return toast('اكتب اسم المجموعة واختر عضوًا على الأقل');
-  const id='g_'+Date.now()+Math.random().toString(36).slice(2,6);
-  try{await setDoc(doc(db,'chats',id),{kind:'group',name:n.trim(),members:[me,...r],admins:[me],owner:me,lock:false,lastText:'تم إنشاء المجموعة',lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}});openChat(id,id,false)}catch(e){toast('تعذّر إنشاء المجموعة')}}
-function groupInfo(){const c=gC();if(!isG(c))return;const it=[],r=doc(db,'chats',c.id);
-  if(isAdm(c)){it.push({i:'fa-pen',l:'تغيير اسم المجموعة',f:async()=>{const n=await askText('اسم المجموعة',c.name,'');if(n&&n.trim())updateDoc(r,{name:n.trim()})}});
-    it.push({i:'fa-user-plus',l:'إضافة أعضاء',f:async()=>{const a=await pickUsers('إضافة أعضاء',users.filter(u=>u.id!==me&&isAllowed(u.id)&&!c.members.includes(u.id)),'إضافة');if(a&&a.length)updateDoc(r,{members:arrayUnion(...a)})}});
-    it.push({i:c.lock?'fa-lock-open':'fa-lock',l:c.lock?'السماح للجميع بالإرسال':'قفل الرسائل (المشرفون فقط)',f:()=>updateDoc(r,{lock:!c.lock})})}
-  c.members.forEach(u=>{const a=isAdm(c,u);it.push({i:a?'fa-user-shield':'fa-user',l:esc(nm(u))+(u===me?' (أنت)':'')+(a?' · مشرف':''),f:()=>memberAct(c,u)})});
-  it.push({i:'fa-right-from-bracket',l:'مغادرة المجموعة',red:1,f:()=>leaveGroup(c)});sheet(esc(cName(c)),it)}
-function memberAct(c,u){if(!isAdm(c)||u===me||u===c.owner)return;const a=isAdm(c,u),r=doc(db,'chats',c.id);
-  sheet(esc(nm(u)),[{i:'fa-user-shield',l:a?'إزالة الإشراف':'تعيين مشرف',f:()=>updateDoc(r,{admins:a?arrayRemove(u):arrayUnion(u)})},{i:'fa-user-minus',l:'إزالة من المجموعة',red:1,f:()=>updateDoc(r,{members:arrayRemove(u),admins:arrayRemove(u)})}])}
-async function leaveGroup(c){if(!await askYes('مغادرة المجموعة','لن تصلك رسائلها بعد الآن.','مغادرة'))return;const left=c.members.filter(u=>u!==me),adm=(c.admins||[]).filter(u=>u!==me);
-  try{await updateDoc(doc(db,'chats',c.id),{members:arrayRemove(me),admins:adm.length?adm:left.slice(0,1)});closeChat()}catch(e){toast('تعذّرت المغادرة')}}
 /* ===== الإشعارات ===== */
 const NKC={};
 const nickFor=to=>{const c=NKC[to];if(c&&Date.now()-c.t<3e5)return c.p;const p=getDoc(doc(db,'contact_names',to+'__'+me)).then(x=>x.exists()?(x.data().name||''):'').catch(()=>'');NKC[to]={t:Date.now(),p};return p};
@@ -647,13 +626,12 @@ async function isMutedByOther(chatId,o){const c=chats.find(x=>x.id===chatId);if(
 /* ===== الإرسال ===== */
 async function sendMsg(data,ctx){ctx=ctx||cur;
   if(!allowed()){toast(cfgOk?'المراسلة غير متاحة لحسابك':'جاري تحميل إعدادات المراسلة... حاول بعد ثوانٍ');throw new Error('not-allowed')}
-  {const g0=chats.find(x=>x.id===ctx.id);if(isG(g0)&&g0.lock&&!isAdm(g0)){toast('فقط المشرفون يمكنهم الإرسال');throw new Error('not-allowed')}}sndSend();const label=data.text||({image:'📷 صورة',video:'🎬 فيديو',audio:'🎤 رسالة صوتية',file:'📎 ملف'}[data.type]||'');
+  sndSend();const label=data.text||({image:'📷 صورة',video:'🎬 فيديو',audio:'🎤 رسالة صوتية',file:'📎 ملف'}[data.type]||'');
   const cref=doc(db,'chats',ctx.id),chatId=ctx.id,plat=ctx.plat,o=ctx.o;
   /* بدون انتظار رد السيرفر: الرسالة تظهر فورًا وتأخذ علامة الساعة لو الإنترنت مقطوع */
-  const gc=chats.find(x=>x.id===chatId),w1=isG(gc)?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}},{merge:true}):plat?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp()},{merge:true}):setDoc(cref,{kind:'user',members:[me,o],senders:arrayUnion(me),lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}},{merge:true});
+  const w1=plat?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp()},{merge:true}):setDoc(cref,{kind:'user',members:[me,o],senders:arrayUnion(me),lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}},{merge:true});
   const w2=addDoc(collection(db,'chats',chatId,'messages'),{senderId:me,createdAt:serverTimestamp(),...data});
   await Promise.all([w1,w2]);
-  if(isG(gc)){gc.members.filter(u=>u!==me&&!(gc.muted||{})[u]).forEach(u=>notifyUser(u,cName(gc),nm(me)+': '+label,'rasael.html?c='+chatId,false,'chat_'+chatId+'_'+u).catch(()=>{}));return}
   if(!plat&&!(await isMutedByOther(chatId,o)))notifyUser(o,'',label,'rasael.html?c='+chatId,false,'chat_'+chatId+'_'+o).catch(()=>{});
 }
 /* ===== الضغط الشديد ===== */
@@ -698,7 +676,7 @@ const SV=p=>`<svg viewBox="0 0 16 11">${p}</svg>`;
 const TK={p:SV('<circle cx="8" cy="5.5" r="4.2"/><path d="M8 3.3v2.4l1.6 1"/>'),s:SV('<path d="M2.5 5.8 6 9.2 13 1.6"/>'),d:SV('<path d="M1 5.9 4.3 9.2 10.6 1.6M5.8 9.2 13 1.6"/>')};TK.r=TK.d;
 const PT={};
 function tkOf(m){if(m.__p){const f=PT[m.id]||(PT[m.id]=Date.now());return(!navigator.onLine||Date.now()-f>6000)?'p':'s'}
-  const cd=getCD()||{},pr=tkPeer(),t=tsv(m.createdAt),oth=(cd.members||[]).filter(u=>u!==me),mn=o=>oth.length?Math.min(...oth.map(u=>(o||{})[u]||0)):0,rd=isG(cd)?mn(cd.reads):(cd.reads||{})[pr]||0,dl=isG(cd)?mn(cd.delivered):(cd.delivered||{})[pr]||0;
+  const cd=getCD()||{},pr=tkPeer(),t=tsv(m.createdAt),rd=(cd.reads||{})[pr]||0,dl=(cd.delivered||{})[pr]||0;
   if(t&&rd>=t)return 'r';if(t&&dl>=t)return 'd';return 's'}
 const tkHtml=m=>{const k=tkOf(m);return `<span class="tkw${k==='r'?' r':''}" data-tk>${TK[k]}</span>`};
 function updTicks(){document.querySelectorAll('#msgs .b.me[data-m]').forEach(el=>{const m=msgCache[el.dataset.m],w=el.querySelector('[data-tk]');if(m&&w){const k=tkOf(m);w.innerHTML=TK[k];w.classList.toggle('r',k==='r')}})}
@@ -1031,7 +1009,7 @@ function tone(ns){const a=ac();if(!a)return;let t=a.currentTime;ns.forEach(([f,d
 const sndSend=()=>tone([[660,.09,.12],[990,.14,.12]]),sndRecv=()=>tone([[880,.12,.15],[1175,.12,.15],[1568,.22,.12]]);
 function beep(){tone([[880,.35,.12]])}
 function banner(c){const o=c.kind==='platform'?'platform':other(c);
-  $('ban').innerHTML=`${isG(c)?gAv(c):avatar(o)}<div class="grow"><div class="t">${esc(cName(c))}</div><div class="s">${esc(c.lastText)}</div></div><i class="fas fa-comment-dots" style="color:var(--success)"></i>`;
+  $('ban').innerHTML=`${avatar(o)}<div class="grow"><div class="t">${esc(cName(c))}</div><div class="s">${esc(c.lastText)}</div></div><i class="fas fa-comment-dots" style="color:var(--success)"></i>`;
   $('ban').classList.add('on');clearTimeout(banner.h);banner.h=setTimeout(()=>$('ban').classList.remove('on'),5500);
   if(navigator.vibrate)navigator.vibrate([150,80,150]);sndRecv();
   $('ban').onclick=()=>{$('ban').classList.remove('on');openById(c.id)}}
@@ -1043,7 +1021,7 @@ let rbT=null;function rb(on){clearInterval(rbT);rbT=null;if(on){const p=()=>tone
 const ring=(on,kind)=>{clearInterval(ringT);ringT=null;stopRingAud();if(!on)rb(false);if(on&&!ringCustom(kind)){beep();ringT=setInterval(beep,1600)}};
 const cbtn=(id,ic,cls)=>`<button class="cb ${cls||''}" id="${id}"><i class="fas ${ic}"></i></button>`;
 function callUI(o,kind,state){
-  {const g=chats.find(x=>x.id===o&&isG(x));$('cuAv').innerHTML=g?gAv(g):avatar(o);$('cuName').textContent=g?cName(g):nm(o)}$('callUI').classList.add('on');$('callUI').classList.remove('hid');$('callUI').classList.toggle('inc',state==='incoming');$('cFab').style.display='none';
+  $('cuAv').innerHTML=avatar(o);$('cuName').textContent=nm(o);$('callUI').classList.add('on');$('callUI').classList.remove('hid');$('callUI').classList.toggle('inc',state==='incoming');$('cFab').style.display='none';
   $('callUI').classList.toggle('vid',kind==='video');$('callUI').classList.remove('conn');
   if(state==='incoming'){$('rv').style.display=$('lv').style.display='none';$('cuSt').textContent=kind==='video'?'مكالمة فيديو واردة':'مكالمة صوتية واردة';
     $('ctl').innerHTML=cbtn('cDec','fa-phone-slash','end')+cbtn('cAcc',kind==='video'?'fa-video':'fa-phone','ok')}
@@ -1053,12 +1031,12 @@ function bindCtl(){const c=call;if(!c)return;
   const e=$('cEnd');if(e)e.onclick=()=>endCall('ended');
   const m=$('cMic');if(m)m.onclick=()=>{const t=c.stream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;m.classList.toggle('off',!t.enabled);m.innerHTML=`<i class="fas ${t.enabled?'fa-microphone':'fa-microphone-slash'}"></i>`}};
   const v=$('cCam');if(v)v.onclick=()=>{const t=c.stream.getVideoTracks()[0];if(t){t.enabled=!t.enabled;v.classList.toggle('off',!t.enabled);v.innerHTML=`<i class="fas ${t.enabled?'fa-video':'fa-video-slash'}"></i>`}};
-  const sp=$('cSpk');if(sp){const AS=navigator.audioSession,outEls=()=>call&&call.group?Object.values(call.peers).map(p=>p.au):[$('rv')];c.real=false;c.spk=c.kind==='video';
-  const paint=()=>{sp.classList.toggle('off',c.spk);sp.innerHTML=`<i class="fas ${c.spk?'fa-volume-high':'fa-volume-low'}"></i>`;outEls().forEach(x=>x.volume=c.spk?1:(c.real?1:.35))};c.paint=paint;
+  const sp=$('cSpk');if(sp){const AS=navigator.audioSession,outEls=()=>[$('rv')];c.real=false;c.spk=c.kind==='video';
+  const paint=()=>{sp.classList.toggle('off',c.spk);sp.innerHTML=`<i class="fas ${c.spk?'fa-volume-high':'fa-volume-low'}"></i>`;outEls().forEach(x=>x.volume=c.spk?1:(c.real?1:.25))};c.paint=paint;
   const route=async on=>{let real=false;try{if(AS){AS.type=on?'playback':'play-and-record';real=true}}catch(e){}
-    try{const el=outEls()[0];if(el&&el.setSinkId){const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput');const pick=on?devs.find(d=>/speaker|مكبر|خارجية/i.test(d.label)&&!/earpiece|receiver/i.test(d.label)):devs.find(d=>/earpiece|receiver|الأذن|الداخلية|communications/i.test(d.label));if(pick){await Promise.all(outEls().map(x=>x.setSinkId(pick.deviceId)));real=true}}}catch(e){}
+    try{const el=outEls()[0];if(el&&el.setSinkId){const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput');const pick=on?devs.find(d=>/speaker|مكبر|خارجية/i.test(d.label)&&!/earpiece|receiver/i.test(d.label)):devs.find(d=>/earpiece|receiver|الأذن|الداخلية|communications/i.test(d.label));if(pick){await Promise.all(outEls().map(x=>x.setSinkId(pick.deviceId)));real=true}else if(!on){await Promise.all(outEls().map(x=>x.setSinkId('communications')));real=true}}}catch(e){}
     c.real=real;paint()};
-  c.route=route;paint();if(!c.spk)route(false);
+  c.route=route;paint();if(!c.spk)route(false).then(()=>{if(!c.real&&!c.warned){c.warned=1;toast('المتصفح مش بيسمح بالسماعة العلوية — خفّضت الصوت بدل كده')}});
   sp.onclick=async()=>{c.spk=!c.spk;await route(c.spk);toast(c.spk?'السماعة الخارجية (صوت أعلى)':'السماعة العادية (صوت هادئ)')}}}
 function setupCall(id,isCaller,o,kind,stream){
   const pc=new RTCPeerConnection(ICE);call={id,pc,stream,isCaller,o,kind,connected:false,pend:[],unsubs:[]};
@@ -1097,13 +1075,13 @@ const declineCall=id=>{ring(false);$('callUI').classList.remove('on','hid');$('c
 function cleanupCall(id){setTimeout(async()=>{try{const s=await getDocs(collection(db,'calls',id,'cand'));const b=writeBatch(db);s.docs.forEach(d=>b.delete(d.ref));await b.commit();await deleteDoc(doc(db,'calls',id))}catch(e){}},5000)}
 function endCall(st,remote){if(!call)return;const c=call;call=null;ring(false);clearTimeout(c.ringTimer);clearInterval(c.tick);c.unsubs.forEach(u=>u());try{c.src&&c.src.disconnect();c.gain&&c.gain.disconnect()}catch(e){}try{c.pc.close()}catch(e){}c.stream.getTracks().forEach(t=>t.stop());
   $('callUI').classList.remove('on','conn','hid');$('cFab').style.display='none';$('rv').muted=false;$('rv').srcObject=null;$('lv').srcObject=null;$('rv').style.display=$('lv').style.display='none';
-  if(c.group)return gEnd(c);if(!remote&&st)updateDoc(doc(db,'calls',c.id),{status:st}).catch(()=>{});cleanupCall(c.id)}
+  if(!remote&&st)updateDoc(doc(db,'calls',c.id),{status:st}).catch(()=>{});cleanupCall(c.id)}
 (function(){const f=$('cFab');let P={x:innerWidth-76,y:110},d=null;const put=()=>{P.x=Math.min(Math.max(6,P.x),innerWidth-66);P.y=Math.min(Math.max(6,P.y),innerHeight-66);f.style.transform=`translate(${P.x}px,${P.y}px)`};
   $('cMinB').onclick=()=>{if(!$('callUI').classList.contains('on'))return;const inc=$('callUI').classList.contains('inc');$('callUI').classList.add('hid');f.className=inc?'ringing':'';f.innerHTML='<i class="fas fa-phone"></i>'+(inc?'':'<span id="cfT">'+esc($('cuSt').textContent.split(' ')[0])+'</span>');f.style.display='flex';put()};
   f.onpointerdown=e=>{d={sx:e.clientX,sy:e.clientY,ox:P.x,oy:P.y,mv:0};try{f.setPointerCapture(e.pointerId)}catch(x){}};
   f.onpointermove=e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.hypot(dx,dy)>6)d.mv=1;P.x=d.ox+dx;P.y=d.oy+dy;put()};
   f.onpointerup=()=>{if(d&&!d.mv){$('callUI').classList.remove('hid');f.style.display='none'}d=null};addEventListener('resize',put)})();
-$('cCall').onclick=()=>isG(gC())?startGCall():startCall('audio');$('cVid').onclick=()=>startCall('video');
+$('cCall').onclick=()=>startCall('audio');$('cVid').onclick=()=>startCall('video');
 let incId=null;
 onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==','ringing')),s=>s.docChanges().forEach(ch=>{
   const d=ch.doc.data(),id=ch.doc.id;
@@ -1113,47 +1091,6 @@ onSnapshot(query(collection(db,'calls'),where('to','==',me),where('status','==',
   incId=id;callUI(d.from,d.kind,'incoming');if(navigator.vibrate)navigator.vibrate([400,200,400,200,400]);ring(true,d.kind);
   $('cDec').onclick=()=>{incId=null;declineCall(id)};$('cAcc').onclick=async()=>{incId=null;await acceptCall(id,d)}}),e=>diag('المكالمات',e));
 
-/* ===== مكالمة جماعية صوتية (اتصال مباشر بين كل شخصين) ===== */
-const MICQ={audio:{echoCancellation:true,noiseSuppression:true}};
-const gSig=(u,k,d)=>call&&addDoc(collection(db,'calls',call.id,'cand'),{from:me,to:u,k,d}).catch(()=>{});
-function gDrop(u){const P=call&&call.peers[u];if(!P)return;delete call.peers[u];try{P.pc.close()}catch(e){}P.au.remove()}
-function gPeer(u){gDrop(u);const pc=new RTCPeerConnection(ICE),au=document.createElement('audio');au.autoplay=true;au.setAttribute('playsinline','');document.body.appendChild(au);
-  const P=call.peers[u]={pc,au,pend:[]};call.stream.getTracks().forEach(t=>pc.addTrack(t,call.stream));
-  pc.ontrack=e=>{au.srcObject=e.streams[0];au.play().catch(()=>{});call.route&&call.route(call.spk)};
-  pc.onicecandidate=e=>{if(e.candidate)gSig(u,'ice',JSON.stringify(e.candidate))};
-  pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&call&&call.peers[u]===P)gDrop(u)};return P}
-async function gOffer(u){const P=gPeer(u),o=await P.pc.createOffer();await P.pc.setLocalDescription(o);gSig(u,'offer',JSON.stringify(o))}
-function gStart(id,c,stream){call={group:true,id,chatId:c.id,stream,peers:{},unsubs:[],kind:'audio',o:c.id,connected:true,t0:Date.now()};
-  callUI(c.id,'audio','مكالمة جماعية');bindCtl();ring(false);
-  call.hb=setInterval(()=>updateDoc(doc(db,'calls',id),{['joined.'+me]:Date.now()}).catch(()=>{}),15000);
-  call.tick=setInterval(()=>{if(!call)return;const t=mmss((Date.now()-call.t0)/1000);$('cuSt').textContent=t+' · '+(Object.keys(call.peers).length+1)+' مشاركين';const q=$('cfT');if(q)q.textContent=t},1000);
-  call.unsubs.push(onSnapshot(collection(db,'calls',id,'cand'),s=>s.docChanges().forEach(async ch=>{if(ch.type!=='added')return;const d=ch.doc.data();if(d.to!==me||!call||call.id!==id)return;const u=d.from,x=JSON.parse(d.d);
-    try{if(d.k==='offer'){const P=gPeer(u);await P.pc.setRemoteDescription(x);P.pend.splice(0).forEach(i=>P.pc.addIceCandidate(i).catch(()=>{}));const a=await P.pc.createAnswer();await P.pc.setLocalDescription(a);gSig(u,'answer',JSON.stringify(a))}
-    else{const P=call.peers[u];if(!P)return;if(d.k==='answer'){await P.pc.setRemoteDescription(x);P.pend.splice(0).forEach(i=>P.pc.addIceCandidate(i).catch(()=>{}))}else P.pc.remoteDescription?P.pc.addIceCandidate(x).catch(()=>{}):P.pend.push(x)}}catch(e){diag('مكالمة جماعية',e)}})));
-  call.unsubs.push(onSnapshot(doc(db,'calls',id),s=>{const d=s.data();if(!d||!call||call.id!==id)return;const j=d.joined||{};Object.keys(call.peers).forEach(u=>{if(!j[u]||Date.now()-j[u]>60000)gDrop(u)})}))}
-async function startGCall(){const c=gC();if(!isG(c)||call)return;if(!allowed())return toast('المراسلة غير متاحة لحسابك');
-  if(c.gcall&&Date.now()-c.gcall.at<6e6)return gJoinCall(c,true);
-  let stream;try{stream=await navigator.mediaDevices.getUserMedia(MICQ)}catch(e){return permHelp('الميكروفون')}
-  const id='gcall_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  try{await setDoc(doc(db,'calls',id),{chatId:c.id,from:me,to:'group',group:true,kind:'audio',status:'active',joined:{[me]:Date.now()},createdAt:serverTimestamp()});
-    await updateDoc(doc(db,'chats',c.id),{gcall:{id,by:me,at:Date.now()}})}catch(e){stream.getTracks().forEach(t=>t.stop());return toast('تعذّر بدء المكالمة')}
-  gStart(id,c,stream);
-  c.members.filter(u=>u!==me&&!(c.muted||{})[u]).forEach(u=>notifyUser(u,'📞 '+cName(c),'مكالمة جماعية — اضغط للانضمام','rasael.html?c='+c.id,true,'call_'+id+'_'+u).catch(()=>{}))}
-async function gJoinCall(c,fromBtn){let stream;try{stream=await navigator.mediaDevices.getUserMedia(MICQ)}catch(e){$('callUI').classList.remove('on','hid');$('cFab').style.display='none';return permHelp('الميكروفون')}
-  const id=c.gcall.id,r=doc(db,'calls',id),s=await getDoc(r).catch(()=>null),d=s&&s.exists()?s.data():null,j=(d&&d.joined)||{},al=Object.keys(j).filter(u=>u!==me&&Date.now()-j[u]<60000);
-  if(!d||d.status==='ended'||!al.length){stream.getTracks().forEach(t=>t.stop());$('callUI').classList.remove('on','hid');$('cFab').style.display='none';updateDoc(doc(db,'chats',c.id),{gcall:deleteField()}).catch(()=>{});return toast('المكالمة انتهت'+(fromBtn?' — اضغط مرة أخرى لبدء مكالمة جديدة':''))}
-  if(al.length>=5){stream.getTracks().forEach(t=>t.stop());$('callUI').classList.remove('on','hid');return toast('المكالمة ممتلئة (6 أشخاص كحد أقصى)')}
-  await updateDoc(r,{['joined.'+me]:Date.now()});gStart(id,c,stream);al.forEach(u=>gOffer(u).catch(()=>{}))}
-function gEnd(c){clearInterval(c.hb);Object.values(c.peers).forEach(P=>{try{P.pc.close()}catch(e){}P.au.remove()});c.peers={};const r=doc(db,'calls',c.id);
-  getDoc(r).then(async s=>{const j=Object.assign({},(s.data()||{}).joined);delete j[me];const alive=Object.keys(j).some(u=>Date.now()-j[u]<60000);
-    await updateDoc(r,alive?{['joined.'+me]:deleteField()}:{status:'ended',['joined.'+me]:deleteField()});
-    const cs=await getDocs(collection(db,'calls',c.id,'cand')),b=writeBatch(db);cs.docs.filter(d=>{const x=d.data();return x.from===me||x.to===me}).forEach(d=>b.delete(d.ref));await b.commit();
-    if(!alive)await updateDoc(doc(db,'chats',c.chatId),{gcall:deleteField()})}).catch(()=>{})}
-let gIn=null;function gWatch(){chats.forEach(c=>{const g=c.gcall;if(!isG(c)||!g||g.by===me||call||gIn===g.id||!allowed()||muted(c)||Date.now()-g.at>40000)return;gIn=g.id;
-  callUI(c.id,'audio','incoming');$('cuSt').textContent='مكالمة جماعية واردة';if(navigator.vibrate)navigator.vibrate([400,200,400]);ring(true,'audio');
-  const hide=()=>{ring(false);$('callUI').classList.remove('on','hid');$('cFab').style.display='none'};
-  $('cDec').onclick=hide;$('cAcc').onclick=()=>{ring(false);gJoinCall(c)};
-  setTimeout(()=>{if(!call&&$('callUI').classList.contains('inc')&&$('cuSt').textContent==='مكالمة جماعية واردة')hide()},40000)})}
 /* فتح آخر محادثة فورًا بعد التحديث (بدون انتظار) */
 restore();
 </script>
