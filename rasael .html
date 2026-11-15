@@ -268,7 +268,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <style>.callui.hid{display:none!important}#cMinB{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;z-index:5;background:#ffffff22;border:0;color:#fff;width:40px;height:40px;border-radius:50%}#cFab.ringing{animation:pls 1s infinite}@keyframes pls{50%{box-shadow:0 0 0 12px #1a9d6c55}}
 #cFab{position:fixed;top:0;left:0;z-index:650;display:none;width:60px;height:60px;border-radius:50%;background:#1a9d6c;color:#fff;align-items:center;justify-content:center;flex-direction:column;font-size:11px;font-weight:800;box-shadow:0 4px 14px #0006;touch-action:none;border:0}
 #pinbar{display:none;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:13px;cursor:pointer}#pinbar.on{display:flex}#pinbar .tx{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.b.fl{box-shadow:0 0 0 3px var(--accent)}</style></head>
+.b.fl{box-shadow:0 0 0 3px var(--accent)}</style><style>#cSub{font-size:10.5px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.35}#cSub .od{width:6px;height:6px}</style></head>
 <body class="pend">
 <script>if(window.__ready)document.body.classList.remove('pend')</script>
 <div id="block"><i class="fas fa-ban bi"></i><div class="bt">عذرًا، أنت غير مسموح لك بالدخول هنا</div><div class="bn" id="blkN">5</div><div class="bs">سيتم إخراجك تلقائيًا</div></div>
@@ -346,6 +346,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';cle
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const SS={get(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
 const tsv=v=>v&&v.toMillis?v.toMillis():(+v||0);
+const tmap=o=>{const r={};Object.keys(o||{}).forEach(k=>r[k]=tsv(o[k]));return r};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 $('hBack').onclick=()=>SS.del('rsl_open_'+me);
 
@@ -379,13 +380,13 @@ onSnapshot(collection(db,'profiles'),s=>{profiles={};s.docs.forEach(d=>{const x=
 onSnapshot(doc(db,'settings','messaging'),s=>{const srv=!s.metadata.fromCache;if(!srv&&cfg0&&allowedFromCache)return;
   cfg=Object.assign({allowAll:false,overrides:{}},s.exists()?s.data():{});cfgOk=true;LS.set('rsl_cfg',Object.assign({},cfg,{_t:Date.now()}));render();gate(srv);restore()},e=>diag('إعدادات المراسلة',e));
 
-const prevUpd={},dlSent={};
+const prevUpd={},dlSent={};let lastSg='';
 onSnapshot(query(collection(db,'chats'),where('members','array-contains',me)),s=>{
-  const next=s.docs.filter(d=>d.data().kind!=='group').map(d=>{const x=d.data();return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:x.reads||{},delivered:x.delivered||{},typing:x.typing||{},cleared:x.cleared||{},muted:x.muted||{},pins:x.pins||{},cpin:x.cpin||{}}});
+  const next=s.docs.filter(d=>d.data().kind!=='group').map(d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,kind:x.kind,members:x.members,lastText:x.lastText||'',lastSenderId:x.lastSenderId,updatedAt:tsv(x.updatedAt),reads:tmap(x.reads),delivered:tmap(x.delivered),typing:x.typing||{},cleared:x.cleared||{},muted:x.muted||{},pins:x.pins||{},cpin:x.cpin||{}}});
   if(initDone)s.docChanges().forEach(ch=>{if(ch.type==='removed'||ch.doc.metadata.hasPendingWrites)return;const c=next.find(x=>x.id===ch.doc.id);if(c&&c.updatedAt>(prevUpd[c.id]||0)&&!muted(c)&&c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>(c.reads[me]||0)&&(!cur||cur.id!==c.id)&&c.updatedAt>myClr(c))banner(c)});
   next.forEach(c=>{prevUpd[c.id]=Math.max(prevUpd[c.id]||0,c.updatedAt);
-    if(c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.delivered||{})[me]||0)&&dlSent[c.id]!==c.updatedAt){dlSent[c.id]=c.updatedAt;setDoc(doc(db,'chats',c.id),{delivered:{[me]:Math.max(Date.now(),c.updatedAt)}},{merge:true}).catch(()=>{})}});
-  chats=next;chatsOk=true;initDone=true;LS.set('rsl_chats_'+me,chats);render();deep();if(cur){head();draw();updTicks()}},e=>diag('المحادثات',e));
+    if(c.lastSenderId&&c.lastSenderId!==me&&c.updatedAt>((c.delivered||{})[me]||0)&&dlSent[c.id]!==c.updatedAt){dlSent[c.id]=c.updatedAt;setDoc(doc(db,'chats',c.id),{delivered:{[me]:serverTimestamp()}},{merge:true}).catch(()=>{})}});
+  chats=next;chatsOk=true;initDone=true;LS.set('rsl_chats_'+me,chats);render();deep();if(cur){head();updTicks();const cc=next.find(x=>x.id===cur.id),sg=JSON.stringify(cc?cc.pins:'');if(sg!==lastSg){lastSg=sg;draw()}}},e=>diag('المحادثات',e));
 
 /* ===== نوافذ بستايل الموقع ===== */
 function showD(html){return new Promise(res=>{const o=$('ovD'),b=$('dBody');b.innerHTML=html;o.classList.add('on');const i=b.querySelector('input');
@@ -512,7 +513,7 @@ function openChat(id,o,plat){if(cur&&cur.id!==id)tyPing(false);cur={id,o,plat};d
 let lastRead=0;
 function markRead(){if(!cur||document.visibilityState!=='visible')return;const c=chats.find(x=>x.id===cur.id);if(!c)return;
   const newest=LD.reduce((a,m)=>m.senderId!==me?Math.max(a,tsv(m.createdAt)):a,0);if(!newest||newest<=lastRead||newest<=((c.reads||{})[me]||0))return;lastRead=newest;
-  setDoc(doc(db,'chats',cur.id),{reads:{[me]:Math.max(Date.now(),newest)}},{merge:true}).catch(()=>{})}
+  setDoc(doc(db,'chats',cur.id),{reads:{[me]:serverTimestamp()}},{merge:true}).catch(()=>{})}
 $('cBack').onclick=()=>closeChat();
 $('cHead').onclick=()=>{if(cur&&!cur.plat)renameFlow(cur.o)};
 $('cMore').onclick=()=>{if(cur)chatActions(cur.id)};
@@ -629,7 +630,7 @@ async function sendMsg(data,ctx){ctx=ctx||cur;
   sndSend();const label=data.text||({image:'📷 صورة',video:'🎬 فيديو',audio:'🎤 رسالة صوتية',file:'📎 ملف'}[data.type]||'');
   const cref=doc(db,'chats',ctx.id),chatId=ctx.id,plat=ctx.plat,o=ctx.o;
   /* بدون انتظار رد السيرفر: الرسالة تظهر فورًا وتأخذ علامة الساعة لو الإنترنت مقطوع */
-  const w1=plat?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp()},{merge:true}):setDoc(cref,{kind:'user',members:[me,o],senders:arrayUnion(me),lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:Date.now()}},{merge:true});
+  const w1=plat?setDoc(cref,{lastText:label,lastSenderId:me,updatedAt:serverTimestamp()},{merge:true}):setDoc(cref,{kind:'user',members:[me,o],senders:arrayUnion(me),lastText:label,lastSenderId:me,updatedAt:serverTimestamp(),reads:{[me]:serverTimestamp()}},{merge:true});
   const w2=addDoc(collection(db,'chats',chatId,'messages'),{senderId:me,createdAt:serverTimestamp(),...data});
   await Promise.all([w1,w2]);
   if(!plat&&!(await isMutedByOther(chatId,o)))notifyUser(o,'',label,'rasael.html?c='+chatId,false,'chat_'+chatId+'_'+o).catch(()=>{});
@@ -685,20 +686,23 @@ addEventListener('online',()=>$('net').style.display='none');addEventListener('o
 
 /* ----- الحضور (متصل / غير متصل) + يكتب الآن ----- */
 let PR=null,punsub=null;
-const isOn=p=>!!(p&&p.on&&Date.now()-(p.t||0)<50000);
-function beat(on){setDoc(doc(db,'presence',ME),{on:!!on,t:Date.now()},{merge:true}).catch(()=>{})}
-beat(true);setInterval(()=>{if(document.visibilityState==='visible')beat(true)},20000);
-document.addEventListener('visibilitychange',()=>{beat(document.visibilityState==='visible');if(document.visibilityState==='visible')try{markRead()}catch(e){}});
-addEventListener('pagehide',()=>beat(false));addEventListener('online',()=>beat(true));
-setInterval(()=>{if(cur)refreshHead()},20000);
+let srvOff=0,awaitOff=false;const isOn=p=>!!(p&&p.on&&Date.now()+srvOff-tsv(p.t)<25000);
+const lseen=ms=>{const d=new Date(ms),n=new Date(),y=new Date(Date.now()-864e5),tm=d.toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit'});return d.toDateString()===n.toDateString()?'اليوم '+tm:d.toDateString()===y.toDateString()?'أمس '+tm:d.toLocaleDateString('ar-EG',{day:'numeric',month:'short'})+' '+tm};
+function beat(on){awaitOff=true;setDoc(doc(db,'presence',ME),{on:!!on,t:serverTimestamp()},{merge:true}).catch(()=>{})}
+onSnapshot(doc(db,'presence',ME),s=>{if(awaitOff&&!s.metadata.hasPendingWrites&&!s.metadata.fromCache){const d=s.data()||{},t=tsv(d.t);if(t){srvOff=t-Date.now();awaitOff=false}}},()=>{});
+function offBeacon(){try{fetch('https://firestore.googleapis.com/v1/projects/qanon-c716d/databases/(default)/documents:commit?key=AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:'projects/qanon-c716d/databases/(default)/documents/presence/'+ME,fields:{on:{booleanValue:false}}},updateMask:{fieldPaths:['on']},updateTransforms:[{fieldPath:'t',setToServerValue:'REQUEST_TIME'}]}]})})}catch(e){}}
+beat(true);setInterval(()=>{if(document.visibilityState==='visible')beat(true)},10000);
+document.addEventListener('visibilitychange',()=>{const v=document.visibilityState==='visible';beat(v);if(!v){offBeacon();try{tyPing(false)}catch(e){}}if(document.visibilityState==='visible')try{markRead()}catch(e){}});
+addEventListener('pagehide',()=>{beat(false);offBeacon()});addEventListener('beforeunload',offBeacon);addEventListener('focus',()=>beat(true));addEventListener('pageshow',()=>beat(true));addEventListener('online',()=>beat(true));
+setInterval(()=>{if(cur)refreshHead()},3000);
 function watchPeer(pid){if(punsub)punsub();punsub=null;PR=null;if(!pid)return;punsub=onSnapshot(doc(db,'presence',pid),s=>{PR=s.exists()?s.data():null;refreshHead()},()=>{})}
-const peerTyping=()=>{const cd=getCD()||{};return Date.now()-(((cd.typing||{})[tkPeer()])||0)<5000};
+const TYS={};const peerTyping=()=>{const cd=getCD()||{},p=tkPeer(),v=((cd.typing||{})[p])||0;if(!v)return false;const k=cur.id+p,o=TYS[k];if(!o||o.v!==v)TYS[k]={v,at:Date.now()};return Date.now()-TYS[k].at<4500};
 function paintSub(extra){const ty=peerTyping(),on=isOn(PR),el=$('cSub');
-  el.className='s'+((ty||on)?' onl':'');el.innerHTML=(ty?'<span class="ty">يكتب الآن...</span>':on?'<i class="od"></i>متصل':'غير متصل'+(PR&&PR.t?' · آخر ظهور '+ago(PR.t):''))+(extra||'');
-  clearTimeout(paintSub.h);if(ty)paintSub.h=setTimeout(()=>{if(cur)refreshHead()},5200)}
+  el.className='s'+((ty||on)?' onl':'');el.innerHTML=(ty?'<span class="ty">يكتب الآن...</span>':on?'<i class="od"></i>متصل':'غير متصل'+(PR&&PR.t?' · آخر ظهور '+lseen(tsv(PR.t)):''))+(extra||'');
+  clearTimeout(paintSub.h);if(ty)paintSub.h=setTimeout(()=>{if(cur)refreshHead()},4700)}
 let tyLast=0,tyOn=false;
 function tyPing(on){if(!cur||!canTy())return;const now=Date.now();
-  if(on){if(now-tyLast<2500)return;tyLast=now;tyOn=true}else{if(!tyOn)return;tyOn=false;tyLast=0}
+  if(on){if(now-tyLast<1500)return;tyLast=now;tyOn=true}else{if(!tyOn)return;tyOn=false;tyLast=0}
   setDoc(doc(db,'chats',cur.id),{typing:{[ME]:on?now:0}},{merge:true}).catch(()=>{})}
 
 /* ----- النزول لآخر رسالة ----- */
