@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-protected>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,30 +9,79 @@
 (function () {
   try {
     var ss = window.sessionStorage, ls = window.localStorage;
-    var P = 'meezan_', K = 'meezan_persist_v1', TTL = 3650 * 24 * 60 * 60 * 1000;
+    var P = 'meezan_', K = 'meezan_persist_v1', T = 'meezan_logout_at', TTL = 10 * 24 * 60 * 60 * 1000;
+    var isLogin = /login(\.html)?$/i.test(location.pathname);
+    var protectedPage = document.documentElement.hasAttribute('data-protected');
+    var restoring = false;
+    // 🪦 علامة الخروج: وقت آخر تسجيل خروج على هذا الجهاز. أي جلسة بدأت قبلها تُعتبر منتهية في كل التبويبات
+    var tomb = function () { return Number(ls.getItem(T) || 0); };
+    var loginAt = function () { return Number(ss.getItem('meezan_login_at') || 0); };
+    var sessionDead = function () { var a = loginAt(); return !!a && a <= tomb(); };
+
+    try { if (ss.getItem('meezan_logged_in') !== 'true') ls.removeItem('meezan_persist'); } catch (e) {}
     var rec = null;
     try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
-    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true')) { ls.removeItem(K); rec = null; }
-    if (rec && ss.getItem('meezan_logged_in') !== 'true') { for (var k in rec.d) ss.setItem(k, rec.d[k]); }
+    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true' ||
+        (rec.d.meezan_login_at && Number(rec.d.meezan_login_at) <= tomb()))) { ls.removeItem(K); rec = null; }
+    if (rec && ss.getItem('meezan_logged_in') !== 'true') { restoring = true; for (var k in rec.d) ss.setItem(k, rec.d[k]); restoring = false; }
+    // جلسة قديمة بدون ختم وقت (سجّلت من صفحة دخول لم تُحدَّث): نختمها الآن
+    if (ss.getItem('meezan_logged_in') === 'true' && !ss.getItem('meezan_login_at')) ss.setItem('meezan_login_at', String(Date.now()));
 
     function save(renew) {
       try {
         var d = {};
         for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
-        if (d.meezan_logged_in !== 'true') { ls.removeItem(K); return; }
+        if (d.meezan_logged_in !== 'true' || sessionDead()) { ls.removeItem(K); return; }
         var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
         var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
         ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
       } catch (e) {}
     }
     var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
-    proto.setItem = function (k, v) { _s.call(this, k, v); if (this === ss && String(k).indexOf(P) === 0) save(k === 'meezan_logged_in'); };
+    proto.setItem = function (k, v) {
+      _s.call(this, k, v);
+      if (this === ss && String(k).indexOf(P) === 0) {
+        // دخول جديد فعلي: اختم وقته (يكون أحدث من علامة الخروج)
+        if (k === 'meezan_logged_in' && String(v) === 'true' && !restoring) _s.call(ss, 'meezan_login_at', String(Date.now()));
+        save(k === 'meezan_logged_in');
+      }
+    };
     proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
     proto.clear = function () { _c.call(this); if (this === ss) save(false); };
+
+    // 🔒 إنهاء الجلسة بالكامل في هذا التبويب (يُبقي سبب الخروج فقط ليعرضه login)
+    function kill() {
+      try {
+        var del = [];
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0 && key !== 'meezan_logout_reason') del.push(key); }
+        del.forEach(function (key) { ss.removeItem(key); });
+        ls.removeItem(K); ls.removeItem('meezan_persist');
+      } catch (e) {}
+    }
+    function guard() {
+      try {
+        var on = ss.getItem('meezan_logged_in') === 'true';
+        if (on && sessionDead()) { kill(); on = false; }
+        if (!on && (protectedPage || sessionDead())) {
+          if (!isLogin) { document.documentElement.style.display = 'none'; location.replace('login.html'); }
+        }
+      } catch (e) {}
+    }
+    window.__mzKillSession = kill;
+    window.__mzGuard = guard;
+    window.__mzLogoutStamp = function () { try { ls.setItem(T, String(Date.now())); } catch (e) {} };
+
     save(true); // تجديد الجلسة مع كل فتح للتطبيق
+    guard();
+    // الرجوع بزر Back (bfcache) / العودة للتطبيق / خروج من تبويب آخر → افحص الجلسة فوراً
+    window.addEventListener('pageshow', function (e) { guard(); });
+    window.addEventListener('storage', function (e) { if (e.key === T || e.key === K || e.key === null) guard(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) guard(); });
+    window.addEventListener('focus', guard);
+    setInterval(guard, 3000);
 
     // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
-    if (/login(\.html)?$/i.test(location.pathname) && ss.getItem('meezan_logged_in') === 'true') { location.replace('index.html'); }
+    if (isLogin && ss.getItem('meezan_logged_in') === 'true' && !sessionDead()) { location.replace('index.html'); }
   } catch (e) {}
 })();
 </script>
@@ -2803,7 +2852,9 @@ new MutationObserver((muts) => {
 // ============================================================
 // 🔒 الحماية — طرد لو ما مسجل
 // ============================================================
-if (sessionStorage.getItem('meezan_logged_in') !== 'true') {
+function __sessOff() { return sessionStorage.getItem('meezan_logged_in') !== 'true'; }
+if (__sessOff()) {
+  document.documentElement.style.display = 'none';
   window.location.replace('login.html');
 }
 
@@ -3047,6 +3098,7 @@ function loadCache(key) {
 }
 
 function saveCache(key, data) {
+  if (__sessOff()) return; // لا نحفظ أي بيانات حساب بعد الخروج
   try {
     localStorage.setItem(key, JSON.stringify({ ...data, _cachedAt: Date.now() }));
   } catch (e) {}
@@ -3602,14 +3654,33 @@ function showAddressGate(user, role, needAddr, needGender) {
   });
 }
 
+let __loggedOut = false;
 async function forceLogout() {
-  try { await Promise.race([unregisterPushToken(), new Promise(r => setTimeout(r, 1200))]); } catch (e) {}
-  try { localStorage.removeItem(CACHE_KEYS.user); localStorage.removeItem(CACHE_KEYS.buttons); } catch (e) {}
-  sessionStorage.removeItem('meezan_logged_in');
-  sessionStorage.removeItem('meezan_username');
-  sessionStorage.removeItem('meezan_role');
-  sessionStorage.removeItem('meezan_user_id');
-  sessionStorage.removeItem('meezan_user_data');
+  if (__loggedOut) return;
+  __loggedOut = true;
+  loggingOut = true;
+  // 1) التقط ما نحتاجه قبل المسح
+  const pushToken = (() => { try { return localStorage.getItem('meezan_fcm_token'); } catch (e) { return null; } })();
+  // 2) أنهِ الجلسة فوراً وبشكل متزامن (لا انتظار): علامة الخروج + مسح الجلسة + مسح الجلسة الدائمة
+  try { window.__mzLogoutStamp && window.__mzLogoutStamp(); } catch (e) {}
+  try { window.__mzKillSession ? window.__mzKillSession() : sessionStorage.clear(); } catch (e) {}
+  // 3) امسح بيانات الحساب المحفوظة على الجهاز (الإعدادات والثيم ومعرّف الجهاز تبقى)
+  try {
+    [CACHE_KEYS.user, CACHE_KEYS.buttons, 'meezan_fcm_token', 'meezan_push_sig', 'rsl_cfg', 'mz_last', 'meezan_persist_v1']
+      .forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  try { document.documentElement.style.visibility = 'hidden'; } catch (e) {}
+  // 4) أوقف الكاميرا والمايك والموقع والمكالمات
+  try { stopCameraStream(); } catch (e) {}
+  try { teardownLive(null); } catch (e) {}
+  try { teardownCall(null); } catch (e) {}
+  try { stopLocWatch(); } catch (e) {}
+  // 5) افصل جهاز الإشعارات عن الحساب (بمهلة قصيرة) ثم اخرج
+  try {
+    if (pushToken) await Promise.race([deleteDoc(doc(db, 'push_tokens', pushToken)).catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
+  } catch (e) {}
+  // 6) إلغاء تسجيل الـ Service Worker من الإشعارات القديمة غير ضروري؛ نمسح كاش الصفحات المحمية لمنع عرضها بزر الرجوع
+  try { if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.filter(k => /html|page|shell|meezan/i.test(k)).map(k => caches.delete(k))); } } catch (e) {}
   window.location.replace('login.html');
 }
 
@@ -3750,6 +3821,7 @@ const __pushWrite = (token) => setDoc(doc(db, 'push_tokens', token), { userId: c
 async function registerPushToken(force) {
   // تسجيل صامت في الكونسول فقط
   const dbg = (m) => { console.log('push debug:', m); }; // صامت: لا تظهر أي رسائل للمستخدم
+  if (__sessOff()) return; // بعد الخروج لا يُعاد ربط الجهاز بالحساب أبداً
   if (__pushBusy) return;
   __pushBusy = true;
   __pushLastCheck = Date.now();
@@ -4112,6 +4184,7 @@ async function loadUserDataFromFirestore() {
 // 🚀 Init
 // ============================================================
 async function init() {
+  if (__sessOff()) return; // لا جلسة: لا نشغّل أي شيء
   const role = sessionStorage.getItem('meezan_role') || 'student';
 
   // شغّل مراقبة الأزرار فوراً (تحدّث الكاش)
@@ -4168,7 +4241,7 @@ function deviceLabelFromUA(ua) {
 // 📝 سجل زمني كامل لكل حدث (لا يُحذف تلقائياً، الأدمن بيشوفه في Monitoring)
 // ============================================================
 async function logActivity(event, extra) {
-  if (!currentUserId) return;
+  if (!currentUserId || __sessOff()) return;
   try {
     await setDoc(doc(collection(db, 'activity_log')), {
       userId: currentUserId,
@@ -4182,7 +4255,7 @@ async function logActivity(event, extra) {
 }
 
 async function patchMyDevice(patch) {
-  if (!currentUserId) return null;
+  if (!currentUserId || __sessOff()) return null;
   const deviceId = getDeviceId();
   const ref = MON_DOC();
   const full = { ...patch, lastSeen: new Date().toISOString() };
