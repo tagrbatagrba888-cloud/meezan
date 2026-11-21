@@ -238,17 +238,19 @@ async function processAdminOutbox() {
     if (!recips.length) { await fsPatch(`admin_outbox/${id}`, { status: 'done', sent: 0, failed: 0, note: 'no recipients' }); continue; }
     await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 });
     let sentN = 0, failedN = 0;
+    const deliveries = [];
     for (const r of recips) {
       const html = String(f.html || '').split('{{name}}').join(r.name || 'الطالب');
       const text = String(f.text || '').split('{{name}}').join(r.name || 'الطالب');
       try {
-        await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
+        const receipt = await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
+        deliveries.push({email:r.email, messageId:receipt.messageId || '', acceptedAt:new Date().toISOString()});
         sentN++;
       } catch (e) {
         failedN++;
         console.error('outbox send failed', id, r.email, e.message);
       }
-      await fsPatch(`admin_outbox/${id}`, { sent: sentN, failed: failedN });
+      await fsPatch(`admin_outbox/${id}`, { sent: sentN, failed: failedN, deliveries });
       await new Promise((ok) => setTimeout(ok, 350));
     }
     await fsPatch(`admin_outbox/${id}`, { status: 'done', doneAt: new Date().toISOString() });
@@ -258,7 +260,21 @@ async function processAdminOutbox() {
 
 async function run() {
   await authenticateMailer();
-  try { await main(); } catch (e) { console.error('result poller error:', e); }
-  await processAdminOutbox();
+  if (process.env.MAILER_MODE === 'health') {
+    await fsGet('users/all');
+    await fsGet('exam_subs/all');
+    await fsGet('homework_subs/all');
+    await fsGet('result_emails_meta/state');
+    const queue = await fetch(`${BASE}/admin_outbox?pageSize=1&key=${API_KEY}`, {headers: authHeaders()});
+    if (!queue.ok) throw new Error('Queue health read failed: '+queue.status);
+    console.log('HEALTH OK: authenticated data reads verified; no writes or email sends performed.');
+    return;
+  }
+  await fsPatch('result_emails_meta/heartbeat', {lastStartedAt:new Date().toISOString(), runUrl:process.env.MAILER_RUN_URL || ''});
+  let failure = null;
+  try { await main(); } catch (e) { console.error('result poller error:', e); failure = e; }
+  try { await processAdminOutbox(); } catch (e) { failure = failure || e; }
+  await fsPatch('result_emails_meta/heartbeat', {lastCompletedAt:new Date().toISOString(), status:failure?'error':'ok', error:failure?String(failure.message):''});
+  if (failure) throw failure;
 }
 run().catch((e) => { console.error(e); process.exit(1); });

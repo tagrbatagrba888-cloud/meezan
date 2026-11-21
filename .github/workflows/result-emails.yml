@@ -1,8 +1,14 @@
 name: result-emails
 on:
   schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch: {}
+    - cron: '2-59/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'process sends normal approved work; health only reads data'
+        type: choice
+        options: [health, process]
+        default: health
 concurrency:
   group: result-emails
   cancel-in-progress: false
@@ -22,3 +28,5 @@ jobs:
           MEEZAN_ADMIN_EMAIL: ${{ secrets.MEEZAN_ADMIN_EMAIL }}
           MEEZAN_ADMIN_PASSWORD: ${{ secrets.MEEZAN_ADMIN_PASSWORD }}
           MEEZAN_ADMIN_UID: ${{ secrets.MEEZAN_ADMIN_UID }}
+          MAILER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'process' }}
+          MAILER_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
