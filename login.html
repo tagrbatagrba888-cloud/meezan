@@ -2145,6 +2145,8 @@ let googlePendingRole = 'student';
 // ============================================================
 function applySettings(data) {
   if (!data) return;
+  // Use the compressed copy only for the unchanged built-in logo.
+  if (data.logoUrl === 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png') data = { ...data, logoUrl: new URL('meezan-logo.v1.webp', location.href).href };
 
   if (data.logoUrl) {
     const logo = $('logoImg');
@@ -3640,4 +3642,4 @@ if (['localhost','127.0.0.1'].includes(location.hostname) && new URLSearchParams
 </script>
 
 </body>
-</html>
+    </html>
