@@ -113,6 +113,7 @@ function applyColors(s){const th=document.documentElement.getAttribute('data-the
  if(s){if(th==='light'&&s.lightColorsEnabled===true){if(ok(s.lightPrimary))p=s.lightPrimary;if(ok(s.lightAccent))a=s.lightAccent}else if(th==='dark'&&s.darkColorsEnabled===true){if(ok(s.darkPrimary))p=s.darkPrimary;if(ok(s.darkAccent))a=s.darkAccent}}
  p?st.setProperty('--primary',p):st.removeProperty('--primary');a?st.setProperty('--accent',a):st.removeProperty('--accent')}
 let SET=null;try{SET=JSON.parse(localStorage.getItem('meezan_home_settings_cache')||'null')}catch(e){}
+if(SET&&SET.logoUrl==='https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png')SET={...SET,logoUrl:new URL('meezan-logo.v1.webp',location.href).href};
 if(SET&&SET.logoUrl)$('.tb img').src=SET.logoUrl;applyColors(SET);themeIco();
 $('#th').onclick=()=>{const n=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('meezan_theme',n);applyColors(SET);themeIco()};
 
