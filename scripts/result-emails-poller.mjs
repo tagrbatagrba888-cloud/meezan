@@ -244,12 +244,14 @@ async function processAdminOutbox(onlyId) {
       // Scoped release docs are staged as scoped_pending, a status the broad queued filter below never matches.
       if (f.kind !== 'release_email' || id !== onlyId) throw new Error('release doc kind/id check failed: ' + id);
       if (f.status === 'done') {
-        if (f.sent > 0 && Array.isArray(f.deliveries) && f.deliveries.length === f.sent) { console.log(`release ${id} already done with receipts: sent=${f.sent} failed=${f.failed || 0}`); continue; }
-        throw new Error('release doc marked done but receipts do not match: ' + id);
+        const dl = Array.isArray(f.deliveries) ? f.deliveries : [];
+        const rs = new Set((f.recipients || []).map((r) => String(r && r.email).toLowerCase()));
+        if (f.sent > 0 && !f.failed && dl.length === f.sent && dl.every((x) => x && x.messageId && rs.has(String(x.email).toLowerCase()))) { console.log(`release ${id} already done with receipts: sent=${f.sent}`); continue; }
+        throw new Error('release doc marked done but receipts do not verify: ' + id);
       }
       if (f.status !== 'scoped_pending') throw new Error('release doc not claimable, status=' + f.status);
       // Fresh send-time checks: named content must be published and the cohort is re-derived from current profiles. Only narrows, never widens.
-      await assertReleaseContent(f.contentChecks);
+      await assertReleaseContent(f.contentChecks, f.releaseGrade);
       const cur = new Map();
       for (const u of itemsOf(await fsGet('users/all'))) if (u && u.grade === f.releaseGrade && u.isDisabled !== true) cur.set(String(u.email || '').trim().toLowerCase(), u);
       const before = (f.recipients || []).length;
@@ -298,19 +300,39 @@ async function processAdminOutbox(onlyId) {
 }
 
 // ---------- Scoped release email: stage (recipients from the exact grade, one doc, never "queued") ----------
-async function assertReleaseContent(checks) {
-  if (!Array.isArray(checks) || !checks.length) throw new Error('release needs contentChecks (named published content)');
+async function assertReleaseContent(checks, grade) {
+  if (!Array.isArray(checks) || !checks.length) throw new Error('release needs contentChecks');
+  if (typeof grade !== 'string' || !grade) throw new Error('release needs a grade');
+  const seen = new Set();
   for (const c of checks) {
-    if (!c || !/^[A-Za-z0-9_\/-]{1,80}$/.test(String(c.path)) || c.id === undefined || c.id === '') throw new Error('bad contentCheck');
-    const hit = itemsOf(await fsGet(c.path)).find((x) => x && String(x.id) === String(c.id));
-    if (!hit || hit.published === false || (hit.status && hit.status !== 'published')) throw new Error('named content not published: ' + c.path + '#' + c.id);
+    if (!c || (c.kind !== 'library_summary' && c.kind !== 'homework') || c.id === undefined || String(c.id) === '') throw new Error('bad contentCheck');
+    seen.add(c.kind);
+    if (c.kind === 'library_summary') {
+      const lib = itemsOf(await fsGet('settings/library')).find((x) => x && String(x.id) === String(c.id));
+      if (!lib || lib.type !== 'summary' || lib.published !== true) throw new Error('summary card not published: ' + c.id);
+      if (!Array.isArray(lib.grades) || !lib.grades.includes(grade)) throw new Error('summary card grade mismatch: ' + c.id);
+      const minParts = Number(c.minParts);
+      if (!(minParts >= 1)) throw new Error('summary check needs minParts');
+      const sd = await fsGet('summaries/' + encodeURIComponent(String(c.id)));
+      const parts = sd && sd.fields && sd.fields.parts ? fromFs(sd.fields.parts) : null;
+      if (!Array.isArray(parts) || parts.length < minParts || Number(lib.partsCount) !== parts.length) throw new Error('summary parts missing or count mismatch: ' + c.id);
+      if (!parts.every((x) => x && typeof x.content === 'string' && x.content.trim().length > 20)) throw new Error('summary part empty: ' + c.id);
+    } else {
+      const hw = itemsOf(await fsGet('homeworks/all')).find((x) => x && String(x.id) === String(c.id));
+      if (!hw || hw.status !== 'published' || hw.archived === true) throw new Error('homework not published: ' + c.id);
+      if (hw.grade !== grade) throw new Error('homework grade mismatch: ' + c.id);
+      const n = Number(c.questions);
+      if (!(n >= 1) || !Array.isArray(hw.questions) || hw.questions.length !== n) throw new Error('homework question count mismatch: ' + c.id);
+      if (!hw.questions.every((q) => q && q.title && Array.isArray(q.options) && q.options.filter((o) => o && o.correct === true).length === 1)) throw new Error('homework question malformed: ' + c.id);
+    }
   }
+  if (!seen.has('library_summary') || !seen.has('homework')) throw new Error('release needs both a summary and a homework check');
 }
 async function stageRelease(releaseId) {
   const fsmod = await import('node:fs');
   const tpl = JSON.parse(fsmod.readFileSync(new URL('./release-emails/' + releaseId + '.json', import.meta.url), 'utf8'));
   if (!tpl || typeof tpl.grade !== 'string' || !tpl.grade || !tpl.subject || !tpl.html || !tpl.text) throw new Error('release template needs grade, subject, html, text');
-  await assertReleaseContent(tpl.contentChecks);
+  await assertReleaseContent(tpl.contentChecks, tpl.grade);
   const users = itemsOf(await fsGet('users/all'));
   const seen = new Set(), recipients = []; let held = 0;
   for (const u of users) {
@@ -327,9 +349,10 @@ async function stageRelease(releaseId) {
   });
   if (created) { console.log(`staged ${releaseId}: ${recipients.length} recipients, ${held} held for invalid email (not repaired), status scoped_pending`); return; }
   const ex = await fsGet('admin_outbox/' + releaseId);
-  const st = ex && ex.fields && ex.fields.status ? fromFs(ex.fields.status) : 'unknown';
-  console.log(`release doc already exists, nothing staged: ${releaseId} status=${st}`);
-  if (st !== 'scoped_pending' && st !== 'done') throw new Error('existing release doc in state ' + st + ', needs manual check');
+  const ef = {}; for (const [k, v] of Object.entries((ex && ex.fields) || {})) ef[k] = fromFs(v);
+  const same = ef.kind === 'release_email' && ef.createdBy === ADMIN_UID && ef.releaseGrade === tpl.grade && ef.subject === tpl.subject && ef.text === tpl.text && ef.html === tpl.html && JSON.stringify(ef.contentChecks) === JSON.stringify(tpl.contentChecks);
+  console.log(`release doc already exists, nothing staged: ${releaseId} status=${ef.status}, matches template=${same}`);
+  if (!same || (ef.status !== 'scoped_pending' && ef.status !== 'done')) throw new Error('existing release doc differs from template or is in state ' + ef.status + ', needs manual check');
 }
 
 async function run() {
