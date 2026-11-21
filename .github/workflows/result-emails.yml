@@ -28,3 +28,29 @@ jobs:
           MEEZAN_ADMIN_UID: ${{ secrets.MEEZAN_ADMIN_UID }}
           MAILER_MODE: ${{ inputs.mode || 'health' }}
           MAILER_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  parent_refresh:
+    needs: poll
+    if: ${{ inputs.mode == 'process' && vars.MEEZAN_PARENT_REFRESH_ENABLED == 'yes' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install isolated parent dependencies
+        working-directory: services/parent-backend
+        run: npm ci --ignore-scripts --omit=dev
+      - name: Refresh private results and process approved parent email
+        run: node scripts/parent-reports-poller.mjs ${{ vars.MEEZAN_PARENT_EMAIL_ENABLED == 'yes' && '--dispatch-email' || '--stage-only' }}
+        env:
+          MAILER_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MEEZAN_PARENT_WORKER_ENABLED: 'yes'
+          MEEZAN_PARENT_EMAIL_ENABLED: ${{ vars.MEEZAN_PARENT_EMAIL_ENABLED }}
+          MEEZAN_PARENT_TEMPLATE_VERSION: ${{ vars.MEEZAN_PARENT_TEMPLATE_VERSION }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          MEEZAN_ADMIN_EMAIL: ${{ secrets.MEEZAN_ADMIN_EMAIL }}
+          MEEZAN_ADMIN_PASSWORD: ${{ secrets.MEEZAN_ADMIN_PASSWORD }}
+          MEEZAN_ADMIN_UID: ${{ secrets.MEEZAN_ADMIN_UID }}
