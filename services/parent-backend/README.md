@@ -14,3 +14,9 @@ Do not mount a generic authenticated REST proxy or expose the Admin SDK credenti
 Run only against emulators until a separate production cutover approval. `npm test` refuses to run without both emulator hosts. The production activation flag alone is not a permission grant.
 
 Homework preparation: homework.mjs evaluates published assignments against server-owned grade/audience and submitted flags. It does not select an unresolved reminder delay, infer publish time from draft creation or send externally. The existing homework schema needs a verified publishedAt at migration; historical createdAt cannot safely start the reminder clock.
+
+Latest staged adapters: legacy-session.mjs demonstrates server-side verification of unchanged synthetic passwords with a separate single-use independent proof on fresh sessions, plus bounded session age. This is not an approved new user flow and is not mounted for production. api.mjs includes its unauthenticated entry with bounded JSON and rate limiting, admin proof issuance, and verified-email pending parent registration.
+
+providers.mjs contains disabled-by-default transport adapters and receipt classification. Tests inject fake transports; no external sends have occurred. inbound.mjs parses only private provider-verified inbound channel proof messages. The boolean transport flags are call-site contracts, not proof of webhook authenticity. No public webhook may expose these handlers without actual provider authentication.
+
+Homework delay selected by owner: two elapsed days after verified publication, only if not submitted. No reminders enabled.

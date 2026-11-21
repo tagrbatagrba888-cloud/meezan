@@ -2,7 +2,7 @@
 // after the legacy collection/write migration, never from a student's browser.
 import {createHash} from 'node:crypto';
 const eventKey=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
-export function homeworkEvents({homework,student,submissions,now=Date.now(),reminderDelayDays=null,baseline=false}){
+export function homeworkEvents({homework,student,submissions,now=Date.now(),reminderDelayDays=2,baseline=false}){
  if(baseline||homework?.status!=='published'||student?.status!=='approved')return [];
  if(!homework.id||!student.id)throw new Error('Stable IDs required');
  if(homework.grade&&homework.grade!==student.grade)return [];

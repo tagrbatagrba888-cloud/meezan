@@ -7,7 +7,7 @@ import {deleteApp,getApps} from 'firebase-admin/app';
 if(!process.env.FIRESTORE_EMULATOR_HOST||!process.env.FIREBASE_AUTH_EMULATOR_HOST)throw new Error('Emulators required');
 const {db,auth}=services();let server,base;const tokens={};
 before(async()=>{
- for(const uid of ['P1','P2','CHILD1',ADMIN_UID]){
+ for(const uid of ['P1','P2','P3','CHILD1',ADMIN_UID]){
   const email=uid.toLowerCase()+'@example.test',password='Synthetic-only-82!';
   try{await auth.createUser({uid,email,password,emailVerified:true});}catch(e){if(e.code!=='auth/uid-already-exists')throw e;}
   const r=await fetch('http://'+process.env.FIREBASE_AUTH_EMULATOR_HOST+'/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,returnSecureToken:true})});
@@ -70,4 +70,18 @@ test('channel proof endpoint is authenticated, bounded and approved-parent only'
 test('suspended parent denied even if a link still exists',async()=>{
  await db.doc('student_links/S1').set({parents:{P1:{}}});await db.doc('parents/P1').update({status:'suspended'});
  assert.equal((await call('/api/parent/me','P1')).status,403);assert.equal((await call('/api/parent/results/S1','P1')).status,403);
+});
+
+test('new parent enrollment requires verified Firebase email, explicit open registration, admin approval',async()=>{
+ assert.equal((await call('/api/parent/register','P3',{fullName:'Parent fixture'})).status,403);
+ await db.doc('parent_controls/portal').set({parentRegisterEnabled:true});
+ const r=await call('/api/parent/register','P3',{fullName:'Parent fixture',status:'approved',email:'forged@example.invalid'});
+ assert.equal(r.status,201);assert.equal(r.body.status,'pending');assert.match(r.body.code,/^PAR-[0-9]{6}$/);
+ const p=(await db.doc('parents/P3').get()).data();assert.equal(p.email,'p3@example.test');assert.equal(p.status,'pending');
+ assert.equal((await call('/api/parent/me','P3')).status,403);
+ const again=await call('/api/parent/register','P3',{fullName:'new'});assert.equal(again.body.code,r.body.code);
+});
+test('login proof endpoint cannot be called by parent or code holder',async()=>{
+ assert.equal((await call('/api/admin/login-proofs','P1',{authUid:'CHILD1',method:'in-person-known-student',evidenceReference:'test'})).status,403);
+ assert.equal((await call('/api/session/legacy',null,{username:'missing',password:'synthetic',role:'student',proof:'PAR-111111'})).status,401);
 });

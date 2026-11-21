@@ -1,7 +1,8 @@
 // Native HTTP adapter. Not mounted or deployed. Identity always comes from a verified ID token.
-import {createHash} from 'node:crypto';
+import {createHash,randomInt} from 'node:crypto';
 import {services,authenticate,requireAdmin,ADMIN_UID} from './admin.mjs';
 import {issueChannelProof} from './channels.mjs';
+import {samePasswordLogin,issueIndependentLoginProof} from './legacy-session.mjs';
 import {FieldValue} from 'firebase-admin/firestore';
 const hash=(...x)=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const safeId=x=>typeof x==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(x);
@@ -30,11 +31,47 @@ export function createHandler({getServices=services,verify=authenticate,clock=Da
   try{
    if(req.headers.origin&&req.headers.origin!==origin)throw new ApiError(403,'Origin denied');
    if(!['GET','POST'].includes(req.method))throw new ApiError(405,'Method denied');
+   const path=new URL(req.url,'https://local.invalid').pathname;
+   if(req.method==='POST'&&path==='/api/session/legacy'){
+    const body=await parseBody(req);
+    try {return reply(200,await samePasswordLogin(getServices(),body,clock()));}
+    catch{return reply(401,{error:'Account or independent verification invalid'});}
+   }
    let identity;try{identity=await verify(req.headers.authorization);}catch{throw new ApiError(401,'Authentication required');}
    const {db}=getServices(),uid=identity.uid;
    if(!safeId(uid))throw new ApiError(403,'Identity invalid');
-   const path=new URL(req.url,'https://local.invalid').pathname;
    const isAdmin=uid===ADMIN_UID;
+   if(req.method==='POST'&&path==='/api/admin/login-proofs'){
+    if(!isAdmin)throw new ApiError(403,'Admin required');
+    const body=await parseBody(req);await rateLimit(db,uid,'login-proof-issue',clock());
+    if(!safeId(body.authUid)||!['in-person-known-student','existing-independently-verified-contact'].includes(body.method)||typeof body.evidenceReference!=='string'||body.evidenceReference.length<3||body.evidenceReference.length>200)throw new ApiError(400,'Independent review reference required');
+    return reply(201,await issueIndependentLoginProof(db,{reviewerUid:uid,authUid:body.authUid,method:body.method,evidenceReference:body.evidenceReference},clock()));
+   }
+   if(req.method==='POST'&&path==='/api/parent/register'){
+    const body=await parseBody(req);
+    if(identity.email_verified!==true||!identity.email)throw new ApiError(403,'Verified email required');
+    const fullName=String(body.fullName||'').trim();
+    if(fullName.length<2||fullName.length>100)throw new ApiError(400,'Valid name required');
+    await rateLimit(db,uid,'parent-register',clock());
+    let created;
+    for(let attempt=0;attempt<5;attempt++){
+     const code='PAR-'+randomInt(100000,1000000);
+     created=await db.runTransaction(async tx=>{
+      const ref=db.doc('parents/'+uid),old=(await tx.get(ref)).data();
+      const controls=(await tx.get(db.doc('parent_controls/portal'))).data();
+      const codeRef=db.doc('parent_codes/'+code),occupied=(await tx.get(codeRef)).exists;
+      if(old)return {uid,code:old.code,status:old.status};
+      if(controls?.parentRegisterEnabled!==true)throw new ApiError(403,'Registration closed');
+      if(occupied)return null;
+      tx.create(ref,{id:uid,authUid:uid,email:identity.email,emailVerified:true,fullName,code,status:'pending',createdAt:FieldValue.serverTimestamp()});
+      tx.create(codeRef,{uid});
+      return {uid,code,status:'pending'};
+     });
+     if(created)break;
+    }
+    if(!created)throw new ApiError(503,'Registration temporarily unavailable');
+    return reply(201,created);
+   }
    if(req.method==='GET'&&path==='/api/parent/me'){
     const p=await requireParent(db,uid);
     return reply(200,{uid,fullName:p.fullName||'',code:p.code||'',status:p.status});

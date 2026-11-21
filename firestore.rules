@@ -28,6 +28,12 @@ service cloud.firestore {
       allow list: if admin();
       allow write: if false;
     }
+    match /login_names/{id} { allow read, write: if false; }
+    match /auth_credentials/{id} { allow read, write: if false; }
+    match /legacy_login_proofs/{id} { allow read, write: if false; }
+    match /legacy_login_limits/{id} { allow read, write: if false; }
+    match /parent_api_limits/{id} { allow read, write: if false; }
+    match /parent_homework_events/{id} { allow read, write: if false; }
     match /parent_result_events/{id} { allow read, write: if false; }
     match /parent_reports_meta/{id} { allow read, write: if false; }
     match /auth_identities/{uid} { allow get: if admin() || (authed() && request.auth.uid == uid); allow list, write: if admin(); }

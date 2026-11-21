@@ -1,7 +1,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {homeworkEvents} from './homework.mjs';
 const start=Date.parse('2026-11-21T10:00:00Z');
 const base={homework:{id:'H1',name:'واجب',status:'published',publishedAt:'2026-11-21T10:00:00Z',grade:'G1'},student:{id:'S1',status:'approved',grade:'G1'},submissions:[],now:start+3*86400000};
-test('unresolved delay never chooses one or two days',()=>{const e=homeworkEvents(base);assert.deepEqual(e.map(x=>x.type),['homework-published']);});
+test('unresolved delay never chooses one or two days',()=>{const e=homeworkEvents({...base,reminderDelayDays:null});assert.deepEqual(e.map(x=>x.type),['homework-published']);});
 test('explicit day choices respect exact elapsed time',()=>{
  assert.equal(homeworkEvents({...base,reminderDelayDays:1,now:start+86400000-1}).length,1);
  assert.equal(homeworkEvents({...base,reminderDelayDays:1,now:start+86400000}).length,2);
