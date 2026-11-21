@@ -224,19 +224,44 @@ async function main() {
 }
 
 // ---------- صندوق الأدمن: إيميلات جماعية من صفحة الأدمن ----------
-async function processAdminOutbox() {
-  const res = await fetch(`${BASE}/admin_outbox?pageSize=50&key=${API_KEY}`, {headers: authHeaders()});
-  if (!res.ok) { console.error('outbox list failed', res.status); return; }
-  const docs = (await res.json()).documents || [];
+async function processAdminOutbox(onlyId) {
+  let docs;
+  if (onlyId) {
+    // Scoped release: read exactly one outbox document by id. No listing, so no other queued mail can be touched.
+    const one = await fetch(`${BASE}/admin_outbox/${encodeURIComponent(onlyId)}?key=${API_KEY}`, {headers: authHeaders()});
+    if (one.status === 404) throw new Error('release outbox document not found: ' + onlyId);
+    if (!one.ok) throw new Error('release outbox read failed: ' + one.status);
+    docs = [await one.json()];
+  } else {
+    const res = await fetch(`${BASE}/admin_outbox?pageSize=50&key=${API_KEY}`, {headers: authHeaders()});
+    if (!res.ok) { console.error('outbox list failed', res.status); return; }
+    docs = (await res.json()).documents || [];
+  }
   for (const d of docs) {
     const id = d.name.split('/').pop();
     const f = {}; for (const [k, v] of Object.entries(d.fields || {})) f[k] = fromFs(v);
-    if (f.status !== 'queued') continue;
+    if (onlyId) {
+      // Scoped release docs are staged as scoped_pending, a status the broad queued filter below never matches.
+      if (f.kind !== 'release_email' || id !== onlyId) throw new Error('release doc kind/id check failed: ' + id);
+      if (f.status === 'done') {
+        if (f.sent > 0 && Array.isArray(f.deliveries) && f.deliveries.length === f.sent) { console.log(`release ${id} already done with receipts: sent=${f.sent} failed=${f.failed || 0}`); continue; }
+        throw new Error('release doc marked done but receipts do not match: ' + id);
+      }
+      if (f.status !== 'scoped_pending') throw new Error('release doc not claimable, status=' + f.status);
+      // Fresh send-time checks: named content must be published and the cohort is re-derived from current profiles. Only narrows, never widens.
+      await assertReleaseContent(f.contentChecks);
+      const cur = new Map();
+      for (const u of itemsOf(await fsGet('users/all'))) if (u && u.grade === f.releaseGrade && u.isDisabled !== true) cur.set(String(u.email || '').trim().toLowerCase(), u);
+      const before = (f.recipients || []).length;
+      f.recipients = (f.recipients || []).filter((r) => r && cur.has(String(r.email).toLowerCase()));
+      console.log(`send-time cohort check: ${f.recipients.length} of ${before} staged recipients still eligible`);
+    } else if (f.status !== 'queued') continue;
     if (f.createdBy !== ADMIN_UID) {
       await fsPatch(`admin_outbox/${id}`, {status: 'rejected', note: 'Missing verified admin ownership'});
       continue;
     }
     const recips = (f.recipients || []).filter((r) => r && r.email);
+    if (onlyId && !recips.length) throw new Error('release has no eligible recipients; nothing claimed');
     if (!recips.length) { await fsPatch(`admin_outbox/${id}`, { status: 'done', sent: 0, failed: 0, note: 'no recipients' }); continue; }
     if (!d.updateTime) throw new Error('Missing queue version; refusing unsafe claim');
     const claim = await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 }, d.updateTime);
@@ -244,8 +269,10 @@ async function processAdminOutbox() {
     let sentN = 0, failedN = 0;
     const deliveries = [];
     for (const r of recips) {
-      const html = String(f.html || '').split('{{name}}').join(r.name || 'الطالب');
-      const text = String(f.text || '').split('{{name}}').join(r.name || 'الطالب');
+      const nm = r.name || 'الطالب';
+      const nmHtml = onlyId ? nm.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : nm;
+      const html = String(f.html || '').split('{{name}}').join(nmHtml);
+      const text = String(f.text || '').split('{{name}}').join(nm);
       let receipt;
       try {
         receipt = await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
@@ -270,6 +297,41 @@ async function processAdminOutbox() {
   }
 }
 
+// ---------- Scoped release email: stage (recipients from the exact grade, one doc, never "queued") ----------
+async function assertReleaseContent(checks) {
+  if (!Array.isArray(checks) || !checks.length) throw new Error('release needs contentChecks (named published content)');
+  for (const c of checks) {
+    if (!c || !/^[A-Za-z0-9_\/-]{1,80}$/.test(String(c.path)) || c.id === undefined || c.id === '') throw new Error('bad contentCheck');
+    const hit = itemsOf(await fsGet(c.path)).find((x) => x && String(x.id) === String(c.id));
+    if (!hit || hit.published === false || (hit.status && hit.status !== 'published')) throw new Error('named content not published: ' + c.path + '#' + c.id);
+  }
+}
+async function stageRelease(releaseId) {
+  const fsmod = await import('node:fs');
+  const tpl = JSON.parse(fsmod.readFileSync(new URL('./release-emails/' + releaseId + '.json', import.meta.url), 'utf8'));
+  if (!tpl || typeof tpl.grade !== 'string' || !tpl.grade || !tpl.subject || !tpl.html || !tpl.text) throw new Error('release template needs grade, subject, html, text');
+  await assertReleaseContent(tpl.contentChecks);
+  const users = itemsOf(await fsGet('users/all'));
+  const seen = new Set(), recipients = []; let held = 0;
+  for (const u of users) {
+    const email = String((u && u.email) || '').trim().toLowerCase();
+    if (!u || u.grade !== tpl.grade || u.isDisabled === true) continue;
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) { held++; continue; }
+    if (seen.has(email)) continue;
+    seen.add(email);
+    recipients.push({ email, name: String(u.fullName || u.username || '').slice(0, 80) });
+  }
+  const created = await fsCreate('admin_outbox', releaseId, {
+    status: 'scoped_pending', kind: 'release_email', releaseGrade: tpl.grade, contentChecks: tpl.contentChecks, subject: tpl.subject, text: tpl.text, html: tpl.html,
+    recipients, createdAt: new Date().toISOString(), createdBy: ADMIN_UID
+  });
+  if (created) { console.log(`staged ${releaseId}: ${recipients.length} recipients, ${held} held for invalid email (not repaired), status scoped_pending`); return; }
+  const ex = await fsGet('admin_outbox/' + releaseId);
+  const st = ex && ex.fields && ex.fields.status ? fromFs(ex.fields.status) : 'unknown';
+  console.log(`release doc already exists, nothing staged: ${releaseId} status=${st}`);
+  if (st !== 'scoped_pending' && st !== 'done') throw new Error('existing release doc in state ' + st + ', needs manual check');
+}
+
 async function run() {
   await authenticateMailer();
   if (process.env.MAILER_MODE === 'health') {
@@ -280,6 +342,19 @@ async function run() {
     const queue = await fetch(`${BASE}/admin_outbox?pageSize=1&key=${API_KEY}`, {headers: authHeaders()});
     if (!queue.ok) throw new Error('Queue health read failed: '+queue.status);
     console.log('HEALTH OK: authenticated data reads verified; no writes or email sends performed.');
+    return;
+  }
+  if (process.env.MAILER_MODE === 'release-stage') {
+    const rid = process.env.MAILER_RELEASE_ID || '';
+    if (!/^[-A-Za-z0-9_]{1,160}$/.test(rid)) throw new Error('release-stage needs a valid MAILER_RELEASE_ID');
+    await stageRelease(rid);
+    return;
+  }
+  if (process.env.MAILER_MODE === 'release') {
+    // Scoped mode: one named outbox document only. The result-email sweep and every other queued document are skipped.
+    const releaseId = process.env.MAILER_RELEASE_ID || '';
+    if (!/^[-A-Za-z0-9_]{1,160}$/.test(releaseId)) throw new Error('release mode needs a valid MAILER_RELEASE_ID');
+    await processAdminOutbox(releaseId);
     return;
   }
   await fsPatch('result_emails_meta/heartbeat', {lastStartedAt:new Date().toISOString(), runUrl:process.env.MAILER_RUN_URL || ''});
