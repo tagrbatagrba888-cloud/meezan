@@ -190,4 +190,40 @@ async function main() {
   }
   console.log(`done. claimed=${claimed} sent=${sent} skipped_no_email=${skipped} baseline=${baseline}`);
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+
+// ---------- صندوق الأدمن: إيميلات جماعية من صفحة الأدمن ----------
+async function processAdminOutbox() {
+  const res = await fetch(`${BASE}/admin_outbox?pageSize=50&key=${API_KEY}`);
+  if (!res.ok) { console.error('outbox list failed', res.status); return; }
+  const docs = (await res.json()).documents || [];
+  for (const d of docs) {
+    const id = d.name.split('/').pop();
+    const f = {}; for (const [k, v] of Object.entries(d.fields || {})) f[k] = fromFs(v);
+    if (f.status !== 'queued') continue;
+    const recips = (f.recipients || []).filter((r) => r && r.email);
+    if (!recips.length) { await fsPatch(`admin_outbox/${id}`, { status: 'done', sent: 0, failed: 0, note: 'no recipients' }); continue; }
+    await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 });
+    let sentN = 0, failedN = 0;
+    for (const r of recips) {
+      const html = String(f.html || '').split('{{name}}').join(r.name || 'الطالب');
+      const text = String(f.text || '').split('{{name}}').join(r.name || 'الطالب');
+      try {
+        await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
+        sentN++;
+      } catch (e) {
+        failedN++;
+        console.error('outbox send failed', id, r.email, e.message);
+      }
+      await fsPatch(`admin_outbox/${id}`, { sent: sentN, failed: failedN });
+      await new Promise((ok) => setTimeout(ok, 350));
+    }
+    await fsPatch(`admin_outbox/${id}`, { status: 'done', doneAt: new Date().toISOString() });
+    console.log(`outbox ${id}: sent=${sentN} failed=${failedN}`);
+  }
+}
+
+async function run() {
+  try { await main(); } catch (e) { console.error('result poller error:', e); }
+  await processAdminOutbox();
+}
+run().catch((e) => { console.error(e); process.exit(1); });
