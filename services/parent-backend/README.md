@@ -12,3 +12,5 @@ Implemented: revocation-checked ID-token HTTP routes for parent profile/children
 Do not mount a generic authenticated REST proxy or expose the Admin SDK credentials to browsers. Backend methods must derive identity from a verified token, never a caller-provided UID. Report source corrections must be protected from student and parent writes before activation.
 
 Run only against emulators until a separate production cutover approval. `npm test` refuses to run without both emulator hosts. The production activation flag alone is not a permission grant.
+
+Homework preparation: homework.mjs evaluates published assignments against server-owned grade/audience and submitted flags. It does not select an unresolved reminder delay, infer publish time from draft creation or send externally. The existing homework schema needs a verified publishedAt at migration; historical createdAt cannot safely start the reminder clock.
