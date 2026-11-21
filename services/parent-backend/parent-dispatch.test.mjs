@@ -25,3 +25,5 @@ test('submitted uncorrected work cancels an already queued unsolved reminder',as
  assert.equal(reminder,0);
  const rows=(await db.collection('parent_delivery_jobs').get()).docs.map(x=>x.data());assert.equal(rows.find(x=>x.reportType==='homework_unsolved').status,'cancelled');
 });
+
+test('empty enabled dispatch replaces stage-only status reason',async()=>{await (await row()).ref.delete();const result=await dispatchParentEmails(db,{enabled:true,send:async()=>{throw Error('not called');}});assert.equal(result.reason,'no_eligible_pending_jobs');assert.equal(result.processed,0);});

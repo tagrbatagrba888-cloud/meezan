@@ -14,5 +14,5 @@ export async function dispatchParentEmails(db,{enabled=false,send,now=Date.now()
   // A failure, quota/rate limit or unknown result stops this batch.
   if(!outcome.sent||!outcome.providerMessageId)break;
  }
- return {processed};
+ return {processed,reason:processed?'batch_processed':'no_eligible_pending_jobs'};
 }
