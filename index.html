@@ -3464,7 +3464,7 @@ const __msgOk = () => {
   return (me in ov) ? !!ov[me] : !!c.allowAll;
 };
 function applyButtons(items) {
-  __rawBtns = items || [];
+  if (!(items || []).some(b => b && /(^|\/)schedule(\.html)?([?#]|$)/i.test(String(b.url || '')))) items = (items || []).concat([{ id: '__timetable', label: 'الجدول', url: 'schedule.html', icon: { type: 'fontawesome', value: 'fa-calendar-days' }, visible: true, order: 9999 }]);  __rawBtns = items || [];
   allCurrentButtons = (items || [])
     .filter(b => b && b.visible !== false && b.label && (!__isMsgBtn(b) || __msgOk()))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
