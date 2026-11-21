@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function emailAdmin() {
+   return request.auth != null && request.auth.uid == '4KbUOO6wrHf3jzzKvGIltsNyzFX2';
+  }
+  match /admin_outbox/{document=**} { allow read, write: if emailAdmin(); }
+  match /result_emails/{document=**} { allow read, write: if emailAdmin(); }
+  match /result_emails_meta/{document=**} { allow read, write: if emailAdmin(); }
+  // Preserve the pre-existing site's access outside this narrowly scoped email migration.
+  match /{collection}/{document=**} {
+   allow read, write: if collection != 'admin_outbox' && collection != 'result_emails' && collection != 'result_emails_meta';
+  }
+ }
+}

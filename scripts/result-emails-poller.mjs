@@ -102,7 +102,7 @@ function toFs(v) {
   return { mapValue: { fields } };
 }
 async function fsGet(path) {
-  const r = await fetch(`${BASE}/${path}?key=${API_KEY}`);
+  const r = await fetch(`${BASE}/${path}?key=${API_KEY}`, {headers: authHeaders()});
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`Firestore GET ${path}: ${r.status}`);
   return r.json();
@@ -110,7 +110,7 @@ async function fsGet(path) {
 async function fsCreate(coll, docId, data) {
   const fields = {}; for (const [k, v] of Object.entries(data)) fields[k] = toFs(v);
   const r = await fetch(`${BASE}/${coll}?documentId=${encodeURIComponent(docId)}&key=${API_KEY}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ fields })
   });
   if (r.status === 409) return null; // موجود بالفعل = تم إرساله/تسجيله
   if (!r.ok) throw new Error(`Firestore create ${docId}: ${r.status} ${(await r.text()).slice(0, 200)}`);
@@ -120,7 +120,7 @@ async function fsPatch(path, data) {
   const fields = {}; for (const [k, v] of Object.entries(data)) fields[k] = toFs(v);
   const mask = Object.keys(data).map((k) => '&updateMask.fieldPaths=' + encodeURIComponent(k)).join('');
   const r = await fetch(`${BASE}/${path}?key=${API_KEY}${mask}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ fields })
   });
   if (!r.ok) throw new Error(`Firestore patch ${path}: ${r.status}`);
   return r.json();
@@ -141,6 +141,23 @@ async function sendEmail(to, mail) {
   return res.json();
 }
 
+let AUTH_TOKEN = '';
+let ADMIN_UID = '';
+async function authenticateMailer() {
+  const email = process.env.MEEZAN_ADMIN_EMAIL;
+  const password = process.env.MEEZAN_ADMIN_PASSWORD;
+  if (!email || !password || !process.env.MEEZAN_ADMIN_UID) throw new Error('Admin authentication configuration missing; refusing to send');
+  const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + API_KEY, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email, password, returnSecureToken: true})
+  });
+  if (!response.ok) throw new Error('Mailer authentication failed: ' + response.status);
+  const result = await response.json();
+  if (result.localId !== process.env.MEEZAN_ADMIN_UID) throw new Error('Unexpected mailer identity');
+  ADMIN_UID = result.localId;
+  AUTH_TOKEN = result.idToken;
+}
+function authHeaders() { return {'Authorization': 'Bearer ' + AUTH_TOKEN}; }
 let SETTINGS = {};
 async function loadSettings() {
   try {
@@ -206,13 +223,17 @@ async function main() {
 
 // ---------- صندوق الأدمن: إيميلات جماعية من صفحة الأدمن ----------
 async function processAdminOutbox() {
-  const res = await fetch(`${BASE}/admin_outbox?pageSize=50&key=${API_KEY}`);
+  const res = await fetch(`${BASE}/admin_outbox?pageSize=50&key=${API_KEY}`, {headers: authHeaders()});
   if (!res.ok) { console.error('outbox list failed', res.status); return; }
   const docs = (await res.json()).documents || [];
   for (const d of docs) {
     const id = d.name.split('/').pop();
     const f = {}; for (const [k, v] of Object.entries(d.fields || {})) f[k] = fromFs(v);
     if (f.status !== 'queued') continue;
+    if (f.createdBy !== ADMIN_UID) {
+      await fsPatch(`admin_outbox/${id}`, {status: 'rejected', note: 'Missing verified admin ownership'});
+      continue;
+    }
     const recips = (f.recipients || []).filter((r) => r && r.email);
     if (!recips.length) { await fsPatch(`admin_outbox/${id}`, { status: 'done', sent: 0, failed: 0, note: 'no recipients' }); continue; }
     await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 });
@@ -236,6 +257,7 @@ async function processAdminOutbox() {
 }
 
 async function run() {
+  await authenticateMailer();
   try { await main(); } catch (e) { console.error('result poller error:', e); }
   await processAdminOutbox();
 }

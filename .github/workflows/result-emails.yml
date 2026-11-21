@@ -19,3 +19,6 @@ jobs:
       - run: node scripts/result-emails-poller.mjs
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          MEEZAN_ADMIN_EMAIL: ${{ secrets.MEEZAN_ADMIN_EMAIL }}
+          MEEZAN_ADMIN_PASSWORD: ${{ secrets.MEEZAN_ADMIN_PASSWORD }}
+          MEEZAN_ADMIN_UID: ${{ secrets.MEEZAN_ADMIN_UID }}
