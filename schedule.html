@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B3D2E">
+<meta name="robots" content="noindex,nofollow">
+<title>الجدول | MEEZAN</title>
+<link rel="icon" type="image/png" href="meezan-icon-32.v1.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#0B3D2E;--accent:#C9A961;--bg:#F5F1E8;--card:#fff;--text:#0B3D2E;--sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.12);--ok:#1E7A5A;--warn:#E67E22;--err:#C0392B;--info:#2980B9}
+[data-theme="dark"]{--primary:#C9A961;--accent:#0B3D2E;--bg:#0A1612;--card:#11201B;--text:#F0EDE3;--sub:#9FB0AA;--border:#22372F;--shadow:rgba(0,0,0,.4)}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 2px 10px var(--shadow)}
+.top a{color:var(--text);text-decoration:none;font-size:18px;width:38px;height:38px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--border)}
+.top h1{font-size:19px;font-weight:900}
+.top .grade{margin-inline-start:auto;font-size:13px;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--primary);color:#fff}
+[data-theme="dark"] .top .grade{color:#0A1612}
+main{max-width:760px;margin:0 auto;padding:16px}
+.note{font-size:13px;color:var(--sub);margin-bottom:14px;line-height:1.7}
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto}
+.tab{font:800 13px 'Cairo';padding:8px 16px;border-radius:999px;border:1.5px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--primary);border-color:var(--primary);color:#fff}
+[data-theme="dark"] .tab.on{color:#0A1612}
+.day{margin:18px 0 8px;font-weight:900;font-size:15px;display:flex;gap:8px;align-items:center;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+.day small{color:var(--sub);font-weight:700;margin-inline-start:auto}
+.day.today{color:var(--ok)}
+.ev{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px var(--shadow);display:flex;gap:12px}
+.ev .time{min-width:64px;text-align:center;font-weight:900;font-size:14px;color:var(--primary);border-inline-end:2px solid var(--accent);padding-inline-end:12px;display:flex;flex-direction:column;justify-content:center}
+.ev .time span{font-size:11px;color:var(--sub);font-weight:700}
+.ev h3{font-size:15px;font-weight:800;margin-bottom:4px}
+.ev p{font-size:13px;color:var(--sub);line-height:1.6;white-space:pre-wrap}
+.badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;border:1px solid var(--info);color:var(--info);margin-inline-end:6px}
+.badge.exam{border-color:var(--err);color:var(--err)}
+.badge.hw{border-color:var(--warn);color:var(--warn)}
+.badge.auto{border-color:var(--sub);color:var(--sub)}
+.ev a.lnk{display:inline-block;margin-top:6px;font-size:13px;font-weight:800;color:var(--info)}
+.empty{text-align:center;padding:48px 16px;color:var(--sub);line-height:1.9}
+.empty i{font-size:40px;color:var(--accent);display:block;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="top"><a href="index.html" title="الرئيسية"><i class="fas fa-arrow-right"></i></a><h1><i class="fas fa-calendar-days"></i> الجدول</h1><span class="grade" id="gradeTag">—</span></div>
+<main>
+  <p class="note">مواعيد فرقتك فقط، بتوقيت القاهرة. الجدول بيتحدث تلقائيًا لما الإدارة تنشر موعد جديد.</p>
+  <div class="tabs"><button class="tab on" data-f="up">القادمة</button><button class="tab" data-f="all">الكل</button><button class="tab" data-f="past">السابقة</button></div>
+  <div id="list"><div class="empty"><i class="fas fa-spinner fa-spin"></i>جاري التحميل...</div></div>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const app = initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"});
+const db = getFirestore(app);
+document.documentElement.setAttribute('data-theme', localStorage.getItem('meezan_theme') || 'light');
+if (sessionStorage.getItem('meezan_logged_in') !== 'true') location.replace('login.html');
+const role = sessionStorage.getItem('meezan_role') || 'student';
+if (role === 'parent') location.replace('parent.html');
+const userId = sessionStorage.getItem('meezan_user_id');
+const TYPES = {exam:'امتحان',homework:'واجب',deadline:'موعد تسليم',lecture:'محاضرة',review:'مراجعة',contest:'مسابقة',other:'أخرى'};
+const esc = s => { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; };
+const norm = g => String(g || '').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim();
+const cairoParts = d => { const p = new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).reduce((a,x)=>(a[x.type]=x.value,a),{}); return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`}; };
+let myGrade = '', manual = [], exams = [], filter = 'up', loaded = {u:false,t:false};
+function all() {
+  const mine = e => myGrade && norm(e.grade) === norm(myGrade);
+  const a = manual.filter(e => e.status === 'published' && e.date && mine(e)).map(e => ({...e, auto:false}));
+  exams.filter(e => e.status === 'published' && e.startAt && mine(e)).forEach(e => {
+    const dt = new Date(e.startAt); if (isNaN(dt)) return; const c = cairoParts(dt);
+    a.push({id:'exam:'+e.id,title:e.title||e.name||'امتحان',type:'exam',date:c.date,start:c.time,grade:e.grade,auto:true});
+  });
+  return a.sort((x,y) => (x.date+(x.start||'')).localeCompare(y.date+(y.start||'')));
+}
+function render() {
+  const box = document.getElementById('list');
+  document.getElementById('gradeTag').textContent = myGrade || 'غير محدد';
+  if (!loaded.u || !loaded.t) return;
+  if (!myGrade) { box.innerHTML = '<div class="empty"><i class="fas fa-circle-info"></i>فرقتك غير محددة في حسابك، فمفيش جدول يتعرض. كلّم الإدارة.</div>'; return; }
+  const now = cairoParts(new Date());
+  let items = all();
+  if (filter === 'up') items = items.filter(e => e.date >= now.date);
+  if (filter === 'past') items = items.filter(e => e.date < now.date).reverse();
+  if (!items.length) { box.innerHTML = '<div class="empty"><i class="fas fa-calendar-xmark"></i>' + (filter === 'past' ? 'مفيش مواعيد سابقة.' : 'لسه مفيش مواعيد منشورة لفرقتك.') + '</div>'; return; }
+  let html = '', last = '';
+  items.forEach(e => {
+    if (e.date !== last) {
+      last = e.date;
+      const nm = new Intl.DateTimeFormat('ar-EG',{timeZone:'Africa/Cairo',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(e.date + 'T12:00:00+02:00'));
+      html += `<div class="day ${e.date === now.date ? 'today' : ''}"><i class="fas fa-calendar-day"></i>${esc(nm)}<small>${e.date === now.date ? 'اليوم' : ''}</small></div>`;
+    }
+    const cls = e.type === 'exam' ? 'exam' : (e.type === 'homework' || e.type === 'deadline') ? 'hw' : '';
+    const t = e.start ? `${esc(e.start)}${e.end ? '<span>إلى ' + esc(e.end) + '</span>' : ''}` : '<span>طوال اليوم</span>';
+    const link = e.link && /^https?:\/\//i.test(e.link) ? `<a class="lnk" href="${esc(e.link)}" target="_blank" rel="noopener noreferrer"><i class="fas fa-link"></i> فتح الرابط</a>` : '';
+    html += `<div class="ev"><div class="time">${t}</div><div><h3>${esc(e.title)}</h3><span class="badge ${cls}">${esc(TYPES[e.type] || 'أخرى')}</span>${e.auto ? '<span class="badge auto">من صفحة الامتحانات</span>' : ''}${e.location ? '<span class="badge">' + esc(e.location) + '</span>' : ''}${e.note ? '<p>' + esc(e.note) + '</p>' : ''}${link}</div></div>`;
+  });
+  box.innerHTML = html;
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { filter = b.dataset.f; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b)); render(); });
+onSnapshot(doc(db,'users','all'), s => { const u = (s.exists() ? s.data().items || [] : []).find(x => x.id === userId); myGrade = (u && u.grade) || ''; loaded.u = true; render(); }, () => { loaded.u = true; render(); });
+onSnapshot(doc(db,'settings','timetable'), s => { manual = s.exists() ? (s.data().items || []) : []; loaded.t = true; render(); }, () => { loaded.t = true; render(); });
+onSnapshot(doc(db,'exams','all'), s => { exams = s.exists() ? (s.data().items || []) : []; render(); }, () => {});
+</script>
+</body>
+</html>
