@@ -116,12 +116,14 @@ async function fsCreate(coll, docId, data) {
   if (!r.ok) throw new Error(`Firestore create ${docId}: ${r.status} ${(await r.text()).slice(0, 200)}`);
   return r.json();
 }
-async function fsPatch(path, data) {
+async function fsPatch(path, data, expectedUpdateTime) {
   const fields = {}; for (const [k, v] of Object.entries(data)) fields[k] = toFs(v);
   const mask = Object.keys(data).map((k) => '&updateMask.fieldPaths=' + encodeURIComponent(k)).join('');
-  const r = await fetch(`${BASE}/${path}?key=${API_KEY}${mask}`, {
+  const condition = expectedUpdateTime ? '&currentDocument.updateTime=' + encodeURIComponent(expectedUpdateTime) : '';
+  const r = await fetch(`${BASE}/${path}?key=${API_KEY}${mask}${condition}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ fields })
   });
+  if (expectedUpdateTime && [409, 412].includes(r.status)) return null;
   if (!r.ok) throw new Error(`Firestore patch ${path}: ${r.status}`);
   return r.json();
 }
@@ -137,7 +139,7 @@ async function sendEmail(to, mail) {
     headers: { 'api-key': BREVO, 'Content-Type': 'application/json' },
     body: JSON.stringify({ sender: parseFrom(FROM), to: [{ email: to }], subject: mail.subject, textContent: mail.text, htmlContent: mail.html })
   });
-  if (!res.ok) throw new Error(`Brevo ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) { const error = new Error(`Brevo ${res.status}: ${(await res.text()).slice(0, 300)}`); error.providerRejected = true; error.status = res.status; throw error; }
   return res.json();
 }
 
@@ -236,22 +238,32 @@ async function processAdminOutbox() {
     }
     const recips = (f.recipients || []).filter((r) => r && r.email);
     if (!recips.length) { await fsPatch(`admin_outbox/${id}`, { status: 'done', sent: 0, failed: 0, note: 'no recipients' }); continue; }
-    await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 });
+    if (!d.updateTime) throw new Error('Missing queue version; refusing unsafe claim');
+    const claim = await fsPatch(`admin_outbox/${id}`, { status: 'sending', total: recips.length, sent: 0, failed: 0 }, d.updateTime);
+    if (!claim) { console.log('outbox changed or already claimed', id); continue; }
     let sentN = 0, failedN = 0;
     const deliveries = [];
     for (const r of recips) {
       const html = String(f.html || '').split('{{name}}').join(r.name || 'الطالب');
       const text = String(f.text || '').split('{{name}}').join(r.name || 'الطالب');
+      let receipt;
       try {
-        const receipt = await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
-        deliveries.push({email:r.email, messageId:receipt.messageId || '', acceptedAt:new Date().toISOString()});
-        sentN++;
+        receipt = await sendEmail(r.email, { subject: f.subject || 'رسالة من منصة ميزان', html, text });
       } catch (e) {
+        if (!e.providerRejected) {
+          await fsPatch(`admin_outbox/${id}`, {status:'delivery_unknown',sent:sentN,failed:failedN,deliveries,note:'Provider request outcome unknown; reconcile before retry'});
+          throw e;
+        }
         failedN++;
-        console.error('outbox send failed', id, r.email, e.message);
+        await fsPatch(`admin_outbox/${id}`, {status:'failed',sent:sentN,failed:failedN,deliveries,note:'Provider rejected request; remaining recipients not attempted',error:String(e.message)});
+        throw e; // Stop on quota/rate/provider error. No retry, no next job.
       }
-      await fsPatch(`admin_outbox/${id}`, { sent: sentN, failed: failedN, deliveries });
-      await new Promise((ok) => setTimeout(ok, 350));
+      deliveries.push({email:r.email,messageId:receipt.messageId || '',acceptedAt:new Date().toISOString()});
+      sentN++;
+      // Receipt persistence is outside the provider catch. A storage failure must
+      // never be mislabeled as failed delivery or trigger an automatic retry.
+      await fsPatch(`admin_outbox/${id}`, {sent:sentN,failed:failedN,deliveries});
+      // Sequential and receipt-first, without the former fixed 350ms delay.
     }
     await fsPatch(`admin_outbox/${id}`, { status: 'done', doneAt: new Date().toISOString() });
     console.log(`outbox ${id}: sent=${sentN} failed=${failedN}`);
