@@ -3141,6 +3141,8 @@ let drawerExpanded = false;
 // ============================================================
 function applySettings(data) {
   if (!data) return;
+  // Use the compressed copy only for the unchanged built-in logo.
+  if (data.logoUrl === 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png') data = { ...data, logoUrl: new URL('meezan-logo.v1.webp', location.href).href };
 
   if (data.logoUrl) {
     const logo = $('topbarLogo');
@@ -5105,4 +5107,4 @@ setTimeout(function(){if(!document.getElementById('meezanGate')||getComputedStyl
 })();
 </script>
 </body>
-</html>
+                     </html>
