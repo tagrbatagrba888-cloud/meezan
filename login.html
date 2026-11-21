@@ -2641,6 +2641,9 @@ $('gNationalId').addEventListener('input', (e) => {
 let __origPhoneLabel = null;
 
 function applyParentLoginUI() {
+  const google=$('googleLoginBtn');
+  google.style.display=currentLoginRole==='parent'?'none':'';
+  google.previousElementSibling.style.display=currentLoginRole==='parent'?'none':'';
   const isP = currentLoginRole === 'parent';
   const u = $('loginUsername');
   const grp = u.closest('.form-group');
@@ -2686,6 +2689,9 @@ function applyParentLoginUI() {
 }
 
 function applyParentRegUI() {
+  const google=$('googleRegisterBtn');
+  google.style.display=currentRegRole==='parent'?'none':'';
+  google.previousElementSibling.style.display=currentRegRole==='parent'?'none':'';
   const isP = currentRegRole === 'parent';
   const setReq = (el, on) => {
     if (!el) return;
