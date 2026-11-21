@@ -1,22 +1,43 @@
-# Staged parent backend building blocks
+# Parent backend: local, disabled by default
 
-Not deployed. No production sends. A native HTTP handler is implemented and emulator-tested in api.mjs, but it is not mounted or deployed. No scheduled workflow runs it.
+Not deployed. No production report sends. No proven scheduled invocation. Do not call the parent subsystem operational from source or emulator results.
 
-- `admin.mjs`: explicit production activation flag, project-bound Firebase Admin initialization, verified/revocation-checked Firebase ID tokens and exact admin UID boundary.
-- `channels.mjs`: 256-bit single-use, ten-minute channel proofs. Only a verified inbound sender in a private Telegram/WhatsApp chat can consume one. A PAR code cannot authorize a destination. Proof text must not be logged or stored in a public URL.
-- `reports.mjs`: private per-child notices, deduplicated versioned results, persistent per-recipient/per-channel jobs, access and consent rechecked at delivery claim, conservative retries. Ambiguous provider outcomes need reconciliation, not blind resend.
-- `backend.test.mjs`: Firebase emulator tests. No external providers are contacted.
+## Selected limited path
 
-Implemented: revocation-checked ID-token HTTP routes for parent profile/children/results, rate-limited link requests, admin-reviewed atomic linking/unlinking and proof issuance. Still required: deployment mounting, proof issuance UI, verified inbound Telegram/WhatsApp adapters, verified-email enrollment, provider delivery adapters and per-provider receipt reconciliation, scheduled dispatch, monitoring, and full legacy access migration.
+- Existing student/teacher login and passwords are unchanged. No extra legacy login code is mounted.
+- New parents use the shared login and verified Firebase email. Profile and parent/student relationships need authenticated admin approval.
+- `firestore.parent-only.rules` is the current limited candidate. It protects new parent data and preserves inherited legacy behavior, including public legacy source access. It is not deployed and is not a whole-site isolation fix.
+- `client-store.mjs` uses the existing authenticated Firebase admin identity and honors rules. No privileged key is exposed to the browser.
+- `worker.mjs` reads legacy results/homework and stages private projections/notices and durable delivery jobs. It never sends externally. `scripts/parent-reports-poller.mjs --stage-only` is an explicit staging runner, not a scheduler.
 
-Do not mount a generic authenticated REST proxy or expose the Admin SDK credentials to browsers. Backend methods must derive identity from a verified token, never a caller-provided UID. Report source corrections must be protected from student and parent writes before activation.
+Legacy shared academic records remain broadly writable/readable under the inherited fallback. Their contents cannot be described as tamper-proof. The experimental strict rules and academic migration source are not the selected rollout and have not been integrated into legacy pages.
 
-Run only against emulators until a separate production cutover approval. `npm test` refuses to run without both emulator hosts. The production activation flag alone is not a permission grant.
+## Report controls
 
-Homework preparation: homework.mjs evaluates published assignments against server-owned grade/audience and submitted flags. It does not select an unresolved reminder delay, infer publish time from draft creation or send externally. The existing homework schema needs a verified publishedAt at migration; historical createdAt cannot safely start the reminder clock.
+`settings.mjs` normalizes `parent_report_settings/global`, schemaVersion 1. Types are exam_result, homework_result, homework_published and homework_unsolved. Channels are inSite, email, whatsapp and telegram. Missing/invalid settings default to disabled. The worker consumes explicit enabled/type/channel booleans during staging.
 
-Latest staged adapters: legacy-session.mjs demonstrates server-side verification of unchanged synthetic passwords with a separate single-use independent proof on fresh sessions, plus bounded session age. This is not an approved new user flow and is not mounted for production. api.mjs includes its unauthenticated entry with bounded JSON and rate limiting, admin proof issuance, and verified-email pending parent registration.
+The unsolved delay is fixed at 48 hours. Submitted homework suppresses a reminder even if uncorrected. Publication starts at first observation because legacy homework lacks reliable publishedAt. Baseline and events observed while disabled are not backfilled. Results still update the linked-child projection with notices disabled. There is no running delivery dispatcher; toggles do not authorize sending pending jobs.
 
-providers.mjs contains disabled-by-default transport adapters and receipt classification. Tests inject fake transports; no external sends have occurred. inbound.mjs parses only private provider-verified inbound channel proof messages. The boolean transport flags are call-site contracts, not proof of webhook authenticity. No public webhook may expose these handlers without actual provider authentication.
+`reports.mjs` stages result projections and jobs. `homework.mjs` stages publication/reminder notices and jobs. Recipient access and consent are rechecked on claim. External provider acceptance is not proof of delivery.
 
-Homework delay selected by owner: two elapsed days after verified publication, only if not submitted. No reminders enabled.
+## Manual-channel contract
+
+`manual-queue.mjs` handles WhatsApp/Telegram `channel_outbox` requests, freezing approved message text, verified parent recipients and payload hash. Recipient states distinguish queued, sending, accepted, delivered, failed and held_unknown. Unknown transport outcomes never blind-retry. `processManualQueue` is disabled by default and requires an injected sender and explicit channel readiness. Only fake transports have been exercised.
+
+The UI must show exact text and recipients for confirmation. Save draft is not approval_requested. Current UI for undeployed channels must stay draft-only. The parent settings, readiness, outbox root and recipient documents are admin-only under the limited candidate rules, not under deployed rules yet.
+
+`readiness(channel)` returns a disconnected safe default. No operational readiness probe/updater is mounted. Intended UI document is `messaging_channels/{channel}`; UI may not mark itself connected. Email keeps its separate existing outbox implementation.
+
+## Providers and channel linking
+
+`channels.mjs` implements 256-bit, single-use, ten-minute private channel proofs; a PAR code is not authority. `inbound.mjs` needs an authenticated trusted provider call-site, not a browser assertion. No public provider webhook is mounted.
+
+`providers.mjs` is disabled by default. Tests inject fake transports. Manual channel text is sent exactly as approved, without an added heading. Email requires a verified sender. The WhatsApp bridge source uses payload-bound durable idempotency and holds uncertain sends, but requires durable storage, a single bridge process, hosting and dedicated account pairing before operation. No Telegram bot connection is configured here.
+
+## API and experiments
+
+`api.mjs` is an unmounted authenticated HTTP handler for parent profile/results/children, bounded link requests, admin review/unlink and channel proof issuance. No legacy extra-proof session route is mounted. `legacy-session.mjs` is retained only as a synthetic test experiment; do not activate it. Broad legacy migration is stopped.
+
+## Validation and activation
+
+Tests require Firestore and Auth emulators and refuse normal production execution. They cover the tested local scope only. A production activation environment flag is a mechanical gate, never permission to send, deploy, spend or push. Separate source-grounded approval is still required for those actions.

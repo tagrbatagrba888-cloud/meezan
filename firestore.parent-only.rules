@@ -1,0 +1,69 @@
+rules_version = '2';
+// CANDIDATE ONLY: protects the new parent subsystem, NOT the public legacy site.
+// Requires review against the actual current rules before any approved cutover.
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function admin(){return request.auth != null && request.auth.uid == '4KbUOO6wrHf3jzzKvGIltsNyzFX2';}
+  function approvedParent(){return request.auth != null && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.status == 'approved';}
+  function linked(sid){return approvedParent() && request.auth.uid in get(/databases/$(database)/documents/student_links/$(sid)).data.get('parents',{}).keys();}
+  match /parents/{uid} {
+   allow get: if admin() || (request.auth != null && request.auth.uid == uid);
+   allow list, update, delete: if admin();
+   allow create: if admin() || (request.auth != null && request.auth.uid == uid
+    && request.auth.token.email_verified == true
+    && request.resource.data.keys().hasOnly(['id','authUid','email','emailVerified','fullName','phone','code','status','createdAt','updatedAt'])
+    && request.resource.data.id == uid && request.resource.data.authUid == uid
+    && request.resource.data.email == request.auth.token.email
+    && request.resource.data.emailVerified == true
+    && request.resource.data.status == 'pending'
+    && request.resource.data.fullName is string && request.resource.data.fullName.size() >= 2 && request.resource.data.fullName.size() <= 100
+    && request.resource.data.code.matches('PAR-[0-9]{6}')
+    && getAfter(/databases/$(database)/documents/parent_codes/$(request.resource.data.code)).data.uid == uid);
+  }
+  match /parent_codes/{id} {
+   allow read,update,delete: if admin();
+   allow create: if admin() || (request.auth != null && request.auth.token.email_verified == true
+    && request.resource.data.keys().hasOnly(['uid']) && request.resource.data.uid == request.auth.uid
+    && getAfter(/databases/$(database)/documents/parents/$(request.auth.uid)).data.code == id);
+  }
+  match /student_codes/{id} {allow read, write: if admin();}
+  match /parent_links/{uid} {allow get: if admin() || (approvedParent() && request.auth.uid == uid);allow list,write: if admin();}
+  match /student_links/{sid} {allow get: if admin() || linked(sid);allow list,write: if admin();}
+  match /student_results/{sid} {allow get: if admin() || linked(sid);allow list: if admin();allow write: if admin();}
+  match /parent_controls/{id} {allow get: if id == 'portal';allow list,write: if admin();}
+  match /parent_notifications/{uid}/items/{id} {allow read: if admin() || (approvedParent() && request.auth.uid == uid);allow write: if admin();}
+  match /parent_student_notifications/{uid}/students/{sid}/items/{id} {allow read: if admin() || (request.auth != null && request.auth.uid == uid && linked(sid));allow write: if admin();}
+  match /parent_link_requests/{id} {
+   allow read: if admin() || (request.auth != null && resource.data.requesterUid == request.auth.uid);
+   allow create: if approvedParent()
+    && request.resource.data.keys().hasOnly(['requesterUid','kind','targetCode','status','createdAt'])
+    && request.resource.data.requesterUid == request.auth.uid
+    && request.resource.data.kind == 'parent'
+    && request.resource.data.status == 'pending'
+    && request.resource.data.targetCode.matches('USR-[0-9]{6}')
+    && request.resource.data.createdAt == request.time;
+   allow update,delete: if admin();
+  }
+  // Preserve the exact email admin boundary, including nested documents.
+  match /admin_outbox/{id=**} {allow read,write: if admin();}
+  match /result_emails/{id=**} {allow read,write: if admin();}
+  match /result_emails_meta/{id=**} {allow read,write: if admin();}
+  // Existing authenticated admin is the worker identity. Ordinary clients cannot
+  // read channel proofs/jobs; the runner still honors rules instead of a public key.
+  match /{workerCollection}/{id} {
+   allow read,write: if admin() && workerCollection in ['parent_result_events','parent_reports_meta','parent_channels','parent_channel_proofs','parent_delivery_jobs','parent_homework_events','parent_api_limits','parent_homework_state','parent_report_settings','messaging_channels','channel_outbox'];
+  }
+  match /channel_outbox/{jobId}/recipients/{id} {allow read,write: if admin();}
+  // Known new server-owned collections are excluded from the inherited fallback.
+  // All other legacy access remains unchanged and insecure. This is NOT an isolation claim.
+  match /{collection}/{document=**} {
+   allow read,write: if !(collection in [
+    'parents','parent_codes','student_codes','parent_links','student_links','student_results',
+    'parent_controls','parent_notifications','parent_student_notifications','parent_link_requests',
+    'parent_result_events','parent_reports_meta','parent_channels','parent_channel_proofs',
+    'parent_delivery_jobs','parent_homework_events','parent_homework_state','parent_report_settings','messaging_channels','channel_outbox','parent_api_limits',
+    'admin_outbox','result_emails','result_emails_meta'
+   ]);
+  }
+ }
+}

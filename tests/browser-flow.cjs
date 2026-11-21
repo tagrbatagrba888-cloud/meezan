@@ -1,5 +1,3 @@
-// Requires the separately delivered admin amr.html fixture in the local preview root.
-// It is deliberately absent from this user-version repository.
 const puppeteer=require(process.env.PUPPETEER_CORE_PATH || 'puppeteer-core');
 (async()=>{
  const browser=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox','--disable-dev-shm-usage']});
@@ -21,11 +19,10 @@ const puppeteer=require(process.env.PUPPETEER_CORE_PATH || 'puppeteer-core');
  await parent.type('#loginUsername','parent1@test.com');await parent.type('#loginPassword','Local-test-only-739!');await parent.click('#loginBtn');
  await parent.waitForFunction(()=>document.body.textContent.includes('ليس حساب الإدارة المعتمد'),{timeout:20000});
  console.log('PASS: non-admin rejected by admin UI');
- // Sign in via Firebase emulator SDK on the parent page before the auth route guard redirects.
- // Admin guard signs out non-admin accounts, so seed parent auth via isolated fixture page instead.
- await parent.goto('http://127.0.0.1:8899/tests/auth-fixture.html',{waitUntil:'networkidle2'});
- await parent.waitForFunction(()=>document.body.dataset.ready==='yes');
- await parent.goto('http://127.0.0.1:8899/parent.html',{waitUntil:'networkidle2'});
+ await parent.goto('http://127.0.0.1:8899/login.html',{waitUntil:'networkidle2'});
+ await parent.waitForFunction(()=>{const b=document.querySelector('[data-role="parent"]');return b&&!b.disabled;});
+ await parent.click('[data-role="parent"]');
+ await parent.type('#loginUsername','parent1@test.com');await parent.type('#loginPassword','Local-test-only-739!');await parent.click('#loginBtn');
  await parent.waitForFunction(()=>document.querySelector('#app').style.display==='block');
  await parent.type('#childCodeInput','USR-123456');await parent.click('#addChildBtn');
  await parent.waitForFunction(()=>document.querySelector('#toast').textContent.includes('طلب الربط'),{timeout:15000});

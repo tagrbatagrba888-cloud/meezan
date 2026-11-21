@@ -225,12 +225,6 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
 <div class="toast" id="toast"></div>
 
 <script type="module">
-// Safety hold. This preview must not access production parent data.
-if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
-  document.body.innerHTML = '<main dir="rtl" style="padding:40px;font-family:sans-serif;text-align:center">حسابات أولياء الأمور قيد التجهيز الآمن. الخدمة غير مفعلة حالياً.</main>';
-  throw new Error('Parent feature held pending authenticated backend migration');
-}
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, deleteField, serverTimestamp, collection, addDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";

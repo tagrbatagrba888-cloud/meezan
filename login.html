@@ -1431,11 +1431,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transi
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
   getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp,
-  collection, getDocs, query, where, connectFirestoreEmulator
+  collection, getDocs, query, where, writeBatch, connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { 
   getAuth, GoogleAuthProvider, signInWithPopup, signOut,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, connectAuthEmulator
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, updateProfile, connectAuthEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -2124,8 +2124,9 @@ let studentLoginEnabled = true;
 let teacherLoginEnabled = true;
 let studentRegisterEnabled = true;
 let teacherRegisterEnabled = true;
-let parentLoginEnabled = false;
-let parentRegisterEnabled = false;
+let parentPortalSettings = {};
+let parentLoginEnabled = true;
+let parentRegisterEnabled = true;
 let nationalIdEnabled = false;
 let currentLoginRole = 'student';
 let currentRegRole = 'student';
@@ -2170,8 +2171,8 @@ function applySettings(data) {
   teacherLoginEnabled = data.teacherLoginEnabled !== false;
   studentRegisterEnabled = data.studentRegisterEnabled !== false;
   teacherRegisterEnabled = data.teacherRegisterEnabled !== false;
-  parentLoginEnabled = false; // Safety hold until server-side migration.
-  parentRegisterEnabled = false; // Safety hold until server-side migration.
+  parentLoginEnabled = data.parentLoginEnabled !== false && parentPortalSettings.parentLoginEnabled !== false;
+  parentRegisterEnabled = data.parentRegisterEnabled !== false && parentPortalSettings.parentRegisterEnabled !== false;
 
   nationalIdEnabled = data.nationalIdEnabled === true;
   if (nationalIdEnabled) {
@@ -2726,6 +2727,29 @@ function mapParentAuthError(err) {
   return (err && err.message) || 'حدث خطأ، حاول مرة أخرى';
 }
 
+onSnapshot(doc(db,'parent_controls','portal'), snap => {
+  parentPortalSettings=snap.data()||{};
+  applySettings(currentSettings||{});
+},()=>{});
+
+async function ensureVerifiedParentProfile(user, supplied = {}) {
+  await user.reload();
+  if(!user.emailVerified)throw new Error('افتح رسالة تأكيد البريد أولاً، ثم سجّل الدخول مجدداً');
+  await user.getIdToken(true);
+  const existing=await getDoc(doc(db,'parents',user.uid));
+  if(existing.exists())return existing.data();
+  const name=String(supplied.fullName||user.displayName||$('loginUsername').value.split('@')[0]).trim();
+  if(name.length<2)throw new Error('الاسم مطلوب لإنشاء حساب ولي الأمر');
+  for(let i=0;i<5;i++){
+    const n=new Uint32Array(1);crypto.getRandomValues(n);
+    const code='PAR-'+String(100000+n[0]%900000),now=new Date().toISOString();
+    const parent={id:user.uid,authUid:user.uid,email:user.email,emailVerified:true,fullName:name,phone:String(supplied.phone||''),code,status:'pending',createdAt:now,updatedAt:now};
+    try{
+      const b=writeBatch(db);b.set(doc(db,'parents',user.uid),parent);b.set(doc(db,'parent_codes',code),{uid:user.uid});await b.commit();return parent;
+    }catch(e){if(i===4)throw e;}
+  }
+}
+
 async function handleParentLogin(email, password) {
   if (!parentLoginEnabled) return showError('تسجيل دخول أولياء الأمور مغلق حالياً');
   const cleanEmail = (email || '').trim().toLowerCase();
@@ -2736,11 +2760,9 @@ async function handleParentLogin(email, password) {
   try {
     const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
     const uid = cred.user.uid;
-    const psnap = await getDoc(doc(db, 'parents', uid));
-    if (!psnap.exists()) { try { await signOut(auth); } catch (e) {} throw new Error('لا يوجد حساب ولي أمر بهذا البريد'); }
-    const parent = psnap.data();
+    const parent = await ensureVerifiedParentProfile(cred.user);
     if (parent.status === 'pending') { try { await signOut(auth); } catch (e) {} throw new Error(PENDING_LOGIN_MSG); }
-    if (parent.status === 'rejected') { try { await signOut(auth); } catch (e) {} throw new Error('عذراً، تم رفض طلب إنشاء حسابك من قبل الإدارة'); }
+    if (parent.status !== 'approved') { try { await signOut(auth); } catch (e) {} throw new Error('الحساب غير مفعّل. راجع الإدارة'); }
     saveSession(parent, 'parent', cleanEmail);
     $('loginUsername').value = ''; $('loginPassword').value = '';
     showSuccess(`مرحباً ${parent.fullName || ''}! جاري التوجيه...`);
@@ -2773,25 +2795,10 @@ async function handleParentRegister() {
   btn.disabled = true; spinner.classList.add('show'); icon.style.display = 'none'; btnText.textContent = 'جاري إنشاء الحساب...';
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
-    const now = new Date().toISOString();
-    const requireApproval = !!(currentSettings && currentSettings.parentApprovalRequired === true);
-    const parentDoc = {
-      id: uid, authUid: uid, fullName, email, phone,
-      code: 'PAR-' + Date.now().toString().slice(-6),
-      status: requireApproval ? 'pending' : 'approved',
-      whatsapp: '', telegramChatId: null, avatarUrl: '', googleAuth: false,
-      isOnline: true, lastSeen: now, createdAt: now, updatedAt: now
-    };
-    await setDoc(doc(db, 'parents', uid), parentDoc);
-    if (parentDoc.status === 'pending') {
-      try { await signOut(auth); } catch (e) {}
-      showSuccess(PENDING_REGISTER_MSG, 8000);
-      return;
-    }
-    saveSession(parentDoc, 'parent', email);
-    showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    goHomeAfterPush(parentDoc, 'parent', 500);
+    await updateProfile(cred.user,{displayName:fullName});
+    await sendEmailVerification(cred.user);
+    await signOut(auth);
+    showSuccess('تم إنشاء بيانات الدخول. افتح رسالة تأكيد البريد، ثم سجّل الدخول من نفس الصفحة ليصل طلبك للإدارة.', 12000);
   } catch (err) {
     console.error(err);
     showError(mapParentAuthError(err));

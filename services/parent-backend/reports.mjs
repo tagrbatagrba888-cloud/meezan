@@ -1,7 +1,7 @@
 // Staged private report projection and durable per-recipient delivery jobs. No sends.
 import {createHash} from 'node:crypto';
 const key=(...parts)=>createHash('sha256').update(JSON.stringify(parts)).digest('hex');
-export async function stageResult(db,{studentId,resultId,revision='1',name,studentName,score,totalScore,kind,correctedAt},baseline=false){
+export async function stageResult(db,{studentId,resultId,revision='1',name,studentName,score,totalScore,kind,correctedAt},baseline=false,controls={enabled:true,channels:{inSite:true,email:true,telegram:true,whatsapp:true}}){
  if(!studentId||!resultId||!Number.isFinite(score)||!Number.isFinite(totalScore)||totalScore<=0||score<0||score>totalScore||!['exam','homework'].includes(kind))throw new Error('Invalid result');
  const eventId=key(studentId,resultId,revision);
  const event=db.doc('parent_result_events/'+eventId);
@@ -20,14 +20,14 @@ export async function stageResult(db,{studentId,resultId,revision='1',name,stude
   const items=[result,...(prior.items||[]).filter(x=>x.key!==resultId)].slice(0,200);
   tx.set(projectionRef,{studentId,items,updatedAt:Date.now()});
   let jobs=0;
-  if(!baseline)for(const {uid,parent,channels} of recipients){
+  if(!baseline&&controls.enabled)for(const {uid,parent,channels} of recipients){
    const title='نتيجة جديدة: '+String(studentName||'الطالب');
    const body=String(name||'')+': '+score+'/'+totalScore;
-   tx.set(db.doc('parent_student_notifications/'+uid+'/students/'+studentId+'/items/'+eventId),{title,body,read:false,studentId,createdAt:Date.now()});
+   if(controls.channels.inSite)tx.set(db.doc('parent_student_notifications/'+uid+'/students/'+studentId+'/items/'+eventId),{title,body,read:false,studentId,createdAt:Date.now()});
    // Email must be verified by enrollment. Phone/chat must be proved by inbound channel challenge.
    const destinations={};
-   if(parent.emailVerified===true && parent.email)destinations.email=parent.email;
-   for(const channel of ['telegram','whatsapp'])if(channels[channel]?.enabled&&channels[channel]?.verifiedAt)destinations[channel]=channels[channel].destination;
+   if(controls.channels.email && parent.emailVerified===true && parent.email)destinations.email=parent.email;
+   for(const channel of ['telegram','whatsapp'])if(controls.channels[channel]&&channels[channel]?.enabled&&channels[channel]?.verifiedAt)destinations[channel]=channels[channel].destination;
    for(const [channel,destination] of Object.entries(destinations)){
     const id=key(eventId,uid,channel);
     tx.set(db.doc('parent_delivery_jobs/'+id),{eventId,parentUid:uid,studentId,channel,destination,title,body,status:'pending',attempts:0,createdAt:Date.now()});jobs++;
