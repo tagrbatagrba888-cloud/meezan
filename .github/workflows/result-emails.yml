@@ -5,8 +5,12 @@ on:
       mode:
         description: 'process sends normal approved work; health only reads data'
         type: choice
-        options: [health, process]
+        options: [health, process, release-stage, release]
         default: health
+      release_id:
+        description: 'Only for release-stage and release modes: exact admin_outbox document id'
+        type: string
+        required: false
 concurrency:
   group: result-emails
   cancel-in-progress: false
@@ -27,6 +31,7 @@ jobs:
           MEEZAN_ADMIN_PASSWORD: ${{ secrets.MEEZAN_ADMIN_PASSWORD }}
           MEEZAN_ADMIN_UID: ${{ secrets.MEEZAN_ADMIN_UID }}
           MAILER_MODE: ${{ inputs.mode || 'health' }}
+          MAILER_RELEASE_ID: ${{ inputs.release_id }}
           MAILER_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   parent_refresh:
