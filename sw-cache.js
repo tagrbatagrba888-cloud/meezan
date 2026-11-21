@@ -3,6 +3,7 @@
   const VERSION = 'meezan-v2-20261121';
   const SHELL = VERSION + '-shell';
   const DATA = VERSION + '-data';
+  const BRAND = VERSION + '-brand';
   const BASE = new URL('./', self.location.href);
   const local = path => new URL(path, BASE).href;
   // All entries exist in the shipped repository. Optional content is lazy-loaded.
@@ -21,7 +22,7 @@
     event.waitUntil(caches.open(SHELL).then(cache => cache.addAll(REQUIRED.map(local))));
   });
   self.addEventListener('activate', event => {
-    event.waitUntil(caches.keys().then(names => Promise.all(names.filter(name => name.startsWith('meezan-') && name !== SHELL && name !== DATA).map(name => caches.delete(name)))));
+    event.waitUntil(caches.keys().then(names => Promise.all(names.filter(name => name.startsWith('meezan-') && name !== SHELL && name !== DATA && name !== BRAND).map(name => caches.delete(name)))));
   });
   self.addEventListener('fetch', event => {
     const request = event.request;
@@ -30,19 +31,22 @@
     const name = url.pathname.slice(BASE.pathname.length);
     const isPage = request.mode === 'navigate';
     const isCode = /\.(?:js|css|webmanifest)$/.test(name) || name === 'manifest.json';
+    const isBrand = /^meezan-(?:logo|icon-\d+)\.v1\.(?:png|webp)$/.test(name);
     const isData = ['quran.json', 'tafsir.json', 'asbab.json', 'erab.json', 'lessons.json'].includes(name);
-    if (!isPage && !isCode && !isData) return;
-    const cacheName = isData ? DATA : SHELL;
+    if (!isPage && !isCode && !isData && !isBrand) return;
+    const cacheName = isBrand ? BRAND : isData ? DATA : SHELL;
     async function network() {
       const response = await fetch(request, {cache: 'no-cache'});
       if (response.status >= 500) throw new Error('Server unavailable');
-      await store(cacheName, request, response, isData ? MAX_DATA : MAX_PAGES);
+      await store(cacheName, request, response, isBrand ? 8 : isData ? MAX_DATA : MAX_PAGES);
       return response;
     }
     let update;
     const responsePromise = (async () => {
       const cache = await caches.open(cacheName);
       const cached = await cache.match(request);
+      // Versioned branding is immutable; account pages still use the network policy below.
+      if (isBrand && cached) return cached;
       // JSON explicitly revalidated by the page must reach the network.
       if (isData && cached && request.cache !== 'no-cache' && request.cache !== 'reload') {
         update = network();

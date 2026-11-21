@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#0B3D2E">
 <title>ميزان | عرض المستخدم</title>
-<link rel="icon" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link rel="icon" href="meezan-icon-32.v1.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
@@ -183,7 +183,7 @@ const db=getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-
 
 if(sessionStorage.getItem('meezan_logged_in')!=='true'){ try{localStorage.setItem('meezan_next',location.href)}catch(e){} location.replace('login.html'); }
 document.documentElement.dataset.theme=localStorage.getItem('meezan_theme')||'light';
-const ADMIN='meezan', LOGO='https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
+const ADMIN='meezan', LOGO='meezan-logo.v1.webp';
 const me=sessionStorage.getItem('meezan_user_id')||'', id=new URLSearchParams(location.search).get('id')||'', R=document.getElementById('root');
 let meData={}; try{meData=JSON.parse(sessionStorage.getItem('meezan_user_data')||'{}')||{}}catch(e){}
 const myName=meData.fullName||meData.username||sessionStorage.getItem('meezan_username')||'مستخدم';
