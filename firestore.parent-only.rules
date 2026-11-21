@@ -10,11 +10,10 @@ service cloud.firestore {
    allow get: if admin() || (request.auth != null && request.auth.uid == uid);
    allow list, update, delete: if admin();
    allow create: if admin() || (request.auth != null && request.auth.uid == uid
-    && request.auth.token.email_verified == true
-    && request.resource.data.keys().hasOnly(['id','authUid','email','emailVerified','fullName','phone','code','status','createdAt','updatedAt'])
+    && request.resource.data.keys().hasOnly(['id','authUid','email','emailVerified','fullName','phone','code','status','createdAt','updatedAt','googleAuth','avatarUrl'])
     && request.resource.data.id == uid && request.resource.data.authUid == uid
     && request.resource.data.email == request.auth.token.email
-    && request.resource.data.emailVerified == true
+    && request.resource.data.emailVerified is bool
     && request.resource.data.status == 'pending'
     && request.resource.data.fullName is string && request.resource.data.fullName.size() >= 2 && request.resource.data.fullName.size() <= 100
     && request.resource.data.code.matches('PAR-[0-9]{6}')
@@ -22,7 +21,7 @@ service cloud.firestore {
   }
   match /parent_codes/{id} {
    allow read,update,delete: if admin();
-   allow create: if admin() || (request.auth != null && request.auth.token.email_verified == true
+   allow create: if admin() || (request.auth != null
     && request.resource.data.keys().hasOnly(['uid']) && request.resource.data.uid == request.auth.uid
     && getAfter(/databases/$(database)/documents/parents/$(request.auth.uid)).data.code == id);
   }
@@ -40,7 +39,10 @@ service cloud.firestore {
     && request.resource.data.requesterUid == request.auth.uid
     && request.resource.data.kind == 'parent'
     && request.resource.data.status == 'pending'
-    && request.resource.data.targetCode.matches('USR-[0-9]{6}')
+    && request.resource.data.targetCode is string
+    && request.resource.data.targetCode.size() > 0
+    && request.resource.data.targetCode.size() <= 64
+    && exists(/databases/$(database)/documents/student_codes/$(request.resource.data.targetCode))
     && request.resource.data.createdAt == request.time;
    allow update,delete: if admin();
   }

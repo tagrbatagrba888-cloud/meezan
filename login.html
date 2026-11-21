@@ -2641,9 +2641,6 @@ $('gNationalId').addEventListener('input', (e) => {
 let __origPhoneLabel = null;
 
 function applyParentLoginUI() {
-  const google=$('googleLoginBtn');
-  google.style.display=currentLoginRole==='parent'?'none':'';
-  google.previousElementSibling.style.display=currentLoginRole==='parent'?'none':'';
   const isP = currentLoginRole === 'parent';
   const u = $('loginUsername');
   const grp = u.closest('.form-group');
@@ -2689,9 +2686,6 @@ function applyParentLoginUI() {
 }
 
 function applyParentRegUI() {
-  const google=$('googleRegisterBtn');
-  google.style.display=currentRegRole==='parent'?'none':'';
-  google.previousElementSibling.style.display=currentRegRole==='parent'?'none':'';
   const isP = currentRegRole === 'parent';
   const setReq = (el, on) => {
     if (!el) return;
@@ -2739,8 +2733,6 @@ onSnapshot(doc(db,'parent_controls','portal'), snap => {
 },()=>{});
 
 async function ensureVerifiedParentProfile(user, supplied = {}) {
-  await user.reload();
-  if(!user.emailVerified)throw new Error('افتح رسالة تأكيد البريد أولاً، ثم سجّل الدخول مجدداً');
   await user.getIdToken(true);
   const existing=await getDoc(doc(db,'parents',user.uid));
   if(existing.exists())return existing.data();
@@ -2749,7 +2741,7 @@ async function ensureVerifiedParentProfile(user, supplied = {}) {
   for(let i=0;i<5;i++){
     const n=new Uint32Array(1);crypto.getRandomValues(n);
     const code='PAR-'+String(100000+n[0]%900000),now=new Date().toISOString();
-    const parent={id:user.uid,authUid:user.uid,email:user.email,emailVerified:true,fullName:name,phone:String(supplied.phone||''),code,status:'pending',createdAt:now,updatedAt:now};
+    const parent={id:user.uid,authUid:user.uid,email:user.email,emailVerified:user.emailVerified===true,fullName:name,phone:String(supplied.phone||''),googleAuth:supplied.googleAuth===true,avatarUrl:String(supplied.avatarUrl||''),code,status:'pending',createdAt:now,updatedAt:now};
     try{
       const b=writeBatch(db);b.set(doc(db,'parents',user.uid),parent);b.set(doc(db,'parent_codes',code),{uid:user.uid});await b.commit();return parent;
     }catch(e){if(i===4)throw e;}
@@ -2802,9 +2794,9 @@ async function handleParentRegister() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user,{displayName:fullName});
-    await sendEmailVerification(cred.user);
+    await ensureVerifiedParentProfile(cred.user,{fullName,phone});
     await signOut(auth);
-    showSuccess('تم إنشاء بيانات الدخول. افتح رسالة تأكيد البريد، ثم سجّل الدخول من نفس الصفحة ليصل طلبك للإدارة.', 12000);
+    showSuccess(PENDING_REGISTER_MSG, 8000);
   } catch (err) {
     console.error(err);
     showError(mapParentAuthError(err));
@@ -2814,7 +2806,6 @@ async function handleParentRegister() {
 }
 
 async function handleGoogleParent(mode) {
-  return showError("حسابات أولياء الأمور قيد التجهيز الآمن حالياً");
   hideAllMessages();
   const btn = mode === 'login' ? $('googleLoginBtn') : $('googleRegisterBtn');
   const originalHTML = btn.innerHTML;
@@ -2838,25 +2829,10 @@ async function handleGoogleParent(mode) {
     }
 
     if (psnap.exists()) throw new Error('هذا البريد مسجّل بالفعل — سجّل الدخول بدلاً من إنشاء حساب');
-    const now = new Date().toISOString();
-    const requireApproval = !!(currentSettings && currentSettings.parentApprovalRequired === true);
-    const parentDoc = {
-      id: uid, authUid: uid, fullName: g.displayName || '', email: (g.email || '').toLowerCase(), phone: '',
-      code: 'PAR-' + Date.now().toString().slice(-6),
-      status: requireApproval ? 'pending' : 'approved',
-      whatsapp: '', telegramChatId: null, avatarUrl: g.photoURL || '', googleAuth: true,
-      isOnline: true, lastSeen: now, createdAt: now, updatedAt: now
-    };
-    await setDoc(doc(db, 'parents', uid), parentDoc);
-    try { await setDoc(doc(db, 'parent_codes', parentDoc.code), { uid }); } catch (e) { console.warn('parent_codes write:', e); }
-    if (parentDoc.status === 'pending') {
-      try { await signOut(auth); } catch (e) {}
-      showSuccess(PENDING_REGISTER_MSG, 8000);
-      return;
-    }
-    saveSession(parentDoc, 'parent', parentDoc.email);
-    showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
-    goHomeAfterPush(parentDoc, 'parent', 500);
+    await ensureVerifiedParentProfile(g,{fullName:g.displayName||'',googleAuth:true,avatarUrl:g.photoURL||''});
+    try { await signOut(auth); } catch (e) {}
+    showSuccess(PENDING_REGISTER_MSG, 8000);
+    return;
   } catch (err) {
     console.error(err);
     if (err && err.code !== 'auth/popup-closed-by-user') showError(mapParentAuthError(err), err.message === PENDING_LOGIN_MSG ? 8000 : undefined);

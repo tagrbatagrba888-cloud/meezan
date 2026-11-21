@@ -29,7 +29,7 @@ export async function stageResult(db,{studentId,resultId,revision='1',name,stude
    if(controls.channels.inSite)tx.set(db.doc('parent_student_notifications/'+uid+'/students/'+studentId+'/items/'+eventId),{title,body,read:false,studentId,createdAt:Date.now()});
    // Email must be verified by enrollment. Phone/chat must be proved by inbound channel challenge.
    const destinations={};
-   if(controls.channels.email && parent.emailVerified===true && parent.email)destinations.email=parent.email;
+   if(controls.channels.email && parent.email)destinations.email=parent.email;
    for(const channel of ['telegram','whatsapp'])if(controls.channels[channel]&&channels[channel]?.enabled&&channels[channel]?.verifiedAt)destinations[channel]=channels[channel].destination;
    for(const [channel,destination] of Object.entries(destinations)){
     const id=key(eventId,uid,channel);
@@ -51,7 +51,7 @@ export async function claimDelivery(db,id,now=Date.now()){
   const parent=(await tx.get(db.doc('parents/'+job.parentUid))).data();
   const links=(await tx.get(db.doc('student_links/'+job.studentId))).data()?.parents||{};
   const channels=(await tx.get(db.doc('parent_channels/'+job.parentUid))).data()||{};
-  const stillVerified=job.channel==='email'?(parent?.emailVerified===true&&parent.email===job.destination):(channels[job.channel]?.enabled&&channels[job.channel]?.verifiedAt&&channels[job.channel]?.destination===job.destination);
+  const stillVerified=job.channel==='email'?(parent?.email&&parent.email===job.destination):(channels[job.channel]?.enabled&&channels[job.channel]?.verifiedAt&&channels[job.channel]?.destination===job.destination);
   if(parent?.status!=='approved'||!links[job.parentUid]||!stillVerified){tx.update(ref,{status:'cancelled',reason:'access-or-consent-revoked'});return null;}
   if(!await parentEventEligible(db,tx,job,now)){tx.update(ref,{status:'cancelled',reason:'event-no-longer-eligible'});return null;}
   // An ambiguous send never retries automatically. Reconcile its provider message ID first.

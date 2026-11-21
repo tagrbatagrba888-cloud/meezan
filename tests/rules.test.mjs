@@ -31,6 +31,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await put('parent_codes/PAR-222222', { uid: 'P2' });
   await put('student_codes/USR-123456', { studentId: 'S1' });
   await put('student_codes/USR-999999', { studentId: 'S2' });
+  await put('student_codes/123456', { studentId: 'S3' });
+  await put('student_codes/QUEEN 1', { studentId: 'S4' });
   await put('student_links/S1', { studentId: 'S1', parents: { P1: { parentUid: 'P1', linkedBy: 'parent' } } });
   await put('parent_links/P1', { children: { S1: { studentId: 'S1', code: 'USR-123456', linkedBy: 'parent' } } });
   await put('student_results/S1', { studentId: 'S1', items: [{ name: 'Quiz 1', score: 8, total: 10 }] });
@@ -80,6 +82,9 @@ for (const coll of ['admin_outbox','result_emails','result_emails_meta']) {
 await t('result client writes denied', () => put(asP1(), 'student_results/S1', {items:[]}), 'fail');
 
 await t('parent can request linkage but not grant access', () => put(asP1(),'parent_link_requests/R1',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'ok');
+await t('parent can request linkage with plain numeric code', () => put(asP1(),'parent_link_requests/R5',{requesterUid:'P1',kind:'parent',targetCode:'123456',status:'pending',createdAt:serverTimestamp()}), 'ok');
+await t('parent can request linkage with spaced code', () => put(asP1(),'parent_link_requests/R6',{requesterUid:'P1',kind:'parent',targetCode:'QUEEN 1',status:'pending',createdAt:serverTimestamp()}), 'ok');
+await t('request with unknown student code denied', () => put(asP1(),'parent_link_requests/R7',{requesterUid:'P1',kind:'parent',targetCode:'NOPE-1',status:'pending',createdAt:serverTimestamp()}), 'fail');
 await t('signed-out request denied', () => put(anon(),'parent_link_requests/R2',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'fail');
 await t('forged request identity denied', () => put(asP2(),'parent_link_requests/R3',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'fail');
 await t('self approval denied', () => put(asP1(),'parent_link_requests/R1',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'approved',createdAt:serverTimestamp()}), 'fail');

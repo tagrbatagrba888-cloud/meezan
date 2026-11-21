@@ -19,11 +19,16 @@ const verified=env.authenticatedContext('P3',{email:'p3@example.test',email_veri
 const unverified=env.authenticatedContext('P4',{email:'p4@example.test',email_verified:false}).firestore();
 const profile=(uid,email,code,status='pending')=>({id:uid,authUid:uid,email,emailVerified:true,fullName:'Parent fixture',phone:'',code,status,createdAt:'fixture',updatedAt:'fixture'});
 const batchFor=(db,uid,email,code,status='pending')=>{const b=writeBatch(db);b.set(doc(db,'parents/'+uid),profile(uid,email,code,status));b.set(doc(db,'parent_codes/'+code),{uid});return b.commit();};
-await no(batchFor(unverified,'P4','p4@example.test','PAR-444444'));
+await yes(batchFor(unverified,'P4','p4@example.test','PAR-444444'));
 await no(batchFor(verified,'P3','forged@example.test','PAR-333333'));
 await no(batchFor(verified,'P3','p3@example.test','PAR-333333','approved'));
 await yes(batchFor(verified,'P3','p3@example.test','PAR-333333'));
 await no(getDoc(doc(verified,'student_results/S1')));
 await no(setDoc(doc(verified,'parents/P3'),profile('P3','p3@example.test','PAR-333333','approved')));
+await env.withSecurityRulesDisabled(async ctx=>{const db=ctx.firestore();await setDoc(doc(db,'student_codes/123456'),{studentId:'S3'});});
+const {serverTimestamp:reqTs}=await import('firebase/firestore');
+const req=(uid,code)=>({requesterUid:uid,kind:'parent',targetCode:code,status:'pending',createdAt:reqTs()});
+await yes(setDoc(doc(p1,'parent_link_requests/RA'),req('P1','123456')));
+await no(setDoc(doc(p1,'parent_link_requests/RC'),req('P1','USR-999999')));
 console.log(count+' parent-only rules assertions passed; public legacy users/all is intentionally NOT fixed.');
 await env.cleanup();

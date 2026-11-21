@@ -57,7 +57,11 @@ service cloud.firestore {
         && request.resource.data.requesterUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt == request.time
-        && ((approved() && request.resource.data.kind == 'parent' && request.resource.data.targetCode.matches('USR-[0-9]{6}'))
+        && ((approved() && request.resource.data.kind == 'parent'
+                && request.resource.data.targetCode is string
+                && request.resource.data.targetCode.size() > 0
+                && request.resource.data.targetCode.size() <= 64
+                && exists(/databases/$(database)/documents/student_codes/$(request.resource.data.targetCode)))
             || (request.resource.data.kind == 'child' && request.resource.data.targetCode.matches('PAR-[0-9]{6}')
                 && get(/databases/$(database)/documents/auth_identities/$(request.auth.uid)).data.role == 'student'));
       allow update, delete: if admin();

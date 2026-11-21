@@ -33,7 +33,7 @@ export async function stageHomeworkNotice(db,event,controls={enabled:true,channe
   if(controls.enabled)for(const {uid,parent,channels} of parents){
    if(controls.channels.inSite){notices++;tx.set(db.doc('parent_student_notifications/'+uid+'/students/'+event.studentId+'/items/'+event.key),{...event,read:false,createdAt:Date.now()});}
    const destinations={};
-   if(controls.channels.email&&parent.emailVerified===true&&parent.email)destinations.email=parent.email;
+   if(controls.channels.email&&parent.email)destinations.email=parent.email;
    for(const channel of ['telegram','whatsapp'])if(controls.channels[channel]&&channels[channel]?.enabled&&channels[channel]?.verifiedAt)destinations[channel]=channels[channel].destination;
    for(const [channel,destination] of Object.entries(destinations)){
     const jobId=eventKey([event.key,uid,channel]);

@@ -14,8 +14,15 @@ export async function projectLegacyData(db,{now=Date.now()}={}){
  const suppress=baseline||controlsChanged;
  const users=(await db.doc('users/all').get()).data()?.items||[];
  let results=0,notices=0;
+ const codeOwner=new Map();
  for(const u of users){
-  if(u?.id&&/^USR-[0-9]{6}$/.test(u.code||''))await db.doc('student_codes/'+u.code).set({studentId:String(u.id)});
+  const norm=String(u?.code||'').trim().toUpperCase();
+  if(!u?.id||!norm||norm.length>64||norm.includes('/'))continue;
+  if(codeOwner.has(norm)&&codeOwner.get(norm)!==String(u.id))codeOwner.set(norm,null);
+  else if(!codeOwner.has(norm))codeOwner.set(norm,String(u.id));
+ }
+ for(const [norm,sid] of codeOwner){
+  if(sid)await db.doc('student_codes/'+norm).set({studentId:sid});
  }
  for(const c of [{coll:'exam_subs',kind:'exam',id:'examId',name:'examName'},{coll:'homework_subs',kind:'homework',id:'homeworkId',name:'homeworkName'}]){
   const items=(await db.doc(c.coll+'/all').get()).data()?.items||[];

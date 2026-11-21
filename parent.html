@@ -9,6 +9,90 @@
 /* 🎨 الثيم المحفوظ */
 try { document.documentElement.setAttribute('data-theme', localStorage.getItem('meezan_theme') || 'light'); } catch (e) {}
 </script>
+<!-- 🔐 جلسة دائمة: تبقى مسجل دخول 10 أيام حتى بعد قفل المتصفح (تنتهي بتسجيل الخروج) -->
+<script>
+(function () {
+  try {
+    var ss = window.sessionStorage, ls = window.localStorage;
+    var P = 'meezan_', K = 'meezan_persist_v1', T = 'meezan_logout_at', TTL = 10 * 24 * 60 * 60 * 1000;
+    var isLogin = /login(\.html)?$/i.test(location.pathname);
+    var protectedPage = document.documentElement.hasAttribute('data-protected');
+    var restoring = false;
+    // 🪦 علامة الخروج: وقت آخر تسجيل خروج على هذا الجهاز. أي جلسة بدأت قبلها تُعتبر منتهية في كل التبويبات
+    var tomb = function () { return Number(ls.getItem(T) || 0); };
+    var loginAt = function () { return Number(ss.getItem('meezan_login_at') || 0); };
+    var sessionDead = function () { var a = loginAt(); return !!a && a <= tomb(); };
+
+    try { if (ss.getItem('meezan_logged_in') !== 'true') ls.removeItem('meezan_persist'); } catch (e) {}
+    var rec = null;
+    try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true' ||
+        (rec.d.meezan_login_at && Number(rec.d.meezan_login_at) <= tomb()))) { ls.removeItem(K); rec = null; }
+    if (rec && ss.getItem('meezan_logged_in') !== 'true') { restoring = true; for (var k in rec.d) ss.setItem(k, rec.d[k]); restoring = false; }
+    // جلسة قديمة بدون ختم وقت (سجّلت من صفحة دخول لم تُحدَّث): نختمها الآن
+    if (ss.getItem('meezan_logged_in') === 'true' && !ss.getItem('meezan_login_at')) ss.setItem('meezan_login_at', String(Date.now()));
+
+    function save(renew) {
+      try {
+        var d = {};
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
+        if (d.meezan_logged_in !== 'true' || sessionDead()) { ls.removeItem(K); return; }
+        var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+        var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
+        ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
+      } catch (e) {}
+    }
+    var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
+    proto.setItem = function (k, v) {
+      _s.call(this, k, v);
+      if (this === ss && String(k).indexOf(P) === 0) {
+        // دخول جديد فعلي: اختم وقته (يكون أحدث من علامة الخروج)
+        if (k === 'meezan_logged_in' && String(v) === 'true' && !restoring) _s.call(ss, 'meezan_login_at', String(Date.now()));
+        save(k === 'meezan_logged_in');
+      }
+    };
+    proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
+    proto.clear = function () { _c.call(this); if (this === ss) save(false); };
+
+    // 🔒 إنهاء الجلسة بالكامل في هذا التبويب (يُبقي سبب الخروج فقط ليعرضه login)
+    function kill() {
+      try {
+        var del = [];
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0 && key !== 'meezan_logout_reason') del.push(key); }
+        del.forEach(function (key) { ss.removeItem(key); });
+        ls.removeItem(K); ls.removeItem('meezan_persist');
+      } catch (e) {}
+    }
+    function guard() {
+      try {
+        var on = ss.getItem('meezan_logged_in') === 'true';
+        if (on && sessionDead()) { kill(); on = false; }
+        if (!on && (protectedPage || sessionDead())) {
+          if (!isLogin) { document.documentElement.style.display = 'none'; location.replace('login.html'); }
+        }
+      } catch (e) {}
+    }
+    window.__mzKillSession = kill;
+    window.__mzGuard = guard;
+    window.__mzLogoutStamp = function () { try { ls.setItem(T, String(Date.now())); } catch (e) {} };
+
+    save(true); // تجديد الجلسة مع كل فتح للتطبيق
+    guard();
+    // الرجوع بزر Back (bfcache) / العودة للتطبيق / خروج من تبويب آخر → افحص الجلسة فوراً
+    window.addEventListener('pageshow', function (e) { guard(); });
+    window.addEventListener('storage', function (e) { if (e.key === T || e.key === K || e.key === null) guard(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) guard(); });
+    window.addEventListener('focus', guard);
+    setInterval(guard, 3000);
+
+    // 👨‍👦 ولي الأمر له بوابته الخاصة
+    try { if (ss.getItem('meezan_role') === 'parent' && !/parent(\.html)?$/i.test(location.pathname)) { location.replace('parent.html'); } } catch (e) {}
+
+    // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
+    if (isLogin && ss.getItem('meezan_logged_in') === 'true' && !sessionDead()) { location.replace('index.html'); }
+  } catch (e) {}
+})();
+</script>
 <title>بوابة ولي الأمر | ميزان MEEZAN</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
@@ -156,12 +240,12 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
       <div id="childrenList">
         <div class="empty" id="childrenEmpty">
           <i class="fas fa-user-plus"></i>
-          لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به (يبدأ بـ USR).
+          لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به كما يظهر في صفحته.
         </div>
       </div>
       <div class="sep">إضافة ابن بالكود</div>
       <div class="input-row">
-        <input class="form-input ltr" id="childCodeInput" placeholder="USR-000000" maxlength="12" autocomplete="off">
+        <input class="form-input ltr" id="childCodeInput" placeholder="كود الطالب" maxlength="64" autocomplete="off">
         <button class="btn btn-primary" id="addChildBtn">
           <span class="spinner" id="addChildSpinner"></span>
           <i class="fas fa-plus"></i> إضافة
@@ -173,7 +257,7 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
     <!-- Approved parent delivery channel: email only. -->
     <div class="card">
       <h2><i class="fas fa-envelope"></i> تقارير الأبناء على البريد</h2>
-      <div class="hint">تُرسل التقارير الجديدة عن أبنائك المرتبطين بحسابك إلى بريدك المؤكد، وفق إعدادات الإدارة: نتائج الاختبارات والواجبات، نشر واجب جديد، وتذكير بواجب لم يُسلّم بعد يومين من رصد نشره. لا يُرسل التذكير بعد تسليم الطالب، حتى لو لم تُصحّح إجابته بعد.</div>
+      <div class="hint">تُرسل التقارير الجديدة عن أبنائك المرتبطين بحسابك إلى بريدك المسجل في الحساب، وفق إعدادات الإدارة: نتائج الاختبارات والواجبات، نشر واجب جديد، وتذكير بواجب لم يُسلّم بعد يومين من رصد نشره. لا يُرسل التذكير بعد تسليم الطالب، حتى لو لم تُصحّح إجابته بعد.</div>
       <p id="reportEmail" class="ltr" style="margin-top:14px;overflow-wrap:anywhere"></p>
       <div class="hint" style="margin-top:10px">لا نرسل سجل النتائج القديم عند التفعيل. الفحص دوري وقد يتأخر وصول البريد. تأكد من مجلد الرسائل غير المرغوب فيها.</div>
     </div>
@@ -300,7 +384,7 @@ function renderMe() {
   $('app').style.display = 'block';
   $('welcomeName').textContent = 'أهلاً ' + (me.fullName || 'بك');
   $('myCode').textContent = me.code || '—';
-  $('reportEmail').textContent=me.emailVerified===true ? (me.email||'') : 'يلزم تأكيد بريد الحساب قبل إرسال التقارير.';
+  $('reportEmail').textContent=me.email||'';
 }
 
 /* ---------- نسخ الكود ---------- */
@@ -329,7 +413,7 @@ function renderChildren() {
   const list = $('childrenList');
   const chip = $('childrenCount');
   if (!ids.length) {
-    list.innerHTML = '<div class="empty" id="childrenEmpty"><i class="fas fa-user-plus"></i>لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به (يبدأ بـ USR).</div>';
+    list.innerHTML = '<div class="empty" id="childrenEmpty"><i class="fas fa-user-plus"></i>لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به كما يظهر في صفحته.</div>';
     chip.style.display = 'none';
   } else {
     chip.style.display = '';
@@ -412,11 +496,11 @@ function renderChildResults(sid, items) {
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* ---------- إضافة ابن بالكود ---------- */
-$('childCodeInput').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''); });
+$('childCodeInput').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9A-Za-z\u0600-\u06FF \-]/g, '').replace(/\s+/g, ' ').toUpperCase(); });
 $('addChildBtn').addEventListener('click', async () => {
   const code = $('childCodeInput').value.trim().toUpperCase();
   if (!code) return toast('أدخل كود الطالب أولاً', true);
-  if (!code.startsWith('USR-')) return toast('كود الطالب يبدأ بـ USR — تأكد من الكود', true);
+  if (code.length > 64 || code.includes('/')) return toast('كود الطالب غير صحيح — انسخه كما يظهر في صفحة ابنك', true);
   const btn = $('addChildBtn'), sp = $('addChildSpinner');
   btn.disabled = true; sp.classList.add('show');
   try {

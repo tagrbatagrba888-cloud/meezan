@@ -60,6 +60,9 @@ test('even retryable failure is held, acceptance needs provider identity',async(
  await claimDelivery(db,j.id,1000);await finishDelivery(db,j.id,{retryable:true,error:'uncertain'},1000);
  assert.equal(await claimDelivery(db,j.id,200000),null);assert.equal((await j.ref.get()).data().status,'held_unknown');
 });
-test('unverified email does not create delivery',async()=>{
- await db.doc('parents/P1').update({emailVerified:false});assert.equal((await stageResult(db,input)).jobs,0);
+test('unverified email still delivers after admin approval',async()=>{
+ await db.doc('parents/P1').update({emailVerified:false});assert.equal((await stageResult(db,input)).jobs,1);
+});
+test('missing email creates no email delivery',async()=>{
+ await db.doc('parents/P1').update({email:''});assert.equal((await stageResult(db,input)).jobs,0);
 });

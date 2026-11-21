@@ -102,8 +102,9 @@ export function createHandler({getServices=services,verify=authenticate,clock=Da
    if(req.method==='POST'&&path==='/api/parent/link-requests'){
     const body=await parseBody(req);
     if(!['parent','child'].includes(body.kind))throw new ApiError(400,'Invalid request kind');
-    const code=String(body.targetCode||'').toUpperCase();
-    if(!(body.kind==='parent'?/^USR-[0-9]{6}$/:/^PAR-[0-9]{6}$/).test(code))throw new ApiError(400,'Invalid code');
+    const code=String(body.targetCode||'').trim().toUpperCase();
+    const codeOk=body.kind==='parent'?(code.length>=1&&code.length<=64&&!code.includes('/')):/^PAR-[0-9]{6}$/.test(code);
+    if(!codeOk)throw new ApiError(400,'Invalid code');
     if(body.kind==='parent')await requireParent(db,uid);
     else{
      const mapping=(await db.doc('auth_identities/'+uid).get()).data();
