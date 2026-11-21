@@ -2335,7 +2335,7 @@ function checkIncoming(messages) {
   if (incomingInit && l.id !== lastIncomingId) { if ((l.sender === 'support' && !isGiftMsg(l)) || document.hidden) beep(); if (document.hidden) { unreadTitle++; document.title = `(${unreadTitle}) رسالة جديدة | MEEZAN`; notifyIncoming(l); } }
   lastIncomingId = l.id; incomingInit = true;
 }
-function logoFrom(d) { return d.logoUrl || d.logo || d.siteLogo || d.logoURL || d.siteLogoUrl || d.logoImage || d.iconUrl || ''; }
+function logoFrom(d) { const u = d.logoUrl || d.logo || d.siteLogo || d.logoURL || d.siteLogoUrl || d.logoImage || d.iconUrl || ''; return u === 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png' ? new URL('meezan-logo.v1.webp', location.href).href : u; }
 function botAvatarHtml() { const u = botSettings.botAvatarUrl || siteLogo; return u ? `<img src="${escapeHtml(u)}" alt="" onerror="if(this.parentNode)this.parentNode.innerHTML='<i class=\\'fas fa-robot\\'></i>'">` : '<i class="fas fa-robot"></i>'; }
 function applyHeaderAvatar() {
   const a = $('supportAvatar'); if (!a) return;
@@ -4381,4 +4381,4 @@ window.addEventListener('beforeunload', () => {
 </script>
 
 </body>
-</html>
+        </html>
