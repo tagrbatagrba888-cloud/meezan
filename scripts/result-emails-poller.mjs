@@ -5,6 +5,7 @@ const API_KEY = 'AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0'; // مفتاح الو�
 const BREVO = process.env.BREVO_API_KEY || '';
 const FROM = 'منصة ميزان | MEEZAN <tagrbatagrba888@gmail.com>';
 const SITE = 'https://mee7an.vercel.app';
+const LOGO_URL = 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png';
 const BASE = 'https://firestore.googleapis.com/v1/projects/qanon-c716d/databases/(default)/documents';
 
 const EXAM_CFG = { kind: 'exam', kindLabel: 'الاختبار', coll: 'exam_subs', idKey: 'examId', nameKey: 'examName', prefix: 'exam', resultsPath: 'results.html' };
