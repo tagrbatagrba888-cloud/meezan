@@ -30,6 +30,32 @@ service cloud.firestore {
     }
     match /parent_result_events/{id} { allow read, write: if false; }
     match /parent_reports_meta/{id} { allow read, write: if false; }
+    match /auth_identities/{uid} { allow get: if admin() || (authed() && request.auth.uid == uid); allow list, write: if admin(); }
+    match /parent_controls/{id} { allow get: if authed(); allow list, write: if admin(); }
+    match /parent_notifications/{uid}/items/{id} {
+      allow read: if admin() || (approved() && request.auth.uid == uid);
+      allow write: if admin();
+    }
+    match /parent_student_notifications/{uid}/students/{sid}/items/{id} {
+      allow read: if admin() || (approved() && request.auth.uid == uid
+        && request.auth.uid in get(/databases/$(database)/documents/student_links/$(sid)).data.get('parents', {}).keys());
+      allow write: if false;
+    }
+    match /parent_channels/{uid} { allow get: if authed() && request.auth.uid == uid; allow list, write: if false; }
+    match /parent_channel_proofs/{id} { allow read, write: if false; }
+    match /parent_delivery_jobs/{id} { allow read, write: if false; }
+    match /parent_link_requests/{id} {
+      allow read: if admin() || (authed() && resource.data.requesterUid == request.auth.uid);
+      allow create: if authed()
+        && request.resource.data.keys().hasOnly(['requesterUid','kind','targetCode','status','createdAt'])
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && ((approved() && request.resource.data.kind == 'parent' && request.resource.data.targetCode.matches('USR-[0-9]{6}'))
+            || (request.resource.data.kind == 'child' && request.resource.data.targetCode.matches('PAR-[0-9]{6}')
+                && get(/databases/$(database)/documents/auth_identities/$(request.auth.uid)).data.role == 'student'));
+      allow update, delete: if admin();
+    }
     match /admin_outbox/{id=**} { allow read, write: if admin(); }
     match /result_emails/{id=**} { allow read, write: if admin(); }
     match /result_emails_meta/{id=**} { allow read, write: if admin(); }

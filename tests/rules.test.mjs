@@ -1,7 +1,7 @@
 // Firestore rules tests for the parent-accounts gate. Emulator only — never live.
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import { readFileSync } from 'node:fs';
-import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteField, serverTimestamp } from 'firebase/firestore';
 
 const PROJECT = 'demo-meezan';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -78,6 +78,29 @@ for (const coll of ['admin_outbox','result_emails','result_emails_meta']) {
  await t(coll+' admin write allowed', () => put(admin(), coll+'/test', {x:1}), 'ok');
 }
 await t('result client writes denied', () => put(asP1(), 'student_results/S1', {items:[]}), 'fail');
+
+await t('parent can request linkage but not grant access', () => put(asP1(),'parent_link_requests/R1',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'ok');
+await t('signed-out request denied', () => put(anon(),'parent_link_requests/R2',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'fail');
+await t('forged request identity denied', () => put(asP2(),'parent_link_requests/R3',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'pending',createdAt:serverTimestamp()}), 'fail');
+await t('self approval denied', () => put(asP1(),'parent_link_requests/R1',{requesterUid:'P1',kind:'parent',targetCode:'USR-999999',status:'approved',createdAt:serverTimestamp()}), 'fail');
+await t('unmapped child request denied', () => put(asP2(),'parent_link_requests/R4',{requesterUid:'P2',kind:'child',targetCode:'PAR-111111',status:'pending',createdAt:serverTimestamp()}), 'fail');
+await t('private parent notice denied cross-parent', () => getDoc(doc(asP2(),'parent_notifications/P1/items/N1')), 'fail');
+await t('admin can create private notice', () => put(admin(),'parent_notifications/P1/items/N1',{title:'test'}), 'ok');
+await t('approved owner can read private notice', () => getDoc(doc(asP1(),'parent_notifications/P1/items/N1')), 'ok');
+await t('non-admin cannot change portal controls', () => put(asP1(),'parent_controls/portal',{parentLoginEnabled:true}), 'fail');
+await t('non-admin cannot forge identity mapping', () => put(asP1(),'auth_identities/P1',{role:'student',studentId:'S1'}), 'fail');
+
+await testEnv.withSecurityRulesDisabled(async(ctx)=>{
+ const db=ctx.firestore();
+ await setDoc(doc(db,'parent_student_notifications/P1/students/S1/items/N1'),{body:'private result'});
+ await setDoc(doc(db,'student_links/S1'),{parents:{P1:{}}});
+});
+await t('linked parent can read private student notice',()=>getDoc(doc(asP1(),'parent_student_notifications/P1/students/S1/items/N1')),'ok');
+await t('cross-parent student notice denied',()=>getDoc(doc(asP2(),'parent_student_notifications/P1/students/S1/items/N1')),'fail');
+await t('admin unlinks before notice check',()=>put(admin(),'student_links/S1',{parents:{}}),'ok');
+await t('unlink revokes private student notice access',()=>getDoc(doc(asP1(),'parent_student_notifications/P1/students/S1/items/N1')),'fail');
+await t('channel proof not client-readable',()=>getDoc(doc(asP1(),'parent_channel_proofs/test')),'fail');
+await t('delivery queue not client-readable',()=>getDoc(doc(admin(),'parent_delivery_jobs/test')),'fail');
 console.log(`${pass} passed, ${fail} failed`);
 await testEnv.cleanup();
 process.exit(fail ? 1 : 0);

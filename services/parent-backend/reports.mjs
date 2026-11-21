@@ -1,0 +1,63 @@
+// Staged private report projection and durable per-recipient delivery jobs. No sends.
+import {createHash} from 'node:crypto';
+const key=(...parts)=>createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+export async function stageResult(db,{studentId,resultId,revision='1',name,studentName,score,totalScore,kind,correctedAt},baseline=false){
+ if(!studentId||!resultId||!Number.isFinite(score)||!Number.isFinite(totalScore)||totalScore<=0||score<0||score>totalScore||!['exam','homework'].includes(kind))throw new Error('Invalid result');
+ const eventId=key(studentId,resultId,revision);
+ const event=db.doc('parent_result_events/'+eventId);
+ return db.runTransaction(async tx=>{
+  if((await tx.get(event)).exists)return {duplicate:true,jobs:0};
+  const links=(await tx.get(db.doc('student_links/'+studentId))).data()?.parents||{};
+  const recipients=[];
+  for(const uid of Object.keys(links)){
+   const parent=(await tx.get(db.doc('parents/'+uid))).data();
+   const channels=(await tx.get(db.doc('parent_channels/'+uid))).data()||{};
+   if(parent?.status==='approved')recipients.push({uid,parent,channels});
+  }
+  const projectionRef=db.doc('student_results/'+studentId);
+  const prior=(await tx.get(projectionRef)).data()||{};
+  const result={key:resultId,kind,itemName:String(name||''),score,totalScore,correctedAt:correctedAt||null};
+  const items=[result,...(prior.items||[]).filter(x=>x.key!==resultId)].slice(0,200);
+  tx.set(projectionRef,{studentId,items,updatedAt:Date.now()});
+  let jobs=0;
+  if(!baseline)for(const {uid,parent,channels} of recipients){
+   const title='نتيجة جديدة: '+String(studentName||'الطالب');
+   const body=String(name||'')+': '+score+'/'+totalScore;
+   tx.set(db.doc('parent_student_notifications/'+uid+'/students/'+studentId+'/items/'+eventId),{title,body,read:false,studentId,createdAt:Date.now()});
+   // Email must be verified by enrollment. Phone/chat must be proved by inbound channel challenge.
+   const destinations={};
+   if(parent.emailVerified===true && parent.email)destinations.email=parent.email;
+   for(const channel of ['telegram','whatsapp'])if(channels[channel]?.enabled&&channels[channel]?.verifiedAt)destinations[channel]=channels[channel].destination;
+   for(const [channel,destination] of Object.entries(destinations)){
+    const id=key(eventId,uid,channel);
+    tx.set(db.doc('parent_delivery_jobs/'+id),{eventId,parentUid:uid,studentId,channel,destination,title,body,status:'pending',attempts:0,createdAt:Date.now()});jobs++;
+   }
+  }
+  tx.create(event,{studentId,resultId,revision,baseline,status:'staged',jobs,createdAt:Date.now()});
+  return {duplicate:false,jobs};
+ });
+}
+export async function claimDelivery(db,id,now=Date.now()){
+ const ref=db.doc('parent_delivery_jobs/'+id);
+ return db.runTransaction(async tx=>{
+  const job=(await tx.get(ref)).data();
+  if(!job||job.status!=='pending'||job.nextAttemptAt>now)return null;
+  const parent=(await tx.get(db.doc('parents/'+job.parentUid))).data();
+  const links=(await tx.get(db.doc('student_links/'+job.studentId))).data()?.parents||{};
+  const channels=(await tx.get(db.doc('parent_channels/'+job.parentUid))).data()||{};
+  const stillVerified=job.channel==='email'?(parent?.emailVerified===true&&parent.email===job.destination):(channels[job.channel]?.enabled&&channels[job.channel]?.destination===job.destination);
+  if(parent?.status!=='approved'||!links[job.parentUid]||!stillVerified){tx.update(ref,{status:'cancelled',reason:'access-or-consent-revoked'});return null;}
+  // An ambiguous send never retries automatically. Reconcile its provider message ID first.
+  tx.update(ref,{status:'sending',attempts:job.attempts+1,claimedAt:now});
+  return {...job,id};
+ });
+}
+export async function finishDelivery(db,id,{sent=false,providerMessageId=null,retryable=false,error=null},now=Date.now()){
+ const ref=db.doc('parent_delivery_jobs/'+id);
+ return db.runTransaction(async tx=>{
+  const job=(await tx.get(ref)).data();if(job?.status!=='sending')throw new Error('Delivery not claimed');
+  if(sent)tx.update(ref,{status:'sent',providerMessageId,finishedAt:now});
+  else if(retryable && job.attempts<5)tx.update(ref,{status:'pending',nextAttemptAt:now+Math.min(3600000,60000*2**job.attempts),error});
+  else tx.update(ref,{status:'needs-review',error,finishedAt:now});
+ });
+}

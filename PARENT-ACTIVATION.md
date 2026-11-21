@@ -25,3 +25,7 @@ Legacy collections remain open in this draft. In particular users/all and exam_s
 7. Configure and test the email sender, Telegram bot and a persistent WhatsApp host/pairing session. None is established by this push.
 
 The earlier 21-test suite accepted code-as-capability and PIN-only writes. Those expectations were unsafe and have been replaced by 32 passing deny-by-default tests. Earlier screenshots show a preview, not production access-control assurance.
+
+## Local follow-up after the safety-held push
+
+Local only, not yet approved for another push: admin-auth amr, pending link requests with admin approval, private owner/per-child notification paths, and Admin SDK projection/channel-proof/delivery-job building blocks. The new suite has 48 rules tests and 10 backend tests plus a browser flow. Provider routes, new enrollment and the full legacy migration are still unfinished. See PARENT-MIGRATION-CHOICES.md and services/parent-backend/README.md.

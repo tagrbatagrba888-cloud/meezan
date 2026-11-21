@@ -4,75 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
-<script>
-/* 🔐 جلسة دائمة (نفس آلية index.html): 10 أيام، تنتهي بتسجيل الخروج */
-(function () {
-  try {
-    var ss = window.sessionStorage, ls = window.localStorage;
-    var P = 'meezan_', K = 'meezan_persist_v1', T = 'meezan_logout_at', TTL = 10 * 24 * 60 * 60 * 1000;
-    var isLogin = /login(\.html)?$/i.test(location.pathname);
-    var protectedPage = document.documentElement.hasAttribute('data-protected');
-    var restoring = false;
-    var tomb = function () { return Number(ls.getItem(T) || 0); };
-    var loginAt = function () { return Number(ss.getItem('meezan_login_at') || 0); };
-    var sessionDead = function () { var a = loginAt(); return !!a && a <= tomb(); };
-    try { if (ss.getItem('meezan_logged_in') !== 'true') ls.removeItem('meezan_persist'); } catch (e) {}
-    var rec = null;
-    try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
-    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true' ||
-        (rec.d.meezan_login_at && Number(rec.d.meezan_login_at) <= tomb()))) { ls.removeItem(K); rec = null; }
-    if (rec && ss.getItem('meezan_logged_in') !== 'true') { restoring = true; for (var k in rec.d) ss.setItem(k, rec.d[k]); restoring = false; }
-    if (ss.getItem('meezan_logged_in') === 'true' && !ss.getItem('meezan_login_at')) ss.setItem('meezan_login_at', String(Date.now()));
-    function save(renew) {
-      try {
-        var d = {};
-        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
-        if (d.meezan_logged_in !== 'true' || sessionDead()) { ls.removeItem(K); return; }
-        var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
-        var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
-        ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
-      } catch (e) {}
-    }
-    var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
-    proto.setItem = function (k, v) {
-      _s.call(this, k, v);
-      if (this === ss && String(k).indexOf(P) === 0) {
-        if (k === 'meezan_logged_in' && String(v) === 'true' && !restoring) _s.call(ss, 'meezan_login_at', String(Date.now()));
-        save(k === 'meezan_logged_in');
-      }
-    };
-    proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
-    proto.clear = function () { _c.call(this); if (this === ss) save(false); };
-    function kill() {
-      try {
-        var del = [];
-        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0 && key !== 'meezan_logout_reason') del.push(key); }
-        del.forEach(function (key) { ss.removeItem(key); });
-        ls.removeItem(K); ls.removeItem('meezan_persist');
-      } catch (e) {}
-    }
-    function guard() {
-      try {
-        var on = ss.getItem('meezan_logged_in') === 'true';
-        if (on && sessionDead()) { kill(); on = false; }
-        if (!on && (protectedPage || sessionDead())) {
-          if (!isLogin) { document.documentElement.style.display = 'none'; location.replace('login.html'); }
-        }
-      } catch (e) {}
-    }
-    window.__mzKillSession = kill;
-    window.__mzGuard = guard;
-    window.__mzLogoutStamp = function () { try { ls.setItem(T, String(Date.now())); } catch (e) {} };
-    save(true);
-    guard();
-    window.addEventListener('pageshow', function () { guard(); });
-    window.addEventListener('storage', function (e) { if (e.key === T || e.key === K || e.key === null) guard(); });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) guard(); });
-    window.addEventListener('focus', guard);
-    setInterval(guard, 3000);
-  } catch (e) {}
-})();
-</script>
+
 <script>
 /* 🎨 الثيم المحفوظ */
 try { document.documentElement.setAttribute('data-theme', localStorage.getItem('meezan_theme') || 'light'); } catch (e) {}
@@ -194,7 +126,7 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
       <span>ميزان <small style="font-weight:600;font-size:12px;opacity:.85;">| ولي الأمر</small></span>
     </div>
     <div class="spacer"></div>
-    <a class="icon-btn" href="asharat.html" title="الإشعارات" id="notifBtn">
+    <a class="icon-btn" href="#privateNotifications" title="الإشعارات" id="notifBtn">
       <i class="fas fa-bell"></i>
       <span class="badge-dot" id="notifBadge">0</span>
     </a>
@@ -211,7 +143,7 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
     <!-- كود ولي الأمر -->
     <div class="card">
       <h2><i class="fas fa-key"></i> كود ولي الأمر الخاص بك</h2>
-      <div class="hint">شارك هذا الكود مع ابنك ليربط حسابه بحسابك من صفحته الشخصية، أو أضف ابنك بنفسك بكوده من الأسفل.</div>
+      <div class="hint">يمكن تقديم طلب ربط بكود الطالب. لا تُمنح صلاحية الاطلاع إلا بعد تحقق الإدارة من صلة ولي الأمر وموافقتها.</div>
       <div class="mycode">
         <span class="code" id="myCode">—</span>
         <button class="btn btn-accent btn-sm" id="copyCodeBtn"><i class="fas fa-copy"></i> نسخ</button>
@@ -241,7 +173,7 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
     <!-- التقارير الخارجية -->
     <div class="card">
       <h2><i class="fas fa-paper-plane"></i> التقارير الخارجية</h2>
-      <div class="hint">كل نتيجة جديدة تصلك إشعارًا داخل المنصة وبالبريد الإلكتروني تلقائيًا. يمكنك أيضًا تفعيل تيليجرام وواتساب:</div>
+      <div class="hint">معاينة محلية. الإشعارات الخاصة متاحة في الاختبار، أما البريد وتيليجرام وواتساب فلم تُفعّل للإرسال بعد.</div>
 
       <div class="sep"><i class="fab fa-telegram"></i> تيليجرام</div>
       <div id="tgLinked" style="display:none;">
@@ -249,7 +181,7 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
         <button class="btn btn-ghost btn-sm" id="tgUnlinkBtn" style="margin-right:6px;">إلغاء الربط</button>
       </div>
       <div id="tgUnlinked">
-        <div class="hint">1. افتح بوت ميزان على تيليجرام: <b id="tgBotName" style="direction:ltr;display:inline-block;">@MeezanBot</b><br>2. أرسل له كود ولي الأمر الخاص بك (<b id="tgMyCode" style="direction:ltr;"></b>)<br>3. ستصلك النتائج فورًا على تيليجرام.</div>
+        <div class="hint">ربط تيليجرام يحتاج رمز تحقق خاصًا قصير الصلاحية، وليس كود ولي الأمر. البوت: <b id="tgBotName" style="direction:ltr;display:inline-block;">لم يتم إعداد البوت</b><br>لا تستخدم كود ولي الأمر (<b id="tgMyCode" style="direction:ltr;"></b>) كرمز تحقق<br>مسار تفعيل القناة قيد التجهيز.</div>
         <a class="btn btn-primary btn-block" id="tgOpenBtn" target="_blank" rel="noopener" style="margin-top:10px;"><i class="fab fa-telegram"></i> فتح البوت في تيليجرام</a>
       </div>
 
@@ -300,7 +232,7 @@ if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
 }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, deleteField, serverTimestamp, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, deleteField, serverTimestamp, collection, addDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -319,32 +251,19 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 if (IS_LOCAL) {
-  connectFirestoreEmulator(db, "localhost", 8080);
+  connectFirestoreEmulator(db, "localhost", 8085);
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
 }
 
 /* ---------- إشعار داخل المنصة (نفس نمط الموقع) ---------- */
-async function notifyUser(userId, title, body, targetLabel) {
-  const notifId = 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-  await setDoc(doc(db, 'notifications', notifId), {
-    id: notifId, title, body, type: 'text', senderId: 'system', senderName: 'منصة ميزان',
-    createdAt: new Date().toISOString(), target: 'custom', targetLabel: targetLabel || '',
-    recipients: [String(userId)], recipientsCount: 1
-  });
-  const ref = doc(db, 'user_notifications', String(userId));
-  const snap = await getDoc(ref);
-  const d = snap.exists() ? snap.data() : {};
-  let ids = d.notifIds || [];
-  if (!ids.includes(notifId)) ids = [notifId, ...ids].slice(0, 100);
-  await setDoc(ref, { userId: String(userId), notifIds: ids, readIds: d.readIds || [], updatedAt: serverTimestamp() }, { merge: true });
-}
-
 const $ = (id) => document.getElementById(id);
 const ss = sessionStorage;
 let me = null;              // مستند ولي الأمر
 let myUid = null;
 let childrenLinks = {};     // { studentId: {name, code, linkedAt, linkedBy} }
 const resultUnsubs = {};
+const childNoticeUnsubs = {};
+const childNoticeData = {};
 
 function toast(msg, isErr) {
   const t = $('toast');
@@ -394,7 +313,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
     me = snap.data();
-    if (me.status === 'pending') { $('pendingOverlay').classList.add('show'); return; }
+    if (me.status !== 'approved') { $('pendingOverlay').classList.add('show'); return; }
     $('pendingOverlay').classList.remove('show');
     renderMe();
   }, (e) => console.log('parent doc:', e.message));
@@ -419,10 +338,10 @@ function renderMe() {
   $('waUnlinked').style.display = waOn ? 'none' : '';
   if (waOn) $('waNumber').textContent = me.whatsapp;
   // اسم البوت من الإعدادات (اختياري)
-  getDoc(doc(db, 'settings', 'login_user')).then(s => {
+  getDoc(doc(db, 'parent_controls', 'portal')).then(s => {
     const bot = s.exists() && s.data().telegramBotUsername;
     if (bot) { $('tgBotName').textContent = '@' + bot.replace(/^@/, ''); $('tgOpenBtn').href = 'https://t.me/' + bot.replace(/^@/, ''); }
-    else $('tgOpenBtn').href = 'https://t.me/';
+    else { $('tgOpenBtn').removeAttribute('href'); $('tgOpenBtn').textContent='البوت غير معد بعد'; }
   }).catch(() => {});
 }
 
@@ -438,28 +357,9 @@ $('copyCodeBtn').addEventListener('click', async () => {
 });
 
 /* ---------- واتساب ---------- */
-$('waSaveBtn').addEventListener('click', async () => {
-  const num = $('waInput').value.trim();
-  if (!/^01[0-9]{9}$/.test(num)) return toast('رقم الواتساب غير صحيح (01xxxxxxxxx)', true);
-  try {
-    await updateDoc(doc(db, 'parents', myUid), { whatsapp: '2' + num, updatedAt: new Date().toISOString() });
-    toast('تم تفعيل تقارير واتساب');
-  } catch (e) { toast('تعذّر الحفظ، حاول مرة أخرى', true); }
-});
-$('waUnlinkBtn').addEventListener('click', async () => {
-  try {
-    await updateDoc(doc(db, 'parents', myUid), { whatsapp: '', updatedAt: new Date().toISOString() });
-    toast('تم إيقاف تقارير واتساب');
-  } catch (e) { toast('تعذّر الحفظ', true); }
-});
-
-/* ---------- تيليجرام ---------- */
-$('tgUnlinkBtn').addEventListener('click', async () => {
-  try {
-    await updateDoc(doc(db, 'parents', myUid), { telegramChatId: null, updatedAt: new Date().toISOString() });
-    toast('تم إلغاء ربط تيليجرام');
-  } catch (e) { toast('تعذّر الحفظ', true); }
-});
+$('waSaveBtn').addEventListener('click', () => toast('ربط واتساب يحتاج تأكيد ملكية الرقم. الخدمة قيد التجهيز.', true));
+$('waUnlinkBtn').addEventListener('click', () => toast('إدارة القنوات قيد التجهيز', true));
+$('tgUnlinkBtn').addEventListener('click', () => toast('إدارة القنوات قيد التجهيز', true));
 
 /* ---------- ربط الأبناء (حي) ---------- */
 function startLinksListener() {
@@ -484,7 +384,9 @@ function renderChildren() {
   }
   // اشتراكات النتائج
   Object.keys(resultUnsubs).forEach(sid => { if (!childrenLinks[sid]) { resultUnsubs[sid](); delete resultUnsubs[sid]; } });
+  Object.keys(childNoticeUnsubs).forEach(sid=>{if(!childrenLinks[sid]){childNoticeUnsubs[sid]();delete childNoticeUnsubs[sid];delete childNoticeData[sid];renderStudentNotices();}});
   ids.forEach(sid => {
+    if(!childNoticeUnsubs[sid])childNoticeUnsubs[sid]=onSnapshot(collection(db,'parent_student_notifications',myUid,'students',sid,'items'),snap=>{childNoticeData[sid]=snap.docs.map(d=>d.data());renderStudentNotices();},()=>{delete childNoticeData[sid];renderStudentNotices();});
     if (resultUnsubs[sid]) return;
     let tries = 0;
     const attach = () => {
@@ -563,25 +465,10 @@ $('addChildBtn').addEventListener('click', async () => {
   const btn = $('addChildBtn'), sp = $('addChildSpinner');
   btn.disabled = true; sp.classList.add('show');
   try {
-    const usersSnap = await getDoc(doc(db, 'users', 'all'));
-    const items = usersSnap.exists() ? (usersSnap.data().items || []) : [];
-    const student = items.find(u => String(u.code || '').toUpperCase() === code);
-    if (!student) { toast('الكود غير صحيح — تأكد منه مع ابنك', true); return; }
-    if (childrenLinks[student.id]) { toast('هذا الابن مرتبط بحسابك بالفعل'); return; }
-    const now = new Date().toISOString();
-    const batch = writeBatch(db);
-    batch.set(doc(db, 'parent_links', myUid), {
-      children: { [student.id]: { name: student.fullName || student.username, code: student.code, linkedAt: now, linkedBy: 'parent' } },
-      viaCode: code, updatedAt: now
-    }, { merge: true });
-    batch.set(doc(db, 'student_links', student.id), {
-      parents: { [myUid]: { name: me.fullName || '', linkedAt: now, linkedBy: 'parent' } },
-      viaCode: code, updatedAt: now
-    }, { merge: true });
-    await batch.commit();
-    notifyUser(student.id, '👨‍👦 تم ربط ولي أمر بحسابك',
-      `قام ${me.fullName || 'ولي أمر'} بربط حسابه بحسابك كولي أمر. سيصله إشعار بنتائجك الجديدة.`, 'ربط ولي أمر').catch(() => {});
-    toast('تمت إضافة ' + (student.fullName || student.username || 'الابن') + ' بنجاح');
+    await addDoc(collection(db,'parent_link_requests'), {
+      requesterUid:myUid, kind:'parent', targetCode:code, status:'pending', createdAt:serverTimestamp()
+    });
+    toast('تم إرسال طلب الربط إلى الإدارة. لن تُعرض أي نتائج قبل الموافقة.');
     $('childCodeInput').value = '';
   } catch (e) {
     console.error(e);
@@ -591,26 +478,31 @@ $('addChildBtn').addEventListener('click', async () => {
 
 /* ---------- إلغاء ربط ---------- */
 async function unlinkChild(sid, name) {
-  if (!confirm('إلغاء ربط ' + (name || 'هذا الطالب') + '؟ لن تصلك نتائجه بعد الآن.')) return;
-  try {
-    const batch = writeBatch(db);
-    batch.set(doc(db, 'parent_links', myUid), { children: { [sid]: deleteField() }, updatedAt: new Date().toISOString() }, { merge: true });
-    batch.set(doc(db, 'student_links', sid), { parents: { [myUid]: deleteField() }, updatedAt: new Date().toISOString() }, { merge: true });
-    await batch.commit();
-    toast('تم إلغاء الربط');
-  } catch (e) { toast('تعذّر إلغاء الربط', true); }
+  toast('إلغاء الربط يتم بواسطة الإدارة حالياً. تواصل معها لسحب الوصول.', true);
 }
 
 /* ---------- شارة الإشعارات ---------- */
+function renderStudentNotices(){
+ let box=$('studentPrivateNotices');
+ if(!box){box=document.createElement('section');box.id='studentPrivateNotices';box.className='card';$('childrenList').after(box);}
+ box.replaceChildren();
+ for(const notices of Object.values(childNoticeData))for(const n of notices.slice(-10)){
+  const row=document.createElement('p');row.textContent=(n.title||'')+'، '+(n.body||'');box.appendChild(row);
+ }
+ box.hidden=!box.children.length;
+}
 function startNotifBadge() {
-  onSnapshot(doc(db, 'user_notifications', myUid), (snap) => {
-    if (!snap.exists()) { $('notifBadge').classList.remove('show'); return; }
-    const d = snap.data();
-    const unread = (d.notifIds || []).filter(id => !(d.readIds || []).includes(id) && !(d.deletedIds || []).includes(id)).length;
-    const b = $('notifBadge');
-    if (unread > 0) { b.textContent = unread > 99 ? '99+' : unread; b.classList.add('show'); }
-    else b.classList.remove('show');
-  }, () => {});
+  onSnapshot(collection(db,'parent_notifications',myUid,'items'), snap => {
+    const b=$('notifBadge');const count=snap.docs.filter(d=>!d.data().read).length;
+    b.textContent=count>99?'99+':String(count);b.classList.toggle('show',count>0);
+    let box=$('privateNotifications');
+    if(!box){box=document.createElement('section');box.id='privateNotifications';box.className='card';$('childrenList').before(box);}
+    box.replaceChildren();
+    const h=document.createElement('h3');h.textContent='إشعاراتك الخاصة';box.appendChild(h);
+    for(const d of snap.docs.slice(-20).reverse()){
+      const p=document.createElement('p');p.textContent=(d.data().title||'')+'، '+(d.data().body||'');box.appendChild(p);
+    }
+  },()=>{});
 }
 </script>
 </body>

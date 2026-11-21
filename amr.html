@@ -52,7 +52,7 @@
   .topbar-inner { max-width: 1100px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
   .topbar-logo { width: 46px; height: 46px; border-radius: 50%; object-fit: contain; border: 2px solid var(--accent); background: var(--bg-input); padding: 3px; flex-shrink: 0; }
   .topbar-title { font-size: 19px; font-weight: 900; color: var(--primary); flex: 1; min-width: 0; }
-  [data-theme="dark"] .topbar-title { color: var(--accent); }
+  [data-theme="dark"] .topbar-title { color: var(--primary); }
   .topbar-title small { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); }
   .icon-btn { width: 42px; height: 42px; border-radius: 12px; background: var(--bg-input); border: 2px solid var(--border); color: var(--primary); font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; flex-shrink: 0; }
   .icon-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -102,7 +102,7 @@
   .pin-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 34px 28px; width: min(380px, 100%); text-align: center; box-shadow: 0 8px 30px var(--shadow); }
   .pin-box img { width: 72px; height: 72px; border-radius: 50%; border: 3px solid var(--accent); padding: 4px; margin-bottom: 14px; object-fit: contain; }
   .pin-box h2 { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 6px; }
-  [data-theme="dark"] .pin-box h2 { color: var(--accent); }
+  [data-theme="dark"] .pin-box h2 { color: var(--primary); }
   .pin-box p { color: var(--text-sub); font-size: 13px; margin-bottom: 18px; line-height: 1.8; }
   .pin-box input { width: 100%; text-align: center; letter-spacing: 5px; font-size: 18px; margin-bottom: 12px; }
   .pin-box button { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-lighter) 100%); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Cairo', sans-serif; }
@@ -112,7 +112,7 @@
 
   .badge { font-size: 11px; padding: 3px 10px; border-radius: 14px; font-weight: 700; }
   .badge.p { background: rgba(201,169,97,.18); color: #8a6d00; }
-  [data-theme="dark"] .badge.p { color: var(--accent-light); }
+  [data-theme="dark"] .badge.p { color: var(--primary-light); }
   .badge.a { background: rgba(30,122,90,.14); color: #1e7e34; }
   [data-theme="dark"] .badge.a { color: #2ECC71; }
   .badge.r { background: rgba(192,57,43,.12); color: var(--error); }
@@ -133,8 +133,8 @@
   <div class="pin-box">
     <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
     <h2>لوحة تحكم أولياء الأمور</h2>
-    <p>أدخل دبوس الإدارة. يتم التحقق منه من قواعد Firestore مقابل مستند محمي على الخادم مع كل تعديل.</p>
-    <input type="password" id="pinInput" placeholder="••••" maxlength="32" autocomplete="off" dir="ltr">
+    <p>سجّل بحساب الإدارة المعتمد. لا يتيح رمز ولي الأمر أو رقم سري محلي أي صلاحيات إدارية.</p>
+    <input type="email" id="adminEmail" placeholder="البريد الإلكتروني للإدارة" autocomplete="username" dir="ltr"><input type="password" id="adminPassword" placeholder="كلمة السر" autocomplete="current-password" dir="ltr"><p id="adminError" role="alert"></p>
     <button id="pinBtn">دخول</button>
   </div>
 </div>
@@ -169,7 +169,7 @@
   </div>
 
   <!-- الروابط -->
-  <div class="panel" id="tab-links">
+  <div class="panel" id="tab-links"><div class="card"><h2>طلبات الربط</h2><p class="mut">الأكواد للتعريف فقط. تحقّق من صلة ولي الأمر قبل الموافقة.</p><div id="linkRequests"></div></div>
     <div class="link-grid">
       <div class="card">
         <h2><i class="fas fa-user-shield"></i> بحث عن ولي أمر</h2>
@@ -202,7 +202,7 @@
   <div class="panel" id="tab-add">
     <div class="card">
       <h2><i class="fas fa-user-plus"></i> إنشاء حساب ولي أمر يدويًا</h2>
-      <p class="mut" style="margin-bottom:14px">ينشئ حساب دخول حقيقيًا (بريد + كلمة سر مولّدة) وسجل ولي أمر معتمد بكود PAR. سلّم البيانات لولي الأمر فورًا — تظهر كلمة السر هنا مرة واحدة فقط.</p>
+      <p class="mut" style="margin-bottom:14px">ستُرسل دعوة تحقق آمنة بعد تجهيز مسار الدعوات. لا تُنشأ كلمات سر أو تُعرض في هذه اللوحة.</p>
       <div class="form">
         <input id="npName" placeholder="الاسم الكامل">
         <input id="npPhone" placeholder="رقم الهاتف (01xxxxxxxxx)" dir="ltr">
@@ -236,7 +236,7 @@ if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, getDocs, setDoc, collection, writeBatch, serverTimestamp, deleteField, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -246,10 +246,15 @@ const firebaseConfig = {
   messagingSenderId: "757756130875",
   appId: "1:757756130875:web:63c53534c6843e2a29ce1e"
 };
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+if (IS_LOCAL) Object.assign(firebaseConfig, {apiKey:'demo-key', projectId:'demo-meezan', authDomain:'demo-meezan.firebaseapp.com', appId:'demo-app'});
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const ADMIN_UID = '4KbUOO6wrHf3jzzKvGIltsNyzFX2';
 if (['localhost', '127.0.0.1'].includes(location.hostname)) {
-  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectFirestoreEmulator(db, 'localhost', 8085);
+  connectAuthEmulator(auth, 'http://localhost:9099', {disableWarnings:true});
 }
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -266,23 +271,40 @@ $('themeBtn').onclick = () => {
   updateThemeIcon(t);
 };
 
-// ---------- الدبوس ----------
-let PIN = sessionStorage.getItem('amr_pin') || '';
+// Authentication is enforced again by Firestore rules. No PIN grants access.
+const PIN = ''; // Kept only for legacy payload compatibility, never an authority.
 function toast(t){ const el=$('toast'); el.textContent=t; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',2600); }
-function unlock(){ PIN = $('pinInput').value.trim(); if(!PIN) return; sessionStorage.setItem('amr_pin', PIN); $('pinScreen').style.display='none'; boot(); }
-$('pinBtn').onclick = unlock;
-$('pinInput').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
-$('lockBtn').onclick = () => { sessionStorage.removeItem('amr_pin'); location.reload(); };
-if (PIN) { $('pinScreen').style.display='none'; boot(); }
+function requireAdmin(){ if(auth.currentUser?.uid !== ADMIN_UID) throw new Error('صلاحيات الإدارة مطلوبة'); }
+$('pinBtn').onclick = async () => {
+  $('adminError').textContent = '';
+  try { await signInWithEmailAndPassword(auth, $('adminEmail').value.trim(), $('adminPassword').value); }
+  catch(e){ $('adminError').textContent = 'تعذّر الدخول. راجع بيانات حساب الإدارة.'; }
+  finally { $('adminPassword').value = ''; }
+};
+$('adminPassword').addEventListener('keydown', e => { if(e.key==='Enter') $('pinBtn').click(); });
+$('lockBtn').onclick = () => signOut(auth);
+onAuthStateChanged(auth, async user => {
+  if (!user || user.uid !== ADMIN_UID) {
+    $('pinScreen').style.display='flex';
+    document.querySelector('main').hidden=true;
+    $('pendingList').replaceChildren(); $('allList').replaceChildren();
+    if(user) { $('adminError').textContent='هذا الحساب ليس حساب الإدارة المعتمد.'; await signOut(auth); }
+    return;
+  }
+  $('pinScreen').style.display='none'; document.querySelector('main').hidden=false;
+  boot();
+});
 
 // ---------- التبويبات ----------
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  if(b.dataset.tab==='links' && auth.currentUser?.uid===ADMIN_UID)loadLinkRequests();
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x===b));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'tab-'+b.dataset.tab));
 });
 
 // ---------- البيانات ----------
 async function loadParents(){
+  requireAdmin();
   const snap = await getDocs(collection(db, 'parents'));
   const all = []; snap.forEach(d => all.push({ id: d.id, ...d.data() }));
   return all;
@@ -304,18 +326,14 @@ async function refreshLists(){
   } catch(e){ console.warn(e); $('pendingList').innerHTML = '<div class="empty">تعذّر التحميل — تحقق من الوصول إلى Firestore</div>'; }
 }
 async function setStatus(uid, status){
+  requireAdmin();
   await setDoc(doc(db, 'parents', uid), { status, adminPin: PIN, updatedAt: serverTimestamp() }, { merge: true });
-  if (status === 'approved') {
-    try {
-      const notifId = 'pok_' + uid;
-      await setDoc(doc(db, 'notifications', notifId), { id: notifId, title: 'تم تفعيل حسابك', body: 'تمت الموافقة على حساب ولي الأمر الخاص بك. يمكنك الآن ربط أبنائك بأكوادهم ومتابعة نتائجهم.', type: 'page', url: 'parent.html', kind: 'parent', mediaType: 'page', senderId: 'system', senderName: 'MEEZAN', createdAt: new Date().toISOString(), target: 'custom', targetLabel: 'أولياء الأمور', recipients: [uid] });
-      const uRef = doc(db, 'user_notifications', uid);
-      const old = (await getDoc(uRef)).data() || {};
-      let ids = old.notifIds || [], un = old.unreadCount || 0;
-      if (!ids.includes(notifId)) { ids = [notifId, ...ids].slice(0,100); un++; }
-      await setDoc(uRef, { userId: uid, notifIds: ids, unreadCount: un, updatedAt: serverTimestamp() }, { merge: true });
-    } catch(e){ console.warn('notif', e); }
-  }
+  await setDoc(doc(db, 'parent_notifications', uid, 'items', 'status-' + Date.now()), {
+    title: status === 'approved' ? 'تم تفعيل حسابك' : 'تحديث حالة الحساب',
+    body: status === 'approved' ? 'يمكنك إرسال طلب ربط أبنائك لتراجعه الإدارة.' : 'تغيّرت حالة الحساب. تواصل مع الإدارة.',
+    createdAt: serverTimestamp(), read: false
+  });
+
   refreshLists();
 }
 window.approve = async (uid) => { try { await setStatus(uid, 'approved'); toast('تم القبول'); } catch(e){ toast('فشل: '+e.message); } };
@@ -365,7 +383,7 @@ $('pLookupBtn').onclick = async () => {
   if (!p) { box.innerHTML = '<div class="empty">ولي الأمر غير موجود</div>'; return; }
   const links = (await getDoc(doc(db, 'parent_links', p.uid))).data()?.children || {};
   const kids = Object.keys(links);
-  let html = `<div class="row"><div class="grow"><b>${esc(p.fullName||'—')}</b><br><span class="mut"><code>${esc(p.code||'')}</code> · ${esc(p.phone||'')} · ${esc(p.status||'')}</span></div></div>`;
+  let html = `<div class="row"><div class="grow"><b>${esc(p.fullName||'—')}</b><br><span class="mut"><code>${esc(p.code||'')}</code> · ${esc(p.phone||'')} · ${esc(({approved:'معتمد',pending:'معلق',rejected:'مرفوض',suspended:'موقوف'})[p.status]||'غير معروف')}</span></div></div>`;
   html += '<div class="mut" style="margin-top:8px">الأبناء المربوطون ('+kids.length+'):</div><ul class="kids">';
   for (const sid of kids) {
     const nm = await studentName(sid);
@@ -407,50 +425,64 @@ $('linkBtn').onclick = async () => {
 };
 
 // ---------- إضافة يدوية ----------
-$('npBtn').onclick = async () => {
-  const name = $('npName').value.trim(), phone = $('npPhone').value.trim(),
-        wa = $('npWhatsapp').value.trim(), email = $('npEmail').value.trim();
-  if (!name || !email) { toast('الاسم والبريد الإلكتروني مطلوبان'); return; }
-  $('npBtn').disabled = true;
-  try {
-    const pw = 'Mz' + Math.random().toString(36).slice(2, 10) + '!';
-    const secondary = initializeApp(firebaseConfig, 'secondary' + Date.now());
-    const auth2 = getAuth(secondary);
-    const cred = await createUserWithEmailAndPassword(auth2, email, pw);
-    const uid = cred.user.uid;
-    await signOut(auth2);
-    let code;
-    do { code = 'PAR-' + String(Math.floor(100000 + Math.random()*900000)); }
-    while ((await getDoc(doc(db, 'parent_codes', code))).exists());
-    const b = writeBatch(db);
-    b.set(doc(db, 'parents', uid), { id: uid, authUid: uid, fullName: name, phone, whatsapp: wa || phone, email, code, status: 'approved', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), adminPin: PIN });
-    b.set(doc(db, 'parent_codes', code), { uid, adminPin: PIN });
-    await b.commit();
-    $('npResult').innerHTML = `<div class="cred-box"><b>تم إنشاء الحساب</b><br>الكود: <code>${code}</code><br>البريد: ${esc(email)}<br>كلمة السر: <code>${esc(pw)}</code><br><span class="mut">سلّم هذه البيانات لولي الأمر الآن — لن تظهر كلمة السر مرة أخرى.</span></div>`;
-    $('npName').value = $('npPhone').value = $('npWhatsapp').value = $('npEmail').value = '';
-    refreshLists();
-  } catch(e){ toast('فشل: '+e.message); }
-  finally { $('npBtn').disabled = false; }
+$('npBtn').onclick = () => {
+  requireAdmin();
+  toast('الإضافة اليدوية تنتظر مسار دعوة آمن. لا يتم إنشاء حساب أو إرسال بريد الآن.');
 };
+$('npBtn').disabled = true;
+$('npResult').textContent = 'الإضافة اليدوية غير مفعلة حتى تجهيز دعوة تحقق آمنة، دون عرض كلمات سر.';
 
 // ---------- الإعدادات ----------
 async function loadSettings(){
   try {
-    const s = (await getDoc(doc(db, 'settings', 'login_user'))).data() || {};
+    const s = (await getDoc(doc(db, 'parent_controls', 'portal'))).data() || {};
     $('tgReg').checked = s.parentRegisterEnabled !== false;
     $('tgLogin').checked = s.parentLoginEnabled !== false;
     $('tgAppr').checked = s.parentApprovalRequired === true;
   } catch(e){ console.warn(e); }
 }
 async function saveToggle(field, val){
-  try { await setDoc(doc(db, 'settings', 'login_user'), { [field]: val, adminPin: PIN }, { merge: true }); toast('تم الحفظ'); }
+  try { await setDoc(doc(db, 'parent_controls', 'portal'), { [field]: val, adminPin: PIN }, { merge: true }); toast('تم الحفظ'); }
   catch(e){ toast('فشل: '+e.message); loadSettings(); }
 }
 $('tgReg').onchange = e => saveToggle('parentRegisterEnabled', e.target.checked);
 $('tgLogin').onchange = e => saveToggle('parentLoginEnabled', e.target.checked);
 $('tgAppr').onchange = e => saveToggle('parentApprovalRequired', e.target.checked);
 
-function boot(){ refreshLists(); loadSettings(); }
+function boot(){ requireAdmin(); refreshLists(); loadSettings(); loadLinkRequests(); }
+
+async function loadLinkRequests(){
+ requireAdmin();
+ const snap=await getDocs(collection(db,'parent_link_requests'));
+ const box=$('linkRequests');box.replaceChildren();
+ for(const d of snap.docs){
+  const r=d.data();if(r.status!=='pending')continue;
+  const row=document.createElement('div');row.className='row';
+  const label=document.createElement('span');label.className='grow';
+  label.textContent=`${r.kind==='parent'?'ولي أمر':'طالب'}: ${r.requesterUid} | ${r.targetCode}`;
+  row.appendChild(label);
+  for(const approve of [true,false]){
+   const btn=document.createElement('button');btn.className='act '+(approve?'ok':'no');btn.textContent=approve?'موافقة بعد التحقق':'رفض';
+   btn.onclick=()=>reviewLinkRequest(d.id,r,approve).catch(e=>toast('فشل: '+e.message));row.appendChild(btn);
+  }box.appendChild(row);
+ }if(!box.children.length)box.textContent='لا توجد طلبات ربط معلقة';
+}
+async function reviewLinkRequest(id,r,approve){
+ requireAdmin();
+ if(!approve){await setDoc(doc(db,'parent_link_requests',id),{status:'rejected',reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp()},{merge:true});return loadLinkRequests();}
+ const p=r.kind==='parent'?await resolveParent(r.requesterUid):await resolveParent(r.targetCode);
+ const mapping=r.kind==='child'?(await getDoc(doc(db,'auth_identities',r.requesterUid))).data():null;
+ const student=r.kind==='parent'?await resolveStudent(r.targetCode):(mapping?.role==='student'?{studentId:mapping.studentId,code:mapping.code}:null);
+ if(!p||p.status!=='approved'||!student)throw new Error('الحساب أو هوية الطالب غير معتمدة');
+ const nm=await studentName(student.studentId);
+ if(!confirm('هل تحققت من صلة '+(p.fullName||p.uid)+' بالطالب '+nm+'؟ الكود وحده ليس موافقة.'))return;
+ const batch=writeBatch(db);
+ batch.set(doc(db,'parent_links',p.uid),{children:{[student.studentId]:{studentId:student.studentId,name:nm,code:student.code,linkedBy:'admin',linkedAt:serverTimestamp()}}},{merge:true});
+ batch.set(doc(db,'student_links',student.studentId),{parents:{[p.uid]:{parentUid:p.uid,linkedBy:'admin',linkedAt:serverTimestamp()}}},{merge:true});
+ batch.set(doc(db,'parent_link_requests',id),{status:'approved',reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp()},{merge:true});
+ batch.set(doc(db,'parent_notifications',p.uid,'items','link-'+id),{title:'تم ربط ابنك',body:'وافقت الإدارة على ربط '+nm,read:false,createdAt:serverTimestamp()});
+ await batch.commit();toast('تم اعتماد الربط');loadLinkRequests();
+}
 </script>
 </body>
 </html>
