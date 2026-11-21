@@ -37,5 +37,5 @@ export function migrationChecklist(){return [
  'Test student, teacher, admin, rejected, pending, disabled and unrelated accounts. Include old sessions, shared devices and both link directions.',
  'Back up the actual deployed rules/data privately. Prove a restricted rollback without reopening public reads.',
  'After the separately approved window begins, switch compatible clients and rules together, invalidate legacy sessions and monitor failures.',
- 'Remove password-bearing client-readable fields only after verified migration. Never reset or mass-email accounts as an implicit step.'
+ 'Preserve every existing user-entered password. No resets or new-password requirement are authorized. Remove password-bearing client-readable fields only after an approved verified migration; never mass-email accounts implicitly.'
  ];}
