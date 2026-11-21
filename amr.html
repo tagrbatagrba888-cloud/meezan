@@ -134,8 +134,8 @@
     <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
     <h2>لوحة تحكم أولياء الأمور</h2>
     <p>سجّل بحساب الإدارة المعتمد. لا يتيح رمز ولي الأمر أو رقم سري محلي أي صلاحيات إدارية.</p>
-    <input type="email" id="adminEmail" placeholder="البريد الإلكتروني للإدارة" autocomplete="username" dir="ltr"><input type="password" id="adminPassword" placeholder="كلمة السر" autocomplete="current-password" dir="ltr"><p id="adminError" role="alert"></p>
-    <button id="pinBtn">دخول</button>
+    <p id="adminError" role="alert"></p>
+    <a class="act ok" href="login.html?entry=admin" style="display:block;padding:14px;border-radius:12px;background:var(--primary);color:var(--bg-page);text-decoration:none">الدخول من صفحة تسجيل الدخول الموحدة</a>
   </div>
 </div>
 
@@ -236,7 +236,7 @@ if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, getDocs, setDoc, collection, writeBatch, serverTimestamp, deleteField, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
@@ -275,13 +275,6 @@ $('themeBtn').onclick = () => {
 const PIN = ''; // Kept only for legacy payload compatibility, never an authority.
 function toast(t){ const el=$('toast'); el.textContent=t; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',2600); }
 function requireAdmin(){ if(auth.currentUser?.uid !== ADMIN_UID) throw new Error('صلاحيات الإدارة مطلوبة'); }
-$('pinBtn').onclick = async () => {
-  $('adminError').textContent = '';
-  try { await signInWithEmailAndPassword(auth, $('adminEmail').value.trim(), $('adminPassword').value); }
-  catch(e){ $('adminError').textContent = 'تعذّر الدخول. راجع بيانات حساب الإدارة.'; }
-  finally { $('adminPassword').value = ''; }
-};
-$('adminPassword').addEventListener('keydown', e => { if(e.key==='Enter') $('pinBtn').click(); });
 $('lockBtn').onclick = () => signOut(auth);
 onAuthStateChanged(auth, async user => {
   if (!user || user.uid !== ADMIN_UID) {

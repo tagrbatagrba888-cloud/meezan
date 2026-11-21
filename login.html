@@ -1457,7 +1457,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 if (IS_LOCAL) {
   try {
-    connectFirestoreEmulator(db, "localhost", 8080);
+    connectFirestoreEmulator(db, "localhost", 8085);
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   } catch (e) {}
 }
@@ -2865,6 +2865,17 @@ $('loginForm').addEventListener('submit', async (e) => {
 
   if (!username || !password) return showError(currentLoginRole === 'parent' ? 'الرجاء إدخال البريد الإلكتروني وكلمة السر' : 'الرجاء إدخال اسم المستخدم وكلمة السر');
 
+  // One shared login page. Admin route is a local staged flow only.
+  if (IS_LOCAL && new URLSearchParams(location.search).get('entry') === 'admin') {
+    try {
+      const c = await signInWithEmailAndPassword(auth, username, password);
+      if(c.user.uid !== '4KbUOO6wrHf3jzzKvGIltsNyzFX2') {
+        await signOut(auth); return showError('هذا الحساب ليس حساب الإدارة المعتمد');
+      }
+      $('loginPassword').value=''; location.replace('amr.html');
+    } catch(e){ $('loginPassword').value=''; showError('تعذّر الدخول. راجع بيانات حساب الإدارة.'); }
+    return;
+  }
   if (currentLoginRole === 'parent') return handleParentLogin(username, password);
 
   if (currentLoginRole === 'student' && !studentLoginEnabled) {
@@ -3625,6 +3636,14 @@ setTimeout(() => {
   fetchUsersFast('users', false).catch(() => {});
   fetchUsersFast('teachers', false).catch(() => {});
 }, 300);
+</script>
+
+
+<script>
+// Label the existing shared form for a staged admin entry, never another login page.
+if (['localhost','127.0.0.1'].includes(location.hostname) && new URLSearchParams(location.search).get('entry')==='admin') {
+ document.getElementById('loginUsername').placeholder='البريد الإلكتروني للإدارة';
+}
 </script>
 
 </body>

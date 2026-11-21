@@ -5,7 +5,9 @@ const puppeteer=require(process.env.PUPPETEER_CORE_PATH || 'puppeteer-core');
  p.on('pageerror',e=>console.log('PAGEERROR',e.message));
  await p.goto('http://127.0.0.1:8899/amr.html',{waitUntil:'networkidle2'});
  await p.screenshot({path:'/downloads/amr-auth-signin.png'});
- await p.type('#adminEmail','admin@example.test');await p.type('#adminPassword','Local-test-only-739!');await p.click('#pinBtn');
+ await p.click('a[href="login.html?entry=admin"]');
+ await p.waitForSelector('#loginUsername');
+ await p.type('#loginUsername','admin@example.test');await p.type('#loginPassword','Local-test-only-739!');await p.click('#loginBtn');
  await p.waitForFunction(()=>document.querySelector('#allList').textContent.includes('أم يوسف'),{timeout:20000});
  await p.screenshot({path:'/downloads/amr-auth-approved.png',fullPage:true});
  const context=await browser.createBrowserContext();const parent=await context.newPage();
@@ -13,8 +15,9 @@ const puppeteer=require(process.env.PUPPETEER_CORE_PATH || 'puppeteer-core');
  await parent.goto('http://127.0.0.1:8899/parent.html',{waitUntil:'networkidle2'}).catch(()=>{});
  // Authenticate synthetic fixture through emulator, never production.
  await parent.goto('http://127.0.0.1:8899/amr.html',{waitUntil:'networkidle2'});
- await parent.type('#adminEmail','parent1@test.com');await parent.type('#adminPassword','Local-test-only-739!');await parent.click('#pinBtn');
- await parent.waitForFunction(()=>document.querySelector('#adminError').textContent.includes('ليس'),{timeout:20000});
+ await parent.click('a[href="login.html?entry=admin"]');await parent.waitForSelector('#loginUsername');
+ await parent.type('#loginUsername','parent1@test.com');await parent.type('#loginPassword','Local-test-only-739!');await parent.click('#loginBtn');
+ await parent.waitForFunction(()=>document.body.textContent.includes('ليس حساب الإدارة المعتمد'),{timeout:20000});
  console.log('PASS: non-admin rejected by admin UI');
  // Sign in via Firebase emulator SDK on the parent page before the auth route guard redirects.
  // Admin guard signs out non-admin accounts, so seed parent auth via isolated fixture page instead.
