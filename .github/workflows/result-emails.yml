@@ -1,0 +1,21 @@
+name: result-emails
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+concurrency:
+  group: result-emails
+  cancel-in-progress: false
+permissions: {}
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/result-emails-poller.mjs
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
