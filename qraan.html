@@ -11,7 +11,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B}
-[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#0B3D2E;--accent-light:#145A43;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C}
+[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#0F1B16;--bg-card:#182720;--bg-input:#1E3028;--text-main:#ECE9DF;--text-sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C}
 html,body{min-height:100%;font-family:'Cairo',sans-serif}html{overflow-x:hidden}body{overflow-x:clip}
 body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 .topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow)}
@@ -112,6 +112,7 @@ body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 body.apon .wrap{padding-bottom:230px}
 #rd.pm #rc .q{line-height:2.15}
 .nav button.lk{opacity:.6;background:var(--accent);color:var(--primary)}
+[data-theme="dark"] .nav button.lk{background:var(--bg-input);color:var(--text-sub)}
 .sheet input{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font:700 14px 'Cairo';margin:6px 0}
 .sheet .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .sheet .chips button{padding:7px 11px;border:2px solid var(--border);border-radius:10px;background:var(--bg-input);color:var(--text-main);font:800 12px 'Cairo';cursor:pointer}
@@ -141,6 +142,16 @@ body.apon .wrap{padding-bottom:230px}
 .lgi{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:5px 0;font-size:14px;line-height:1.7}
 .lgi i{display:inline-block;width:14px;height:14px;border-radius:50%;flex-shrink:0;transform:translateY(2px)}
 .lgi b{font-weight:800}.lgi small{color:var(--text-sub);font-weight:600;font-size:12px}
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>

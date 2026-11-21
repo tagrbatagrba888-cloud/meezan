@@ -128,15 +128,15 @@
     --primary: #C9A961;
     --primary-light: #E0C888;
     --primary-lighter: #F0DBA8;
-    --accent: #0B3D2E;
-    --accent-light: #145A43;
-    --bg-page: #0A1612;
-    --bg-card: #11201B;
-    --bg-input: #1A2C25;
-    --text-main: #F5F1E8;
-    --text-sub: #9BAEA6;
-    --border: #1E3A31;
-    --shadow: rgba(0, 0, 0, 0.5);
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #0F1B16;
+    --bg-card: #182720;
+    --bg-input: #1E3028;
+    --text-main: #ECE9DF;
+    --text-sub: #A4B6AE;
+    --border: #2A443A;
+    --shadow: rgba(0, 0, 0, 0.4);
     --error: #E74C3C;
     --success: #2ECC71;
     --warning: #F39C12;
@@ -987,8 +987,18 @@
   .gender-opt input{position:absolute;opacity:0;pointer-events:none;}
   .gender-opt span{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-input);color:var(--text-main);font-weight:800;font-size:14px;transition:.2s;}
   .gender-opt input:checked + span{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 4px 14px var(--shadow);}
-  [data-theme="dark"] .gender-opt input:checked + span{color:#0A1612;}
+  [data-theme="dark"] .gender-opt input:checked + span{color:#0F1B16;}
   .forgot-wrapper{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;}
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>
@@ -1620,7 +1630,7 @@ const hasFullAddress = (u) => !!(u && u.governorate && u.center && u.village && 
   .adw-box p{margin:0 0 10px;font-size:12.5px;color:var(--text-sub,#5A6B66);font-weight:600;line-height:1.8}
   .adw-btn{padding:11px 18px;border:none;border-radius:11px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .adw-btn.pri{background:var(--primary,#0B3D2E);color:#fff}
-  [data-theme="dark"] .adw-btn.pri{color:#0A1612}
+  [data-theme="dark"] .adw-btn.pri{color:#0F1B16}
   .adw-btn.ghost{background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);border:1.5px solid var(--border,#E0E5E1)}
   .adw-btn.dng{background:var(--error,#C0392B);color:#fff}
   .adw-btn.sm{padding:6px 10px;font-size:12px;border-radius:9px}
@@ -1631,7 +1641,7 @@ const hasFullAddress = (u) => !!(u && u.governorate && u.center && u.village && 
   .adm-tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
   .adm-tab{flex:1;min-width:90px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--border,#E0E5E1);background:var(--bg-input,#F8FBF9);color:var(--text-main,#0B3D2E);font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer}
   .adm-tab.active{background:var(--primary,#0B3D2E);color:#fff;border-color:var(--primary,#0B3D2E)}
-  [data-theme="dark"] .adm-tab.active{color:#0A1612}
+  [data-theme="dark"] .adm-tab.active{color:#0F1B16}
   .adm-card{border:1.5px solid var(--border,#E0E5E1);border-radius:13px;padding:12px;margin-bottom:12px;background:var(--bg-card,#fff)}
   .adm-card h4{margin:0 0 8px;font-size:13px;font-weight:900;color:var(--text-main,#0B3D2E);display:flex;gap:6px;align-items:center}
   .adm-row{display:flex;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid var(--border,#E0E5E1);flex-wrap:wrap}

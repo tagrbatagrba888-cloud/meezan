@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--pl:#145A43;--pll:#1E7A5A;--accent:#C9A961;--bg:#F5F1E8;--card:#fff;--input:#F8FBF9;--text:#0B3D2E;--sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B;--warning:#E67E22}
-[data-theme=dark]{--primary:#C9A961;--pl:#E0C888;--pll:#F0DBA8;--accent:#0B3D2E;--bg:#0A1612;--card:#11201B;--input:#1A2C25;--text:#F5F1E8;--sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C;--warning:#F39C12}
+[data-theme=dark]{--primary:#C9A961;--pl:#E0C888;--pll:#F0DBA8;--accent:#C9A961;--bg:#0F1B16;--card:#182720;--input:#1E3028;--text:#ECE9DF;--sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C;--warning:#F39C12}
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s}
 .hd{background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 4px 20px var(--shadow);position:sticky;top:0;z-index:20}
 .hi{max-width:860px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
@@ -31,7 +31,17 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 .q b{min-width:30px;height:30px;border-radius:9px;background:var(--input);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub)}
 .it.open .q b{background:var(--accent);color:#fff;border-color:var(--accent)}.q span{flex:1}.q>i{color:var(--sub);transition:.3s}.it.open .q>i{transform:rotate(180deg);color:var(--accent)}
 .a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}.it.open .a{grid-template-rows:1fr}.a>div{overflow:hidden}
-.a p{padding:2px 18px 18px 18px;margin:0 46px 0 0;font-size:14px;line-height:2;color:var(--sub);font-weight:600;white-space:pre-line;border-top:1px dashed var(--border);padding-top:14px}</style></head><body>
+.a p{padding:2px 18px 18px 18px;margin:0 46px 0 0;font-size:14px;line-height:2;color:var(--sub);font-weight:600;white-space:pre-line;border-top:1px dashed var(--border);padding-top:14px}
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
+</style></head><body>
 <header class="hd"><div class="hi"><button class="ib" id="bk" title="رجوع"><i class="fas fa-arrow-right"></i></button><h1><i class="fas fa-file-contract"></i>الشروط والأحكام</h1><button class="ib" id="th" title="المظهر"><i class="fas fa-moon" id="thi"></i></button></div></header>
 <main class="wrap"><div class="hero"><h2>شروط وأحكام منصة ميزان</h2><p>اقرأ الشروط التي تحفظ حقوق المنصة والطالب والمعلم. اضغط على أي شرط لعرض تفاصيله.</p></div>
 <div class="search"><i class="fas fa-search"></i><input id="q" placeholder="ابحث في الشروط..."></div><div id="list"></div><p class="foot">MEEZAN © جميع الحقوق محفوظة</p></main>

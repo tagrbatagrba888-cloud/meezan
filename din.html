@@ -11,7 +11,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--primary-lighter:#1E7A5A;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B}
-[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#0B3D2E;--accent-light:#145A43;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C}
+[data-theme="dark"]{--primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;--accent:#C9A961;--accent-light:#E0C888;--bg-page:#0F1B16;--bg-card:#182720;--bg-input:#1E3028;--text-main:#ECE9DF;--text-sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C}
 html,body{min-height:100%;font-family:'Cairo',sans-serif;overflow-x:hidden}
 body{background:var(--bg-page);color:var(--text-main);min-height:100dvh}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(circle at 20px 20px,var(--primary) 2px,transparent 2.5px);background-size:40px 40px;z-index:0}
@@ -63,6 +63,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;b
   .sec{padding:0 12px}.grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .btn{min-height:122px;padding:18px 10px;border-radius:16px;gap:10px}.bi{width:50px;height:50px;font-size:21px}.bl{font-size:13px}
 }
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>

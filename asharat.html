@@ -127,7 +127,7 @@
 }
 [data-theme="dark"]{
   --primary:#C9A961;--primary-light:#E0C888;--primary-lighter:#F0DBA8;
-  --accent:#0B3D2E;--accent-light:#145A43;
+  --accent:#C9A961;--accent-light:#E0C888;
   --bg-page:#0A1310;--bg-card:#121F1A;--bg-input:#1A2B24;
   --text-main:#F2EFE6;--text-sub:#97AAA1;--border:#1F342C;
   --shadow:rgba(0,0,0,.45);
@@ -341,6 +341,16 @@ a{color:inherit}
 }
 @media (max-width:380px){.btn span.label{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>
@@ -1901,4 +1911,4 @@ if ('serviceWorker' in navigator) {
 </script>
 
 </body>
-</html>
+</html>

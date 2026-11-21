@@ -37,21 +37,21 @@
     --primary: #C9A961;
     --primary-light: #E0C888;
     --primary-lighter: #F0DBA8;
-    --accent: #0B3D2E;
-    --bg-page: #0A1612;
-    --bg-card: #11201B;
-    --bg-input: #1A2C25;
-    --text-main: #F5F1E8;
-    --text-sub: #9BAEA6;
-    --border: #1E3A31;
-    --shadow: rgba(0, 0, 0, 0.5);
+    --accent: #C9A961;
+    --bg-page: #0F1B16;
+    --bg-card: #182720;
+    --bg-input: #1E3028;
+    --text-main: #ECE9DF;
+    --text-sub: #A4B6AE;
+    --border: #2A443A;
+    --shadow: rgba(0, 0, 0, 0.4);
     --error: #E74C3C;
     --success: #2ECC71;
     --warning: #F39C12;
     --info: #3498DB;
     --bubble-me: #C9A961;
-    --bubble-me-text: #0A1612;
-    --bubble-other: #1A2C25;
+    --bubble-me-text: #0F1B16;
+    --bubble-other: #1E3028;
   }
 
   html, body { height: 100%; }
@@ -127,7 +127,7 @@
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 18px; font-weight: 900;
   }
-  [data-theme="dark"] .avatar { color: #0A1612; }
+  [data-theme="dark"] .avatar { color: #0F1B16; }
   .row-main { flex: 1; min-width: 0; }
   .row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .row-name { font-size: 14.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -184,7 +184,7 @@
     background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; font-size: 17px;
     display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease;
   }
-  [data-theme="dark"] .send-btn { color: #0A1612; }
+  [data-theme="dark"] .send-btn { color: #0F1B16; }
   .send-btn:hover:not(:disabled) { transform: scale(1.06); }
   .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .send-btn i { transform: scaleX(-1); }
@@ -225,7 +225,7 @@
   .bal-chip:hover { transform: translateY(-1px); }
   .bal-chip i { color: var(--gold); font-size: 14px; }
   .bal-chip small { font-size: 11px; opacity: .85; font-weight: 800; }
-  [data-theme="dark"] .bal-chip { background: linear-gradient(135deg, #1A2C25, #11201B); }
+  [data-theme="dark"] .bal-chip { background: linear-gradient(135deg, #1E3028, #182720); }
   .bal-chip.bump { animation: balbump .5s ease; }
   @keyframes balbump { 40% { transform: scale(1.1); } }
 
@@ -283,7 +283,7 @@
   [data-theme="dark"] .cbtn { color: var(--gold); }
   .cbtn:hover { border-color: var(--primary-lighter); }
   .cbtn.mic { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border: none; width: 46px; height: 46px; }
-  [data-theme="dark"] .cbtn.mic { color: #0A1612; }
+  [data-theme="dark"] .cbtn.mic { color: #0F1B16; }
   .composer.has-text .cbtn.mic, .composer:not(.has-text) .send-btn { display: none; }
   .attach-menu {
     position: absolute; bottom: calc(100% + 6px); inset-inline-start: 12px; background: var(--bg-card); border: 1px solid var(--border);
@@ -325,7 +325,7 @@
   .mf { display: flex; gap: 10px; padding: 0 18px 18px; }
   .btn { flex: 1; padding: 12px; border-radius: 13px; border: 2px solid var(--border); background: var(--bg-input); color: var(--text-main); font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 14px; cursor: pointer; }
   .btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border: none; }
-  [data-theme="dark"] .btn.primary { color: #0A1612; }
+  [data-theme="dark"] .btn.primary { color: #0F1B16; }
   .btn.danger { background: var(--error); color: #fff; border: none; }
 
   .set-row { display: flex; align-items: flex-start; gap: 14px; padding: 4px 0; }
@@ -400,6 +400,16 @@
     .brand h1 { font-size: 16px; }
     .brand small { display: none; }
   }
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>

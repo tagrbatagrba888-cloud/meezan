@@ -18,7 +18,7 @@ else{var r=JSON.parse(localStorage.getItem(K)||'null');if(r&&r.meezan_logged_in=
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--p:#0B3D2E;--p2:#1E7A5A;--g:#C9A961;--bg:#F5F1E8;--card:#fff;--in:#F8FBF9;--tx:#0B3D2E;--sub:#5A6B66;--bd:#E0E5E1;--sh:rgba(11,61,46,.15);--err:#C0392B}
-[data-theme=dark]{--p:#C9A961;--p2:#E0C888;--bg:#0A1612;--card:#11201B;--in:#1A2C25;--tx:#F5F1E8;--sub:#9BAEA6;--bd:#1E3A31;--sh:rgba(0,0,0,.5);--err:#E74C3C}
+[data-theme=dark]{--p:#C9A961;--p2:#E0C888;--bg:#0F1B16;--card:#182720;--in:#1E3028;--tx:#ECE9DF;--sub:#A4B6AE;--bd:#2A443A;--sh:rgba(0,0,0,.4);--err:#E74C3C}
 body{font-family:Cairo,sans-serif;background:var(--bg);color:var(--tx);min-height:100dvh}
 a{color:inherit}
 .top{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--bd);box-shadow:0 4px 20px var(--sh);display:flex;align-items:center;gap:10px;padding:10px 16px}
@@ -89,7 +89,7 @@ a{color:inherit}
 .cin textarea{flex:1;resize:none;border:2px solid var(--bd);background:var(--in);color:var(--tx);border-radius:14px;padding:9px 12px;font-family:inherit;font-weight:600;font-size:13.5px;outline:none;max-height:120px}
 .cin textarea:focus{border-color:var(--p2)}
 .cin button{width:42px;height:42px;border-radius:12px;border:0;background:var(--p);color:#fff;cursor:pointer;font-size:15px;flex-shrink:0}
-[data-theme=dark] .cin button{color:#0A1612}
+[data-theme=dark] .cin button{color:#0F1B16}
 .cin button:disabled{opacity:.5}
 .more{display:block;width:calc(100% - 28px);margin:6px 14px 14px;padding:11px;border-radius:12px;border:2px solid var(--bd);background:var(--in);color:var(--tx);font-family:inherit;font-weight:800;cursor:pointer}
 .avw{position:relative;display:inline-block}
@@ -127,7 +127,7 @@ a{color:inherit}
 .fl-n b{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fl-n small{font-size:12px;color:var(--sub);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fl-b{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:11px;border:2px solid var(--p);background:var(--p);color:#fff;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:.2s}
-[data-theme=dark] .fl-b{color:#0A1612}
+[data-theme=dark] .fl-b{color:#0F1B16}
 .fl-b.on{background:transparent;color:var(--tx);border-color:var(--bd)}
 .fl-b.on:hover{border-color:var(--err);color:var(--err)}
 .fl-b.dg{background:var(--err);border-color:var(--err);color:#fff}
@@ -156,6 +156,16 @@ a{color:inherit}
 .qrx-bad h3{margin-top:12px;font-size:18px;font-weight:900}
 .qrx-bad p{margin:8px 0 18px;font-size:13.5px;line-height:1.8;color:var(--sub)}
 .qrx-bad a{display:inline-flex;gap:7px;align-items:center;padding:10px 22px;border-radius:12px;background:var(--g);color:#0B3D2E;font-weight:800;font-size:13.5px;text-decoration:none}
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>

@@ -32,7 +32,7 @@ try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');i
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--accent:#C9A961;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B;--success:#1E7A5A;--mine:#DCF1E6}
-[data-theme=dark]{--primary:#C9A961;--primary-light:#E0C888;--accent:#0B3D2E;--bg-page:#0A1612;--bg-card:#11201B;--bg-input:#1A2C25;--text-main:#F5F1E8;--text-sub:#9BAEA6;--border:#1E3A31;--shadow:rgba(0,0,0,.5);--error:#E74C3C;--success:#2ECC71;--mine:#1E4A3A}
+[data-theme=dark]{--primary:#C9A961;--primary-light:#E0C888;--accent:#C9A961;--bg-page:#0F1B16;--bg-card:#182720;--bg-input:#1E3028;--text-main:#ECE9DF;--text-sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C;--success:#2ECC71;--mine:#1E4A3A}
 html,body{font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100%;overflow-x:hidden;overscroll-behavior-y:none}
 input,textarea,button{font-family:inherit;font-size:16px;color:inherit}
 body.chat-open{position:fixed;inset:0;overflow:hidden;width:100%}
@@ -274,6 +274,16 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 #ovD{z-index:520}.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sg .opt{flex-direction:column;text-align:center;margin:0;padding:14px 4px;font-size:13px;gap:8px}.sg .opt i{font-size:22px;color:var(--accent);width:auto}
 #camZ{position:absolute;left:18px;right:18px;bottom:calc(120px + env(safe-area-inset-bottom));width:auto;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:rgba(255,255,255,.35);outline:none;direction:ltr}
 #camZ::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#C9A961;border:2px solid #fff}
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 <style>.callui.hid{display:none!important}#cMinB{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;z-index:5;background:#ffffff22;border:0;color:#fff;width:40px;height:40px;border-radius:50%}#cFab.ringing{animation:pls 1s infinite}@keyframes pls{50%{box-shadow:0 0 0 12px #1a9d6c55}}
 #cFab{position:fixed;top:0;left:0;z-index:650;display:none;width:60px;height:60px;border-radius:50%;background:#1a9d6c;color:#fff;align-items:center;justify-content:center;flex-direction:column;font-size:11px;font-weight:800;box-shadow:0 4px 14px #0006;touch-action:none;border:0}

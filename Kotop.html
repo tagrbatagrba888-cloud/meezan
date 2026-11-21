@@ -47,15 +47,15 @@
     --primary: #C9A961;
     --primary-light: #E0C888;
     --primary-lighter: #F0DBA8;
-    --accent: #0B3D2E;
-    --accent-light: #145A43;
-    --bg-page: #0A1612;
-    --bg-card: #11201B;
-    --bg-input: #1A2C25;
-    --text-main: #F5F1E8;
-    --text-sub: #9BAEA6;
-    --border: #1E3A31;
-    --shadow: rgba(0, 0, 0, 0.5);
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #0F1B16;
+    --bg-card: #182720;
+    --bg-input: #1E3028;
+    --text-main: #ECE9DF;
+    --text-sub: #A4B6AE;
+    --border: #2A443A;
+    --shadow: rgba(0, 0, 0, 0.4);
     --error: #E74C3C;
     --success: #2ECC71;
     --warning: #F39C12;
@@ -1435,6 +1435,16 @@
     .mobile-menu-btn { display: none !important; }
     .drawer, .drawer-overlay { display: none !important; }
   }
+
+/* ===== MEEZAN: راحة العين ولمسة حديثة ===== */
+:root{color-scheme:light}
+[data-theme="dark"],[data-theme=dark]{color-scheme:dark}
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
+::selection{background:rgba(201,169,97,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
 </style>
 </head>
 <body>
@@ -2689,4 +2699,4 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 </body>
-</html>
+</html>
