@@ -5,6 +5,6 @@ export function reportSettings(value){
  const valid=value?.schemaVersion===1;
  const types=Object.fromEntries(REPORT_TYPES.map(k=>[k,valid&&value.types?.[k]===true]));
  const channels=Object.fromEntries(CHANNELS.map(k=>[k,valid&&value.channels?.[k]===true]));
- return {schemaVersion:1,enabled:valid&&value.enabled===true,types,channels,unsolvedHomeworkDelayHours:48,historyPolicy:'future_only'};
+ return {schemaVersion:1,enabled:valid&&value.enabled===true,enabledAt:valid&&Number.isFinite(value.enabledAt)?value.enabledAt:0,types,channels,unsolvedHomeworkDelayHours:48,historyPolicy:'future_only'};
 }
 export const settingsDocument='parent_report_settings/global';

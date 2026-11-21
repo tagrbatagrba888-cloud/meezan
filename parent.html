@@ -170,33 +170,12 @@ body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(
       <div class="hint" style="margin-top:8px;">كود الطالب يجده ابنك في صفحته الشخصية (ملفي الشخصي).</div>
     </div>
 
-    <!-- التقارير الخارجية -->
+    <!-- Approved parent delivery channel: email only. -->
     <div class="card">
-      <h2><i class="fas fa-paper-plane"></i> التقارير الخارجية</h2>
-      <div class="hint">معاينة محلية. الإشعارات الخاصة متاحة في الاختبار، أما البريد وتيليجرام وواتساب فلم تُفعّل للإرسال بعد.</div>
-
-      <div class="sep"><i class="fab fa-telegram"></i> تيليجرام</div>
-      <div id="tgLinked" style="display:none;">
-        <span class="status-chip status-ok"><i class="fas fa-check"></i> مرتبط</span>
-        <button class="btn btn-ghost btn-sm" id="tgUnlinkBtn" style="margin-right:6px;">إلغاء الربط</button>
-      </div>
-      <div id="tgUnlinked">
-        <div class="hint">ربط تيليجرام يحتاج رمز تحقق خاصًا قصير الصلاحية، وليس كود ولي الأمر. البوت: <b id="tgBotName" style="direction:ltr;display:inline-block;">لم يتم إعداد البوت</b><br>لا تستخدم كود ولي الأمر (<b id="tgMyCode" style="direction:ltr;"></b>) كرمز تحقق<br>مسار تفعيل القناة قيد التجهيز.</div>
-        <a class="btn btn-primary btn-block" id="tgOpenBtn" target="_blank" rel="noopener" style="margin-top:10px;"><i class="fab fa-telegram"></i> فتح البوت في تيليجرام</a>
-      </div>
-
-      <div class="sep"><i class="fab fa-whatsapp"></i> واتساب</div>
-      <div id="waLinked" style="display:none;">
-        <span class="status-chip status-ok"><i class="fas fa-check"></i> <span id="waNumber"></span></span>
-        <button class="btn btn-ghost btn-sm" id="waUnlinkBtn" style="margin-right:6px;">إيقاف</button>
-      </div>
-      <div id="waUnlinked">
-        <div class="hint">أدخل رقم واتساب الخاص بك لتصلك النتائج عليه:</div>
-        <div class="input-row">
-          <input class="form-input ltr" id="waInput" placeholder="01xxxxxxxxx" maxlength="11" inputmode="numeric" autocomplete="off">
-          <button class="btn btn-primary" id="waSaveBtn"><i class="fas fa-check"></i> تفعيل</button>
-        </div>
-      </div>
+      <h2><i class="fas fa-envelope"></i> تقارير الأبناء على البريد</h2>
+      <div class="hint">تُرسل التقارير الجديدة عن أبنائك المرتبطين بحسابك إلى بريدك المؤكد، وفق إعدادات الإدارة: نتائج الاختبارات والواجبات، نشر واجب جديد، وتذكير بواجب لم يُسلّم بعد يومين من رصد نشره. لا يُرسل التذكير بعد تسليم الطالب، حتى لو لم تُصحّح إجابته بعد.</div>
+      <p id="reportEmail" class="ltr" style="margin-top:14px;overflow-wrap:anywhere"></p>
+      <div class="hint" style="margin-top:10px">لا نرسل سجل النتائج القديم عند التفعيل. الفحص دوري وقد يتأخر وصول البريد. تأكد من مجلد الرسائل غير المرغوب فيها.</div>
     </div>
 
     <!-- المحتوى الديني -->
@@ -321,22 +300,7 @@ function renderMe() {
   $('app').style.display = 'block';
   $('welcomeName').textContent = 'أهلاً ' + (me.fullName || 'بك');
   $('myCode').textContent = me.code || '—';
-  $('tgMyCode').textContent = me.code || '';
-  // تيليجرام
-  const tgOn = !!me.telegramChatId;
-  $('tgLinked').style.display = tgOn ? '' : 'none';
-  $('tgUnlinked').style.display = tgOn ? 'none' : '';
-  // واتساب
-  const waOn = !!me.whatsapp;
-  $('waLinked').style.display = waOn ? '' : 'none';
-  $('waUnlinked').style.display = waOn ? 'none' : '';
-  if (waOn) $('waNumber').textContent = me.whatsapp;
-  // اسم البوت من الإعدادات (اختياري)
-  getDoc(doc(db, 'parent_controls', 'portal')).then(s => {
-    const bot = s.exists() && s.data().telegramBotUsername;
-    if (bot) { $('tgBotName').textContent = '@' + bot.replace(/^@/, ''); $('tgOpenBtn').href = 'https://t.me/' + bot.replace(/^@/, ''); }
-    else { $('tgOpenBtn').removeAttribute('href'); $('tgOpenBtn').textContent='البوت غير معد بعد'; }
-  }).catch(() => {});
+  $('reportEmail').textContent=me.emailVerified===true ? (me.email||'') : 'يلزم تأكيد بريد الحساب قبل إرسال التقارير.';
 }
 
 /* ---------- نسخ الكود ---------- */
@@ -350,10 +314,7 @@ $('copyCodeBtn').addEventListener('click', async () => {
   }
 });
 
-/* ---------- واتساب ---------- */
-$('waSaveBtn').addEventListener('click', () => toast('ربط واتساب يحتاج تأكيد ملكية الرقم. الخدمة قيد التجهيز.', true));
-$('waUnlinkBtn').addEventListener('click', () => toast('إدارة القنوات قيد التجهيز', true));
-$('tgUnlinkBtn').addEventListener('click', () => toast('إدارة القنوات قيد التجهيز', true));
+
 
 /* ---------- ربط الأبناء (حي) ---------- */
 function startLinksListener() {

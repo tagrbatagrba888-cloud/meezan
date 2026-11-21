@@ -53,3 +53,18 @@ test('settings pause and channel/type gates are effective without backfilling di
  await projectLegacyData(store,{now:200000004});assert.equal((await adminDb.collection('parent_delivery_jobs').get()).size,before);
  assert.ok((await adminDb.collection('parent_student_notifications/P1/students/S1/items').get()).docs.some(d=>d.data().body===': 5/10'));
 });
+test('settings activation first observation suppresses old unseen events',async()=>{
+ const before=(await adminDb.collection('parent_delivery_jobs').get()).size;
+ await adminDb.doc('parent_report_settings/global').update({enabled:true,enabledAt:999999999,'channels.email':true});
+ await adminDb.doc('exam_subs/all').set({items:[{userId:'S1',examId:'E-old-before-activation',corrected:true,score:4,totalScore:10}]});
+ await projectLegacyData(store,{now:999999999});assert.equal((await adminDb.collection('parent_delivery_jobs').get()).size,before);
+ await projectLegacyData(store,{now:1000000000});assert.equal((await adminDb.collection('parent_delivery_jobs').get()).size,before);
+ await adminDb.doc('exam_subs/all').set({items:[{userId:'S1',examId:'E-after-activation',corrected:true,score:3,totalScore:10}]});
+ await projectLegacyData(store,{now:1000000001});assert.equal((await adminDb.collection('parent_delivery_jobs').get()).size,before+1);
+});
+test('resaving same enabled scope/cutover does not skip new corrections',async()=>{
+ const before=(await adminDb.collection('parent_delivery_jobs').get()).size;
+ await adminDb.doc('parent_report_settings/global').update({enabledAt:1000000002});
+ await adminDb.doc('exam_subs/all').set({items:[{userId:'S1',examId:'E-resave-no-scope-change',corrected:true,score:2,totalScore:10}]});
+ await projectLegacyData(store,{now:1000000003});assert.equal((await adminDb.collection('parent_delivery_jobs').get()).size,before+1);
+});
