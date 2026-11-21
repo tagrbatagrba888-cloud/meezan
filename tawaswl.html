@@ -483,6 +483,7 @@
 <div class="toast" id="toast"><i class="fas fa-comment-dots"></i><span id="toastText"></span></div>
 
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, doc, collection, onSnapshot, setDoc, getDoc, getDocs, query, where,
@@ -508,7 +509,7 @@ const $ = (id) => document.getElementById(id);
 // ============================================================
 const PUSH_API = 'https://vercel-server-nine-tau.vercel.app/api/send';
 const PUSH_KEY = 'Meezan2026Secret';
-const CONTACT_PAGE = 'contact.html'; // اسم هذه الصفحة (يفتح عند الضغط على إشعار الرسالة)
+const CONTACT_PAGE = 'tawaswl.html'; // اسم هذه الصفحة (يفتح عند الضغط على إشعار الرسالة)
 
 // ============================================================
 // 🔒 الجلسة
@@ -1042,14 +1043,7 @@ async function pushToOther(text, chatId, otherId) {
     };
     await setDoc(doc(db, 'notifications', notifId), n);
 
-    await runTransaction(db, async (tx) => {
-      const ref = doc(db, 'user_notifications', otherId);
-      const s = await tx.get(ref);
-      const d = s.exists() ? s.data() : {};
-      let ids = d.notifIds || [], unread = d.unreadCount || 0;
-      if (!ids.includes(notifId)) { ids = [notifId, ...ids].slice(0, 100); unread++; }
-      tx.set(ref, { userId: otherId, notifIds: ids, unreadCount: unread, updatedAt: serverTimestamp() }, { merge: true });
-    });
+    await enqueueNotification(db, otherId, notifId);
 
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 30000);

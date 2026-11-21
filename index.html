@@ -3659,6 +3659,9 @@ async function forceLogout() {
   if (__loggedOut) return;
   __loggedOut = true;
   loggingOut = true;
+  if (homeNotifsUnsub) { homeNotifsUnsub(); homeNotifsUnsub = null; }
+  homeLatestId = null;
+  hideHomeNotification();
   // 1) التقط ما نحتاجه قبل المسح
   const pushToken = (() => { try { return localStorage.getItem('meezan_fcm_token'); } catch (e) { return null; } })();
   // 2) أنهِ الجلسة فوراً وبشكل متزامن (لا انتظار): علامة الخروج + مسح الجلسة + مسح الجلسة الدائمة
@@ -3680,7 +3683,7 @@ async function forceLogout() {
     if (pushToken) await Promise.race([deleteDoc(doc(db, 'push_tokens', pushToken)).catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
   } catch (e) {}
   // 6) إلغاء تسجيل الـ Service Worker من الإشعارات القديمة غير ضروري؛ نمسح كاش الصفحات المحمية لمنع عرضها بزر الرجوع
-  try { if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.filter(k => /html|page|shell|meezan/i.test(k)).map(k => caches.delete(k))); } } catch (e) {}
+  try { if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.filter(k => k === 'rsl-me' || /html|page|shell|meezan/i.test(k)).map(k => caches.delete(k))); } } catch (e) {}
   window.location.replace('login.html');
 }
 
@@ -3804,15 +3807,33 @@ window.addEventListener('meezan:push-granted', () => {
 // ضع هنا مفتاح VAPID: Firebase Console ← Project settings ← Cloud Messaging ← Web Push certificates
 const VAPID_KEY = 'BFglI2X03X5yqfH-9PJ8oLVUK3zsfck64a9JOdvobajpaPJxeBvaUPfdDQ_oBNrcF5cB-PZ5ThorfwrS5k8mG34';
 
+// Home uses the messaging worker. Other pages must migrate separately.
+const HOME_SW_URL = new URL('sw1.js', location.href).href;
 let swRegPromise = null;
 function getSwReg() {
   if (!('serviceWorker' in navigator)) return Promise.resolve(null);
   if (!swRegPromise) {
-    swRegPromise = navigator.serviceWorker.register('sw1.js')
-      .then(() => navigator.serviceWorker.ready)
-      .catch(() => null);
+    swRegPromise = navigator.serviceWorker.register(HOME_SW_URL, { updateViaCache: 'none' })
+      .then(async (reg) => {
+        // ready may resolve to the OLD worker during an update. Wait for ours.
+        const active = () => reg.active && reg.active.scriptURL === HOME_SW_URL && reg.active.state === 'activated';
+        if (!active()) await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => { clearInterval(check); reject(new Error('Messaging worker activation timed out')); }, 15000);
+          const check = setInterval(() => {
+            if (active()) { clearTimeout(timer); clearInterval(check); resolve(); }
+          }, 100);
+        });
+        return reg;
+      })
+      .catch((err) => { console.log('home worker:', err.message); swRegPromise = null; return null; });
   }
-  return swRegPromise;
+  return swRegPromise.then((reg) => {
+    if (reg && (!reg.active || reg.active.scriptURL !== HOME_SW_URL)) {
+      swRegPromise = null;
+      return getSwReg();
+    }
+    return reg;
+  });
 }
 
 let __pushBusy = false, __pushLastCheck = 0;
@@ -3891,10 +3912,12 @@ async function showSystemNotification(title, body, tag, extra) {
   const target = extra.url || 'index.html';
   const opts = { body: body || '', icon: 'https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png', image: extra.image || undefined, tag: tag || 'meezan-notif', renotify: true, requireInteraction: urgent, dir: 'rtl', lang: 'ar', vibrate: urgent ? [800, 300, 800, 300, 800, 300, 1200] : [200, 100, 200], data: { url: target } };
   try {
-    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+    const reg = await getSwReg();
+    if (extra.homeId && (homeLatestId !== extra.homeId || __sessOff() || document.hidden)) return;
     if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
   } catch (e) {}
   try {
+    if (extra.homeId && (homeLatestId !== extra.homeId || __sessOff() || document.hidden)) return;
     const n = new Notification(title, opts);
     n.onclick = () => { window.focus(); window.location.href = target; n.close(); };
   } catch (e) {}
@@ -3904,67 +3927,92 @@ async function showSystemNotification(title, body, tag, extra) {
 // ============================================================
 // 🔔 الإشعارات — عنوان فقط + قابل للضغط
 // ============================================================
-let lastShownNotifIds = new Set();
-
-let notifListenerStarted = false;
+// Home display is independent of readIds in the notification center.
+// Persist per account on this browser, so a reload does not replay an old toast.
+const HOME_SEEN_KEY = 'meezan_home_seen_v1:';
+const homeSeenMemory = new Set();
+let homeLatestId = null, homeLatestUnread = false, homeLatestFirst = true;
+let homeDetailPending = null, homeDetailCache = null;
+let notifListenerStarted = false, homeNotifsUnsub = null;
+function homeHasSeen(id) {
+  const key = HOME_SEEN_KEY + currentUserId;
+  if (homeSeenMemory.has(key + ':' + id)) return true;
+  try { const ids = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(ids) && ids.includes(id); } catch (e) { return false; }
+}
+function homeRememberSeen(id) {
+  const key = HOME_SEEN_KEY + currentUserId;
+  homeSeenMemory.add(key + ':' + id);
+  let ids = [];
+  try { const stored = JSON.parse(localStorage.getItem(key) || '[]'); if (Array.isArray(stored)) ids = stored; } catch (e) {}
+  try {
+    if (!ids.includes(id)) { ids.push(id); localStorage.setItem(key, JSON.stringify(ids)); }
+  } catch (e) { console.log('home notification memory:', e.message); }
+}
+function hideHomeNotification() {
+  clearTimeout(toastNotifTimeout);
+  $('toastNotif').classList.remove('show');
+}
+async function maybeShowLatestHomeNotification() {
+  const id = homeLatestId, userId = currentUserId;
+  if (!id || !homeLatestUnread || document.hidden || __isMuted() || __sessOff() || homeHasSeen(id)) return;
+  if (homeDetailPending && homeDetailPending.id === id) return;
+  const request = { id };
+  homeDetailPending = request;
+  try {
+    let nData;
+    if (homeDetailCache && homeDetailCache.id === id) nData = homeDetailCache.data;
+    else {
+      const snap = await getDoc(doc(db, 'notifications', id));
+      if (!snap.exists()) return;
+      nData = snap.data();
+    }
+    // An older fetch must never replace a newer notification or cross accounts.
+    if (homeLatestId !== id || currentUserId !== userId || !homeLatestUnread || __sessOff()) return;
+    homeDetailCache = { id, data: nData };
+    if (document.hidden || __isMuted() || homeHasSeen(id)) return;
+    showToastNotification(nData.title || 'إشعار جديد', 'info');
+    homeRememberSeen(id);
+    if (!homeLatestFirst) {
+      showSystemNotification(nData.title || 'إشعار جديد', String(nData.body || 'ميزان — اضغط لفتح الإشعارات').slice(0, 140), 'meezan-home-latest', { homeId: id, url: __notifTarget(nData, id), image: nData.type === 'image' ? nData.url : '', urgent: !!nData.urgent });
+      if (nData.urgent) __playAlarm();
+    }
+  } catch (err) { console.log('latest home notification:', err.message); }
+  finally { if (homeDetailPending === request) homeDetailPending = null; }
+}
 function startNotificationsListener() {
   if (!currentUserId || notifListenerStarted) return;
   notifListenerStarted = true;
-
   const userNotifsRef = doc(db, 'user_notifications', currentUserId);
-
-  onSnapshot(userNotifsRef, async (snap) => {
-    if (!snap.exists()) {
-      $('notifBadge').classList.remove('show');
-      $('drawerNotifBadge').classList.remove('show');
-      notifSnapDone = true;
-      return;
-    }
-
-    const data = snap.data();
-    const isFirstSnap = !notifSnapDone;
-    const notifIds = data.notifIds || [];
-    const readIds = data.readIds || [];
-    const deletedIds = data.deletedIds || [];
-
-    const unreadNotifIds = notifIds.filter(id =>
-      !deletedIds.includes(id) && !readIds.includes(id)
-    );
-
-    const unreadCount = unreadNotifIds.length;
-    if (unreadCount > 0) {
-      $('notifBadge').classList.add('show');
-      $('notifBadge').textContent = unreadCount > 99 ? '99+' : unreadCount;
-      $('drawerNotifBadge').classList.add('show');
-      $('drawerNotifBadge').textContent = unreadCount > 99 ? '99+' : unreadCount;
-    } else {
-      $('notifBadge').classList.remove('show');
-      $('drawerNotifBadge').classList.remove('show');
-    }
-
-    // ✅ Toast للعنوان فقط — مرة واحدة لكل إشعار (جلب متوازي، والأحدث يظهر فوراً)
-    const fresh = unreadNotifIds.filter(id => !lastShownNotifIds.has(id));
-    fresh.forEach(id => lastShownNotifIds.add(id));
-    const newest = fresh[fresh.length - 1];
-    fresh.forEach(nid => {
-      getDoc(doc(db, 'notifications', nid)).then((nSnap) => {
-        if (!nSnap.exists()) return;
-        const nData = nSnap.data();
-        if (nid === newest && !__isMuted()) showToastNotification(nData.title || 'إشعار جديد', 'info');
-        if (!isFirstSnap && !__isMuted()) {
-          showSystemNotification(nData.title || 'إشعار جديد', String(nData.body || 'ميزان — اضغط لفتح الإشعارات').slice(0, 140), nid, { url: __notifTarget(nData, nid), image: nData.type === 'image' ? nData.url : '', urgent: !!nData.urgent });
-          if (nData.urgent) __playAlarm();
-        }
-      }).catch((e) => console.log('notif detail error:', e.message));
+  homeNotifsUnsub = onSnapshot(userNotifsRef, (snap) => {
+    const data = snap.exists() ? snap.data() : {};
+    const ids = Array.isArray(data.notifIds) ? data.notifIds : [];
+    const readIds = new Set(Array.isArray(data.readIds) ? data.readIds : []);
+    const deletedIds = new Set(Array.isArray(data.deletedIds) ? data.deletedIds : []);
+    // All current writers prepend newest IDs. Never fall back to older unread IDs.
+    const visibleIds = [...new Set(ids)].filter(id => typeof id === 'string' && !deletedIds.has(id));
+    const unreadCount = visibleIds.filter(id => !readIds.has(id)).length;
+    ['notifBadge', 'drawerNotifBadge'].forEach(key => {
+      const badge = $(key);
+      badge.classList.toggle('show', unreadCount > 0);
+      badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
     });
+    const latest = visibleIds[0] || null;
+    if (latest !== homeLatestId) {
+      hideHomeNotification();
+      homeLatestId = latest;
+      homeDetailCache = null;
+      homeLatestFirst = !notifSnapDone;
+    }
+    homeLatestUnread = !!latest && !readIds.has(latest);
     notifSnapDone = true;
-
-  }, (err) => {
-    console.log('notifs listener error:', err.message);
-    $('notifBadge').classList.remove('show');
-    $('drawerNotifBadge').classList.remove('show');
-  });
+    if (!homeLatestUnread) hideHomeNotification();
+    maybeShowLatestHomeNotification();
+  }, (err) => { console.log('notifs listener error:', err.message); });
 }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeShowLatestHomeNotification(); });
+window.addEventListener('storage', (event) => {
+  if (event.key === HOME_SEEN_KEY + currentUserId && homeLatestId && homeHasSeen(homeLatestId)) hideHomeNotification();
+});
 
 // ============================================================
 // 📢 Toast علوي — العنوان فقط + ينقل لصفحة الإشعارات
@@ -4993,7 +5041,7 @@ var em=$('emptyState');if(em){var e3=em.querySelector('h3'),e4=em.querySelector(
 }
 /* bottom nav (students only) */
 var nav=document.createElement('nav');nav.className='mz-nav';
-var POOL=[[/منشور/,'post.html','fa-newspaper','المنشورات'],[/دعم/,'daam.html','fa-headset','الدعم'],[/متجر|محفظ/,'stor.html','fa-store','المتجر'],[/مسابق/,'contest.html','fa-trophy','المسابقات'],[/نتائج/,'results_1.html','fa-award','نتائجي'],[/إشعار|اشعار/,'asharat.html','fa-bell','الإشعارات']];
+var POOL=[[/منشور/,'post.html','fa-newspaper','المنشورات'],[/دعم/,'daam.html','fa-headset','الدعم'],[/متجر|محفظ/,'stor.html','fa-store','المتجر'],[/مسابق/,'contest.html','fa-trophy','المسابقات'],[/نتائج/,'results.html','fa-award','نتائجي'],[/إشعار|اشعار/,'asharat.html','fa-bell','الإشعارات']];
 function hrefOf(x){var bs=window.__mzButtons||[];for(var i=0;i<bs.length;i++){var b=bs[i];if(b.url&&(x[0].test(b.label||'')||(x[1]==='post.html'&&/post/i.test(b.url))))return b.url}return x[1]}
 function buildNav(){var used={};if(grid)grid.querySelectorAll('a.action-btn').forEach(function(a){used[(a.getAttribute('href')||'').split('?')[0]]=1});
 var pick=POOL.map(function(x){return [hrefOf(x),x[2],x[3]]}).filter(function(x){return !used[x[0].split('?')[0]]}).slice(0,4);

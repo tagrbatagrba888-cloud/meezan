@@ -595,8 +595,9 @@ body:has(.rlx:not(.mini)) #bnav{max-width:none;background:var(--bg-card)}
 <input type="file" id="cmFile" accept="image/*" hidden>
 
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, onSnapshot, query, orderBy, limit, where, serverTimestamp, increment, deleteField, writeBatch, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, onSnapshot, query, orderBy, startAfter, limit, where, serverTimestamp, increment, deleteField, writeBatch, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db = getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
 const $ = id => document.getElementById(id);
 
@@ -806,8 +807,7 @@ new MutationObserver(ms => ms.forEach(m => { if (m.type==='attributes'){ if (/^(
 async function notify(to, title, body, {postId=null, url=null}={}){ if (!to || to === uid || to === ADMIN) return;
   const id = 'notif_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), now = new Date().toISOString(), link = url || (postId ? `${SELF}?id=${postId}` : '');
   try { await setDoc(doc(db,'notifications',id),{id,title,body,type:link?'page':'none',url:link,kind:'posts',mediaType:link?'page':'none',senderId:uid,senderName:uName(uid),createdAt:now,target:'custom',targetLabel:'المنشورات',recipients:[to]});
-    const s = await getDoc(doc(db,'user_notifications',to)), d = s.exists() ? s.data() : {}; let n = d.notifIds||[], u = d.unreadCount||0; if (!n.includes(id)){ n = [id,...n].slice(0,100); u++; }
-    await setDoc(doc(db,'user_notifications',to),{userId:to,notifIds:n,unreadCount:u,updatedAt:serverTimestamp()},{merge:true});
+    await enqueueNotification(db, to, id);
     fetch('https://vercel-server-nine-tau.vercel.app/api/send',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Meezan2026Secret'},body:JSON.stringify({notifId:id,resend:false})}).catch(() => {}); } catch(e){ console.error('notify failed', e); } }
 
 /* ============ 💰 المحفظة ============ */
@@ -994,7 +994,7 @@ function feedItems(){
   lvq.forEach(LV => items.push({key:'lvf'+LV.id, html:liveVideoCard(LV)}));
   pq.forEach(pl => items.push({key:'pl'+pl.id, html:pollCard(pl)}));
   if (!show.length) items.push({key:'empty',html:S.q.trim()?emptyBox('fa-magnifying-glass','لا توجد نتائج مطابقة','جرّب كلمات أخرى'):emptyBox('fa-newspaper','لا توجد منشورات بعد','كن أول من ينشر!')});
-  if (rest.length > show.length) items.push({key:'more',html:'<div class="more-sentinel" style="text-align:center;padding:22px;color:var(--text-sub)"><i class="fas fa-spinner fa-spin"></i></div>'});
+  if (rest.length > show.length || feedMore) items.push({key:'more',html:'<div class="more-sentinel" style="text-align:center;padding:22px;color:var(--text-sub)"><i class="fas fa-spinner fa-spin"></i></div>'});
   return items; }
 function morphBar(wrap, html){
   const t = document.createElement('div'); t.innerHTML = html.trim(); const nb = t.firstElementChild, ob = wrap.firstElementChild;
@@ -1026,7 +1026,7 @@ function paint(){
   if (aid){ const ni = $(aid); if (ni && document.activeElement !== ni){ ni.focus(); try { ni.setSelectionRange(pos,pos); } catch(e){} } } }
 
 /* تحميل المزيد تلقائياً عند الوصول لآخر الصفحة (بدون زر) */
-var mio = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && !S.one){ S.limit += 20; draw(); } }, {rootMargin:'500px'});
+var mio = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && !S.one){ S.limit += 20; loadOlderFeed(); draw(); } }, {rootMargin:'500px'});
 /* ============ 👁️ رصد المشاهدات والإعلانات ============ */
 const seen = new Set(), adSeen = new Set(), vt = new Map();
 const io = new IntersectionObserver(es => es.forEach(e => { const el = e.target, id = el.dataset.post;
@@ -1240,7 +1240,7 @@ const H = {
   theme:() => { const n = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',n); localStorage.setItem('meezan_theme',n); $('themeIc').className = n==='dark'?'fas fa-sun':'fas fa-moon'; },
   sound:() => { const on = localStorage.getItem('meezan_snd') === '0'; localStorage.setItem('meezan_snd', on?'1':'0'); $('sndIc').className = on?'fas fa-volume-high':'fas fa-volume-xmark'; if (on) snd('like'); toast(on?'تم تشغيل الأصوات':'تم كتم الأصوات'); },
   menu:(t,e) => { const w = t.closest('.menu-wrap'), was = w.classList.contains('open'); document.querySelectorAll('.menu-wrap.open').forEach(x => x.classList.remove('open')); if (!was) w.classList.add('open'); e.stopPropagation(); },
-  more:() => { S.limit += 20; draw(); },
+  more:() => { S.limit += 20; loadOlderFeed(); draw(); },
   myAds:myAdsModal,
   refreshFeed:() => { S.order = null; scrollTo({top:0, behavior:'smooth'}); draw(); },
   newPost:t => openComposer({pick:t.dataset.t||null}), verifyReq:verifyModal,
@@ -1290,7 +1290,7 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.react-wr
 const th = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', th); $('themeIc').className = th==='dark' ? 'fas fa-sun' : 'fas fa-moon';
 $('sndIc').className = localStorage.getItem('meezan_snd')==='0' ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
-function rebuild(){ if (S.one) return; const m = new Map(); [S.feed, S.adP, S.myAdP].forEach(l => l.forEach(p => m.set(p.id, p))); S.posts = [...m.values()].filter(ok); S.loaded.posts = true; updAdCnt(); draw(); saveCache(); }
+function rebuild(){ if (S.one) return; const m = new Map(); [S.feed, S.adP, S.myAdP].forEach(l => l.forEach(p => m.set(p.id, p))); S.posts = [...m.values()].filter(ok); S.posts.forEach(post => watchSocial(post.authorId)); S.loaded.posts = true; updAdCnt(); draw(); saveCache(); }
 function updAdCnt(){ const n = S.myAdP.filter(p => adOn(p)).length, e = $('adCnt'); e.hidden = !n; e.textContent = ar(n); }
 const J = x => JSON.parse(JSON.stringify(x, (k,v) => v && typeof v.toDate === 'function' ? {seconds:v.seconds, nanoseconds:v.nanoseconds} : v));
 let sct;
@@ -1306,10 +1306,42 @@ async function loadCache(){ if (S.one) return; const raw = await IDB.get('kv','f
   } catch(e){} }
 const ok = p => (p.status||'published') === 'published' || p.authorId === uid;
 loadCache();
+const FEED_PAGE = 25;
+let feedHead = [], feedCursor = null, feedMore = true, feedBusy = false;
+const feedHistory = new Map();
+function mergeFeed(){
+  const merged = new Map([...feedHistory, ...feedHead.map(post => [post.id, post])]);
+  S.feed = [...merged.values()].sort((a,b) => (tsd(b.createdAt)?.getTime()||0) - (tsd(a.createdAt)?.getTime()||0));
+  rebuild();
+}
+async function loadOlderFeed(){
+  if (S.one || feedBusy || !feedMore || !feedCursor) return;
+  feedBusy = true;
+  let loaded = false;
+  try {
+    const snap = await getDocs(query(collection(db,'posts'), orderBy('createdAt','desc'), startAfter(feedCursor), limit(FEED_PAGE)));
+    snap.docs.forEach(item => { feedHistory.set(item.id, {id:item.id, ...item.data()}); if (S.order && !S.order.includes(item.id)) S.order.push(item.id); });
+    if (snap.docs.length) feedCursor = snap.docs[snap.docs.length-1];
+    feedMore = snap.docs.length === FEED_PAGE;
+    loaded = true;
+    mergeFeed();
+  } catch (error) { toast('تعذّر تحميل المنشورات الأقدم','error'); }
+  finally { feedBusy = false; if (loaded && S.q.trim() && feedMore && S.feed.length < 100) loadOlderFeed(); }
+}
 const mapDocs = s => s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})}));
 onSnapshot(doc(db,'users','all'), s => { S.live.users = true; const it = s.exists() ? s.data().items||[] : []; S.uids = new Set(it.map(u => u.id)); it.forEach(u => S.users[u.id] = u); draw(); saveCache(); });
 onSnapshot(doc(db,'teachers','all'), s => { (s.exists() ? s.data().items||[] : []).forEach(u => S.users[u.id] = u); draw(); });
-onSnapshot(collection(db,'user_social'), s => { S.live.soc = true; S.soc = {}; s.forEach(d => S.soc[d.id] = d.data()); S.loaded.soc = true; draw(); saveCache(); }, () => { S.loaded.soc = true; draw(); });
+const socialSubscriptions = new Map();
+function watchSocial(id){
+  if (!id || socialSubscriptions.has(id)) return;
+  socialSubscriptions.set(id, onSnapshot(doc(db,'user_social',id), snap => {
+    S.soc[id] = snap.exists() ? snap.data() : {};
+    if (id === uid) { S.live.soc = true; S.loaded.soc = true; backfill(); }
+    draw(); saveCache();
+  }, () => { if (id === uid) { S.loaded.soc = true; draw(); } }));
+}
+watchSocial(uid);
+
 onSnapshot(doc(db,'settings','postsConfig'), s => { S.live.cfg = true; S.cfg = s.exists() ? s.data() : {}; const na = JSON.stringify(S.cfg.algo||{}); if (S._na !== undefined && S._na !== na) S.order = null; S._na = na; draw(); });
 if (uid){
   onSnapshot(doc(db,'wallets',uid), s => { S.wal = s.exists() ? Number(s.data().balance||0) : 0; $('bal').textContent = ar(S.wal); walCb && walCb(); });
@@ -1318,9 +1350,25 @@ if (uid){
   onSnapshot(query(collection(db,'posts'), where('authorId','==',uid), where('isAd','==',true)), s => { S.myAdP = mapDocs(s); rebuild(); if (S.one) updAdCnt(); }, () => {});
 }
 if (S.one){ document.title = 'ميزان | منشور';
-  onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; S.loaded.posts = true; if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
+  onSnapshot(doc(db,'posts',S.one), s => { const p = s.exists() ? {id:s.id, ...s.data({serverTimestamps:'estimate'})} : null; S.posts = p && ok(p) ? [p] : []; if (p) watchSocial(p.authorId); S.loaded.posts = true; if (S.posts.length && !S.open.has(S.one)) openComments(S.one); else draw(); }, () => { S.posts = []; S.loaded.posts = true; draw(); });
 } else {
-  onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(100)), s => { if (!S.live.posts) S.order = null; S.live.posts = true; S.feed = mapDocs(s); rebuild(); }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
+  onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc'), limit(FEED_PAGE)), snap => {
+    if (!S.live.posts) S.order = null;
+    S.live.posts = true;
+    const live = mapDocs(snap);
+    const next = new Map(live.map(post => [post.id, post]));
+    // An item removed from the live window may have shifted into history.
+    feedHead.filter(post => !next.has(post.id)).forEach(post => {
+      getDoc(doc(db, 'posts', post.id)).then(item => {
+        if (item.exists()) feedHistory.set(item.id, {id:item.id, ...item.data()}); else feedHistory.delete(post.id);
+        mergeFeed();
+      }).catch(() => {});
+    });
+    feedHead = live;
+    if (!feedCursor && snap.docs.length) feedCursor = snap.docs[snap.docs.length - 1];
+    if (!feedHistory.size) feedMore = snap.docs.length === FEED_PAGE;
+    mergeFeed();
+  }, () => { if (!S.posts.length) toast('تعذّر تحميل المنشورات','error'); });
   /* كل الإعلانات المفعّلة (حتى القديمة) تُعرض للمستخدمين الآخرين ضمن الخلاصة */
   onSnapshot(query(collection(db,'posts'), where('isAd','==',true), limit(60)), s => { S.adP = mapDocs(s); rebuild(); }, () => {});
 }
@@ -1501,7 +1549,7 @@ function backfill(){ if (bfDone || !uid || !S.folLoaded || !S.loaded.soc) return
   const miss = Object.keys(following()).filter(t => following()[t] && t !== ADMIN && !S.fol[t]); if (!miss.length) return;
   for (let i = 0; i < miss.length; i += 400){ const b = writeBatch(db); miss.slice(i,i+400).forEach(t => b.set(doc(db,'follows',uid+'_'+t),{followerId:uid, followedId:t, by:'user', createdAt:serverTimestamp()},{merge:true})); b.commit().catch(() => {}); } }
 if (uid) onSnapshot(query(collection(db,'follows'), where('followerId','==',uid)), s => { S.fol = {}; s.forEach(d => { const x = d.data(); if (x.followedId) S.fol[x.followedId] = true; }); S.folLoaded = true; backfill(); draw(); }, () => { S.folLoaded = false; });
-onSnapshot(collection(db,'user_social'), () => backfill());
+// backfill runs in the existing user_social listener above.
 
 /* ---------- 🔎 البحث + التبويبات ---------- */
 const norm = s => String(s||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
@@ -2130,7 +2178,7 @@ Object.assign(H, {
   pclose:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || p.authorId !== uid) return; await updateDoc(doc(db,'polls',p.id), pOpen(p) ? {status:'closed'} : {status:'open', expiresAt:null}); toast(pOpen(p) ? 'تم إغلاق الاستطلاع' : 'تم فتح الاستطلاع'); },
   pdel:async t => { const p = S.polls.find(x => x.id === t.dataset.id); if (!p || p.authorId !== uid) return; if (!(await dialog({title:'حذف الاستطلاع', body:'سيُحذف الاستطلاع مع كل الأصوات.', confirm:'حذف', danger:true}))) return; await deleteDoc(doc(db,'polls',p.id)); toast('تم الحذف'); }
 });
-document.addEventListener('input', e => { if (e.target.id === 'sq'){ S.q = e.target.value; const x = $('sqx'); if (x) x.hidden = !S.q; S.limit = 20; draw(); } });
+document.addEventListener('input', e => { if (e.target.id === 'sq'){ S.q = e.target.value; if (S.q.trim() && S.feed.length < 100) loadOlderFeed(); const x = $('sqx'); if (x) x.hidden = !S.q; S.limit = 20; draw(); } });
 
 /* ============ 🎬 هدايا متحركة شفافة + مدة الظهور = مدة الصوت (نفس نسخة الأدمن) ============ */
 const gOf = m => (S.gifts||[]).find(x => (m.giftId && x.id === m.giftId) || (m.giftName && x.name === m.giftName)) || {name:m.giftName||'', icon:m.giftIcon||'', img:m.giftImg||''};

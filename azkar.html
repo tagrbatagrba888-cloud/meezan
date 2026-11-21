@@ -160,7 +160,7 @@ localStorage.setItem('az_ok','1');
 const setTheme=t=>{document.documentElement.setAttribute('data-theme',t);localStorage.setItem('meezan_theme',t);$('thi').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
 setTheme(localStorage.getItem('meezan_theme')||'light');
 $('thb').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
-$('bk').onclick=()=>{try{if(history.length>1&&new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}location.href='din_1.html'};
+$('bk').onclick=()=>{try{if(history.length>1&&new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}location.href='din.html'};
 
 // ===== تخزين محلي =====
 const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('meezan_azkar_user',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});

@@ -2,8 +2,8 @@
   "name": "ميزان | MEEZAN - المنصة التعليمية",
   "short_name": "ميزان",
   "description": "منصة ميزان التعليمية الإلكترونية المتكاملة",
-  "start_url": "/login.html",
-  "scope": "/",
+  "start_url": "./login.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0B3D2E",
@@ -77,7 +77,7 @@
       "name": "الرسائل",
       "short_name": "الرسائل",
       "description": "افتح المراسلات والمكالمات",
-      "url": "/rasael.html",
+      "url": "./rasael.html",
       "icons": [
         {
           "src": "https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png",
@@ -89,7 +89,7 @@
       "name": "تسجيل الدخول",
       "short_name": "دخول",
       "description": "افتح صفحة تسجيل الدخول",
-      "url": "/login.html",
+      "url": "./login.html",
       "icons": [
         {
           "src": "https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png",
@@ -101,7 +101,7 @@
       "name": "الصفحة الرئيسية",
       "short_name": "الرئيسية",
       "description": "افتح الصفحة الرئيسية",
-      "url": "/index.html",
+      "url": "./index.html",
       "icons": [
         {
           "src": "https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png",

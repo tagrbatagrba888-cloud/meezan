@@ -77,6 +77,7 @@ main{max-width:1080px;margin:auto;padding:18px 14px calc(24px + env(safe-area-in
 <header class="tb"><a class="ib" href="index.html" title="الرئيسية"><i class="fas fa-house"></i></a><img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt=""><div class="tt" id="gt">المسابقة</div><button class="ib mlad" id="lb" title="سلم الجوائز"><i class="fas fa-ranking-star"></i></button><button class="ib" id="th" title="الوضع الليلي/النهاري"><i class="fas fa-moon"></i></button><button class="ib" id="mu" title="الصوت"><i class="fas fa-volume-high"></i></button></header>
 <main id="st"></main><div id="pp"></div><div id="toast"></div>
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {getFirestore,collection,doc,setDoc,getDoc,getDocs,query,where,limit,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db=getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
@@ -219,7 +220,7 @@ async function award(pz,n){const half=r2(pz.value/2),id=Date.now()+'_'+Math.rand
   tx.set(tR,{userId:uid,userName:uname,role:rl,type:'credit',amount:half,balanceAfter:rb,label:`هدية مستلمة: ${pz.name}`,note:`جائزة ${NAME} — ٥٠٪ من ${pz.value} ج.م`,source:'game_gift_received',by:NAME,createdAt:now,giftId:pz.g?.id||'',qty:1});
   tx.set(aD,{uid,userName:uname,mode:G.m,question:n,prize:pz.name,giftId:pz.g?.id||'',total:pz.value,received:half,createdAt:serverTimestamp()})});
  try{const nid='notif_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),now=new Date().toISOString();await setDoc(doc(db,'notifications',nid),{id:nid,title:'هدية جديدة 🎁',body:`ربحت ${pz.name} في ${NAME} — أُضيف ${half} ج.م لمحفظتك`,type:'none',url:'',kind:'game',mediaType:'none',senderId:'meezan',senderName:NAME,createdAt:now,target:'custom',targetLabel:NAME,recipients:[uid]});
-  const s=await getDoc(doc(db,'user_notifications',uid)),d=s.exists()?s.data():{};let ids=d.notifIds||[],u=d.unreadCount||0;ids=[nid,...ids].slice(0,100);u++;await setDoc(doc(db,'user_notifications',uid),{userId:uid,notifIds:ids,unreadCount:u,updatedAt:serverTimestamp()},{merge:true})}catch(e){}
+  await enqueueNotification(db, uid, nid)}catch(e){}
  return half}
 
 const logG=x=>{try{setDoc(doc(db,'wwtbam_games',G.sid),{uid,name:uname,mode:G.m,gameName:NAME,...x},{merge:true}).catch(e=>console.error('wwtbam_games',e))}catch(e){}};

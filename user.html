@@ -164,6 +164,7 @@ a{color:inherit}
 <div class="col" id="root"><div class="empty">جارٍ التحميل…</div></div>
 <div class="toast" id="toast"></div>
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, query, where, orderBy, serverTimestamp, increment, deleteField, writeBatch, FieldPath } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db=getFirestore(initializeApp({apiKey:"AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",authDomain:"qanon-c716d.firebaseapp.com",projectId:"qanon-c716d",storageBucket:"qanon-c716d.firebasestorage.app",messagingSenderId:"757756130875",appId:"1:757756130875:web:63c53534c6843e2a29ce1e"}));
@@ -301,8 +302,7 @@ async function notify(to,title,body,url){
   const nid='notif_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), now=new Date().toISOString();
   try{
     await setDoc(doc(db,'notifications',nid),{id:nid,title,body,type:url?'page':'none',url:url||'',kind:'posts',mediaType:url?'page':'none',senderId:me,senderName:myName,createdAt:now,target:'custom',targetLabel:'المنشورات',recipients:[to]});
-    const s=await getDoc(doc(db,'user_notifications',to)), d=s.exists()?s.data():{}; let n=d.notifIds||[],u=d.unreadCount||0; if(!n.includes(nid)){n=[nid,...n].slice(0,100);u++;}
-    await setDoc(doc(db,'user_notifications',to),{userId:to,notifIds:n,unreadCount:u,updatedAt:serverTimestamp()},{merge:true});
+    await enqueueNotification(db, to, nid);
     fetch('https://vercel-server-nine-tau.vercel.app/api/send',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Meezan2026Secret'},body:JSON.stringify({notifId:nid,resend:false})}).catch(()=>{});
   }catch(e){}
 }

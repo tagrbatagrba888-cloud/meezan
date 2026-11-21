@@ -193,7 +193,7 @@ let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.className='toast sho
 if(sessionStorage.getItem('meezan_logged_in')!=='true'&&(navigator.onLine||!localStorage.getItem('q_ok')))location.replace('login.html');
 const setTheme=t=>{document.documentElement.setAttribute('data-theme',t);localStorage.setItem('meezan_theme',t);$('thi').className=t==='dark'?'fas fa-sun':'fas fa-moon'};
 setTheme(localStorage.getItem('meezan_theme')||'light');
-$('bk').onclick=()=>{try{if(history.length>1&&new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}location.href='din_1.html'};
+$('bk').onclick=()=>{try{if(history.length>1&&new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}location.href='din.html'};
 $('thb').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
 const ss=k=>k.map(x=>sessionStorage.getItem(x)).find(Boolean);
 const uid=ss(['meezan_uid','meezan_user_id','meezan_username','meezan_user'])||localStorage.getItem('q_uid')||(()=>{const v='u_'+Math.random().toString(36).slice(2,10);localStorage.setItem('q_uid',v);return v})();
@@ -208,9 +208,20 @@ function loose(t,kind){
   const o={};t.replace(/^﻿/,'').split(/\r?\n/).forEach(l=>{if(!l.trim()||l[0]==='#')return;const p=l.split('|');if(p.length<3)return;const s=+p[0],a=+p[1];if(!(s>=1&&s<=114&&a>=1&&a<=AC[s]))return;
     if(kind==='w'){const w=+p[2];if(p.length<4||!(w>=1))return;const k=s+':'+a;(o[k]||(o[k]=[]))[w-1]=p.slice(3).join('|').trim()}else o[s+':'+a]=p.slice(2).join('|').trim()});
   return Object.keys(o).length?o:null}
+const JSON_TTL=24*60*60*1000;
+const JSON_FILES=new Set(['tafsir','asbab','erab','lessons']);
+const jsonPending=new Map();
+async function refreshJ(n,kind){
+  if(jsonPending.has(n))return jsonPending.get(n);
+  const task=(async()=>{try{const response=await fetch(n+'.json',{cache:'no-cache'});if(!response.ok)throw new Error('HTTP '+response.status);const j=loose(await response.text(),kind);if(!j)throw new Error('Invalid data');await kv(n,j);try{localStorage.setItem('q_json_checked:'+n,String(Date.now()))}catch(e){}stat[n]='ok';return j}catch(e){stat[n]=navigator.onLine?'missing':'net';return null}})();
+  jsonPending.set(n,task);try{return await task}finally{jsonPending.delete(n)}
+}
 const getJ=async(n,kind)=>{
-  for(const ext of ['.json','.txt']){try{const r=await fetch(n+ext,{cache:'no-cache'});if(!r.ok){if(stat[n]!=='bad')stat[n]='missing';continue}const t=await r.text();if(/^\s*</.test(t)){if(stat[n]!=='bad')stat[n]='missing';continue}const j=loose(t,kind);if(j){await kv(n,j);stat[n]='ok';return j}stat[n]='bad'}catch(e){if(!stat[n])stat[n]='net'}}
-  try{const c=await kv(n);if(c)return c}catch(e){}return null};
+  if(!JSON_FILES.has(n)){stat[n]='missing';return null}
+  let cached=null;try{cached=await kv(n)}catch(e){}
+  if(cached){stat[n]='ok';const checked=Number(localStorage.getItem('q_json_checked:'+n)||0);if(navigator.onLine&&Date.now()-checked>JSON_TTL)refreshJ(n,kind);return cached}
+  return navigator.onLine?refreshJ(n,kind):null;
+};
 
 // ===== تحميل القرآن + تحقق =====
 let Q=null,PGs=null,HZs=null,why='';
@@ -298,7 +309,7 @@ async function explain(i,k){const key=SI[i]+':'+AI[i];await loadX(['t','t2','a',
   for(const t of ['t','t2']){if(t==='t2'&&!X.t2)continue;h+=`<h5>${FILES[t][1]}</h5>`+(X[t]?`<p class="tx">${X[t][key]?esc(X[t][key]):'لا يوجد تفسير لهذه الآية'}</p>`:nf(t))}
   h+=`<h5>سبب النزول</h5>`+(X.a?`<p class="tx">${X.a[key]?esc(X.a[key]):'لا يوجد سبب نزول منقول لهذه الآية'}</p>`:nf('a'));
   show(h,i)}
-async function showX(i,k){const key=SI[i]+':'+AI[i];await loadX([k]);const none=k==='f'?'لا توجد فتوى مسجّلة لهذه الآية':'لا يوجد إعراب مسجّل لهذه الآية';
+async function showX(i,k){if(k==='f'){toast('بيانات الفتاوى غير متاحة حالياً');return}const key=SI[i]+':'+AI[i];await loadX([k]);const none=k==='f'?'لا توجد فتوى مسجّلة لهذه الآية':'لا يوجد إعراب مسجّل لهذه الآية';
   show(`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p><h5>${k==='f'?'⚖️ ':'📝 '}${FILES[k][1]}</h5>`+(X[k]?`<p class="tx">${X[k][key]?esc(X[k][key]):none}</p>`:nf(k))+'<div class="act" style="grid-template-columns:1fr"><button data-act="mback">↩ رجوع</button></div>',i)}
 function menu(i){const bm=BM().some(x=>x.i===i);
   show(`<h4>سورة ${SN[SI[i]]} • آية ${ar(AI[i])}</h4><p class="at">${esc(Q[i])}</p>${audBtns()}<div class="act"><button class="pri" data-act="stop">📍 هنا توقفت</button><button data-act="tafsir">📖 التفسير والمعنى</button><button data-act="bm">${bm?'🗑 إزالة العلامة':'🔖 علامة مرجعية'}</button><button data-act="copy">📋 نسخ الآية</button><button data-act="ftw">⚖️ فتاوى الآية</button><button data-act="erb">📝 إعراب الآية</button><button data-act="mut" style="grid-column:1/-1">🔗 الآيات المتشابهة</button></div>`,i)}
@@ -788,9 +799,10 @@ async function lsDl(kind,fmt){if(dlBusy)return toast('جاري التجهيز، 
 /* ===== شاشة الدروس ===== */
 let LD=null;const LDN=()=>{try{return JSON.parse(localStorage.getItem('q_ld')||'[]')}catch(e){return[]}};
 function ldData(){return LD||{sections:[]}}
-getJ('lessons','o').then(j=>{if(j&&j.sections){LD=j;if(tab==='d')home()}}).catch(()=>{});
+let lessonsPending=null;
+function ensureLessons(){if(LD||lessonsPending)return;lessonsPending=getJ('lessons','o').then(j=>{if(j&&j.sections){LD=j;if(tab==='d')home()}}).catch(()=>{}).finally(()=>{lessonsPending=null})}
 const spn=n=>{const m=String(n).match(/^(\S+)\s+(.+)$/);return m&&!/^[\u0600-\u06FF]/.test(m[1])?[m[1],m[2]]:['📖',n]};
-function lessonsH2(){const D=ldData(),dn=LDN();if(!D.sections.length)return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>لا توجد دروس بعد</p></div>';return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>اختر العلم لتفتح كل دروسه</p></div>'+DLB('all')+'<div class="sgrid">'+D.sections.map((s,i)=>{const[e,n]=spn(s.name),c=s.lessons.filter(l=>dn.includes(s.id+':'+l.id)).length;return `<div class="sk" data-sec="${i}"><div class="se">${e}</div><b>${esc(n)}</b><small>${ar(s.lessons.length)} درس${s.lessons.length?' • '+ar(c)+' مكتمل':''}</small></div>`}).join('')+'</div>'}
+function lessonsH2(){ensureLessons();const D=ldData(),dn=LDN();if(!D.sections.length)return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>لا توجد دروس بعد</p></div>';return '<div class="lhero"><div class="lho">❖</div><h3>دروس القرآن الكريم</h3><p>اختر العلم لتفتح كل دروسه</p></div>'+DLB('all')+'<div class="sgrid">'+D.sections.map((s,i)=>{const[e,n]=spn(s.name),c=s.lessons.filter(l=>dn.includes(s.id+':'+l.id)).length;return `<div class="sk" data-sec="${i}"><div class="se">${e}</div><b>${esc(n)}</b><small>${ar(s.lessons.length)} درس${s.lessons.length?' • '+ar(c)+' مكتمل':''}</small></div>`}).join('')+'</div>'}
 const lsv=document.createElement('div');lsv.id='lsv';lsv.innerHTML='<div class="lsh"><button class="ib" id="lsb"><i class="fas fa-arrow-right"></i></button><b id="lst"></b><span id="lsfs"><button class="ib" id="lsm">A-</button><button class="ib" id="lsp">A+</button></span></div><div id="lsr"><i></i></div><div id="lsx"></div>';document.body.appendChild(lsv);
 let LV=null,LF=+localStorage.getItem('q_lf')||19;
 function lvShow(si,li){const D=ldData(),s=D.sections[si],[em,nm]=spn(s.name);LV=[si,li];$('lsx').scrollTop=0;$('lsr').firstChild.style.width='0';$('lsfs').style.visibility=li==null?'hidden':'visible';lsv.classList.add('on');
@@ -824,7 +836,7 @@ const lsf=d=>{LF=Math.max(14,Math.min(40,LF+d));localStorage.setItem('q_lf',LF);
 
 (async()=>{
   if(!await loadQ()){const M={404:'ملف quran.json غير موجود على الموقع. ارفعه في نفس مكان quran.html',bad:'ملف quran.json غير سليم أو ناقص. نزّله من جديد من صفحة الأدمن',net:'اتصل بالإنترنت مرة واحدة على الأقل لتحميل القرآن'};$('stt').textContent='تعذّر تحميل القرآن';$('list').innerHTML='<div class="empty">'+(M[why]||M.net)+'</div>';return}
-  boot2();try{restore()}catch(e){}setTimeout(loadX,3000)})();
+  boot2();try{restore()}catch(e){}/* secondary content is fetched only when opened */})();
 </script>
 </body>
 </html>

@@ -2307,7 +2307,7 @@ const DEFAULT_BOT_SETTINGS = {
 let botSettings = { ...DEFAULT_BOT_SETTINGS };
 
 // ===== لحظية + ذكاء البوت =====
-let platformLiveStarted = false, siteLogo = document.querySelector('link[rel=icon]')?.href || '';
+let siteLogo = document.querySelector('link[rel=icon]')?.href || '';
 const msgCache = new Map(); let firstRenderDone = false, incomingInit = false, lastIncomingId = null, closedEl = null, botTyping = false;
 let audioCtx = null, unreadTitle = 0; const baseTitle = document.title;
 function norm(s) { return String(s || '').toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/\s+/g, ' ').trim(); }
@@ -2320,7 +2320,7 @@ function checkIncoming(messages) {
   lastIncomingId = l.id; incomingInit = true;
 }
 function logoFrom(d) { return d.logoUrl || d.logo || d.siteLogo || d.logoURL || d.siteLogoUrl || d.logoImage || d.iconUrl || ''; }
-function botAvatarHtml() { const u = botSettings.botAvatarUrl || siteLogo; return u ? `<img src="${escapeHtml(u)}" alt="" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-robot\\'></i>'">` : '<i class="fas fa-robot"></i>'; }
+function botAvatarHtml() { const u = botSettings.botAvatarUrl || siteLogo; return u ? `<img src="${escapeHtml(u)}" alt="" onerror="if(this.parentNode)this.parentNode.innerHTML='<i class=\\'fas fa-robot\\'></i>'">` : '<i class="fas fa-robot"></i>'; }
 function applyHeaderAvatar() {
   const a = $('supportAvatar'); if (!a) return;
   a.innerHTML = (isTransferredToSupport || claimedBy) ? '<i class="fas fa-headset" id="supportAvatarIcon"></i>' : botAvatarHtml();
@@ -2353,11 +2353,7 @@ async function loadRules() {
   }).catch(() => {})));
   return out;
 }
-function startPlatformLive() {
-  if (platformLiveStarted) return; platformLiveStarted = true;
-  [['users', 'users', 'all'], ['teachers', 'teachers', 'all'], ['exams', 'exams', 'all'], ['homeworks', 'homeworks', 'all'], ['examSubs', 'exam_subs', 'all'], ['hwSubs', 'homework_subs', 'all'], ['courses', 'courses', 'all'], ['codes', 'payment_codes', 'all'], ['library', 'settings', 'library'], ['contests', 'contests', 'all']].forEach(([k, c, d]) =>
-    onSnapshot(doc(db, c, d), sn => { if (platformDataCache) { platformDataCache[k] = sn.exists() ? (sn.data().items || []) : []; platformDataTime = Date.now(); } }, () => {}));
-}
+
 var RX = ['👍','❤️','😂','😮','😢','🙏'], RX_ME = 'u';
 function reactsHtml(m) {
   if (m.deleted || !m.reactions) return '';
@@ -2445,7 +2441,7 @@ function showToast(text, type = 'success') {
 // ============================================================
 async function loadPlatformData() {
   const now = Date.now();
-  if (platformDataCache && platformLiveStarted) {
+  if (platformDataCache && now - platformDataTime < 120000) {
     return platformDataCache;
   }
 
@@ -2480,7 +2476,6 @@ async function loadPlatformData() {
 
     platformDataCache.rules = await loadRules();
     platformDataTime = now;
-    startPlatformLive();
     return platformDataCache;
 
   } catch (e) {
@@ -2610,9 +2605,7 @@ async function loadLoggedInUser() {
     }
     if (!currentUserName) currentUserName = username;
 
-    const userSnap = await new Promise((resolve) => {
-      onSnapshot(doc(db, collectionName, 'all'), (s) => resolve(s), { once: true });
-    });
+    const userSnap = await getDoc(doc(db, collectionName, 'all'));
 
     if (userSnap.exists()) {
       const items = userSnap.data().items || [];
@@ -2944,7 +2937,7 @@ function renderMessage(msg, target) {
   if (type === 'user') {
     const firstChar = (currentUserName || 'م').charAt(0).toUpperCase();
     if (currentUser && currentUser.avatarUrl) {
-      avatarDiv.innerHTML = `<img src="${currentUser.avatarUrl}" alt="" onerror="this.parentNode.innerHTML='<span>${firstChar}</span>'">`;
+      avatarDiv.innerHTML = `<img src="${currentUser.avatarUrl}" alt="" onerror="if(this.parentNode)this.parentNode.innerHTML='<span>${firstChar}</span>'">`;
     } else {
       avatarDiv.textContent = firstChar;
     }
@@ -3922,7 +3915,7 @@ async function handleActionClick(action, originalMsgId) {
     case 'enable_push': enablePush(); break;
     case 'open_notif':
       sendUserAction('فتح الإشعارات');
-      setTimeout(() => window.location.href = 'ashara.html', 800);
+      setTimeout(() => window.location.href = 'asharat.html', 800);
       break;
     default:
       sendUserAction(action.label.replace(/[📊⭐📝📚🔑🎓🔔💬🔐🏠👤🔙]/g, '').trim());

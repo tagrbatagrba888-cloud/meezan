@@ -369,6 +369,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 <audio id="rAud" autoplay playsinline></audio><button id="cFab"></button><div id="ed"><div id="edTop"><button id="edX"><i class="fas fa-xmark"></i></button><span id="edCnt"></span><div class="edt"><button data-t="crop"><i class="fas fa-crop-simple"></i></button><button data-t="draw" class="on"><i class="fas fa-pen"></i></button><button data-t="text"><i class="fas fa-font"></i></button><button id="edUn"><i class="fas fa-rotate-left"></i></button></div></div><div id="edSt"><div id="edW"><div id="edM"></div><canvas id="edC"></canvas><div id="edCr"><i data-h="nw" style="left:-13px;top:-13px"></i><i data-h="ne" style="right:-13px;top:-13px"></i><i data-h="sw" style="left:-13px;bottom:-13px"></i><i data-h="se" style="right:-13px;bottom:-13px"></i></div></div></div><div id="edBot"><div id="edTr"><input type="range" id="edS" min="0" max="1000" value="0"><input type="range" id="edE" min="0" max="1000" value="1000"></div><div id="edCols"></div><button id="edOk"><i class="fas fa-paper-plane"></i></button></div></div>
 
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,getFirestore,doc,onSnapshot,setDoc,updateDoc,deleteField,deleteDoc,collection,query,where,orderBy,limit,addDoc,serverTimestamp,arrayUnion,arrayRemove,increment,getDocs,getDoc,writeBatch,Bytes} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 if(window.__kick)throw new Error('redirecting');
@@ -760,9 +761,9 @@ async function notifyUser(to,title,body,url,urgent,key){
   const lname=await nickFor(to);
   const sender=lname||(realName(byId[me])!=='مستخدم'?realName(byId[me]):(sessionStorage.getItem('meezan_username')||'مستخدم'));
   const ur=doc(db,'user_notifications',String(to));
-  const [,sn]=await Promise.all([setDoc(doc(db,'notifications',id),{id,title:title==='📞'?'📞 '+sender:(title||sender),body:String(body||'').slice(0,140),type:'page',url,mediaType:'page',senderId:me,senderName:sender,createdAt:now,target:'custom',targetLabel:nm(to),recipients:[to],urgent:!!urgent,kind:'chat'}),getDoc(ur)]);
-  const d=sn.exists()?sn.data():{},ids=d.notifIds||[];
-  const [,r]=await Promise.all([setDoc(ur,{userId:String(to),notifIds:[id,...ids.filter(x=>x!==id)].slice(0,100),unreadCount:(d.unreadCount||0)+(ids.includes(id)?0:1),updatedAt:serverTimestamp()},{merge:true}),fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':PUSH_KEY},body:JSON.stringify({notifId:id,resend:true,urgent:!!urgent,alarm:!!urgent,requireInteraction:!!urgent})})]);
+  await setDoc(doc(db,'notifications',id),{id,title:title==='📞'?'📞 '+sender:(title||sender),body:String(body||'').slice(0,140),type:'page',url,mediaType:'page',senderId:me,senderName:sender,createdAt:now,target:'custom',targetLabel:nm(to),recipients:[to],urgent:!!urgent,kind:'chat'});
+  await enqueueNotification(db, to, id);
+  const r=await fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':PUSH_KEY},body:JSON.stringify({notifId:id,resend:true,urgent:!!urgent,alarm:!!urgent,requireInteraction:!!urgent})});
   return r.json()}
 /* هل الطرف الآخر كاتم الإشعارات مني؟ */
 async function isMutedByOther(chatId,o){const c=chats.find(x=>x.id===chatId);if(c&&c.members)return !!(c.muted||{})[o];try{const s=await getDoc(doc(db,'chats',chatId));return !!((s.data()||{}).muted||{})[o]}catch(e){return false}}

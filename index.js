@@ -26,7 +26,7 @@ exports.notifyUserOnSupportReply = onDocumentUpdated('support_chats/{sessionId}'
 
   const res = await getMessaging().sendEachForMulticast({
     tokens,
-    data: { title, body, url: 'user-support.html' },
+    data: { title, body, url: 'daam.html' },
     webpush: { headers: { Urgency: 'high', TTL: '86400' } }
   });
 

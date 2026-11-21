@@ -1778,6 +1778,7 @@ addEventListener('pagehide',save);document.addEventListener('visibilitychange',f
 })();
 </script>
 <script type="module">
+import { enqueueNotification } from './notifications-client.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
   getFirestore, doc, onSnapshot, setDoc, getDoc, serverTimestamp, deleteDoc, collection, query, where, writeBatch, increment, deleteField, FieldPath
@@ -3486,8 +3487,7 @@ async function flNotify(to,title,body,url){
   const nid='notif_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), now=new Date().toISOString(), myName=currentUser?.fullName||currentUser?.username||'مستخدم';
   try{
     await setDoc(doc(db,'notifications',nid),{id:nid,title,body,type:url?'page':'none',url:url||'',kind:'posts',mediaType:url?'page':'none',senderId:me,senderName:myName,createdAt:now,target:'custom',targetLabel:'المنشورات',recipients:[to]});
-    const s=await getDoc(doc(db,'user_notifications',to)), d=s.exists()?s.data():{}; let n=d.notifIds||[],u=d.unreadCount||0; if(!n.includes(nid)){n=[nid,...n].slice(0,100);u++;}
-    await setDoc(doc(db,'user_notifications',to),{userId:to,notifIds:n,unreadCount:u,updatedAt:serverTimestamp()},{merge:true});
+    await enqueueNotification(db, to, nid);
     fetch('https://vercel-server-nine-tau.vercel.app/api/send',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Meezan2026Secret'},body:JSON.stringify({notifId:nid,resend:false})}).catch(()=>{});
   }catch(e){} }
 async function flSetFollow(t,want){
@@ -3851,7 +3851,7 @@ $('qrShowBtn').addEventListener('click', openQR);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw1.js', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>

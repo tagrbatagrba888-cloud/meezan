@@ -648,7 +648,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   doc, onSnapshot, setDoc, getDoc, getDocs, deleteDoc,
-  collection, query, where, serverTimestamp, arrayUnion, arrayRemove
+  collection, query, where, serverTimestamp, arrayUnion, arrayRemove, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -927,8 +927,8 @@ function normalizePage(u) {
   }
   x = x.replace(/^\.?\/+/, '');
   const m = x.match(/^([^?#]*)(.*)$/);
-  let path = m[1].toLowerCase(), rest = m[2] || '';
-  if (PAGE_ALIASES[path]) path = PAGE_ALIASES[path];
+  let path = m[1], rest = m[2] || '';
+  if (PAGE_ALIASES[path.toLowerCase()]) path = PAGE_ALIASES[path.toLowerCase()];
   else if (path && !/\.[a-z0-9]+$/.test(path)) path += '.html';
   return path + rest;
 }
@@ -1122,6 +1122,8 @@ let totalVisible = 0;
 let unreadTotal = 0;
 let loadSeq = 0;
 let deepLinkHandled = false;
+let notifFeedVersion = null;
+const notifDetailInFlight = new Map();
 
 async function fetchNotifDetails(ids) {
   const result = [];
@@ -1135,7 +1137,10 @@ async function fetchNotifDetails(ids) {
   if (missing.length) {
     const got = await Promise.all(missing.map(async (id) => {
       try {
-        const snap = await getDoc(doc(db, 'notifications', id));
+        const version = notifFeedVersion;
+        let pending = notifDetailInFlight.get(id);
+        if (!pending) { pending = getDoc(doc(db, 'notifications', id)); notifDetailInFlight.set(id, pending); }
+        let snap; try { snap = await pending; } finally { if (notifDetailInFlight.get(id) === pending) notifDetailInFlight.delete(id); }
         if (!snap.exists()) return null;
         const d = snap.data();
         const info = {
@@ -1146,6 +1151,7 @@ async function fetchNotifDetails(ids) {
           senderName: d.senderName || 'الإدارة',
           createdAt: d.createdAt || ''
         };
+        if (version !== notifFeedVersion) return null;
         notifCache.set(id, info);
         return { id, ...info };
       } catch (e) {
@@ -1201,6 +1207,9 @@ function startNotificationsListener() {
     readIdsSet = data.readIds || [];
     deletedIdsSet = data.deletedIds || [];
     allVisibleIds = notifIdsSet.filter(id => !deletedIdsSet.includes(id));
+    const version = JSON.stringify([data.updatedAt || null, allVisibleIds]);
+    if (version !== notifFeedVersion && allVisibleIds[0]) { notifCache.delete(allVisibleIds[0]); notifDetailInFlight.delete(allVisibleIds[0]); }
+    notifFeedVersion = version;
 
     await loadVisible();
     saveNotifsCache();
@@ -1435,16 +1444,30 @@ $('notifModal').addEventListener('click', (e) => {
 // ============================================================
 // ✅ علّم كمقروء
 // ============================================================
+// Apply only the selected IDs to the latest recipient state, preserving concurrent arrivals.
+async function changeNotifState(selected, remove) {
+  const selectedIds = new Set(selected);
+  return runTransaction(db, async tx => {
+    const ref = doc(db, 'user_notifications', currentUserId);
+    const snap = await tx.get(ref), data = snap.exists() ? snap.data() : {};
+    const list = Array.isArray(data.notifIds) ? data.notifIds : [];
+    const notifIds = remove ? list.filter(id => !selectedIds.has(id)) : list;
+    const read = new Set(Array.isArray(data.readIds) ? data.readIds : []);
+    const deleted = new Set(Array.isArray(data.deletedIds) ? data.deletedIds : []);
+    for (const id of selectedIds) { if (remove) { read.delete(id); deleted.add(id); } else if (list.includes(id)) read.add(id); }
+    const readIds = [...read], deletedIds = [...deleted].slice(-300);
+    const unreadCount = notifIds.filter(id => !read.has(id) && !deleted.has(id)).length;
+    tx.set(ref, {notifIds, readIds, deletedIds, unreadCount, updatedAt:serverTimestamp()}, {merge:true});
+    return {notifIds, readIds, deletedIds};
+  });
+}
 async function markAsRead(notifId) {
   if (!currentUserId) return;
   if (readIdsSet.includes(notifId)) return;
 
   try {
     const ref = doc(db, 'user_notifications', currentUserId);
-    await setDoc(ref, {
-      readIds: arrayUnion(notifId),
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await changeNotifState([notifId], false);
 
     const n = allNotifications.find(x => x.id === notifId);
     if (n) n.read = true;
@@ -1532,10 +1555,7 @@ $('markAllReadBtn').addEventListener('click', async () => {
     const ref = doc(db, 'user_notifications', currentUserId);
     const allIds = [...allVisibleIds];
 
-    await setDoc(ref, {
-      readIds: arrayUnion(...allIds),
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await changeNotifState(allIds, false);
 
     allNotifications.forEach(n => n.read = true);
     readIdsSet = [...new Set([...readIdsSet, ...allIds])];
@@ -1574,12 +1594,7 @@ $('deleteAllBtn').addEventListener('click', async () => {
     const allIds = [...allVisibleIds];
     const newDeleted = [...new Set([...deletedIdsSet, ...allIds])];
 
-    await setDoc(ref, {
-      notifIds: [],
-      deletedIds: newDeleted,
-      readIds: [],
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await changeNotifState(allIds, true);
 
     allNotifications = [];
     allVisibleIds = [];
@@ -1620,12 +1635,7 @@ $('modalDeleteBtn').addEventListener('click', async () => {
     const newDeleted = [...new Set([...deletedIdsSet, notif.id])];
     const newReadIds = readIdsSet.filter(id => id !== notif.id);
 
-    await setDoc(ref, {
-      notifIds: newNotifIds,
-      deletedIds: newDeleted,
-      readIds: newReadIds,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await changeNotifState([notif.id], true);
 
     allNotifications = allNotifications.filter(n => n.id !== notif.id);
     allVisibleIds = allVisibleIds.filter(id => id !== notif.id);
@@ -1885,7 +1895,7 @@ init();
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw1.js', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>
