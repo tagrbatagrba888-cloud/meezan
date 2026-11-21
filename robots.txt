@@ -1,0 +1,14 @@
+# Crawl only the existing public entry, terms and their static resources.
+# This file is a crawler instruction, not access control.
+User-agent: *
+Disallow: /
+Allow: /login.html$
+Allow: /shorot.html$
+Allow: /meezan-logo.v1.webp$
+Allow: /meezan-icon-32.v1.png$
+Allow: /meezan-icon-192.v1.png$
+Allow: /manifest.json$
+Allow: /notifications-client.js$
+Allow: /sitemap.xml$
+
+Sitemap: https://mee7an.vercel.app/sitemap.xml
