@@ -32,7 +32,7 @@ try{var th=localStorage.getItem('meezan_theme')||localStorage.getItem('theme');i
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--primary:#0B3D2E;--primary-light:#145A43;--accent:#C9A961;--bg-page:#F5F1E8;--bg-card:#fff;--bg-input:#F8FBF9;--text-main:#0B3D2E;--text-sub:#5A6B66;--border:#E0E5E1;--shadow:rgba(11,61,46,.15);--error:#C0392B;--success:#1E7A5A;--mine:#DCF1E6}
-[data-theme=dark]{--primary:#C9A961;--primary-light:#E0C888;--accent:#C9A961;--bg-page:#0F1B16;--bg-card:#182720;--bg-input:#1E3028;--text-main:#ECE9DF;--text-sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C;--success:#2ECC71;--mine:#1E4A3A}
+[data-theme=dark]{--primary:#93C4AE;--primary-light:#B9DCCB;--accent:#93C4AE;--bg-page:#0F1B16;--bg-card:#182720;--bg-input:#1E3028;--text-main:#ECE9DF;--text-sub:#A4B6AE;--border:#2A443A;--shadow:rgba(0,0,0,.4);--error:#E74C3C;--success:#2ECC71;--mine:#1E4A3A}
 html,body{font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;background:var(--bg-page);color:var(--text-main);min-height:100%;overflow-x:hidden;overscroll-behavior-y:none}
 input,textarea,button{font-family:inherit;font-size:16px;color:inherit}
 body.chat-open{position:fixed;inset:0;overflow:hidden;width:100%}
@@ -280,7 +280,7 @@ mark.hl{background:#ffe08a;color:#000;border-radius:3px;padding:0 1px}mark.hl.cu
 [data-theme="dark"],[data-theme=dark]{color-scheme:dark}
 html{-webkit-tap-highlight-color:transparent}
 body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
-::selection{background:rgba(201,169,97,.35)}
+::selection{background:rgba(201,169,97,.35)}[data-theme="dark"] ::selection,[data-theme=dark] ::selection{background:rgba(147,196,174,.35)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}

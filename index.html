@@ -134,11 +134,11 @@
   }
 
   [data-theme="dark"] {
-    --primary: #C9A961;
-    --primary-light: #E0C888;
-    --primary-lighter: #F0DBA8;
-    --accent: #C9A961;
-    --accent-light: #E0C888;
+    --primary: #93C4AE;
+    --primary-light: #B9DCCB;
+    --primary-lighter: #DDF0E7;
+    --accent: #93C4AE;
+    --accent-light: #B9DCCB;
     --bg-page: #0F1B16;
     --bg-card: #182720;
     --bg-input: #1E3028;
@@ -1925,7 +1925,7 @@
     background: linear-gradient(135deg, #0B3D2E, #1E7A5A);
     box-shadow: 0 12px 28px rgba(11, 61, 46, 0.35);
   }
-  [data-theme="dark"] .gate-icon { background: linear-gradient(135deg, #C9A961, #E0C888); color: #0F1B16; }
+  [data-theme="dark"] .gate-icon { background: linear-gradient(135deg, #93C4AE, #B9DCCB); color: #0F1B16; }
   .gate-icon.warn { background: linear-gradient(135deg, #C0392B, #E67E22); color: #fff; }
 
   .gate-steps { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
@@ -1944,7 +1944,7 @@
     box-shadow: 0 10px 24px rgba(11, 61, 46, 0.3);
     transition: transform 0.15s ease, opacity 0.2s;
   }
-  [data-theme="dark"] .gate-btn { color: #0F1B16; background: linear-gradient(135deg, #C9A961, #E0C888); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4); }
+  [data-theme="dark"] .gate-btn { color: #0F1B16; background: linear-gradient(135deg, #93C4AE, #B9DCCB); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4); }
   .gate-btn:active { transform: scale(0.97); }
   .gate-btn[disabled] { opacity: 0.6; pointer-events: none; }
 
@@ -1962,7 +1962,7 @@
 [data-theme="dark"],[data-theme=dark]{color-scheme:dark}
 html{-webkit-tap-highlight-color:transparent}
 body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .3s ease,color .3s ease}
-::selection{background:rgba(201,169,97,.35)}
+::selection{background:rgba(201,169,97,.35)}[data-theme="dark"] ::selection,[data-theme=dark] ::selection{background:rgba(147,196,174,.35)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border,var(--bd,rgba(140,150,145,.5)));border-radius:8px;border:2px solid var(--bg-page,var(--bg,transparent))}
