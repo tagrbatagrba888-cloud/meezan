@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-protected>
 <head>
+<script>try{if(sessionStorage.getItem('meezan_role')==='parent')location.replace('parent.html')}catch(e){}</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B3D2E">
@@ -1678,6 +1680,42 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transi
         <span>الوضع الليلي</span>
       </button>
     </div>
+  </div>
+
+<style>
+/* ربط ولي الأمر */
+.pl-hint{font-size:13px;color:var(--text-secondary,#777);margin:0 0 12px;line-height:1.7}
+.pl-mine{display:flex;align-items:center;gap:10px;background:var(--bg-soft,rgba(0,0,0,.04));border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px}
+.pl-mine b{font-family:monospace;font-size:16px;letter-spacing:1px;direction:ltr}
+.pl-mine .btn-avatar{margin-inline-start:auto;padding:6px 12px;font-size:13px}
+.pl-form{display:flex;gap:8px;margin-bottom:12px}
+.pl-form input{flex:1;border:1.5px solid var(--border,rgba(0,0,0,.12));border-radius:12px;padding:10px 14px;font-size:15px;font-family:monospace;background:var(--bg-input,transparent);color:inherit;text-transform:uppercase}
+.pl-form .btn-avatar{padding:10px 18px;white-space:nowrap}
+.pl-row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--border,rgba(0,0,0,.08));font-size:14px}
+.pl-row i{color:var(--accent,#4a7c59)}
+.pl-row button{margin-inline-start:auto;background:none;border:none;color:#c0392b;cursor:pointer;font-size:13px;font-family:inherit}
+.pl-msg{font-size:13px;margin:8px 0 0;padding:8px 12px;border-radius:10px}
+.pl-msg.ok{background:rgba(46,160,67,.12);color:#1e7e34}
+.pl-msg.err{background:rgba(220,53,69,.1);color:#c0392b}
+</style>
+
+  <div class="card" id="parentLinkCard">
+    <div class="card-title">
+      <i class="fas fa-user-shield"></i>
+      <span>ربط ولي الأمر</span>
+    </div>
+    <p class="pl-hint">شارك كودك مع ولي أمرك ليتابع نتائجك من بوابة أولياء الأمور — أو اكتب كود ولي أمرك (يبدأ بـ PAR-) هنا وسيُربط فورًا.</p>
+    <div class="pl-mine">
+      <span>كودك:</span>
+      <b id="plMyCode">—</b>
+      <button type="button" class="btn-avatar" id="plCopyBtn"><i class="fas fa-copy"></i> نسخ</button>
+    </div>
+    <div class="pl-form">
+      <input type="text" id="plCodeInput" placeholder="PAR-000000" maxlength="10" dir="ltr" autocomplete="off">
+      <button type="button" class="btn-avatar" id="plLinkBtn"><i class="fas fa-link"></i> ربط</button>
+    </div>
+    <div id="plLinkedList"></div>
+    <p id="plMsg" class="pl-msg" hidden></p>
   </div>
 
   <div class="card">
@@ -3864,6 +3902,129 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw1.js', { updateViaCache: 'none' }).catch(() => {});
   });
 }
+
+// ============================================================
+// 🛡️ ربط ولي الأمر (الاتجاه: الطالب → ولي الأمر)
+// ============================================================
+(function initParentLinkCard(){
+  const heldCard = document.getElementById('parentLinkCard');
+  if (heldCard) heldCard.style.display = 'none';
+  return; // Safety hold pending authenticated link-request backend.
+  const card = $('parentLinkCard');
+  if (!card) return;
+  if (userRole !== 'student') { card.style.display = 'none'; return; }
+
+  const myCode = () => (currentUser && currentUser.code) || '';
+  const msg = (t, ok) => { const m = $('plMsg'); m.textContent = t; m.className = 'pl-msg ' + (ok ? 'ok' : 'err'); m.hidden = false; };
+
+  // عرض الكود فور توفر بيانات المستخدم
+  const codeWait = setInterval(() => {
+    if (myCode()) { $('plMyCode').textContent = myCode(); clearInterval(codeWait); }
+  }, 400);
+  setTimeout(() => clearInterval(codeWait), 15000);
+
+  $('plCopyBtn').addEventListener('click', async () => {
+    const c = myCode(); if (!c) return;
+    try { await navigator.clipboard.writeText(c); msg('تم نسخ الكود — أرسله لولي أمرك', true); }
+    catch (e) { msg('تعذّر النسخ، انسخ الكود يدويًا', false); }
+  });
+
+  async function loadLinked(){
+    const box = $('plLinkedList');
+    try {
+      const snap = await getDoc(doc(db, 'student_links', userId));
+      const parents = snap.exists() ? (snap.data().parents || {}) : {};
+      const uids = Object.keys(parents);
+      if (!uids.length) { box.innerHTML = ''; return; }
+      box.innerHTML = '';
+      for (const puid of uids) {
+        let name = 'ولي أمر';
+        try {
+          const p = await getDoc(doc(db, 'parents', puid));
+          if (p.exists()) name = p.data().fullName || name;
+        } catch (e) {}
+        const row = document.createElement('div');
+        row.className = 'pl-row';
+        const ic = document.createElement('i'); ic.className = 'fas fa-user-shield';
+        const nm = document.createElement('span'); nm.textContent = name;
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = 'إلغاء الربط';
+        btn.addEventListener('click', () => unlinkParent(puid, name));
+        row.appendChild(ic); row.appendChild(nm); row.appendChild(btn);
+        box.appendChild(row);
+      }
+    } catch (e) { console.warn('pl load:', e); }
+  }
+
+  async function unlinkParent(puid, name){
+    if (!confirm('إلغاء ربط ' + name + '؟ لن يتمكن من متابعة نتائجك بعد الآن.')) return;
+    try {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'parent_links', puid), { children: { [userId]: deleteField() }, viaChildCode: myCode() }, { merge: true });
+      batch.set(doc(db, 'student_links', userId), { parents: { [puid]: deleteField() }, viaChildCode: myCode() }, { merge: true });
+      await batch.commit();
+      msg('تم إلغاء الربط', true);
+      loadLinked();
+    } catch (e) { console.warn('pl unlink:', e); msg('تعذّر إلغاء الربط الآن', false); }
+  }
+
+  $('plLinkBtn').addEventListener('click', async () => {
+    const btn = $('plLinkBtn');
+    const code = ($('plCodeInput').value || '').trim().toUpperCase();
+    if (!/^PAR-\d{6}$/.test(code)) { msg('الكود يجب أن يكون بصيغة PAR-000000', false); return; }
+    if (!myCode()) { msg('بياناتك لم تُحمّل بعد، انتظر لحظة', false); return; }
+    btn.disabled = true;
+    try {
+      const pcSnap = await getDoc(doc(db, 'parent_codes', code));
+      if (!pcSnap.exists()) { msg('الكود غير صحيح — تأكد منه مع ولي أمرك', false); return; }
+      const puid = pcSnap.data().uid;
+      const pSnap = await getDoc(doc(db, 'parents', puid));
+      if (!pSnap.exists() || pSnap.data().status !== 'approved') { msg('هذا الحساب غير مفعّل بعد', false); return; }
+      const pName = pSnap.data().fullName || 'ولي أمر';
+
+      const existing = await getDoc(doc(db, 'student_links', userId));
+      if (existing.exists() && (existing.data().parents || {})[puid]) { msg('ولي الأمر هذا مربوط بك بالفعل', false); return; }
+
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'parent_links', puid), {
+        children: { [userId]: { studentId: userId, name: currentUser.fullName || currentUser.username || '', grade: currentUser.grade || '', code: myCode(), linkedBy: 'student', linkedAt: serverTimestamp() } },
+        viaCode: code, viaChildCode: myCode(), updatedAt: serverTimestamp()
+      }, { merge: true });
+      batch.set(doc(db, 'student_links', userId), {
+        studentId: userId,
+        parents: { [puid]: { parentUid: puid, linkedBy: 'student', linkedAt: serverTimestamp() } },
+        viaCode: code, viaChildCode: myCode(), updatedAt: serverTimestamp()
+      }, { merge: true });
+      await batch.commit();
+
+      // إشعار داخل الموقع لولي الأمر
+      try {
+        const notifId = 'plink_' + puid + '_' + userId;
+        const now = new Date().toISOString();
+        await setDoc(doc(db, 'notifications', notifId), {
+          id: notifId, title: 'تم ربط ابنك بحسابك',
+          body: 'قام ' + (currentUser.fullName || currentUser.username || 'طالب') + ' بربط حسابه بحسابك. يمكنك الآن متابعة نتائجه.',
+          type: 'page', url: 'parent.html', kind: 'parent', mediaType: 'page',
+          senderId: 'system', senderName: 'MEEZAN', createdAt: now, target: 'custom', targetLabel: 'أولياء الأمور', recipients: [puid]
+        });
+        const uRef = doc(db, 'user_notifications', puid);
+        const old = (await getDoc(uRef)).data() || {};
+        let notifIds = old.notifIds || [], unread = old.unreadCount || 0;
+        if (!notifIds.includes(notifId)) { notifIds = [notifId, ...notifIds].slice(0, 100); unread++; }
+        await setDoc(uRef, { userId: puid, notifIds, unreadCount: unread, updatedAt: serverTimestamp() }, { merge: true });
+      } catch (e) { console.warn('pl notif:', e); }
+
+      msg('تم الربط بنجاح — ' + pName + ' أصبح يتابع نتائجك', true);
+      $('plCodeInput').value = '';
+      loadLinked();
+    } catch (e) {
+      console.warn('pl link:', e);
+      msg('تعذّر الربط الآن — حاول مرة أخرى', false);
+    } finally { btn.disabled = false; }
+  });
+
+  loadLinked();
+})();
 </script>
 
 <script type="module" src="presence.js"></script>

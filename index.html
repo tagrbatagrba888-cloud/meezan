@@ -80,6 +80,9 @@
     window.addEventListener('focus', guard);
     setInterval(guard, 3000);
 
+    // 👨‍👦 ولي الأمر له بوابته الخاصة
+    try { if (ss.getItem('meezan_role') === 'parent' && !/parent(\.html)?$/i.test(location.pathname)) { location.replace('parent.html'); } } catch (e) {}
+
     // صفحة الدخول: لو أنت مسجل بالفعل ادخل مباشرة للرئيسية
     if (isLogin && ss.getItem('meezan_logged_in') === 'true' && !sessionDead()) { location.replace('index.html'); }
   } catch (e) {}

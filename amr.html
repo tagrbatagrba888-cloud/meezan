@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<title>ميزان | لوحة تحكم أولياء الأمور</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --primary: #0B3D2E;
+    --primary-light: #145A43;
+    --primary-lighter: #1E7A5A;
+    --accent: #C9A961;
+    --accent-light: #E0C888;
+    --bg-page: #F5F1E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F8FBF9;
+    --text-main: #0B3D2E;
+    --text-sub: #5A6B66;
+    --border: #E0E5E1;
+    --shadow: rgba(11, 61, 46, 0.15);
+    --error: #C0392B;
+    --success: #1E7A5A;
+  }
+
+  [data-theme="dark"] {
+    --primary: #C9A961;
+    --primary-light: #E0C888;
+    --primary-lighter: #F0DBA8;
+    --accent: #0B3D2E;
+    --accent-light: #145A43;
+    --bg-page: #0A1612;
+    --bg-card: #11201B;
+    --bg-input: #1A2C25;
+    --text-main: #F5F1E8;
+    --text-sub: #9BAEA6;
+    --border: #1E3A31;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --error: #E74C3C;
+    --success: #2ECC71;
+  }
+
+  html, body { height: 100%; font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+  body { background: var(--bg-page); min-height: 100vh; min-height: 100dvh; color: var(--text-main); transition: background 0.4s ease; }
+
+  .topbar { position: sticky; top: 0; z-index: 100; background: var(--bg-card); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px var(--shadow); }
+  .topbar-inner { max-width: 1100px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+  .topbar-logo { width: 46px; height: 46px; border-radius: 50%; object-fit: contain; border: 2px solid var(--accent); background: var(--bg-input); padding: 3px; flex-shrink: 0; }
+  .topbar-title { font-size: 19px; font-weight: 900; color: var(--primary); flex: 1; min-width: 0; }
+  [data-theme="dark"] .topbar-title { color: var(--accent); }
+  .topbar-title small { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); }
+  .icon-btn { width: 42px; height: 42px; border-radius: 12px; background: var(--bg-input); border: 2px solid var(--border); color: var(--primary); font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; flex-shrink: 0; }
+  .icon-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  [data-theme="dark"] .icon-btn:hover { color: var(--bg-page); }
+
+  main { max-width: 1100px; margin: 24px auto; padding: 0 16px 60px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tabs button { background: var(--bg-card); border: 2px solid var(--border); color: var(--text-sub); padding: 10px 18px; border-radius: 14px; cursor: pointer; font-size: 14px; font-weight: 700; font-family: 'Cairo', sans-serif; transition: all 0.25s ease; }
+  .tabs button.on { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-lighter) 100%); color: #fff; border-color: transparent; }
+  [data-theme="dark"] .tabs button.on { color: var(--bg-page); }
+
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; margin-bottom: 16px; box-shadow: 0 4px 20px var(--shadow); }
+  .card h2 { font-size: 16px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+  .card h2 i { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--primary-lighter)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  [data-theme="dark"] .card h2 i { color: var(--bg-page); }
+
+  .row { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 14px; flex-wrap: wrap; }
+  .row:first-of-type { border-top: none; }
+  .row .grow { flex: 1; min-width: 160px; }
+  .mut { color: var(--text-sub); font-size: 12.5px; }
+  code { background: var(--bg-input); padding: 2px 8px; border-radius: 6px; font-size: 12.5px; direction: ltr; display: inline-block; border: 1px solid var(--border); }
+
+  button.act { border: none; border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Cairo', sans-serif; transition: all 0.2s ease; }
+  button.ok { background: linear-gradient(135deg, #145A43, #1E7A5A); color: #fff; }
+  button.ok:hover { transform: translateY(-1px); }
+  button.no { background: transparent; color: var(--error); border: 2px solid var(--error); }
+  button.ghost { background: var(--bg-input); color: var(--text-main); border: 2px solid var(--border); }
+
+  input { padding: 11px 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 14px; background: var(--bg-input); color: var(--text-main); font-family: 'Cairo', sans-serif; }
+  input:focus { outline: none; border-color: var(--accent); }
+  .form { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .form .full { grid-column: 1/-1; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; }
+  .sw { position: relative; width: 46px; height: 26px; flex: none; }
+  .sw input { opacity: 0; width: 0; height: 0; }
+  .sl { position: absolute; inset: 0; background: var(--border); border-radius: 20px; cursor: pointer; transition: .2s; }
+  .sl:before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 3px; right: 3px; transition: .2s; }
+  .sw input:checked + .sl { background: var(--success); }
+  .sw input:checked + .sl:before { transform: translateX(-20px); }
+
+  #pinScreen { position: fixed; inset: 0; background: var(--bg-page); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .pin-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 34px 28px; width: min(380px, 100%); text-align: center; box-shadow: 0 8px 30px var(--shadow); }
+  .pin-box img { width: 72px; height: 72px; border-radius: 50%; border: 3px solid var(--accent); padding: 4px; margin-bottom: 14px; object-fit: contain; }
+  .pin-box h2 { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 6px; }
+  [data-theme="dark"] .pin-box h2 { color: var(--accent); }
+  .pin-box p { color: var(--text-sub); font-size: 13px; margin-bottom: 18px; line-height: 1.8; }
+  .pin-box input { width: 100%; text-align: center; letter-spacing: 5px; font-size: 18px; margin-bottom: 12px; }
+  .pin-box button { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-lighter) 100%); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Cairo', sans-serif; }
+  [data-theme="dark"] .pin-box button { color: var(--bg-page); }
+
+  .toast { position: fixed; bottom: 24px; right: 50%; transform: translateX(50%); background: var(--text-main); color: var(--bg-page); padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; z-index: 300; display: none; box-shadow: 0 8px 24px var(--shadow); }
+
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 14px; font-weight: 700; }
+  .badge.p { background: rgba(201,169,97,.18); color: #8a6d00; }
+  [data-theme="dark"] .badge.p { color: var(--accent-light); }
+  .badge.a { background: rgba(30,122,90,.14); color: #1e7e34; }
+  [data-theme="dark"] .badge.a { color: #2ECC71; }
+  .badge.r { background: rgba(192,57,43,.12); color: var(--error); }
+
+  .empty { color: var(--text-sub); text-align: center; padding: 24px; font-size: 14px; }
+  .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .link-grid, .form { grid-template-columns: 1fr; } }
+  ul.kids { list-style: none; width: 100%; }
+  ul.kids li { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+  ul.kids li i { color: var(--accent); }
+  [data-theme="dark"] ul.kids li i { color: var(--primary); }
+  .cred-box { margin-top: 14px; background: var(--bg-input); border: 2px dashed var(--accent); border-radius: 14px; padding: 16px; font-size: 14px; line-height: 2.2; }
+</style>
+</head>
+<body>
+
+<div id="pinScreen">
+  <div class="pin-box">
+    <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
+    <h2>لوحة تحكم أولياء الأمور</h2>
+    <p>أدخل دبوس الإدارة. يتم التحقق منه من قواعد Firestore مقابل مستند محمي على الخادم مع كل تعديل.</p>
+    <input type="password" id="pinInput" placeholder="••••" maxlength="32" autocomplete="off" dir="ltr">
+    <button id="pinBtn">دخول</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <img class="topbar-logo" src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
+    <div class="topbar-title">لوحة تحكم أولياء الأمور<small>منصة ميزان — نسخة الأدمن</small></div>
+    <button class="icon-btn" id="themeBtn" title="الوضع الليلي/النهاري"><i class="fas fa-moon"></i></button>
+    <button class="icon-btn" id="lockBtn" title="قفل"><i class="fas fa-lock"></i></button>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button data-tab="approvals" class="on"><i class="fas fa-user-check"></i> الموافقات <span id="pendCount"></span></button>
+    <button data-tab="links"><i class="fas fa-link"></i> الروابط</button>
+    <button data-tab="add"><i class="fas fa-user-plus"></i> إضافة ولي أمر</button>
+    <button data-tab="settings"><i class="fas fa-sliders"></i> التسجيل والدخول</button>
+  </div>
+
+  <!-- الموافقات -->
+  <div class="panel on" id="tab-approvals">
+    <div class="card">
+      <h2><i class="fas fa-hourglass-half"></i> طلبات التسجيل المعلّقة</h2>
+      <div id="pendingList"><div class="empty">جارٍ التحميل…</div></div>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-users"></i> كل أولياء الأمور</h2>
+      <div id="allList"><div class="empty">جارٍ التحميل…</div></div>
+    </div>
+  </div>
+
+  <!-- الروابط -->
+  <div class="panel" id="tab-links">
+    <div class="link-grid">
+      <div class="card">
+        <h2><i class="fas fa-user-shield"></i> بحث عن ولي أمر</h2>
+        <div style="display:flex;gap:8px">
+          <input id="pLookup" placeholder="PAR-000000 أو UID" style="flex:1" dir="ltr">
+          <button class="act ok" id="pLookupBtn">فتح</button>
+        </div>
+        <div id="pResult"></div>
+      </div>
+      <div class="card">
+        <h2><i class="fas fa-user-graduate"></i> بحث عن طالب</h2>
+        <div style="display:flex;gap:8px">
+          <input id="sLookup" placeholder="USR-000000" style="flex:1" dir="ltr">
+          <button class="act ok" id="sLookupBtn">فتح</button>
+        </div>
+        <div id="sResult"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-link"></i> ربط ولي أمر بطالب</h2>
+      <div class="form">
+        <input id="linkP" placeholder="كود ولي الأمر (PAR-000000)" dir="ltr">
+        <input id="linkS" placeholder="كود الطالب (USR-000000)" dir="ltr">
+        <button class="act ok full" id="linkBtn" style="padding:12px">ربطهما</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- إضافة ولي أمر -->
+  <div class="panel" id="tab-add">
+    <div class="card">
+      <h2><i class="fas fa-user-plus"></i> إنشاء حساب ولي أمر يدويًا</h2>
+      <p class="mut" style="margin-bottom:14px">ينشئ حساب دخول حقيقيًا (بريد + كلمة سر مولّدة) وسجل ولي أمر معتمد بكود PAR. سلّم البيانات لولي الأمر فورًا — تظهر كلمة السر هنا مرة واحدة فقط.</p>
+      <div class="form">
+        <input id="npName" placeholder="الاسم الكامل">
+        <input id="npPhone" placeholder="رقم الهاتف (01xxxxxxxxx)" dir="ltr">
+        <input id="npWhatsapp" placeholder="رقم الواتساب (اختياري)" dir="ltr">
+        <input id="npEmail" placeholder="البريد الإلكتروني" dir="ltr">
+        <button class="act ok full" id="npBtn" style="padding:12px">إنشاء الحساب</button>
+      </div>
+      <div id="npResult"></div>
+    </div>
+  </div>
+
+  <!-- الإعدادات -->
+  <div class="panel" id="tab-settings">
+    <div class="card">
+      <h2><i class="fas fa-sliders"></i> مفاتيح بوابة أولياء الأمور</h2>
+      <div class="toggle"><span>فتح تسجيل أولياء الأمور<br><span class="mut">يمكن لأولياء الأمور الجدد إنشاء حسابات</span></span><label class="sw"><input type="checkbox" id="tgReg"><span class="sl"></span></label></div>
+      <div class="toggle"><span>فتح دخول أولياء الأمور<br><span class="mut">يمكن لأولياء الأمور المسجلين تسجيل الدخول</span></span><label class="sw"><input type="checkbox" id="tgLogin"><span class="sl"></span></label></div>
+      <div class="toggle"><span>الموافقة مطلوبة قبل التفعيل<br><span class="mut">تبقى الحسابات الجديدة معلّقة حتى تُقبل من هنا</span></span><label class="sw"><input type="checkbox" id="tgAppr"><span class="sl"></span></label></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// Safety hold. This preview must not access production parent data.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
+  document.body.innerHTML = '<main dir="rtl" style="padding:40px;font-family:sans-serif;text-align:center">حسابات أولياء الأمور قيد التجهيز الآمن. الخدمة غير مفعلة حالياً.</main>';
+  throw new Error('Parent feature held pending authenticated backend migration');
+}
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, getDocs, setDoc, collection, writeBatch, serverTimestamp, deleteField, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+if (['localhost', '127.0.0.1'].includes(location.hostname)) {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+}
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ---------- المظهر (نفس مفتاح نسخة الأدمن) ----------
+const savedTheme = localStorage.getItem('meezan_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+function updateThemeIcon(t){ $('themeBtn').innerHTML = t === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; }
+updateThemeIcon(savedTheme);
+$('themeBtn').onclick = () => {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('meezan_theme', t);
+  updateThemeIcon(t);
+};
+
+// ---------- الدبوس ----------
+let PIN = sessionStorage.getItem('amr_pin') || '';
+function toast(t){ const el=$('toast'); el.textContent=t; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',2600); }
+function unlock(){ PIN = $('pinInput').value.trim(); if(!PIN) return; sessionStorage.setItem('amr_pin', PIN); $('pinScreen').style.display='none'; boot(); }
+$('pinBtn').onclick = unlock;
+$('pinInput').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
+$('lockBtn').onclick = () => { sessionStorage.removeItem('amr_pin'); location.reload(); };
+if (PIN) { $('pinScreen').style.display='none'; boot(); }
+
+// ---------- التبويبات ----------
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x===b));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'tab-'+b.dataset.tab));
+});
+
+// ---------- البيانات ----------
+async function loadParents(){
+  const snap = await getDocs(collection(db, 'parents'));
+  const all = []; snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+  return all;
+}
+function parentRow(p){
+  const st = p.status === 'approved' ? '<span class="badge a">معتمد</span>' : p.status === 'rejected' ? '<span class="badge r">مرفوض</span>' : p.status === 'suspended' ? '<span class="badge r">موقوف</span>' : '<span class="badge p">معلّق</span>';
+  const btns = p.status === 'pending'
+    ? `<button class="act ok" onclick="approve('${p.id}')">قبول</button><button class="act no" onclick="reject('${p.id}')">رفض</button>`
+    : p.status === 'approved' ? `<button class="act no" onclick="suspend('${p.id}')">إيقاف</button>` : `<button class="act ok" onclick="approve('${p.id}')">قبول</button>`;
+  return `<div class="row"><div class="grow"><b>${esc(p.fullName||'—')}</b> ${st}<br><span class="mut">${esc(p.email||'')} · ${esc(p.phone||'')} · <code>${esc(p.code||'')}</code></span></div>${btns}</div>`;
+}
+async function refreshLists(){
+  try {
+    const all = await loadParents();
+    const pend = all.filter(p => p.status === 'pending');
+    $('pendCount').textContent = pend.length ? '('+pend.length+')' : '';
+    $('pendingList').innerHTML = pend.length ? pend.map(parentRow).join('') : '<div class="empty">لا توجد طلبات معلّقة</div>';
+    $('allList').innerHTML = all.length ? all.map(parentRow).join('') : '<div class="empty">لا يوجد أولياء أمور بعد</div>';
+  } catch(e){ console.warn(e); $('pendingList').innerHTML = '<div class="empty">تعذّر التحميل — تحقق من الوصول إلى Firestore</div>'; }
+}
+async function setStatus(uid, status){
+  await setDoc(doc(db, 'parents', uid), { status, adminPin: PIN, updatedAt: serverTimestamp() }, { merge: true });
+  if (status === 'approved') {
+    try {
+      const notifId = 'pok_' + uid;
+      await setDoc(doc(db, 'notifications', notifId), { id: notifId, title: 'تم تفعيل حسابك', body: 'تمت الموافقة على حساب ولي الأمر الخاص بك. يمكنك الآن ربط أبنائك بأكوادهم ومتابعة نتائجهم.', type: 'page', url: 'parent.html', kind: 'parent', mediaType: 'page', senderId: 'system', senderName: 'MEEZAN', createdAt: new Date().toISOString(), target: 'custom', targetLabel: 'أولياء الأمور', recipients: [uid] });
+      const uRef = doc(db, 'user_notifications', uid);
+      const old = (await getDoc(uRef)).data() || {};
+      let ids = old.notifIds || [], un = old.unreadCount || 0;
+      if (!ids.includes(notifId)) { ids = [notifId, ...ids].slice(0,100); un++; }
+      await setDoc(uRef, { userId: uid, notifIds: ids, unreadCount: un, updatedAt: serverTimestamp() }, { merge: true });
+    } catch(e){ console.warn('notif', e); }
+  }
+  refreshLists();
+}
+window.approve = async (uid) => { try { await setStatus(uid, 'approved'); toast('تم القبول'); } catch(e){ toast('فشل: '+e.message); } };
+window.reject  = async (uid) => { try { await setStatus(uid, 'rejected'); toast('تم الرفض'); } catch(e){ toast('فشل: '+e.message); } };
+window.suspend = async (uid) => { try { await setStatus(uid, 'suspended'); toast('تم الإيقاف'); } catch(e){ toast('فشل: '+e.message); } };
+
+// ---------- الروابط ----------
+async function resolveParent(inp){
+  inp = inp.trim();
+  if (/^PAR-\d{6}$/i.test(inp)) {
+    const pc = await getDoc(doc(db, 'parent_codes', inp.toUpperCase()));
+    if (!pc.exists()) return null;
+    const uid = pc.data().uid;
+    const p = await getDoc(doc(db, 'parents', uid));
+    return p.exists() ? { uid, ...p.data() } : null;
+  }
+  const p = await getDoc(doc(db, 'parents', inp));
+  return p.exists() ? { uid: inp, ...p.data() } : null;
+}
+async function resolveStudent(code){
+  code = code.trim().toUpperCase();
+  const sc = await getDoc(doc(db, 'student_codes', code));
+  if (!sc.exists()) return null;
+  return { studentId: sc.data().studentId, code };
+}
+async function studentName(studentId){
+  try {
+    const u = await getDoc(doc(db, 'users', 'all'));
+    const it = (u.data()?.items || []).find(x => String(x.id) === String(studentId));
+    return it ? (it.fullName || it.username || studentId) : studentId;
+  } catch(e){ return studentId; }
+}
+window.unlinkPair = async (puid, sid) => {
+  if (!confirm('إلغاء ربط ولي الأمر بهذا الطالب؟ تُسحب صلاحية الاطلاع على النتائج فورًا.')) return;
+  try {
+    const b = writeBatch(db);
+    b.set(doc(db, 'parent_links', puid), { children: { [sid]: deleteField() }, adminPin: PIN }, { merge: true });
+    b.set(doc(db, 'student_links', sid), { parents: { [puid]: deleteField() }, adminPin: PIN }, { merge: true });
+    await b.commit();
+    toast('تم إلغاء الربط');
+    $('pLookupBtn').click(); $('sLookupBtn').click();
+  } catch(e){ toast('فشل: '+e.message); }
+};
+$('pLookupBtn').onclick = async () => {
+  const box = $('pResult'); box.innerHTML = '<div class="empty">…</div>';
+  const p = await resolveParent($('pLookup').value);
+  if (!p) { box.innerHTML = '<div class="empty">ولي الأمر غير موجود</div>'; return; }
+  const links = (await getDoc(doc(db, 'parent_links', p.uid))).data()?.children || {};
+  const kids = Object.keys(links);
+  let html = `<div class="row"><div class="grow"><b>${esc(p.fullName||'—')}</b><br><span class="mut"><code>${esc(p.code||'')}</code> · ${esc(p.phone||'')} · ${esc(p.status||'')}</span></div></div>`;
+  html += '<div class="mut" style="margin-top:8px">الأبناء المربوطون ('+kids.length+'):</div><ul class="kids">';
+  for (const sid of kids) {
+    const nm = await studentName(sid);
+    html += `<li><i class="fas fa-user-graduate"></i><span class="grow">${esc(nm)} <span class="mut">(${esc(links[sid].code||sid)})</span></span><button class="act no" onclick="unlinkPair('${p.uid}','${sid}')">إلغاء الربط</button></li>`;
+  }
+  if (!kids.length) html += '<li class="mut">لا يوجد</li>';
+  box.innerHTML = html + '</ul>';
+};
+$('sLookupBtn').onclick = async () => {
+  const box = $('sResult'); box.innerHTML = '<div class="empty">…</div>';
+  const s = await resolveStudent($('sLookup').value);
+  if (!s) { box.innerHTML = '<div class="empty">الطالب غير موجود (فهرس الأكواد لا يعرفه)</div>'; return; }
+  const nm = await studentName(s.studentId);
+  const links = (await getDoc(doc(db, 'student_links', s.studentId))).data()?.parents || {};
+  const puids = Object.keys(links);
+  let html = `<div class="row"><div class="grow"><b>${esc(nm)}</b><br><span class="mut"><code>${esc(s.code)}</code></span></div></div>`;
+  html += '<div class="mut" style="margin-top:8px">أولياء الأمور المربوطون ('+puids.length+'):</div><ul class="kids">';
+  for (const puid of puids) {
+    const p = await getDoc(doc(db, 'parents', puid));
+    const pn = p.exists() ? (p.data().fullName || puid) : puid;
+    html += `<li><i class="fas fa-user-shield"></i><span class="grow">${esc(pn)}</span><button class="act no" onclick="unlinkPair('${puid}','${s.studentId}')">إلغاء الربط</button></li>`;
+  }
+  if (!puids.length) html += '<li class="mut">لا يوجد</li>';
+  box.innerHTML = html + '</ul>';
+};
+$('linkBtn').onclick = async () => {
+  const p = await resolveParent($('linkP').value);
+  const s = await resolveStudent($('linkS').value);
+  if (!p) { toast('كود ولي الأمر غير موجود'); return; }
+  if (!s) { toast('كود الطالب غير موجود'); return; }
+  const nm = await studentName(s.studentId);
+  try {
+    const b = writeBatch(db);
+    b.set(doc(db, 'parent_links', p.uid), { children: { [s.studentId]: { studentId: s.studentId, name: nm, code: s.code, linkedBy: 'admin', linkedAt: serverTimestamp() } }, adminPin: PIN, updatedAt: serverTimestamp() }, { merge: true });
+    b.set(doc(db, 'student_links', s.studentId), { studentId: s.studentId, parents: { [p.uid]: { parentUid: p.uid, linkedBy: 'admin', linkedAt: serverTimestamp() } }, adminPin: PIN, updatedAt: serverTimestamp() }, { merge: true });
+    await b.commit();
+    toast('تم الربط: ' + (p.fullName||'') + ' ↔ ' + nm);
+  } catch(e){ toast('فشل: '+e.message); }
+};
+
+// ---------- إضافة يدوية ----------
+$('npBtn').onclick = async () => {
+  const name = $('npName').value.trim(), phone = $('npPhone').value.trim(),
+        wa = $('npWhatsapp').value.trim(), email = $('npEmail').value.trim();
+  if (!name || !email) { toast('الاسم والبريد الإلكتروني مطلوبان'); return; }
+  $('npBtn').disabled = true;
+  try {
+    const pw = 'Mz' + Math.random().toString(36).slice(2, 10) + '!';
+    const secondary = initializeApp(firebaseConfig, 'secondary' + Date.now());
+    const auth2 = getAuth(secondary);
+    const cred = await createUserWithEmailAndPassword(auth2, email, pw);
+    const uid = cred.user.uid;
+    await signOut(auth2);
+    let code;
+    do { code = 'PAR-' + String(Math.floor(100000 + Math.random()*900000)); }
+    while ((await getDoc(doc(db, 'parent_codes', code))).exists());
+    const b = writeBatch(db);
+    b.set(doc(db, 'parents', uid), { id: uid, authUid: uid, fullName: name, phone, whatsapp: wa || phone, email, code, status: 'approved', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), adminPin: PIN });
+    b.set(doc(db, 'parent_codes', code), { uid, adminPin: PIN });
+    await b.commit();
+    $('npResult').innerHTML = `<div class="cred-box"><b>تم إنشاء الحساب</b><br>الكود: <code>${code}</code><br>البريد: ${esc(email)}<br>كلمة السر: <code>${esc(pw)}</code><br><span class="mut">سلّم هذه البيانات لولي الأمر الآن — لن تظهر كلمة السر مرة أخرى.</span></div>`;
+    $('npName').value = $('npPhone').value = $('npWhatsapp').value = $('npEmail').value = '';
+    refreshLists();
+  } catch(e){ toast('فشل: '+e.message); }
+  finally { $('npBtn').disabled = false; }
+};
+
+// ---------- الإعدادات ----------
+async function loadSettings(){
+  try {
+    const s = (await getDoc(doc(db, 'settings', 'login_user'))).data() || {};
+    $('tgReg').checked = s.parentRegisterEnabled !== false;
+    $('tgLogin').checked = s.parentLoginEnabled !== false;
+    $('tgAppr').checked = s.parentApprovalRequired === true;
+  } catch(e){ console.warn(e); }
+}
+async function saveToggle(field, val){
+  try { await setDoc(doc(db, 'settings', 'login_user'), { [field]: val, adminPin: PIN }, { merge: true }); toast('تم الحفظ'); }
+  catch(e){ toast('فشل: '+e.message); loadSettings(); }
+}
+$('tgReg').onchange = e => saveToggle('parentRegisterEnabled', e.target.checked);
+$('tgLogin').onchange = e => saveToggle('parentLoginEnabled', e.target.checked);
+$('tgAppr').onchange = e => saveToggle('parentApprovalRequired', e.target.checked);
+
+function boot(){ refreshLists(); loadSettings(); }
+</script>
+</body>
+</html>

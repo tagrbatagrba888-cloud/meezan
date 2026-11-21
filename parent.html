@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-protected>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B3D2E">
+<script>
+/* 🔐 جلسة دائمة (نفس آلية index.html): 10 أيام، تنتهي بتسجيل الخروج */
+(function () {
+  try {
+    var ss = window.sessionStorage, ls = window.localStorage;
+    var P = 'meezan_', K = 'meezan_persist_v1', T = 'meezan_logout_at', TTL = 10 * 24 * 60 * 60 * 1000;
+    var isLogin = /login(\.html)?$/i.test(location.pathname);
+    var protectedPage = document.documentElement.hasAttribute('data-protected');
+    var restoring = false;
+    var tomb = function () { return Number(ls.getItem(T) || 0); };
+    var loginAt = function () { return Number(ss.getItem('meezan_login_at') || 0); };
+    var sessionDead = function () { var a = loginAt(); return !!a && a <= tomb(); };
+    try { if (ss.getItem('meezan_logged_in') !== 'true') ls.removeItem('meezan_persist'); } catch (e) {}
+    var rec = null;
+    try { rec = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+    if (rec && (!rec.exp || rec.exp <= Date.now() || !rec.d || rec.d.meezan_logged_in !== 'true' ||
+        (rec.d.meezan_login_at && Number(rec.d.meezan_login_at) <= tomb()))) { ls.removeItem(K); rec = null; }
+    if (rec && ss.getItem('meezan_logged_in') !== 'true') { restoring = true; for (var k in rec.d) ss.setItem(k, rec.d[k]); restoring = false; }
+    if (ss.getItem('meezan_logged_in') === 'true' && !ss.getItem('meezan_login_at')) ss.setItem('meezan_login_at', String(Date.now()));
+    function save(renew) {
+      try {
+        var d = {};
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0) d[key] = ss.getItem(key); }
+        if (d.meezan_logged_in !== 'true' || sessionDead()) { ls.removeItem(K); return; }
+        var cur = null; try { cur = JSON.parse(ls.getItem(K) || 'null'); } catch (e) {}
+        var exp = (!renew && cur && cur.exp > Date.now()) ? cur.exp : Date.now() + TTL;
+        ls.setItem(K, JSON.stringify({ exp: exp, d: d }));
+      } catch (e) {}
+    }
+    var proto = Storage.prototype, _s = proto.setItem, _r = proto.removeItem, _c = proto.clear;
+    proto.setItem = function (k, v) {
+      _s.call(this, k, v);
+      if (this === ss && String(k).indexOf(P) === 0) {
+        if (k === 'meezan_logged_in' && String(v) === 'true' && !restoring) _s.call(ss, 'meezan_login_at', String(Date.now()));
+        save(k === 'meezan_logged_in');
+      }
+    };
+    proto.removeItem = function (k) { _r.call(this, k); if (this === ss) save(false); };
+    proto.clear = function () { _c.call(this); if (this === ss) save(false); };
+    function kill() {
+      try {
+        var del = [];
+        for (var i = 0; i < ss.length; i++) { var key = ss.key(i); if (key.indexOf(P) === 0 && key !== 'meezan_logout_reason') del.push(key); }
+        del.forEach(function (key) { ss.removeItem(key); });
+        ls.removeItem(K); ls.removeItem('meezan_persist');
+      } catch (e) {}
+    }
+    function guard() {
+      try {
+        var on = ss.getItem('meezan_logged_in') === 'true';
+        if (on && sessionDead()) { kill(); on = false; }
+        if (!on && (protectedPage || sessionDead())) {
+          if (!isLogin) { document.documentElement.style.display = 'none'; location.replace('login.html'); }
+        }
+      } catch (e) {}
+    }
+    window.__mzKillSession = kill;
+    window.__mzGuard = guard;
+    window.__mzLogoutStamp = function () { try { ls.setItem(T, String(Date.now())); } catch (e) {} };
+    save(true);
+    guard();
+    window.addEventListener('pageshow', function () { guard(); });
+    window.addEventListener('storage', function (e) { if (e.key === T || e.key === K || e.key === null) guard(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) guard(); });
+    window.addEventListener('focus', guard);
+    setInterval(guard, 3000);
+  } catch (e) {}
+})();
+</script>
+<script>
+/* 🎨 الثيم المحفوظ */
+try { document.documentElement.setAttribute('data-theme', localStorage.getItem('meezan_theme') || 'light'); } catch (e) {}
+</script>
+<title>بوابة ولي الأمر | ميزان MEEZAN</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --primary: #0B3D2E; --primary-light: #145A43; --primary-lighter: #1E7A5A;
+  --accent: #C9A961; --accent-light: #E0C888;
+  --bg-page: #F5F1E8; --bg-card: #FFFFFF; --bg-input: #F8FBF9;
+  --text-main: #0B3D2E; --text-sub: #5A6B66; --border: #E0E5E1;
+  --shadow: rgba(11, 61, 46, 0.15);
+  --error: #C0392B; --success: #1E7A5A; --warning: #E67E22; --info: #2980B9;
+}
+[data-theme="dark"] {
+  --primary: #93C4AE; --primary-light: #B9DCCB; --primary-lighter: #DDF0E7;
+  --accent: #93C4AE; --accent-light: #B9DCCB;
+  --bg-page: #0F1B16; --bg-card: #182720; --bg-input: #1E3028;
+  --text-main: #ECE9DF; --text-sub: #A4B6AE; --border: #2A443A;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --error: #E74C3C; --success: #2ECC71; --warning: #F39C12; --info: #3498DB;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Cairo', sans-serif; background: var(--bg-page); color: var(--text-main); min-height: 100vh; transition: background .3s, color .3s; }
+.topbar { position: sticky; top: 0; z-index: 50; background: var(--primary); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 12px var(--shadow); }
+[data-theme="dark"] .topbar { color: var(--bg-page); }
+.topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 18px; }
+.topbar .brand img { width: 30px; height: 30px; border-radius: 8px; }
+.topbar .spacer { flex: 1; }
+.icon-btn { position: relative; width: 40px; height: 40px; border-radius: 12px; border: none; background: rgba(255,255,255,.14); color: inherit; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform .15s; }
+.icon-btn:active { transform: scale(.92); }
+.badge-dot { position: absolute; top: -4px; left: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--error); color: #fff; font-size: 10.5px; font-weight: 800; display: none; align-items: center; justify-content: center; padding: 0 5px; }
+.badge-dot.show { display: flex; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 18px 14px 90px; }
+.welcome { margin: 6px 2px 16px; }
+.welcome h1 { font-size: 21px; font-weight: 900; }
+.welcome p { color: var(--text-sub); font-size: 13px; margin-top: 2px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 18px var(--shadow); }
+.card h2 { font-size: 15.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.card h2 i { color: var(--accent); }
+[data-theme="dark"] .card h2 i { color: var(--accent); }
+.hint { font-size: 12px; color: var(--text-sub); line-height: 1.7; }
+.mycode { display: flex; align-items: center; gap: 10px; background: var(--bg-input); border: 1.5px dashed var(--accent); border-radius: 14px; padding: 12px 14px; margin-top: 8px; }
+.mycode .code { font-size: 21px; font-weight: 900; letter-spacing: 1.5px; direction: ltr; color: var(--primary); flex: 1; text-align: center; }
+[data-theme="dark"] .mycode .code { color: var(--accent-light); }
+.btn { border: none; border-radius: 13px; padding: 12px 18px; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s, opacity .2s; text-decoration: none; }
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; }
+[data-theme="dark"] .btn-primary { color: var(--bg-page); }
+.btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: #0B3D2E; }
+.btn-ghost { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); }
+.btn-block { width: 100%; }
+.btn-sm { padding: 8px 12px; font-size: 12.5px; border-radius: 10px; }
+.input-row { display: flex; gap: 8px; margin-top: 10px; }
+.form-input { flex: 1; min-width: 0; border: 1.5px solid var(--border); background: var(--bg-input); color: var(--text-main); border-radius: 13px; padding: 12px 14px; font-family: inherit; font-size: 14.5px; font-weight: 600; outline: none; transition: border-color .2s; }
+.form-input:focus { border-color: var(--accent); }
+.form-input.ltr { direction: ltr; text-align: center; letter-spacing: 1px; }
+.child-card { border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-top: 12px; background: var(--bg-input); }
+.child-head { display: flex; align-items: center; gap: 10px; }
+.child-avatar { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-lighter)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 900; flex-shrink: 0; }
+[data-theme="dark"] .child-avatar { color: var(--bg-page); }
+.child-name { font-weight: 800; font-size: 15px; }
+.child-sub { font-size: 11.5px; color: var(--text-sub); direction: ltr; }
+.child-actions { margin-right: auto; display: flex; gap: 6px; }
+.results-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.result-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+.result-top { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+.result-top i { color: var(--accent); }
+.result-score { margin-right: auto; font-weight: 900; direction: ltr; }
+.result-date { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+.pbar { height: 7px; border-radius: 4px; background: var(--border); margin-top: 7px; overflow: hidden; }
+.pbar > div { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.empty { text-align: center; padding: 22px 10px; color: var(--text-sub); }
+.empty i { font-size: 34px; opacity: .45; display: block; margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+.tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 12px; text-align: center; text-decoration: none; color: var(--text-main); transition: transform .15s, box-shadow .2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tile:active { transform: scale(.97); }
+.tile i { font-size: 26px; color: var(--accent); }
+.tile span { font-size: 13.5px; font-weight: 800; }
+.tile small { font-size: 11px; color: var(--text-sub); }
+.toast { position: fixed; bottom: 22px; right: 50%; transform: translateX(50%) translateY(80px); background: var(--primary); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 13.5px; font-weight: 700; z-index: 200; opacity: 0; transition: all .3s ease; max-width: 90vw; text-align: center; box-shadow: 0 8px 24px var(--shadow); }
+.toast.show { opacity: 1; transform: translateX(50%) translateY(0); }
+.toast.error { background: var(--error); }
+.spinner { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+.spinner.show { display: inline-block; }
+[data-theme="dark"] .spinner { border-color: rgba(0,0,0,.25); border-top-color: var(--bg-page); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.status-chip { font-size: 11px; font-weight: 800; border-radius: 8px; padding: 3px 9px; }
+.status-ok { background: rgba(30,122,90,.13); color: var(--success); }
+.status-off { background: rgba(90,107,102,.13); color: var(--text-sub); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+.overlay.show { display: flex; }
+.modal { background: var(--bg-card); border-radius: 20px; padding: 22px; max-width: 400px; width: 100%; text-align: center; border: 1px solid var(--border); }
+.modal i { font-size: 40px; color: var(--warning); margin-bottom: 10px; }
+.modal h3 { font-size: 17px; margin-bottom: 8px; }
+.modal p { font-size: 13px; color: var(--text-sub); line-height: 1.8; }
+.loader-page { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--text-sub); }
+.loader-page .big-spin { width: 42px; height: 42px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+.sep { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; color: var(--text-sub); font-size: 12px; font-weight: 700; }
+.sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.linked-by { font-size: 10.5px; color: var(--info); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="loader-page" id="pageLoader">
+  <div class="big-spin"></div>
+  <div>جاري تحميل بوابة ولي الأمر...</div>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://i.ibb.co/ymXPqr46/file-00000000af0c820aa687a3c3181a6a24.png" alt="ميزان">
+      <span>ميزان <small style="font-weight:600;font-size:12px;opacity:.85;">| ولي الأمر</small></span>
+    </div>
+    <div class="spacer"></div>
+    <a class="icon-btn" href="asharat.html" title="الإشعارات" id="notifBtn">
+      <i class="fas fa-bell"></i>
+      <span class="badge-dot" id="notifBadge">0</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" title="الوضع الليلي"><i class="fas fa-moon"></i></button>
+    <button class="icon-btn" id="logoutBtn" title="تسجيل الخروج"><i class="fas fa-sign-out-alt"></i></button>
+  </div>
+
+  <div class="wrap">
+    <div class="welcome">
+      <h1 id="welcomeName">أهلاً بك</h1>
+      <p>تابع نتائج أبنائك والمحتوى الديني من مكان واحد</p>
+    </div>
+
+    <!-- كود ولي الأمر -->
+    <div class="card">
+      <h2><i class="fas fa-key"></i> كود ولي الأمر الخاص بك</h2>
+      <div class="hint">شارك هذا الكود مع ابنك ليربط حسابه بحسابك من صفحته الشخصية، أو أضف ابنك بنفسك بكوده من الأسفل.</div>
+      <div class="mycode">
+        <span class="code" id="myCode">—</span>
+        <button class="btn btn-accent btn-sm" id="copyCodeBtn"><i class="fas fa-copy"></i> نسخ</button>
+      </div>
+    </div>
+
+    <!-- أبنائي -->
+    <div class="card">
+      <h2><i class="fas fa-children"></i> أبنائي <span class="status-chip status-ok" id="childrenCount" style="display:none;"></span></h2>
+      <div id="childrenList">
+        <div class="empty" id="childrenEmpty">
+          <i class="fas fa-user-plus"></i>
+          لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به (يبدأ بـ USR).
+        </div>
+      </div>
+      <div class="sep">إضافة ابن بالكود</div>
+      <div class="input-row">
+        <input class="form-input ltr" id="childCodeInput" placeholder="USR-000000" maxlength="12" autocomplete="off">
+        <button class="btn btn-primary" id="addChildBtn">
+          <span class="spinner" id="addChildSpinner"></span>
+          <i class="fas fa-plus"></i> إضافة
+        </button>
+      </div>
+      <div class="hint" style="margin-top:8px;">كود الطالب يجده ابنك في صفحته الشخصية (ملفي الشخصي).</div>
+    </div>
+
+    <!-- التقارير الخارجية -->
+    <div class="card">
+      <h2><i class="fas fa-paper-plane"></i> التقارير الخارجية</h2>
+      <div class="hint">كل نتيجة جديدة تصلك إشعارًا داخل المنصة وبالبريد الإلكتروني تلقائيًا. يمكنك أيضًا تفعيل تيليجرام وواتساب:</div>
+
+      <div class="sep"><i class="fab fa-telegram"></i> تيليجرام</div>
+      <div id="tgLinked" style="display:none;">
+        <span class="status-chip status-ok"><i class="fas fa-check"></i> مرتبط</span>
+        <button class="btn btn-ghost btn-sm" id="tgUnlinkBtn" style="margin-right:6px;">إلغاء الربط</button>
+      </div>
+      <div id="tgUnlinked">
+        <div class="hint">1. افتح بوت ميزان على تيليجرام: <b id="tgBotName" style="direction:ltr;display:inline-block;">@MeezanBot</b><br>2. أرسل له كود ولي الأمر الخاص بك (<b id="tgMyCode" style="direction:ltr;"></b>)<br>3. ستصلك النتائج فورًا على تيليجرام.</div>
+        <a class="btn btn-primary btn-block" id="tgOpenBtn" target="_blank" rel="noopener" style="margin-top:10px;"><i class="fab fa-telegram"></i> فتح البوت في تيليجرام</a>
+      </div>
+
+      <div class="sep"><i class="fab fa-whatsapp"></i> واتساب</div>
+      <div id="waLinked" style="display:none;">
+        <span class="status-chip status-ok"><i class="fas fa-check"></i> <span id="waNumber"></span></span>
+        <button class="btn btn-ghost btn-sm" id="waUnlinkBtn" style="margin-right:6px;">إيقاف</button>
+      </div>
+      <div id="waUnlinked">
+        <div class="hint">أدخل رقم واتساب الخاص بك لتصلك النتائج عليه:</div>
+        <div class="input-row">
+          <input class="form-input ltr" id="waInput" placeholder="01xxxxxxxxx" maxlength="11" inputmode="numeric" autocomplete="off">
+          <button class="btn btn-primary" id="waSaveBtn"><i class="fas fa-check"></i> تفعيل</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- المحتوى الديني -->
+    <div class="card">
+      <h2><i class="fas fa-mosque"></i> المحتوى الديني</h2>
+      <div class="grid">
+        <a class="tile" href="qraan.html"><i class="fas fa-book-quran"></i><span>القرآن الكريم</span><small>قراءة واستماع</small></a>
+        <a class="tile" href="azkar.html"><i class="fas fa-hands-praying"></i><span>الأذكار والأدعية</span><small>أذكار الصباح والمساء</small></a>
+        <a class="tile" href="hades.html"><i class="fas fa-scroll"></i><span>الأحاديث النبوية</span><small>صحيح السنة</small></a>
+        <a class="tile" href="din.html"><i class="fas fa-star-and-crescent"></i><span>القسم الديني</span><small>مكتبة شاملة</small></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- شاشة الحساب المعلّق -->
+<div class="overlay" id="pendingOverlay">
+  <div class="modal">
+    <i class="fas fa-hourglass-half"></i>
+    <h3>حسابك قيد المراجعة</h3>
+    <p>تم استلام طلب إنشاء حساب ولي الأمر بنجاح.<br>سيتم تفعيل حسابك بعد موافقة الإدارة.</p>
+    <button class="btn btn-primary btn-block" id="pendingLogoutBtn" style="margin-top:14px;">تسجيل الخروج</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// Safety hold. This preview must not access production parent data.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) {
+  document.body.innerHTML = '<main dir="rtl" style="padding:40px;font-family:sans-serif;text-align:center">حسابات أولياء الأمور قيد التجهيز الآمن. الخدمة غير مفعلة حالياً.</main>';
+  throw new Error('Parent feature held pending authenticated backend migration');
+}
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, deleteField, serverTimestamp, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+const firebaseConfig = IS_LOCAL ? {
+  apiKey: 'demo-key', authDomain: 'demo-meezan.firebaseapp.com', projectId: 'demo-meezan', appId: 'demo-app'
+} : {
+  apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
+  authDomain: "qanon-c716d.firebaseapp.com",
+  projectId: "qanon-c716d",
+  storageBucket: "qanon-c716d.firebasestorage.app",
+  messagingSenderId: "757756130875",
+  appId: "1:757756130875:web:63c53534c6843e2a29ce1e",
+  measurementId: "G-8FZGTC779Y"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+if (IS_LOCAL) {
+  connectFirestoreEmulator(db, "localhost", 8080);
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+}
+
+/* ---------- إشعار داخل المنصة (نفس نمط الموقع) ---------- */
+async function notifyUser(userId, title, body, targetLabel) {
+  const notifId = 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  await setDoc(doc(db, 'notifications', notifId), {
+    id: notifId, title, body, type: 'text', senderId: 'system', senderName: 'منصة ميزان',
+    createdAt: new Date().toISOString(), target: 'custom', targetLabel: targetLabel || '',
+    recipients: [String(userId)], recipientsCount: 1
+  });
+  const ref = doc(db, 'user_notifications', String(userId));
+  const snap = await getDoc(ref);
+  const d = snap.exists() ? snap.data() : {};
+  let ids = d.notifIds || [];
+  if (!ids.includes(notifId)) ids = [notifId, ...ids].slice(0, 100);
+  await setDoc(ref, { userId: String(userId), notifIds: ids, readIds: d.readIds || [], updatedAt: serverTimestamp() }, { merge: true });
+}
+
+const $ = (id) => document.getElementById(id);
+const ss = sessionStorage;
+let me = null;              // مستند ولي الأمر
+let myUid = null;
+let childrenLinks = {};     // { studentId: {name, code, linkedAt, linkedBy} }
+const resultUnsubs = {};
+
+function toast(msg, isErr) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' error' : '');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ---------- الثيم ---------- */
+function themeIcon() { $('themeBtn').innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; }
+$('themeBtn').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('meezan_theme', next); } catch (e) {}
+  themeIcon();
+});
+themeIcon();
+
+/* ---------- الخروج ---------- */
+async function doLogout() {
+  try { await signOut(auth); } catch (e) {}
+  try { window.__mzLogoutStamp(); window.__mzKillSession(); } catch (e) {}
+  location.replace('login.html');
+}
+$('logoutBtn').addEventListener('click', doLogout);
+$('pendingLogoutBtn').addEventListener('click', doLogout);
+
+/* ---------- التحقق من الدور ---------- */
+if (ss.getItem('meezan_logged_in') === 'true') {
+  const r = ss.getItem('meezan_role');
+  if (r && r !== 'parent') { location.replace('index.html'); }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    // جلسة Firebase منتهية — نظّف وارجع للدخول
+    try { window.__mzKillSession(); } catch (e) {}
+    location.replace('login.html');
+    return;
+  }
+  myUid = user.uid;
+  onSnapshot(doc(db, 'parents', user.uid), (snap) => {
+    if (!snap.exists()) {
+      toast('حساب ولي الأمر غير موجود', true);
+      setTimeout(doLogout, 1500);
+      return;
+    }
+    me = snap.data();
+    if (me.status === 'pending') { $('pendingOverlay').classList.add('show'); return; }
+    $('pendingOverlay').classList.remove('show');
+    renderMe();
+  }, (e) => console.log('parent doc:', e.message));
+
+  startLinksListener();
+  startNotifBadge();
+});
+
+function renderMe() {
+  $('pageLoader').style.display = 'none';
+  $('app').style.display = 'block';
+  $('welcomeName').textContent = 'أهلاً ' + (me.fullName || 'بك');
+  $('myCode').textContent = me.code || '—';
+  $('tgMyCode').textContent = me.code || '';
+  // تيليجرام
+  const tgOn = !!me.telegramChatId;
+  $('tgLinked').style.display = tgOn ? '' : 'none';
+  $('tgUnlinked').style.display = tgOn ? 'none' : '';
+  // واتساب
+  const waOn = !!me.whatsapp;
+  $('waLinked').style.display = waOn ? '' : 'none';
+  $('waUnlinked').style.display = waOn ? 'none' : '';
+  if (waOn) $('waNumber').textContent = me.whatsapp;
+  // اسم البوت من الإعدادات (اختياري)
+  getDoc(doc(db, 'settings', 'login_user')).then(s => {
+    const bot = s.exists() && s.data().telegramBotUsername;
+    if (bot) { $('tgBotName').textContent = '@' + bot.replace(/^@/, ''); $('tgOpenBtn').href = 'https://t.me/' + bot.replace(/^@/, ''); }
+    else $('tgOpenBtn').href = 'https://t.me/';
+  }).catch(() => {});
+}
+
+/* ---------- نسخ الكود ---------- */
+$('copyCodeBtn').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(me.code); toast('تم نسخ الكود'); }
+  catch (e) {
+    const inp = document.createElement('input');
+    inp.value = me.code; document.body.appendChild(inp); inp.select();
+    try { document.execCommand('copy'); toast('تم نسخ الكود'); } catch (e2) { toast(me.code); }
+    inp.remove();
+  }
+});
+
+/* ---------- واتساب ---------- */
+$('waSaveBtn').addEventListener('click', async () => {
+  const num = $('waInput').value.trim();
+  if (!/^01[0-9]{9}$/.test(num)) return toast('رقم الواتساب غير صحيح (01xxxxxxxxx)', true);
+  try {
+    await updateDoc(doc(db, 'parents', myUid), { whatsapp: '2' + num, updatedAt: new Date().toISOString() });
+    toast('تم تفعيل تقارير واتساب');
+  } catch (e) { toast('تعذّر الحفظ، حاول مرة أخرى', true); }
+});
+$('waUnlinkBtn').addEventListener('click', async () => {
+  try {
+    await updateDoc(doc(db, 'parents', myUid), { whatsapp: '', updatedAt: new Date().toISOString() });
+    toast('تم إيقاف تقارير واتساب');
+  } catch (e) { toast('تعذّر الحفظ', true); }
+});
+
+/* ---------- تيليجرام ---------- */
+$('tgUnlinkBtn').addEventListener('click', async () => {
+  try {
+    await updateDoc(doc(db, 'parents', myUid), { telegramChatId: null, updatedAt: new Date().toISOString() });
+    toast('تم إلغاء ربط تيليجرام');
+  } catch (e) { toast('تعذّر الحفظ', true); }
+});
+
+/* ---------- ربط الأبناء (حي) ---------- */
+function startLinksListener() {
+  onSnapshot(doc(db, 'parent_links', myUid), (snap) => {
+    childrenLinks = (snap.exists() && snap.data().children) || {};
+    renderChildren();
+  }, (e) => console.log('links:', e.message));
+}
+
+function renderChildren() {
+  const ids = Object.keys(childrenLinks);
+  const list = $('childrenList');
+  const chip = $('childrenCount');
+  if (!ids.length) {
+    list.innerHTML = '<div class="empty" id="childrenEmpty"><i class="fas fa-user-plus"></i>لم تضف أي ابن بعد.<br>أضف ابنك بكود الطالب الخاص به (يبدأ بـ USR).</div>';
+    chip.style.display = 'none';
+  } else {
+    chip.style.display = '';
+    chip.textContent = ids.length + (ids.length === 1 ? ' ابن' : ' أبناء');
+    list.innerHTML = '';
+    ids.forEach(sid => list.appendChild(childCard(sid, childrenLinks[sid])));
+  }
+  // اشتراكات النتائج
+  Object.keys(resultUnsubs).forEach(sid => { if (!childrenLinks[sid]) { resultUnsubs[sid](); delete resultUnsubs[sid]; } });
+  ids.forEach(sid => {
+    if (resultUnsubs[sid]) return;
+    let tries = 0;
+    const attach = () => {
+      resultUnsubs[sid] = onSnapshot(doc(db, 'student_results', sid), (snap) => {
+        tries = 0;
+        const items = snap.exists() ? (snap.data().items || []) : [];
+        renderChildResults(sid, items);
+      }, (e) => {
+        console.log('results:', e.message);
+        if (tries < 3 && childrenLinks[sid]) { tries++; setTimeout(attach, 2000 * tries); }
+        else renderChildResults(sid, []);
+      });
+    };
+    attach();
+  });
+}
+
+function childCard(sid, info) {
+  const el = document.createElement('div');
+  el.className = 'child-card';
+  el.innerHTML = `
+    <div class="child-head">
+      <div class="child-avatar">${(info.name || '؟').charAt(0)}</div>
+      <div>
+        <div class="child-name">${esc(info.name || 'طالب')}</div>
+        <div class="child-sub">${esc(info.code || '')}</div>
+        ${info.linkedBy === 'student' ? '<div class="linked-by">ربطه الطالب بنفسه</div>' : ''}
+      </div>
+      <div class="child-actions">
+        <button class="btn btn-ghost btn-sm" data-unlink="${esc(sid)}" title="إلغاء الربط"><i class="fas fa-link-slash"></i></button>
+      </div>
+    </div>
+    <div class="results-list" id="res-${esc(sid)}">
+      <div class="hint" style="text-align:center;padding:8px;">جاري تحميل النتائج...</div>
+    </div>`;
+  el.querySelector('[data-unlink]').addEventListener('click', () => unlinkChild(sid, info.name));
+  return el;
+}
+
+function renderChildResults(sid, items) {
+  const box = $('res-' + CSS.escape(sid));
+  if (!box) return;
+  if (!items.length) {
+    box.innerHTML = '<div class="hint" style="text-align:center;padding:8px;">لا توجد نتائج مصححة بعد — ستظهر هنا فور تصحيح أول امتحان أو واجب.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  items.slice(0, 10).forEach(r => {
+    const pct = r.totalScore > 0 ? Math.round((r.score / r.totalScore) * 100) : 0;
+    const color = pct >= 90 ? 'var(--success)' : pct >= 75 ? '#2e7d32' : pct >= 50 ? 'var(--warning)' : 'var(--error)';
+    const icon = r.kind === 'exam' ? 'fa-file-pen' : 'fa-book';
+    const kindAr = r.kind === 'exam' ? 'امتحان' : 'واجب';
+    const date = r.correctedAt ? new Date(r.correctedAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' }) : '';
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = `
+      <div class="result-top">
+        <i class="fas ${icon}"></i>
+        <span>${kindAr}: ${esc(r.itemName || '')}</span>
+        <span class="result-score" style="color:${color}">${r.score}/${r.totalScore}</span>
+      </div>
+      <div class="result-date">${date} · ${pct}%</div>
+      <div class="pbar"><div style="width:${pct}%;background:${color}"></div></div>`;
+    box.appendChild(row);
+  });
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+/* ---------- إضافة ابن بالكود ---------- */
+$('childCodeInput').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''); });
+$('addChildBtn').addEventListener('click', async () => {
+  const code = $('childCodeInput').value.trim().toUpperCase();
+  if (!code) return toast('أدخل كود الطالب أولاً', true);
+  if (!code.startsWith('USR-')) return toast('كود الطالب يبدأ بـ USR — تأكد من الكود', true);
+  const btn = $('addChildBtn'), sp = $('addChildSpinner');
+  btn.disabled = true; sp.classList.add('show');
+  try {
+    const usersSnap = await getDoc(doc(db, 'users', 'all'));
+    const items = usersSnap.exists() ? (usersSnap.data().items || []) : [];
+    const student = items.find(u => String(u.code || '').toUpperCase() === code);
+    if (!student) { toast('الكود غير صحيح — تأكد منه مع ابنك', true); return; }
+    if (childrenLinks[student.id]) { toast('هذا الابن مرتبط بحسابك بالفعل'); return; }
+    const now = new Date().toISOString();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'parent_links', myUid), {
+      children: { [student.id]: { name: student.fullName || student.username, code: student.code, linkedAt: now, linkedBy: 'parent' } },
+      viaCode: code, updatedAt: now
+    }, { merge: true });
+    batch.set(doc(db, 'student_links', student.id), {
+      parents: { [myUid]: { name: me.fullName || '', linkedAt: now, linkedBy: 'parent' } },
+      viaCode: code, updatedAt: now
+    }, { merge: true });
+    await batch.commit();
+    notifyUser(student.id, '👨‍👦 تم ربط ولي أمر بحسابك',
+      `قام ${me.fullName || 'ولي أمر'} بربط حسابه بحسابك كولي أمر. سيصله إشعار بنتائجك الجديدة.`, 'ربط ولي أمر').catch(() => {});
+    toast('تمت إضافة ' + (student.fullName || student.username || 'الابن') + ' بنجاح');
+    $('childCodeInput').value = '';
+  } catch (e) {
+    console.error(e);
+    toast('تعذّر الربط، حاول مرة أخرى', true);
+  } finally { btn.disabled = false; sp.classList.remove('show'); }
+});
+
+/* ---------- إلغاء ربط ---------- */
+async function unlinkChild(sid, name) {
+  if (!confirm('إلغاء ربط ' + (name || 'هذا الطالب') + '؟ لن تصلك نتائجه بعد الآن.')) return;
+  try {
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'parent_links', myUid), { children: { [sid]: deleteField() }, updatedAt: new Date().toISOString() }, { merge: true });
+    batch.set(doc(db, 'student_links', sid), { parents: { [myUid]: deleteField() }, updatedAt: new Date().toISOString() }, { merge: true });
+    await batch.commit();
+    toast('تم إلغاء الربط');
+  } catch (e) { toast('تعذّر إلغاء الربط', true); }
+}
+
+/* ---------- شارة الإشعارات ---------- */
+function startNotifBadge() {
+  onSnapshot(doc(db, 'user_notifications', myUid), (snap) => {
+    if (!snap.exists()) { $('notifBadge').classList.remove('show'); return; }
+    const d = snap.data();
+    const unread = (d.notifIds || []).filter(id => !(d.readIds || []).includes(id) && !(d.deletedIds || []).includes(id)).length;
+    const b = $('notifBadge');
+    if (unread > 0) { b.textContent = unread > 99 ? '99+' : unread; b.classList.add('show'); }
+    else b.classList.remove('show');
+  }, () => {});
+}
+</script>
+</body>
+</html>

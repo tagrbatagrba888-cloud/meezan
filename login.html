@@ -327,7 +327,7 @@
 
   .role-selector {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     margin-bottom: 18px;
   }
@@ -1094,6 +1094,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transi
             <span>معلم</span>
             <small>حساب معلم</small>
           </button>
+          <button type="button" class="role-option" data-role="parent">
+            <i class="fas fa-user-group"></i>
+            <span>ولي أمر</span>
+            <small>متابعة الأبناء</small>
+          </button>
         </div>
 
         <form id="loginForm" autocomplete="off">
@@ -1169,6 +1174,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transi
             <i class="fas fa-chalkboard-user"></i>
             <span>معلم</span>
             <small>تسجيل معلم</small>
+          </button>
+          <button type="button" class="role-option" data-reg-role="parent">
+            <i class="fas fa-user-group"></i>
+            <span>ولي أمر</span>
+            <small>متابعة الأبناء</small>
           </button>
         </div>
 
@@ -1421,13 +1431,18 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transi
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
   getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp,
-  collection, getDocs, query, where
+  collection, getDocs, query, where, connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { 
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut 
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, connectAuthEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const firebaseConfig = {
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+const firebaseConfig = IS_LOCAL ? {
+  apiKey: 'demo-key', authDomain: 'demo-meezan.firebaseapp.com',
+  projectId: 'demo-meezan', appId: 'demo-app'
+} : {
   apiKey: "AIzaSyAmkCOrSaklhUiDdDfZCpSDQNmMYP-Gdw0",
   authDomain: "qanon-c716d.firebaseapp.com",
   projectId: "qanon-c716d",
@@ -1440,6 +1455,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+if (IS_LOCAL) {
+  try {
+    connectFirestoreEmulator(db, "localhost", 8080);
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+  } catch (e) {}
+}
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -2103,6 +2124,8 @@ let studentLoginEnabled = true;
 let teacherLoginEnabled = true;
 let studentRegisterEnabled = true;
 let teacherRegisterEnabled = true;
+let parentLoginEnabled = false;
+let parentRegisterEnabled = false;
 let nationalIdEnabled = false;
 let currentLoginRole = 'student';
 let currentRegRole = 'student';
@@ -2147,6 +2170,8 @@ function applySettings(data) {
   teacherLoginEnabled = data.teacherLoginEnabled !== false;
   studentRegisterEnabled = data.studentRegisterEnabled !== false;
   teacherRegisterEnabled = data.teacherRegisterEnabled !== false;
+  parentLoginEnabled = false; // Safety hold until server-side migration.
+  parentRegisterEnabled = false; // Safety hold until server-side migration.
 
   nationalIdEnabled = data.nationalIdEnabled === true;
   if (nationalIdEnabled) {
@@ -2168,7 +2193,7 @@ function applySettings(data) {
 function applyRoleStates() {
   document.querySelectorAll('[data-role]').forEach(btn => {
     const role = btn.dataset.role;
-    const enabled = role === 'teacher' ? teacherLoginEnabled : studentLoginEnabled;
+    const enabled = role === 'teacher' ? teacherLoginEnabled : (role === 'parent' ? parentLoginEnabled : studentLoginEnabled);
     if (enabled) {
       btn.classList.remove('disabled-role');
       btn.disabled = false;
@@ -2177,7 +2202,7 @@ function applyRoleStates() {
       btn.disabled = true;
       if (btn.classList.contains('selected')) {
         btn.classList.remove('selected');
-        const otherRole = role === 'teacher' ? 'student' : 'teacher';
+        const otherRole = role === 'student' ? 'teacher' : 'student';
         const otherBtn = document.querySelector(`[data-role="${otherRole}"]`);
         if (otherBtn && !otherBtn.disabled) {
           otherBtn.classList.add('selected');
@@ -2189,7 +2214,7 @@ function applyRoleStates() {
 
   document.querySelectorAll('[data-reg-role]').forEach(btn => {
     const role = btn.dataset.regRole;
-    const enabled = role === 'teacher' ? teacherRegisterEnabled : studentRegisterEnabled;
+    const enabled = role === 'teacher' ? teacherRegisterEnabled : (role === 'parent' ? parentRegisterEnabled : studentRegisterEnabled);
     if (enabled) {
       btn.classList.remove('disabled-role');
       btn.disabled = false;
@@ -2198,7 +2223,7 @@ function applyRoleStates() {
       btn.disabled = true;
       if (btn.classList.contains('selected')) {
         btn.classList.remove('selected');
-        const otherRole = role === 'teacher' ? 'student' : 'teacher';
+        const otherRole = role === 'student' ? 'teacher' : 'student';
         const otherBtn = document.querySelector(`[data-reg-role="${otherRole}"]`);
         if (otherBtn && !otherBtn.disabled) {
           otherBtn.classList.add('selected');
@@ -2208,7 +2233,7 @@ function applyRoleStates() {
     }
   });
 
-  const bothRegistersClosed = !studentRegisterEnabled && !teacherRegisterEnabled;
+  const bothRegistersClosed = !studentRegisterEnabled && !teacherRegisterEnabled && !parentRegisterEnabled;
   const regTab = document.querySelector('.auth-tab[data-tab="register"]');
   if (regTab) {
     regTab.style.display = bothRegistersClosed ? 'none' : 'flex';
@@ -2442,7 +2467,7 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
     $('registrationClosedMsg').classList.remove('show');
 
     if (targetTab === 'register') {
-      const bothClosed = !studentRegisterEnabled && !teacherRegisterEnabled;
+      const bothClosed = !studentRegisterEnabled && !teacherRegisterEnabled && !parentRegisterEnabled;
       if (bothClosed) showRegistrationClosed();
     }
   });
@@ -2457,6 +2482,7 @@ document.querySelectorAll('[data-role]').forEach(btn => {
     document.querySelectorAll('[data-role]').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentLoginRole = btn.dataset.role;
+    applyParentLoginUI();
   });
 });
 
@@ -2466,6 +2492,7 @@ document.querySelectorAll('[data-reg-role]').forEach(btn => {
     document.querySelectorAll('[data-reg-role]').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentRegRole = btn.dataset.regRole;
+    applyParentRegUI();
     updateGradeSelect();
   });
 });
@@ -2607,6 +2634,225 @@ $('gNationalId').addEventListener('input', (e) => {
 // ============================================================
 // 🚀 تسجيل الدخول — سريع جداً
 // ============================================================
+// ============================================================
+// 👨‍👦 أولياء الأمور — Firebase Auth حقيقي (آمن)
+// ============================================================
+let __origPhoneLabel = null;
+
+function applyParentLoginUI() {
+  const isP = currentLoginRole === 'parent';
+  const u = $('loginUsername');
+  const grp = u.closest('.form-group');
+  const lbl = grp.querySelector('.form-label');
+  const icon = grp.querySelector('.input-icon');
+  if (isP) {
+    lbl.textContent = 'البريد الإلكتروني';
+    u.placeholder = 'example@mail.com';
+    u.setAttribute('inputmode', 'email');
+    u.type = 'email';
+    u.style.direction = 'ltr'; u.style.textAlign = 'right';
+    if (icon) icon.className = 'fas fa-envelope input-icon';
+  } else {
+    lbl.textContent = 'اسم المستخدم';
+    u.placeholder = 'ادخل اسم المستخدم';
+    u.removeAttribute('inputmode');
+    u.type = 'text';
+    u.style.direction = ''; u.style.textAlign = '';
+    if (icon) icon.className = 'fas fa-user input-icon';
+  }
+  const daamLinks = document.querySelectorAll('.forgot-wrapper a[href^="daam.html"]');
+  daamLinks.forEach(a => a.style.display = isP ? 'none' : '');
+  let resetLink = $('parentResetLink');
+  if (!resetLink) {
+    resetLink = document.createElement('a');
+    resetLink.id = 'parentResetLink';
+    resetLink.className = 'forgot-link';
+    resetLink.href = '#';
+    resetLink.innerHTML = '<i class="fas fa-key"></i> نسيت كلمة المرور؟ أرسل رابط الاستعادة';
+    resetLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = $('loginUsername').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('اكتب بريدك الإلكتروني أولاً ثم اضغط استعادة');
+      try {
+        await sendPasswordResetEmail(auth, email.toLowerCase());
+        showSuccess('تم إرسال رابط استعادة كلمة المرور إلى بريدك', 6000);
+      } catch (err) { showError(mapParentAuthError(err)); }
+    });
+    const fw = document.querySelector('.forgot-wrapper');
+    if (fw) fw.appendChild(resetLink);
+  }
+  resetLink.style.display = isP ? '' : 'none';
+}
+
+function applyParentRegUI() {
+  const isP = currentRegRole === 'parent';
+  const setReq = (el, on) => {
+    if (!el) return;
+    if (el.dataset.origReq === undefined) el.dataset.origReq = el.required ? '1' : '0';
+    el.required = on ? el.dataset.origReq === '1' : false;
+  };
+  ['regUsername', 'regBirthDate', 'regGrade'].forEach(id => {
+    const el = $(id);
+    const g = el && el.closest('.form-group');
+    if (g) g.style.display = isP ? 'none' : '';
+    setReq(el, !isP);
+  });
+  const nid = $('regNidGroup');
+  if (nid) { nid.style.display = isP ? 'none' : (nationalIdEnabled ? '' : 'none'); setReq($('regNationalId'), !isP); }
+  const gender = document.querySelector('input[name="regGender"]');
+  const gGrp = gender && gender.closest('.form-group');
+  if (gGrp) gGrp.style.display = isP ? 'none' : '';
+  document.querySelectorAll('input[name="regGender"]').forEach(r => setReq(r, !isP));
+  const addr = $('regAddressMount');
+  if (addr) { addr.style.display = isP ? 'none' : ''; addr.querySelectorAll('[required]').forEach(el => setReq(el, !isP)); }
+  setReq($('regPhone'), !isP);
+  const phoneGrp = $('regPhone').closest('.form-group');
+  const phoneLbl = phoneGrp && phoneGrp.querySelector('.form-label');
+  if (phoneLbl) {
+    if (!__origPhoneLabel) __origPhoneLabel = phoneLbl.innerHTML;
+    phoneLbl.innerHTML = isP ? 'رقم الهاتف <span class="hint">(اختياري)</span>' : __origPhoneLabel;
+  }
+}
+
+function mapParentAuthError(err) {
+  const c = (err && err.code) || '';
+  if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found'].includes(c)) return 'البريد الإلكتروني أو كلمة السر غير صحيحة';
+  if (c === 'auth/email-already-in-use') return 'البريد الإلكتروني مسجّل بالفعل — سجّل الدخول بدلاً من إنشاء حساب';
+  if (c === 'auth/weak-password') return 'كلمة السر ضعيفة (6 أحرف على الأقل)';
+  if (c === 'auth/invalid-email') return 'البريد الإلكتروني غير صحيح';
+  if (c === 'auth/too-many-requests') return 'محاولات كثيرة — انتظر قليلاً ثم حاول مجدداً';
+  if (c === 'auth/network-request-failed') return 'تحقق من اتصال الإنترنت';
+  if (c === 'auth/popup-closed-by-user') return 'تم إغلاق نافذة جوجل قبل الإكمال';
+  return (err && err.message) || 'حدث خطأ، حاول مرة أخرى';
+}
+
+async function handleParentLogin(email, password) {
+  if (!parentLoginEnabled) return showError('تسجيل دخول أولياء الأمور مغلق حالياً');
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return showError('أدخل البريد الإلكتروني الذي سجلت به');
+
+  const btn = $('loginBtn'), spinner = $('loginSpinner'), icon = $('loginIcon'), btnText = $('loginBtnText');
+  btn.disabled = true; spinner.classList.add('show'); icon.style.display = 'none'; btnText.textContent = 'جاري التحقق...';
+  try {
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+    const uid = cred.user.uid;
+    const psnap = await getDoc(doc(db, 'parents', uid));
+    if (!psnap.exists()) { try { await signOut(auth); } catch (e) {} throw new Error('لا يوجد حساب ولي أمر بهذا البريد'); }
+    const parent = psnap.data();
+    if (parent.status === 'pending') { try { await signOut(auth); } catch (e) {} throw new Error(PENDING_LOGIN_MSG); }
+    if (parent.status === 'rejected') { try { await signOut(auth); } catch (e) {} throw new Error('عذراً، تم رفض طلب إنشاء حسابك من قبل الإدارة'); }
+    saveSession(parent, 'parent', cleanEmail);
+    $('loginUsername').value = ''; $('loginPassword').value = '';
+    showSuccess(`مرحباً ${parent.fullName || ''}! جاري التوجيه...`);
+    goHomeAfterPush(parent, 'parent', 400);
+  } catch (err) {
+    console.error(err);
+    $('loginPassword').value = '';
+    showError(mapParentAuthError(err), err.message === PENDING_LOGIN_MSG ? 8000 : undefined);
+  } finally {
+    spinner.classList.remove('show'); icon.style.display = ''; btnText.textContent = 'تسجيل الدخول'; btn.disabled = false;
+  }
+}
+
+async function handleParentRegister() {
+  if (!parentRegisterEnabled) return showRegistrationClosed('تسجيل أولياء الأمور مغلق حالياً');
+  const fullName = cleanInput($('regFullName').value);
+  const email = cleanInput($('regEmail').value).toLowerCase();
+  const password = cleanInput($('regPassword').value);
+  const confirmPassword = cleanInput($('regConfirmPassword').value);
+  const phone = cleanInput($('regPhone').value);
+
+  if (!fullName || fullName.length < 3) return showError('الاسم الكامل يجب أن يكون 3 أحرف على الأقل');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('البريد الإلكتروني غير صحيح');
+  if (!password || password.length < 6) return showError('كلمة السر يجب أن تكون 6 أحرف على الأقل');
+  if (password !== confirmPassword) return showError('كلمتا السر غير متطابقتين');
+  if (phone && !/^01[0-9]{9}$/.test(phone)) return showError('رقم الهاتف غير صحيح (01xxxxxxxxx)');
+  if (!checkTerms()) return;
+
+  const btn = $('registerBtn'), spinner = $('registerSpinner'), icon = $('registerIcon'), btnText = $('registerBtnText');
+  btn.disabled = true; spinner.classList.add('show'); icon.style.display = 'none'; btnText.textContent = 'جاري إنشاء الحساب...';
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+    const now = new Date().toISOString();
+    const requireApproval = !!(currentSettings && currentSettings.parentApprovalRequired === true);
+    const parentDoc = {
+      id: uid, authUid: uid, fullName, email, phone,
+      code: 'PAR-' + Date.now().toString().slice(-6),
+      status: requireApproval ? 'pending' : 'approved',
+      whatsapp: '', telegramChatId: null, avatarUrl: '', googleAuth: false,
+      isOnline: true, lastSeen: now, createdAt: now, updatedAt: now
+    };
+    await setDoc(doc(db, 'parents', uid), parentDoc);
+    if (parentDoc.status === 'pending') {
+      try { await signOut(auth); } catch (e) {}
+      showSuccess(PENDING_REGISTER_MSG, 8000);
+      return;
+    }
+    saveSession(parentDoc, 'parent', email);
+    showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
+    goHomeAfterPush(parentDoc, 'parent', 500);
+  } catch (err) {
+    console.error(err);
+    showError(mapParentAuthError(err));
+  } finally {
+    spinner.classList.remove('show'); icon.style.display = ''; btnText.textContent = 'إنشاء الحساب'; btn.disabled = false;
+  }
+}
+
+async function handleGoogleParent(mode) {
+  return showError("حسابات أولياء الأمور قيد التجهيز الآمن حالياً");
+  hideAllMessages();
+  const btn = mode === 'login' ? $('googleLoginBtn') : $('googleRegisterBtn');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاتصال بـ Google...';
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const g = result.user;
+    const uid = g.uid;
+    const psnap = await getDoc(doc(db, 'parents', uid));
+
+    if (mode === 'login') {
+      if (!psnap.exists()) { try { await signOut(auth); } catch (e) {} throw new Error('لا يوجد حساب ولي أمر بهذا البريد — أنشئ حساباً جديداً'); }
+      const parent = psnap.data();
+      if (parent.status === 'pending') { try { await signOut(auth); } catch (e) {} throw new Error(PENDING_LOGIN_MSG); }
+      if (parent.status === 'rejected') { try { await signOut(auth); } catch (e) {} throw new Error('عذراً، تم رفض طلب إنشاء حسابك من قبل الإدارة'); }
+      saveSession(parent, 'parent', parent.email || (g.email || '').toLowerCase());
+      showSuccess(`مرحباً ${parent.fullName || ''}! جاري التوجيه...`);
+      goHomeAfterPush(parent, 'parent', 400);
+      return;
+    }
+
+    if (psnap.exists()) throw new Error('هذا البريد مسجّل بالفعل — سجّل الدخول بدلاً من إنشاء حساب');
+    const now = new Date().toISOString();
+    const requireApproval = !!(currentSettings && currentSettings.parentApprovalRequired === true);
+    const parentDoc = {
+      id: uid, authUid: uid, fullName: g.displayName || '', email: (g.email || '').toLowerCase(), phone: '',
+      code: 'PAR-' + Date.now().toString().slice(-6),
+      status: requireApproval ? 'pending' : 'approved',
+      whatsapp: '', telegramChatId: null, avatarUrl: g.photoURL || '', googleAuth: true,
+      isOnline: true, lastSeen: now, createdAt: now, updatedAt: now
+    };
+    await setDoc(doc(db, 'parents', uid), parentDoc);
+    try { await setDoc(doc(db, 'parent_codes', parentDoc.code), { uid }); } catch (e) { console.warn('parent_codes write:', e); }
+    if (parentDoc.status === 'pending') {
+      try { await signOut(auth); } catch (e) {}
+      showSuccess(PENDING_REGISTER_MSG, 8000);
+      return;
+    }
+    saveSession(parentDoc, 'parent', parentDoc.email);
+    showSuccess('تم إنشاء حسابك بنجاح! جاري التوجيه...');
+    goHomeAfterPush(parentDoc, 'parent', 500);
+  } catch (err) {
+    console.error(err);
+    if (err && err.code !== 'auth/popup-closed-by-user') showError(mapParentAuthError(err), err.message === PENDING_LOGIN_MSG ? 8000 : undefined);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   hideAllMessages();
@@ -2617,7 +2863,9 @@ $('loginForm').addEventListener('submit', async (e) => {
   $('loginUsername').value = username;
   $('loginPassword').value = password;
 
-  if (!username || !password) return showError('الرجاء إدخال اسم المستخدم وكلمة السر');
+  if (!username || !password) return showError(currentLoginRole === 'parent' ? 'الرجاء إدخال البريد الإلكتروني وكلمة السر' : 'الرجاء إدخال اسم المستخدم وكلمة السر');
+
+  if (currentLoginRole === 'parent') return handleParentLogin(username, password);
 
   if (currentLoginRole === 'student' && !studentLoginEnabled) {
     return showError('تسجيل دخول الطلاب مغلق حالياً');
@@ -2706,6 +2954,8 @@ const gAddr = createAddressWidget($('gAddressMount'));
 $('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   hideAllMessages();
+
+  if (currentRegRole === 'parent') return handleParentRegister();
 
   if (currentRegRole === 'student' && !studentRegisterEnabled) {
     return showRegistrationClosed('تسجيل الطلاب مغلق حالياً');
@@ -2891,6 +3141,7 @@ $('googleRegisterBtn').addEventListener('click', () => {
 
 async function handleGoogleAuth(mode) {
   hideAllMessages();
+  if ((mode === 'register' ? currentRegRole : currentLoginRole) === 'parent') return handleGoogleParent(mode);
 
   const btn = mode === 'login' ? $('googleLoginBtn') : $('googleRegisterBtn');
   const originalHTML = btn.innerHTML;
@@ -3354,7 +3605,7 @@ async function setupPushForUser(userId, role) {
 function goHomeAfterPush(user, role, delay) {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   Promise.all([sleep(delay), Promise.race([setupPushForUser(user && user.id, role), sleep(5000)])])
-    .then(() => window.location.replace('index.html'));
+    .then(() => window.location.replace(role === 'parent' ? 'parent.html' : 'index.html'));
 }
 
 // ============================================================

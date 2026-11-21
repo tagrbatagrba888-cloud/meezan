@@ -1,0 +1,137 @@
+rules_version = '2';
+// STAGED ONLY. Parent activation requires a full legacy-data migration.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function authed() { return request.auth != null; }
+    function admin() { return authed() && request.auth.uid == '4KbUOO6wrHf3jzzKvGIltsNyzFX2'; }
+    function approved() {
+      return authed() && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.status == 'approved';
+    }
+    match /admin_gate/{id} { allow read, write: if false; }
+    match /parents/{uid} {
+      allow get: if admin() || (authed() && request.auth.uid == uid);
+      allow list: if admin();
+      allow create, update, delete: if admin();
+    }
+    match /parent_codes/{code} { allow read, write: if admin(); }
+    match /student_codes/{code} { allow read, write: if admin(); }
+    match /parent_links/{uid} {
+      allow get: if admin() || (approved() && request.auth.uid == uid);
+      allow list, write: if admin();
+    }
+    match /student_links/{id} {
+      allow get: if admin() || (approved() && request.auth.uid in resource.data.get('parents', {}).keys());
+      allow list, write: if admin();
+    }
+    match /student_results/{id} {
+      allow get: if admin() || (approved() && request.auth.uid in get(/databases/$(database)/documents/student_links/$(id)).data.get('parents', {}).keys());
+      allow list: if admin();
+      allow write: if false;
+    }
+    match /parent_result_events/{id} { allow read, write: if false; }
+    match /parent_reports_meta/{id} { allow read, write: if false; }
+    match /admin_outbox/{id=**} { allow read, write: if admin(); }
+    match /result_emails/{id=**} { allow read, write: if admin(); }
+    match /result_emails_meta/{id=**} { allow read, write: if admin(); }
+    // ---------------- المجموعات القديمة: الوضع الحالي ----------------
+    // ⚠️ مذكورة بالاسم. تُشدَّد عند الترحيل المعتمد فقط.
+    match /activity_log/{doc} { allow read, write: if true; }
+    match /assignments/{doc} { allow read, write: if true; }
+    match /azkarAudio/{doc} { allow read, write: if true; }
+    match /azkarItems/{doc} { allow read, write: if true; }
+    match /calls/{doc} { allow read, write: if true; }
+    match /camera_snapshots/{doc} { allow read, write: if true; }
+    match /certificates/{doc} { allow read, write: if true; }
+    match /chat_files/{doc} { allow read, write: if true; }
+    match /chat_messages/{doc} { allow read, write: if true; }
+    match /chats/{doc} { allow read, write: if true; }
+    match /chess_games/{doc} { allow read, write: if true; }
+    match /chess_learn/{doc} { allow read, write: if true; }
+    match /chess_players/{doc} { allow read, write: if true; }
+    match /chess_puz/{doc} { allow read, write: if true; }
+    match /chess_puzzles/{doc} { allow read, write: if true; }
+    match /chess_reqs/{doc} { allow read, write: if true; }
+    match /comment_gifts/{doc} { allow read, write: if true; }
+    match /contact_names/{doc} { allow read, write: if true; }
+    match /contest_rooms/{doc} { allow read, write: if true; }
+    match /contests/{doc} { allow read, write: if true; }
+    match /counters/{doc} { allow read, write: if true; }
+    match /courses/{doc} { allow read, write: if true; }
+    match /crime_audio/{doc} { allow read, write: if true; }
+    match /crime_cases/{doc} { allow read, write: if true; }
+    match /crime_invites/{doc} { allow read, write: if true; }
+    match /crime_logs/{doc} { allow read, write: if true; }
+    match /crime_rooms/{doc} { allow read, write: if true; }
+    match /crime_servers/{doc} { allow read, write: if true; }
+    match /crime_settings/{doc} { allow read, write: if true; }
+    match /customFonts/{doc} { allow read, write: if true; }
+    match /exam_subs/{doc} { allow read, write: if true; }
+    match /exams/{doc} { allow read, write: if true; }
+    match /follows/{doc} { allow read, write: if true; }
+    match /hadithAudio/{doc} { allow read, write: if true; }
+    match /hadithItems/{doc} { allow read, write: if true; }
+    match /homework_subs/{doc} { allow read, write: if true; }
+    match /homeworks/{doc} { allow read, write: if true; }
+    match /listen/{doc} { allow read, write: if true; }
+    match /live_chunks/{doc} { allow read, write: if true; }
+    match /live_comments/{doc} { allow read, write: if true; }
+    match /live_gifts/{doc} { allow read, write: if true; }
+    match /live_requests/{doc} { allow read, write: if true; }
+    match /live_streams/{doc} { allow read, write: if true; }
+    match /live_viewers/{doc} { allow read, write: if true; }
+    match /monitoring_data/{doc} { allow read, write: if true; }
+    match /notifications/{doc} { allow read, write: if true; }
+    match /payment_codes/{doc} { allow read, write: if true; }
+    match /polls/{doc} { allow read, write: if true; }
+    match /post_media/{doc} { allow read, write: if true; }
+    match /posts/{doc} { allow read, write: if true; }
+    match /presence/{doc} { allow read, write: if true; }
+    match /profiles/{doc} { allow read, write: if true; }
+    match /push_tokens/{doc} { allow read, write: if true; }
+    match /reports/{doc} { allow read, write: if true; }
+    match /settings/{doc} { allow read, write: if true; }
+    match /store_coupons/{doc} { allow read, write: if true; }
+    match /store_orders/{doc} { allow read, write: if true; }
+    match /store_products/{doc} { allow read, write: if true; }
+    match /stories/{doc} { allow read, write: if true; }
+    match /summaries/{doc} { allow read, write: if true; }
+    match /support_chats/{doc} { allow read, write: if true; }
+    match /taklifDownloads/{doc} { allow read, write: if true; }
+    match /teacher_settings/{doc} { allow read, write: if true; }
+    match /teachers/{doc} { allow read, write: if true; }
+    match /userAssignments/{doc} { allow read, write: if true; }
+    match /userFonts/{doc} { allow read, write: if true; }
+    match /user_access/{doc} { allow read, write: if true; }
+    match /user_enrollments/{doc} { allow read, write: if true; }
+    match /user_notifications/{doc} { allow read, write: if true; }
+    match /user_social/{doc} { allow read, write: if true; }
+    match /users/{doc} { allow read, write: if true; }
+    match /verifyRequests/{doc} { allow read, write: if true; }
+    match /video_streams/{doc} { allow read, write: if true; }
+    match /voice_calls/{doc} { allow read, write: if true; }
+    match /wallet_requests/{doc} { allow read, write: if true; }
+    match /wallet_transactions/{doc} { allow read, write: if true; }
+    match /wallets/{doc} { allow read, write: if true; }
+    match /wwtbam_awards/{doc} { allow read, write: if true; }
+    match /wwtbam_cfg/{doc} { allow read, write: if true; }
+    match /wwtbam_games/{doc} { allow read, write: if true; }
+    match /wwtbam_q/{doc} { allow read, write: if true; }
+
+    // مجموعات فرعية داخل المجموعات القديمة (نفس الوضع الحالي)
+    match /{col}/{doc}/{sub=**} {
+      allow read, write: if col in [
+        'activity_log', 'assignments', 'azkarAudio', 'azkarItems', 'calls', 'camera_snapshots', 'certificates', 'chat_files',
+        'chat_messages', 'chats', 'chess_games', 'chess_learn', 'chess_players', 'chess_puz', 'chess_puzzles', 'chess_reqs',
+        'comment_gifts', 'contact_names', 'contest_rooms', 'contests', 'counters', 'courses', 'crime_audio', 'crime_cases',
+        'crime_invites', 'crime_logs', 'crime_rooms', 'crime_servers', 'crime_settings', 'customFonts', 'exam_subs', 'exams',
+        'follows', 'hadithAudio', 'hadithItems', 'homework_subs', 'homeworks', 'listen', 'live_chunks', 'live_comments',
+        'live_gifts', 'live_requests', 'live_streams', 'live_viewers', 'monitoring_data', 'notifications', 'payment_codes', 'polls',
+        'post_media', 'posts', 'presence', 'profiles', 'push_tokens', 'reports', 'settings', 'store_coupons',
+        'store_orders', 'store_products', 'stories', 'summaries', 'support_chats', 'taklifDownloads', 'teacher_settings', 'teachers',
+        'userAssignments', 'userFonts', 'user_access', 'user_enrollments', 'user_notifications', 'user_social', 'users', 'verifyRequests',
+        'video_streams', 'voice_calls', 'wallet_requests', 'wallet_transactions', 'wallets', 'wwtbam_awards', 'wwtbam_cfg', 'wwtbam_games',
+        'wwtbam_q',
+      ];
+    }
+  }
+}

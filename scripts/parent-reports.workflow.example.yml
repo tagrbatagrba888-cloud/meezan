@@ -1,0 +1,24 @@
+name: parent-reports
+on:
+  workflow_dispatch: {}
+concurrency:
+  group: parent-reports
+  cancel-in-progress: false
+permissions: {}
+jobs:
+  poll:
+    if: ${{ false }} # Safety hold: no parent data access or sends before migration.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/parent-reports-poller.mjs
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          WHATSAPP_BRIDGE_URL: ${{ secrets.WHATSAPP_BRIDGE_URL }}
+          WHATSAPP_BRIDGE_TOKEN: ${{ secrets.WHATSAPP_BRIDGE_TOKEN }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
