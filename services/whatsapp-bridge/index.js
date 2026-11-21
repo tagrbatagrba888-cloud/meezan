@@ -34,7 +34,12 @@ async function connect() {
   sock.ev.on('creds.update', saveCreds);
   sock.ev.on('connection.update', async (u) => {
     const { connection, lastDisconnect } = u;
-    if (connection === 'open') { ready = true; console.log('[bridge] WhatsApp connected as', WA_PHONE); }
+    if (connection === 'open') {
+      const connectedPhone=String(sock.user?.id||'').split(':')[0].split('@')[0];
+      ready=connectedPhone===WA_PHONE;
+      if(ready)console.log('[bridge] dedicated WhatsApp account verified');
+      else console.error('[bridge] account mismatch; all sending disabled');
+    }
     if (connection === 'close') {
       ready = false;
       const code = lastDisconnect?.error?.output?.statusCode;
@@ -76,10 +81,11 @@ async function drain() {
     if (wait > 0) await new Promise(r => setTimeout(r, wait));
     if (!ready) { job.reject(new Error('bridge not connected')); continue; }
     try {
-      await sock.sendMessage(job.to + '@s.whatsapp.net', { text: job.text });
+      const sent = await sock.sendMessage(job.to + '@s.whatsapp.net', { text: job.text });
+      if(!sent?.key?.id)throw new Error('unknown provider receipt');
       lastSentAt = Date.now();
       perRecipient.set(job.to, lastSentAt);
-      job.resolve({ ok: true });
+      job.resolve({ ok: true, messageId: sent.key.id });
     } catch (e) { job.reject(e); }
   }
   draining = false;
