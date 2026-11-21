@@ -29,3 +29,9 @@ The earlier 21-test suite accepted code-as-capability and PIN-only writes. Those
 ## Local follow-up after the safety-held push
 
 Local only, not yet approved for another push: admin-auth amr, pending link requests with admin approval, private owner/per-child notification paths, and Admin SDK projection/channel-proof/delivery-job building blocks. The new suite has 48 rules tests and 10 backend tests plus a browser flow. Provider routes, new enrollment and the full legacy migration are still unfinished. See PARENT-MIGRATION-CHOICES.md and services/parent-backend/README.md.
+
+## Delivery scope correction
+
+amr.html is a separately delivered admin-version source file, not part of this user-version repository or its hosting. Its earlier preview was removed from the current repository snapshot at the owner's request. A local ignored copy may be used for the browser test. The local-only shared-login admin route expects that separately supplied fixture; it is not a production redirect to an admin deployment.
+
+The owner requested activation as a goal. This does not remove readiness blockers: legacy authentication/private-data migration, approved fresh-login proof behavior, compatible clients, live rules audit, host/provider setup, and staging/cutover validation. Do not keep asking a generic activation-permission question; resolve the specific remaining behavior and readiness conditions.

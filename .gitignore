@@ -3,3 +3,6 @@ node_modules/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# Separate admin-version deliverable, not hosted by the user repository.
+/amr.html

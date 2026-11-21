@@ -1,3 +1,5 @@
+// Requires the separately delivered admin amr.html fixture in the local preview root.
+// It is deliberately absent from this user-version repository.
 const puppeteer=require(process.env.PUPPETEER_CORE_PATH || 'puppeteer-core');
 (async()=>{
  const browser=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox','--disable-dev-shm-usage']});
