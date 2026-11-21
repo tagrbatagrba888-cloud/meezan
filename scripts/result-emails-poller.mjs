@@ -18,14 +18,15 @@ function gradeMessage(pct) {
   return { label: 'تحتاج مراجعة', msg: 'لا بأس! راجع الدرس وحاول مرة أخرى، أنت قادر 🌱', color: '#b23b3b' };
 }
 
-function buildResultEmail({ studentName, itemName, kindLabel, score, total, submittedAt, siteUrl, resultsPath }) {
+function buildResultEmail({ studentName, itemName, kindLabel, score, total, submittedAt, siteUrl, resultsPath, ctaLabel, ctaUrl }) {
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const g = gradeMessage(pct);
   const dateStr = new Date(submittedAt || Date.now()).toLocaleString('ar-EG', {
     timeZone: 'Africa/Cairo', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
   });
   const subject = `نتيجتك في ${kindLabel}: ${itemName} — ${score}/${total}`;
-  const link = siteUrl + '/' + resultsPath;
+  const link = ctaUrl || (siteUrl + '/' + resultsPath);
+  const ctaText = ctaLabel || 'عرض النتيجة في المنصة';
 
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -48,7 +49,7 @@ function buildResultEmail({ studentName, itemName, kindLabel, score, total, subm
       <p style="font-size:14px;color:#555;margin:0 0 6px;">${g.msg}</p>
       <p style="font-size:12.5px;color:#999;margin:0 0 22px;">تاريخ التسليم: ${dateStr}</p>
       <div style="text-align:center;margin-bottom:8px;">
-        <a href="${link}" style="display:inline-block;background:#0B3D2E;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;border-radius:12px;padding:14px 36px;">عرض النتيجة في المنصة</a>
+        <a href="${link}" style="display:inline-block;background:#0B3D2E;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;border-radius:12px;padding:14px 36px;">${ctaText}</a>
       </div>
     </div>
     <p style="text-align:center;font-size:12px;color:#999;margin:18px 0 0;">
@@ -117,7 +118,8 @@ async function fsCreate(coll, docId, data) {
 }
 async function fsPatch(path, data) {
   const fields = {}; for (const [k, v] of Object.entries(data)) fields[k] = toFs(v);
-  const r = await fetch(`${BASE}/${path}?key=${API_KEY}`, {
+  const mask = Object.keys(data).map((k) => '&updateMask.fieldPaths=' + encodeURIComponent(k)).join('');
+  const r = await fetch(`${BASE}/${path}?key=${API_KEY}${mask}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
   });
   if (!r.ok) throw new Error(`Firestore patch ${path}: ${r.status}`);
@@ -139,8 +141,18 @@ async function sendEmail(to, mail) {
   return res.json();
 }
 
+let SETTINGS = {};
+async function loadSettings() {
+  try {
+    const d = await fsGet('result_emails_meta/settings');
+    if (d && d.fields) for (const [k, v] of Object.entries(d.fields)) SETTINGS[k] = fromFs(v);
+  } catch (e) { /* defaults */ }
+}
+
 async function main() {
   if (!BREVO) throw new Error('BREVO_API_KEY missing');
+  await loadSettings();
+  if (SETTINGS.resultEmailsEnabled === false) { console.log('result emails disabled by admin settings; skipping'); return; }
   const meta = await fsGet('result_emails_meta/state');
   const baseline = !meta; // أول تشغيل: تسجيل الموجود بدون إرسال
   const users = itemsOf(await fsGet('users/all'));
@@ -171,7 +183,8 @@ async function main() {
       const mail = buildResultEmail({
         studentName, itemName: s[cfg.nameKey] || cfg.kindLabel, kindLabel: cfg.kindLabel,
         score: s.score, total: s.totalScore, submittedAt: s.correctedAt || s.submittedAt,
-        siteUrl: SITE, resultsPath: cfg.resultsPath
+        siteUrl: SITE, resultsPath: cfg.resultsPath,
+        ctaLabel: SETTINGS.resultCtaLabel, ctaUrl: SETTINGS.resultCtaUrl
       });
       try {
         const r = await sendEmail(email, mail);
