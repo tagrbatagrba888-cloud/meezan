@@ -2440,7 +2440,7 @@ function applyFilters(force = false) {
 
 function updateFilterCounts() {
   const published = allHomeworks.filter(h => h.status === 'published');
-  const filtered = published.filter(h => !hiddenHomeworks.has(h.id));
+  const filtered = published.filter(h => (!h.grade || h.grade === myGrade) && !hiddenHomeworks.has(h.id));
 
   $('filterAll').textContent = filtered.length;
   $('filterOpened').textContent = filtered.filter(h => getHomeworkStatus(h) === 'opened').length;
