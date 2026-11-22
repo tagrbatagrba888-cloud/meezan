@@ -29,7 +29,7 @@ main{max-width:760px;margin:0 auto;padding:16px}
 .day small{color:var(--sub);font-weight:700;margin-inline-start:auto}
 .day.today{color:var(--ok)}
 .ev{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px var(--shadow);display:flex;gap:12px}
-.ev .time{min-width:64px;text-align:center;font-weight:900;font-size:14px;color:var(--primary);border-inline-end:2px solid var(--accent);padding-inline-end:12px;display:flex;flex-direction:column;justify-content:center}
+.ev .time{min-width:78px;text-align:center;font-weight:900;font-size:14px;color:var(--primary);border-inline-end:2px solid var(--accent);padding-inline-end:12px;display:flex;flex-direction:column;justify-content:center}
 .ev .time span{font-size:11px;color:var(--sub);font-weight:700}
 .ev h3{font-size:15px;font-weight:800;margin-bottom:4px}
 .ev p{font-size:13px;color:var(--sub);line-height:1.6;white-space:pre-wrap}
@@ -64,6 +64,7 @@ const userId = sessionStorage.getItem('meezan_user_id');
 const TYPES = {exam:'امتحان',homework:'واجب',deadline:'موعد تسليم',lecture:'محاضرة',review:'مراجعة',contest:'مسابقة',other:'أخرى'};
 const esc = s => { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; };
 const norm = g => String(g || '').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim();
+const t12 = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s||'').trim()); if (!m) return String(s||''); const h = +m[1], mi = m[2]; if (h>23) return String(s); const h12 = h%12===0?12:h%12; const per = h<12?'صباحًا':'مساءً'; return h12+':'+mi+' '+per; };
 const cairoParts = d => { const p = new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).reduce((a,x)=>(a[x.type]=x.value,a),{}); return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`}; };
 let myGrade = '', manual = [], exams = [], filter = 'weekly', loaded = {u:false,t:false};
 function all() {
@@ -80,7 +81,7 @@ const WEEKLY = {
     ['الأحد','17:00','An Introduction to Law and Human Rights (الإنجليزي)'],
     ['الأحد','20:00','علم الإجرام والعقاب'],
     ['الاثنين','17:00','الشريعة الإسلامية: المدخل للفقه الإسلامي'],
-    ['الاثنين','20:00','النظرية العامة للقانون ونظرية الحق، بالتبادل أسبوع لكل مادة وتبدأ بالنظرية العامة للقانون'],
+    ['الاثنين','20:00','نظرية القانون ونظرية الحق، بالتبادل أسبوع لكل مادة وتبدأ بنظرية القانون'],
     ['الثلاثاء','17:00','حقوق الإنسان (الترم الثاني)'],
     ['الثلاثاء','20:00','النظم الدستورية والسياسية'],
     ['الأربعاء','17:00','الاقتصاد السياسي']
@@ -102,7 +103,7 @@ function renderWeekly(box) {
   let last = '';
   WEEKLY[key].forEach(r => {
     if (r[0] !== last) { last = r[0]; html += `<div class="day"><i class="fas fa-calendar-day"></i>${esc(r[0])}<small>كل أسبوع</small></div>`; }
-    html += `<div class="ev"><div class="time">${esc(r[1])}</div><div><h3>${esc(r[2])}</h3><span class="badge plan">ميعاد نزول مخطط</span><span class="badge">تلخيص وواجب</span></div></div>`;
+    html += `<div class="ev"><div class="time">${esc(t12(r[1]))}</div><div><h3>${esc(r[2])}</h3><span class="badge plan">ميعاد نزول مخطط</span><span class="badge">تلخيص وواجب</span></div></div>`;
   });
   box.innerHTML = html;
 }
@@ -125,7 +126,7 @@ function render() {
       html += `<div class="day ${e.date === now.date ? 'today' : ''}"><i class="fas fa-calendar-day"></i>${esc(nm)}<small>${e.date === now.date ? 'اليوم' : ''}</small></div>`;
     }
     const cls = e.type === 'exam' ? 'exam' : (e.type === 'homework' || e.type === 'deadline') ? 'hw' : '';
-    const t = e.start ? `${esc(e.start)}${e.end ? '<span>إلى ' + esc(e.end) + '</span>' : ''}` : '<span>طوال اليوم</span>';
+    const t = e.start ? `${esc(t12(e.start))}${e.end ? '<span>إلى ' + esc(t12(e.end)) + '</span>' : ''}` : '<span>طوال اليوم</span>';
     const link = e.link && /^https?:\/\//i.test(e.link) ? `<a class="lnk" href="${esc(e.link)}" target="_blank" rel="noopener noreferrer"><i class="fas fa-link"></i> فتح الرابط</a>` : '';
     html += `<div class="ev"><div class="time">${t}</div><div><h3>${esc(e.title)}</h3><span class="badge ${cls}">${esc(TYPES[e.type] || 'أخرى')}</span>${e.auto ? '<span class="badge auto">من صفحة الامتحانات</span>' : ''}${e.location ? '<span class="badge">' + esc(e.location) + '</span>' : ''}${e.note ? '<p>' + esc(e.note) + '</p>' : ''}${link}</div></div>`;
   });
