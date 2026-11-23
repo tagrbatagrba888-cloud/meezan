@@ -1229,6 +1229,11 @@ async function sendComment(pid){
     notify(p.authorId,'تعليق جديد',`${uName(uid)} علّق على منشورك${text?`: «${text.slice(0,60)}»`:''}`,{postId:pid});
   } catch(e){ console.error(e); toast('فشل إرسال التعليق — '+(e.code||e.message||'تحقق من الاتصال والصلاحيات'),'error'); }
   finally { S.sending.delete(pid); } }
+function closeCommentStreams(pid){
+  S.open.delete(pid);
+  for(const key of [pid,pid+':g']){if(S.unsub[key]){S.unsub[key]();delete S.unsub[key];}}
+  if(S.gOK)delete S.gOK[pid];
+}
 function openComments(pid){
   S.open.add(pid);
   if (!S.unsub[pid]) S.unsub[pid] = onSnapshot(query(collection(db,'posts',pid,'comments'), orderBy('createdAt','asc')), s => { S.comments[pid] = s.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})); draw(); }, e => { console.error('comments',e); if (S.comments[pid]===undefined) S.comments[pid] = []; draw(); });
@@ -1266,7 +1271,7 @@ const H = {
     if (r){ snd('react'); track(p,'react'); notify(p.authorId,'تفاعل جديد',`${uName(uid)} تفاعل ${RMAP[r].emoji} مع منشورك`,{postId:p.id}); } },
   rxList:t => { const p = P(t.dataset.id), e = Object.entries(p.reactions||{}); if (!e.length) return;
     openModal(`${mh('التفاعلات')}<div class="mb">${e.map(([id,tp]) => { const a = authorOf({authorId:id}); return `<div class="rxl">${avatar(a.avatar,a.name,'av34',a.official)}<span style="flex:1">${esc(a.name)}</span><em>${RMAP[tp]?.emoji||'👍'}</em></div>`; }).join('')}</div>`); },
-  toggleComments:t => { const id = t.dataset.id; if (S.open.has(id)){ S.open.delete(id); draw(); } else openComments(id); },
+  toggleComments:t => { const id = t.dataset.id; if (S.open.has(id)){ closeCommentStreams(id); draw(); } else openComments(id); },
   share:t => { const p = P(t.dataset.id); if (p) shareModal(p); },
   follow:t => toggleFollow(t.dataset.id, t.dataset.p),
   cta:t => { const p = P(t.dataset.id); if (p?.isAd && p.authorId !== uid && !p.ad?.cby?.[fk(uid)]) updateDoc(doc(db,'posts',p.id),{'ad.clicks':increment(1), ['ad.cby.'+fk(uid)]:true}).catch(() => {}); },
@@ -1302,7 +1307,7 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.react-wr
 const th = localStorage.getItem('meezan_theme') || 'light';
 document.documentElement.setAttribute('data-theme', th); $('themeIc').className = th==='dark' ? 'fas fa-sun' : 'fas fa-moon';
 $('sndIc').className = localStorage.getItem('meezan_snd')==='0' ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
-function rebuild(){ if (S.one) return; const m = new Map(); [S.feed, S.adP, S.myAdP].forEach(l => l.forEach(p => m.set(p.id, p))); S.posts = [...m.values()].filter(ok); S.posts.forEach(post => watchSocial(post.authorId)); S.loaded.posts = true; updAdCnt(); draw(); saveCache(); }
+function rebuild(){ if (S.one) return; const m = new Map(); [S.feed, S.adP, S.myAdP].forEach(l => l.forEach(p => m.set(p.id, p))); S.posts = [...m.values()].filter(ok); syncSocialSubscriptions(); S.loaded.posts = true; updAdCnt(); draw(); saveCache(); }
 function updAdCnt(){ const n = S.myAdP.filter(p => adOn(p)).length, e = $('adCnt'); e.hidden = !n; e.textContent = ar(n); }
 const J = x => JSON.parse(JSON.stringify(x, (k,v) => v && typeof v.toDate === 'function' ? {seconds:v.seconds, nanoseconds:v.nanoseconds} : v));
 let sct;
@@ -1351,6 +1356,11 @@ function watchSocial(id){
     if (id === uid) { S.live.soc = true; S.loaded.soc = true; backfill(); }
     draw(); saveCache();
   }, () => { if (id === uid) { S.loaded.soc = true; draw(); } }));
+}
+function syncSocialSubscriptions(){
+  const needed=new Set([uid,...S.posts.map(post=>post.authorId)]);
+  for(const [id,stop] of socialSubscriptions){if(!needed.has(id)){stop();socialSubscriptions.delete(id);}}
+  needed.forEach(watchSocial);
 }
 watchSocial(uid);
 
@@ -2319,7 +2329,7 @@ function rlSheetPaint(){ const sh = document.querySelector('.rlx .rlsh'); if (!s
   b.innerHTML = commentsBlock(p); const l1 = b.querySelector('.cm-list'), st = S.cmStick;
   if (l1){ if (st && st.pid === p.id && Number(l1.dataset.n) > st.n){ l1.scrollTop = l1.scrollHeight; S.cmStick = null; } else l1.scrollTop = t0; }
   if (aid){ const ni = document.getElementById(aid); if (ni){ ni.focus(); try { ni.setSelectionRange(pos, pos); } catch(_){} } } }
-function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; if (!sh._was) S.open.delete(sh.dataset.pid); sh.remove(); }
+function rlSheetClose(){ const sh = document.querySelector('.rlx .rlsh'); if (!sh) return; if (!sh._was) closeCommentStreams(sh.dataset.pid); sh.remove(); }
 
 /* ===== بث خارجي + بطاقة بث بشكل فيديو + فتح فيديو في الريلز ===== */
 function extLives(){ const out = []; S.posts.forEach(p => { if ((p.status||'published') !== 'published' || p.deleted) return; const m = (p.media||[]).find(x => x.type === 'link' && x.live); if (m) out.push({p, url:m.url}); }); return out.sort((a,b) => (tsd(b.p.createdAt)||Date.now()) - (tsd(a.p.createdAt)||Date.now())); }
