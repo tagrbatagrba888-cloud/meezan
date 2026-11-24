@@ -609,7 +609,9 @@ function normAssign(a){
   return { ...a, ink: a.ink || { c:'#1b3a9c', fx:'ball' }, paper: a.paper || 'lined', lh: parseFloat(a.lh) || 36, fs: parseFloat(a.fs) || 24 };
 }
 function headerFor(a, name, code){
-  return [['الاسم', name], ['الكود', code], ['الفرقة', a.grade || myGrade() || '—'], ['التاريخ', todayDMY()], ['المادة', a.subject || '—']];
+  const rows = [['الاسم', name], ['الكود', code], ['الفرقة', a.grade || myGrade() || '—'], ['المادة', a.subject || '—']];
+  if (!(a.grade === 'الفرقه الثانيه' && a.hideIdentityDate === true)) rows.splice(3, 0, ['التاريخ', todayDMY()]);
+  return rows;
 }
 function pdfLayout(d){
   const lh = d.lh;
